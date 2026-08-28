@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>VB6Analyzer.App</RootNamespace>
+    <AssemblyName>VB6Analyzer</AssemblyName>
+
+    <!--
+      NOTA IMPORTANTE: SelfContained / PublishSingleFile / RuntimeIdentifier NON sono
+      impostati qui a livello globale, apposta: se lo fossero, 'dotnet build' e
+      'dotnet run' in sviluppo si romperebbero (richiedono un RID esplicito).
+      Per il packaging "single EXE portable" (sezione 5 del charter) usare i comandi
+      dotnet publish elencati nel README, che passano questi flag solo in fase di publish.
+    -->
+
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.1.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.1.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.1.3" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.1.3" />
+    <!-- Diagnostics solo in Debug: DevTools (F12) per ispezionare il visual tree -->
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.1.3" Condition="'$(Configuration)' == 'Debug'" />
+  </ItemGroup>
+
+  <!-- Nota: ho sostituito il glob per evitare inclusioni duplicate dei file .axaml -->
+
+
+</Project>

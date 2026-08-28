@@ -1,0 +1,77 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:VB6Analyzer.App.Controls"
+        xmlns:models="using:VB6Analyzer.App.Models"
+        x:Class="VB6Analyzer.App.MainWindow"
+        Title="VB6 Analyzer — M0 Technology POC"
+        Width="1280" Height="800"
+        MinWidth="900" MinHeight="600">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Background="#252530" Padding="8" BorderBrush="#3A3A46" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button x:Name="RegenerateButton" Content="Rigenera grafo (nuovo seed)" />
+                <Button x:Name="ResetViewButton" Content="Reset vista" />
+                <Button x:Name="ExpandAllButton" Content="Espandi tutto" />
+                <Button x:Name="CollapseAllButton" Content="Comprimi tutto" />
+                <TextBlock Text="POC M0 — dati fittizi, nessun parsing VB6 reale"
+                           VerticalAlignment="Center" Margin="16,0,0,0" Foreground="Gray" FontStyle="Italic" />
+            </StackPanel>
+        </Border>
+
+        <!-- Explorer | Graph | Inspector -->
+        <Grid Grid.Row="1" ColumnDefinitions="240,*,280">
+
+            <!-- Explorer -->
+            <Border Grid.Column="0" Background="#20202A" BorderBrush="#3A3A46" BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Project Explorer" Margin="10,8" FontWeight="Bold" />
+                    <TreeView x:Name="ExplorerTree" Margin="4" SelectionChanged="OnExplorerSelectionChanged">
+                        <TreeView.ItemTemplate>
+                            <TreeDataTemplate x:DataType="models:ExplorerTreeItem" ItemsSource="{Binding Children}">
+                                <TextBlock Text="{Binding Name}" />
+                            </TreeDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                </DockPanel>
+            </Border>
+
+            <!-- Graph -->
+            <controls:GraphControl x:Name="Graph" Grid.Column="1" SelectionChanged="OnGraphSelectionChanged" />
+
+            <!-- Inspector -->
+            <Border Grid.Column="2" Background="#20202A" BorderBrush="#3A3A46" BorderThickness="1,0,0,0">
+                <StackPanel Margin="12,8" Spacing="10">
+                    <TextBlock Text="Symbol Inspector" FontWeight="Bold" />
+
+                    <StackPanel x:Name="InspectorEmptyPanel" Spacing="4">
+                        <TextBlock Text="Nessun nodo selezionato." Foreground="Gray" TextWrapping="Wrap" />
+                        <TextBlock Text="Clic su un nodo per vedere i dettagli. Doppio clic su Form/Class/Module per espandere o comprimere i metodi."
+                                   Foreground="Gray" FontSize="11" TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="InspectorDetailsPanel" Spacing="6" IsVisible="False">
+                        <TextBlock Text="Name" Foreground="Gray" FontSize="11" />
+                        <TextBlock x:Name="InspectorName" FontWeight="Bold" TextWrapping="Wrap" />
+
+                        <TextBlock Text="Kind" Foreground="Gray" FontSize="11" Margin="0,6,0,0" />
+                        <TextBlock x:Name="InspectorKind" />
+
+                        <TextBlock Text="Callers diretti" Foreground="Gray" FontSize="11" Margin="0,6,0,0" />
+                        <TextBlock x:Name="InspectorCallers" TextWrapping="Wrap" />
+
+                        <TextBlock Text="Callees diretti" Foreground="Gray" FontSize="11" Margin="0,6,0,0" />
+                        <TextBlock x:Name="InspectorCallees" TextWrapping="Wrap" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Status bar -->
+        <Border Grid.Row="2" Background="#252530" Padding="8,4" BorderBrush="#3A3A46" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="StatusText" Text="Pronto." Foreground="Gray" FontSize="12" />
+        </Border>
+    </Grid>
+</Window>
