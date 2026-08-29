@@ -11,12 +11,13 @@ public sealed class ModuleExtractionResult
     public required Symbol ModuleSymbol { get; init; }
     public required IReadOnlyList<string> ParseErrors { get; init; }
     public required IReadOnlyList<string> LikelyEventHandlerNames { get; init; }
+    public VisualBasic6Parser.StartRuleContext? ParseTree { get; init; }
 
     public bool Success => ParseErrors.Count == 0;
 }
 
 /// <summary>
-/// Collega parsing (M1, VisualBasic6Parser) e symbol extraction (M2, SymbolExtractor)
+/// Collega parsing (M1, VisualBasic6Parser) e symbol extraction (M2/M3, SymbolExtractor)
 /// in un'unica chiamata: testo sorgente di un modulo VB6 dentro, CodeGraph popolato
 /// (in-place, sezione 18: struttura condivisa, non ricreata per ogni modulo) fuori.
 /// </summary>
@@ -59,7 +60,8 @@ public static class ModuleExtractor
             {
                 ModuleSymbol = moduleSymbol,
                 ParseErrors = errors,
-                LikelyEventHandlerNames = Array.Empty<string>()
+                LikelyEventHandlerNames = Array.Empty<string>(),
+                ParseTree = null
             };
         }
 
@@ -72,7 +74,8 @@ public static class ModuleExtractor
         {
             ModuleSymbol = moduleSymbol,
             ParseErrors = errors,
-            LikelyEventHandlerNames = extractor.LikelyEventHandlerNames
+            LikelyEventHandlerNames = extractor.LikelyEventHandlerNames,
+            ParseTree = tree
         };
     }
 }

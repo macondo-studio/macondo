@@ -1,35 +1,14 @@
+using Antlr4.Runtime;
 using VB6Analyzer.Parser.Grammar;
 using VB6Analyzer.Semantic.Model;
 
 namespace VB6Analyzer.Semantic.Extraction;
 
 /// <summary>
-/// M2 — Symbol extraction. Cammina il parse tree ANTLR di un singolo modulo VB6
-/// (già parsato da VisualBasic6Parser, M1) e produce Symbol + relazioni CONTAINS
-/// nel CodeGraph condiviso.
-///
-/// Scope DELIBERATAMENTE limitato, per rispettare il principio della sezione 6
-/// ("non bisogna confondere parsing e semantic analysis") e la definizione di M2
-/// nella sezione 34 del charter:
-///
-///   ESTRATTO:    Method (Sub/Function), Property (Get/Let/Set uniti per nome),
-///                Field (Dim/Public/Private/Const, sia a livello di modulo che
-///                locali dentro un Sub/Function/Property), Enum (solo il nome,
-///                non ancora i singoli valori)
-///   RELAZIONI:   solo CONTAINS (strutturale, sempre Confidence.Exact — non
-///                richiede alcuna risoluzione semantica)
-///
-///   FUORI SCOPE (rimandato a M3/M4, richiede symbol resolution):
-///   - CALLS, USES_TYPE, INSTANTIATES, REFERENCES, READS, WRITES
-///   - HANDLES_EVENT vero (richiederebbe conoscere i controlli dichiarati nel
-///     .frm, che non parsiamo ancora — vedi sezione 44.4, rischio "metadata .frm").
-///     Qui ci limitiamo a un'euristica sul NOME del Sub (Control_Event) riportata
-///     separatamente in LikelyEventHandlerNames, che NON genera una relazione nel
-///     CodeGraph: creare una relazione verso un simbolo che non esiste ancora
-///     violerebbe il principio della sezione 11 ("il sistema non deve inventare
-///     una relazione").
-///   - INHERITS, IMPLEMENTS (visti nella grammar come blockStmt di alto livello,
-///     non ancora collegati a un vero simbolo target)
+/// M2 + M3 — Symbol extraction arricchito per la risoluzione semantica.
+/// Cammina il parse tree ANTLR di un singolo modulo VB6 e produce Symbol + relazioni CONTAINS
+/// nel CodeGraph condiviso, catturando anche visibilità, tipi dichiarati, parametri di routine,
+/// UDT e costanti di enum.
 /// </summary>
 public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
 {
@@ -46,10 +25,12 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
     private readonly Stack<Symbol> _containerStack = new();
     private readonly Dictionary<string, Symbol> _propertiesByName = new(StringComparer.OrdinalIgnoreCase);
 
+    // Contesto corrente per variabili/costanti dichiarate in serie
+    private Accessibility _currentVarAccessibility = Accessibility.Default;
+    private bool _currentVarIsStatic;
+
     /// <summary>
     /// Sub il cui nome somiglia a "Controllo_Evento" (es. Command1_Click).
-    /// Solo un'euristica per il report dello spike, NON una relazione nel grafo
-    /// (vedi commento di classe sopra).
     /// </summary>
     public List<string> LikelyEventHandlerNames { get; } = new();
 
@@ -69,6 +50,12 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
     {
         var name = context.ambiguousIdentifier().GetText();
         var symbol = CreateChildSymbol(SymbolKind.Method, name, context);
+        symbol.Accessibility = GetAccessibility(context.visibility());
+        symbol.IsStatic = context.STATIC() is not null;
+
+        var parameters = ExtractParameters(context.argList());
+        symbol.Parameters.AddRange(parameters);
+
         _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
 
         if (LooksLikeEventHandler(name))
@@ -82,6 +69,16 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
     {
         var name = context.ambiguousIdentifier().GetText();
         var symbol = CreateChildSymbol(SymbolKind.Method, name, context);
+        symbol.Accessibility = GetAccessibility(context.visibility());
+        symbol.IsStatic = context.STATIC() is not null;
+
+        var returnType = ExtractTypeName(context.asTypeClause());
+        symbol.ReturnType = returnType;
+        symbol.DeclaredTypeName = returnType;
+
+        var parameters = ExtractParameters(context.argList());
+        symbol.Parameters.AddRange(parameters);
+
         _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
 
         VisitBodyAsNewContainer(symbol, context.block());
@@ -94,6 +91,19 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
     {
         var name = context.ambiguousIdentifier().GetText();
         var symbol = GetOrCreateProperty(name, context, out var wasCreated);
+        symbol.Accessibility = GetAccessibility(context.visibility());
+        symbol.IsStatic = context.STATIC() is not null;
+
+        var returnType = ExtractTypeName(context.asTypeClause());
+        if (returnType != null)
+        {
+            symbol.ReturnType = returnType;
+            symbol.DeclaredTypeName = returnType;
+        }
+
+        var parameters = ExtractParameters(context.argList());
+        MergeParameters(symbol.Parameters, parameters);
+
         if (wasCreated) _graph.AddContains(_moduleSymbol, symbol, context.Start.Line);
 
         VisitBodyAsNewContainer(symbol, context.block());
@@ -104,6 +114,12 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
     {
         var name = context.ambiguousIdentifier().GetText();
         var symbol = GetOrCreateProperty(name, context, out var wasCreated);
+        if (symbol.Accessibility == Accessibility.Default)
+            symbol.Accessibility = GetAccessibility(context.visibility());
+
+        var parameters = ExtractParameters(context.argList());
+        MergeParameters(symbol.Parameters, parameters);
+
         if (wasCreated) _graph.AddContains(_moduleSymbol, symbol, context.Start.Line);
 
         VisitBodyAsNewContainer(symbol, context.block());
@@ -114,49 +130,130 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
     {
         var name = context.ambiguousIdentifier().GetText();
         var symbol = GetOrCreateProperty(name, context, out var wasCreated);
+        if (symbol.Accessibility == Accessibility.Default)
+            symbol.Accessibility = GetAccessibility(context.visibility());
+
+        var parameters = ExtractParameters(context.argList());
+        MergeParameters(symbol.Parameters, parameters);
+
+        // Se non abbiamo ancora un DeclaredTypeName sulla Property, prendiamo il tipo dell'ultimo parametro di Let (il value)
+        if (symbol.DeclaredTypeName == null && parameters.Count > 0)
+        {
+            symbol.DeclaredTypeName = parameters[^1].DeclaredTypeName;
+        }
+
         if (wasCreated) _graph.AddContains(_moduleSymbol, symbol, context.Start.Line);
 
         VisitBodyAsNewContainer(symbol, context.block());
         return null;
     }
 
-    // ---------- Variabili (Dim/Public/Private, sia a livello di modulo che locali) ----------
+    // ---------- Variabili (Dim/Public/Private/Static, sia a livello di modulo che locali) ----------
+
+    public override object? VisitVariableStmt(VisualBasic6Parser.VariableStmtContext context)
+    {
+        var prevAccessibility = _currentVarAccessibility;
+        var prevIsStatic = _currentVarIsStatic;
+
+        if (context.DIM() is not null)
+            _currentVarAccessibility = CurrentContainer == _moduleSymbol ? Accessibility.Private : Accessibility.Default;
+        else if (context.STATIC() is not null)
+        {
+            _currentVarAccessibility = Accessibility.Default;
+            _currentVarIsStatic = true;
+        }
+        else if (context.visibility() is not null)
+            _currentVarAccessibility = GetAccessibility(context.visibility());
+
+        var result = base.VisitVariableStmt(context);
+
+        _currentVarAccessibility = prevAccessibility;
+        _currentVarIsStatic = prevIsStatic;
+        return result;
+    }
 
     public override object? VisitVariableSubStmt(VisualBasic6Parser.VariableSubStmtContext context)
     {
         var name = context.ambiguousIdentifier().GetText();
         var symbol = CreateChildSymbol(SymbolKind.Field, name, context);
+        symbol.Accessibility = _currentVarAccessibility;
+        symbol.IsStatic = _currentVarIsStatic;
+        symbol.DeclaredTypeName = ExtractTypeName(context.asTypeClause());
+        symbol.IsNewInstance = context.asTypeClause()?.NEW() is not null;
+        symbol.IsArray = context.LPAREN() is not null;
+
         _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
-
-        // Il tipo dichiarato (As Customer, As New Collection, ...) non viene ancora
-        // estratto in un campo strutturato: il modello Symbol (sezione 9) non ha
-        // ancora un campo "Type" dedicato, e USES_TYPE è relazione di M4. Rimandato
-        // apposta per non introdurre nomi di accessor ANTLR non ancora verificati.
-
         return base.VisitVariableSubStmt(context);
     }
 
     // ---------- Costanti ----------
 
+    public override object? VisitConstStmt(VisualBasic6Parser.ConstStmtContext context)
+    {
+        var prevAccessibility = _currentVarAccessibility;
+        _currentVarAccessibility = GetAccessibility(context.publicPrivateGlobalVisibility());
+
+        var result = base.VisitConstStmt(context);
+
+        _currentVarAccessibility = prevAccessibility;
+        return result;
+    }
+
     public override object? VisitConstSubStmt(VisualBasic6Parser.ConstSubStmtContext context)
     {
         var name = context.ambiguousIdentifier().GetText();
         var symbol = CreateChildSymbol(SymbolKind.Constant, name, context);
-        _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
+        symbol.Accessibility = _currentVarAccessibility;
+        symbol.DeclaredTypeName = ExtractTypeName(context.asTypeClause());
 
+        _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
         return base.VisitConstSubStmt(context);
     }
 
-    // ---------- Enum (solo il nome per ora, non i singoli valori) ----------
+    // ---------- Enum ----------
 
     public override object? VisitEnumerationStmt(VisualBasic6Parser.EnumerationStmtContext context)
     {
         var name = context.ambiguousIdentifier().GetText();
         var symbol = CreateChildSymbol(SymbolKind.Enum, name, context);
+        symbol.Accessibility = GetAccessibility(context.publicPrivateVisibility());
         _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
 
-        // I singoli enumerationStmt_Constant non vengono ancora estratti come
-        // Symbol figli: rimandato, stesso motivo delle variabili sopra.
+        _containerStack.Push(symbol);
+        foreach (var constantCtx in context.enumerationStmt_Constant())
+        {
+            var constName = constantCtx.ambiguousIdentifier().GetText();
+            var constSymbol = CreateChildSymbol(SymbolKind.Constant, constName, constantCtx);
+            constSymbol.Accessibility = Accessibility.Public;
+            constSymbol.DeclaredTypeName = symbol.Name;
+            _graph.AddContains(symbol, constSymbol, constantCtx.Start.Line);
+        }
+        _containerStack.Pop();
+
+        return null;
+    }
+
+    // ---------- Type (UDT - User Defined Types) ----------
+
+    public override object? VisitTypeStmt(VisualBasic6Parser.TypeStmtContext context)
+    {
+        var name = context.ambiguousIdentifier().GetText();
+        var symbol = CreateChildSymbol(SymbolKind.Type, name, context);
+        symbol.Accessibility = GetAccessibility(context.visibility());
+        _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
+
+        _containerStack.Push(symbol);
+        foreach (var elem in context.typeStmt_Element())
+        {
+            var elemName = elem.ambiguousIdentifier().GetText();
+            var elemSymbol = CreateChildSymbol(SymbolKind.Field, elemName, elem);
+            elemSymbol.Accessibility = Accessibility.Public;
+            elemSymbol.DeclaredTypeName = ExtractTypeName(elem.asTypeClause());
+            elemSymbol.IsArray = elem.LPAREN() is not null;
+            _graph.AddContains(symbol, elemSymbol, elem.Start.Line);
+        }
+        _containerStack.Pop();
+
         return null;
     }
 
@@ -172,7 +269,7 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         _containerStack.Pop();
     }
 
-    private Symbol CreateChildSymbol(SymbolKind kind, string name, Antlr4.Runtime.ParserRuleContext context)
+    private Symbol CreateChildSymbol(SymbolKind kind, string name, ParserRuleContext context)
     {
         var symbol = new Symbol
         {
@@ -188,7 +285,7 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         return symbol;
     }
 
-    private Symbol GetOrCreateProperty(string name, Antlr4.Runtime.ParserRuleContext context, out bool wasCreated)
+    private Symbol GetOrCreateProperty(string name, ParserRuleContext context, out bool wasCreated)
     {
         if (_propertiesByName.TryGetValue(name, out var existing))
         {
@@ -197,7 +294,6 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             return existing;
         }
 
-        // le property vivono sempre a livello di modulo in VB6, non dentro un altro Sub
         var symbol = new Symbol
         {
             Id = Guid.NewGuid(),
@@ -213,6 +309,80 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         wasCreated = true;
         return symbol;
     }
+
+    private static void MergeParameters(List<ParameterSymbol> target, List<ParameterSymbol> incoming)
+    {
+        foreach (var p in incoming)
+        {
+            if (!target.Any(t => string.Equals(t.Name, p.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                target.Add(p);
+            }
+        }
+    }
+
+    private static string? ExtractTypeName(VisualBasic6Parser.AsTypeClauseContext? ctx)
+    {
+        if (ctx?.type_() is null) return null;
+        return ctx.type_().GetText();
+    }
+
+    private static List<ParameterSymbol> ExtractParameters(VisualBasic6Parser.ArgListContext? argListCtx)
+    {
+        var result = new List<ParameterSymbol>();
+        if (argListCtx is null) return result;
+
+        foreach (var argCtx in argListCtx.arg())
+        {
+            var name = argCtx.ambiguousIdentifier().GetText();
+            var isByVal = argCtx.BYVAL() is not null;
+            var isByRef = argCtx.BYREF() is not null || !isByVal;
+            var isOptional = argCtx.OPTIONAL() is not null;
+            var isParamArray = argCtx.PARAMARRAY() is not null;
+            var typeName = ExtractTypeName(argCtx.asTypeClause());
+            var defVal = argCtx.argDefaultValue()?.valueStmt()?.GetText();
+
+            result.Add(new ParameterSymbol
+            {
+                Name = name,
+                DeclaredTypeName = typeName,
+                IsByVal = isByVal,
+                IsByRef = isByRef,
+                IsOptional = isOptional,
+                IsParamArray = isParamArray,
+                DefaultValue = defVal,
+                Line = argCtx.Start.Line
+            });
+        }
+        return result;
+    }
+
+    private static Accessibility GetAccessibility(VisualBasic6Parser.VisibilityContext? ctx) =>
+        ctx?.GetText().ToUpperInvariant() switch
+        {
+            "PUBLIC" => Accessibility.Public,
+            "PRIVATE" => Accessibility.Private,
+            "FRIEND" => Accessibility.Friend,
+            "GLOBAL" => Accessibility.Global,
+            _ => Accessibility.Default
+        };
+
+    private static Accessibility GetAccessibility(VisualBasic6Parser.PublicPrivateVisibilityContext? ctx) =>
+        ctx?.GetText().ToUpperInvariant() switch
+        {
+            "PUBLIC" => Accessibility.Public,
+            "PRIVATE" => Accessibility.Private,
+            _ => Accessibility.Default
+        };
+
+    private static Accessibility GetAccessibility(VisualBasic6Parser.PublicPrivateGlobalVisibilityContext? ctx) =>
+        ctx?.GetText().ToUpperInvariant() switch
+        {
+            "PUBLIC" => Accessibility.Public,
+            "PRIVATE" => Accessibility.Private,
+            "GLOBAL" => Accessibility.Global,
+            _ => Accessibility.Default
+        };
 
     private static bool LooksLikeEventHandler(string subName)
     {
