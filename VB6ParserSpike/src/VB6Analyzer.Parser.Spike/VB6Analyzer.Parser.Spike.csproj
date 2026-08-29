@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>VB6Analyzer.Parser.Spike</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VB6Analyzer.Parser\VB6Analyzer.Parser.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- i fixture .cls vengono copiati accanto all'eseguibile così Program.cs li trova a runtime -->
+    <None Include="Fixtures\*.cls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
