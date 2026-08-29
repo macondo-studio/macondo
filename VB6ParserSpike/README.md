@@ -136,12 +136,86 @@ simbolo esplicito.
 > non introdurre un fixture di dubbia correttezza. Se il caso base (`.Update` da
 > solo) funziona, vale la pena aggiungerlo come test successivo.
 
-## Prossimi passi dopo aver validato lo spike
+## ✅ Esito M1 (confermato)
 
-1. Se tutti i fixture parsano correttamente e la distinzione `With` è confermata:
-   si passa a costruire il layer di **symbol extraction** (M2) sopra questo parser —
-   cioè trasformare il parse tree in `Symbol`/`Relationship` del `CodeGraph` (sezioni 8-10).
-2. Se qualche fixture fallisce: il messaggio d'errore riporta linea/colonna, utile
-   per capire se è un problema di sintassi del fixture o un limite reale della grammar.
-3. Aggiungere via via gli altri fixture elencati nella sezione 32 del charter
-   (Inheritance, Implements, Events, Variant, MultipleProjects, COMReferences).
+Tutti i fixture parsano correttamente. Il rischio `With` è confermato risolto: la
+grammar distingue strutturalmente `Customer.Update` (con `implicitCallStmt_InStmt`
+prima della member call) da `.Update` dentro `With` (senza), non tramite whitespace.
+Dettagli nella sezione 44.6 del project charter.
+
+---
+
+# M2 — Symbol extraction
+
+Secondo spike, in `src/VB6Analyzer.Semantic` + `src/VB6Analyzer.Semantic.Spike`.
+Trasforma il parse tree ANTLR (M1) in `Symbol`/`Relationship` del `CodeGraph` reale
+(sezioni 8-10 del charter) — non più il modello fittizio del POC Avalonia (M0).
+
+## Come eseguire
+
+```bash
+cd src/VB6Analyzer.Semantic.Spike
+dotnet run
+```
+
+## Scope di questo spike (deliberatamente limitato)
+
+Per rispettare il principio della sezione 6 ("non bisogna confondere parsing e
+semantic analysis"):
+
+**Estratto**: `Method` (Sub/Function), `Property` (Get/Let/Set uniti per nome se
+condividono lo stesso nome), `Field` (variabili sia a livello di modulo che locali
+dentro un Sub/Function/Property), `Constant`, `Enum` (solo il nome, non ancora i
+singoli valori). Relazione `CONTAINS` (strutturale, sempre `Confidence.Exact`).
+
+**Fuori scope, rimandato a M3/M4** (richiede symbol resolution, non solo parsing):
+`CALLS`, `USES_TYPE`, `INSTANTIATES`, `REFERENCES`, `READS`, `WRITES`,
+`HANDLES_EVENT` vero (richiederebbe i controlli dichiarati nel `.frm`, non ancora
+parsati — vedi sezione 44.4), `INHERITS`, `IMPLEMENTS`. Il tipo dichiarato di una
+variabile (`As Customer`) non è ancora estratto in un campo strutturato — il
+modello `Symbol` non ha ancora un campo `Type` dedicato (sezione 9 lo lista come
+possibile aggiunta futura).
+
+Un Sub il cui nome somiglia a `Controllo_Evento` (es. `Command1_Click`) viene
+segnalato in `LikelyEventHandlerNames` come euristica di **reporting**, non come
+relazione nel grafo: creare una relazione verso un controllo che non abbiamo ancora
+estratto dal `.frm` violerebbe il principio della sezione 11 ("il sistema non deve
+inventare una relazione").
+
+## Fixture
+
+Riusa i 6 fixture di M1, più uno nuovo mai testato prima:
+
+| File | Cosa verifica |
+|---|---|
+| `06_FieldsPropertiesConst.cls` | Field a livello di modulo (`mCount`), `Const`, `Property Get`/`Let` con lo stesso nome (devono unificarsi in **un solo** Symbol `Property`), Field locale dentro un Sub (`Dim i`) |
+
+## Cosa guardare nell'output
+
+Per ogni fixture, l'albero `CONTAINS` stampato dovrebbe rispecchiare la struttura
+del file. Punti specifici da verificare per `06_FieldsPropertiesConst.cls`:
+
+- `Count` deve comparire **una sola volta** come `[Property] Count`, con le righe
+  che coprono l'intervallo di entrambi gli accessor (Get e Let), non duplicato
+- `mCount` deve essere figlio del modulo (`06_FieldsPropertiesConst`), non di `Count`
+  né di `Reset`
+- `i` (il `Dim i As Integer` dentro `Reset`) deve essere figlio di `Reset`, non del
+  modulo — verifica che lo stack dei container funzioni correttamente anche per
+  variabili locali
+
+Il riepilogo finale aggrega i simboli per `Kind` su **tutti** i fixture in un unico
+`CodeGraph` condiviso — prima dimostrazione concreta che il grafo può accumulare
+più file, come previsto dalla sezione 18.
+
+## Prossimi passi dopo aver validato questo spike
+
+1. Se la gerarchia e l'unificazione delle Property sono corrette: si passa a
+   costruire M3 (symbol resolution) — risolvere `c.Save` sapendo che `c` è di tipo
+   `Customer`, gestire `Me`, `With`, chiamate non qualificate, introducendo
+   `ResolutionConfidence` sul serio (finora sempre `Exact` perché non risolviamo
+   ancora nulla di ambiguo).
+2. Estendere l'estrazione a `.bas` e `.frm` **senza** la sezione designer (il corpo
+   codice dei form dovrebbe funzionare identico a una classe); il parsing della
+   sezione `VERSION`/`BEGIN...END` dei `.frm` resta un rischio noto non ancora testato.
+3. Aggiungere gli altri fixture della sezione 32 (`Implements`, `Inheritance`, `Events`).
+

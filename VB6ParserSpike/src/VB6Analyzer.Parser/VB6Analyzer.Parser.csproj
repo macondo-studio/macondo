@@ -24,7 +24,8 @@
 
   <ItemGroup>
     <PackageReference Include="Antlr4BuildTasks" Version="12.*" />
-    <!-- Versione fissata (non floating) per far combaciare esattamente il jar locale in external/ -->
+    <!-- Versione fissata (non floating) per far combaciare esattamente il jar locale in external/.
+         4.13.1 è l'ultima disponibile su NuGet per Antlr4.Runtime.Standard (4.13.2 NON esiste su NuGet). -->
     <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
   </ItemGroup>
 

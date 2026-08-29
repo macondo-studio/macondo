@@ -1,0 +1,11 @@
+Scarica qui:
+antlr4-4.13.2-complete.jar
+
+da:
+https://repo1.maven.org/maven2/org/antlr/antlr4/4.13.2/antlr4-4.13.2-complete.jar
+
+Il nome del file deve essere ESATTAMENTE antlr4-4.13.2-complete.jar
+(non antlr-4.13.2-complete.jar, senza la seconda "4" - quello e' il nome
+usato dal sito antlr.org, va rinominato se lo scarichi da li').
+
+Dopo aver messo il jar qui, questo file placeholder puo' essere cancellato.

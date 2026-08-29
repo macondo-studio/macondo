@@ -1,4 +1,5 @@
 using Antlr4.Runtime;
+using VB6Analyzer.Parser.Diagnostics;
 using VB6Analyzer.Parser.Grammar;
 
 namespace VB6Analyzer.Parser.Spike;
@@ -84,25 +85,6 @@ internal static class Program
 
         Console.WriteLine("Parse tree (formato LISP, per ispezione visiva):");
         Console.WriteLine(tree.ToStringTree(parser));
-    }
-
-    /// <summary>
-    /// Cattura gli errori di lexer/parser invece di stamparli su stderr in formato
-    /// grezzo, per poterli mostrare in modo leggibile fixture per fixture.
-    /// </summary>
-    private sealed class CollectingErrorListener(List<string> errors) : IAntlrErrorListener<IToken>, IAntlrErrorListener<int>
-    {
-        public void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol, int line,
-            int charPositionInLine, string msg, RecognitionException e)
-        {
-            errors.Add($"linea {line}:{charPositionInLine} — {msg}");
-        }
-
-        public void SyntaxError(TextWriter output, IRecognizer recognizer, int offendingSymbol, int line,
-            int charPositionInLine, string msg, RecognitionException e)
-        {
-            errors.Add($"linea {line}:{charPositionInLine} — {msg}");
-        }
     }
 
     /// <summary>
