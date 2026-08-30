@@ -1,22 +1,23 @@
 using VB6Analyzer.App.Models;
+using VB6Analyzer.Semantic.Model;
 
 namespace VB6Analyzer.App.Layout;
 
 /// <summary>
-/// Layout radiale/gerarchico semplice: il Project al centro, i container
-/// (Form/Class/Module) disposti su un anello, i loro Method su anelli più
-/// piccoli attorno a ciascun container.
-///
-/// Deliberatamente semplice per il POC (sezione 23 elenca alternative future:
-/// Sugiyama, force-directed, dependency layout). Qui l'obiettivo è solo
-/// verificare che GraphControl possa disegnare/pan/zoom/selezionare ~500 nodi
-/// con performance accettabile, non produrre un layout "bello".
+/// Motore di layout radiale/gerarchico per il CodeGraph visuale (sezioni 21 e 23 del charter).
+/// Posiziona:
+/// - Il nodo Progetto al centro (0, 0).
+/// - I moduli, classi, form, UDT ed enum su un anello principale concentrico.
+/// - I metodi, proprietà, campi e costanti su orbite satelliti attorno a ciascun modulo di appartenenza.
 /// </summary>
 public static class RadialLayoutEngine
 {
-    public static void Apply(CodeGraph graph, double containerRingRadius = 420, double methodRingRadius = 90)
+    /// <summary>
+    /// Calcola e applica le coordinate (X, Y) a tutti i nodi del grafo visuale.
+    /// </summary>
+    public static void Apply(VisualCodeGraph graph)
     {
-        var project = graph.Nodes.FirstOrDefault(n => n.Kind == NodeKind.Project);
+        var project = graph.Nodes.FirstOrDefault(n => n.Kind == SymbolKind.Project);
         if (project is null) return;
 
         project.X = 0;
@@ -25,6 +26,9 @@ public static class RadialLayoutEngine
         var containers = graph.GetChildren(project.Id).ToList();
         var containerCount = Math.Max(containers.Count, 1);
 
+        // Calcola il raggio dell'anello dei moduli in proporzione al numero di container
+        var containerRingRadius = Math.Max(380.0, containerCount * 35.0);
+
         for (var i = 0; i < containers.Count; i++)
         {
             var angle = 2 * Math.PI * i / containerCount;
@@ -32,15 +36,16 @@ public static class RadialLayoutEngine
             container.X = Math.Cos(angle) * containerRingRadius;
             container.Y = Math.Sin(angle) * containerRingRadius;
 
-            var methods = graph.GetChildren(container.Id).ToList();
-            var methodCount = Math.Max(methods.Count, 1);
+            var members = graph.GetChildren(container.Id).ToList();
+            var memberCount = Math.Max(members.Count, 1);
+            var memberRingRadius = Math.Max(85.0, memberCount * 14.0);
 
-            for (var j = 0; j < methods.Count; j++)
+            for (var j = 0; j < members.Count; j++)
             {
-                var methodAngle = 2 * Math.PI * j / methodCount;
-                var method = methods[j];
-                method.X = container.X + Math.Cos(methodAngle) * methodRingRadius;
-                method.Y = container.Y + Math.Sin(methodAngle) * methodRingRadius;
+                var memberAngle = 2 * Math.PI * j / memberCount;
+                var member = members[j];
+                member.X = container.X + Math.Cos(memberAngle) * memberRingRadius;
+                member.Y = container.Y + Math.Sin(memberAngle) * memberRingRadius;
             }
         }
     }

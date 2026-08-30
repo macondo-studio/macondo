@@ -3,75 +3,151 @@
         xmlns:controls="using:VB6Analyzer.App.Controls"
         xmlns:models="using:VB6Analyzer.App.Models"
         x:Class="VB6Analyzer.App.MainWindow"
-        Title="VB6 Analyzer — M0 Technology POC"
-        Width="1280" Height="800"
-        MinWidth="900" MinHeight="600">
+        Title="VB6 Analyzer — Graph UI &amp; Call Graph Explorer"
+        Width="1400" Height="860"
+        MinWidth="1000" MinHeight="650">
 
     <Grid RowDefinitions="Auto,*,Auto">
 
-        <!-- Toolbar -->
-        <Border Grid.Row="0" Background="#252530" Padding="8" BorderBrush="#3A3A46" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <Button x:Name="RegenerateButton" Content="Rigenera grafo (nuovo seed)" />
-                <Button x:Name="ResetViewButton" Content="Reset vista" />
-                <Button x:Name="ExpandAllButton" Content="Espandi tutto" />
-                <Button x:Name="CollapseAllButton" Content="Comprimi tutto" />
-                <TextBlock Text="POC M0 — dati fittizi, nessun parsing VB6 reale"
-                           VerticalAlignment="Center" Margin="16,0,0,0" Foreground="Gray" FontStyle="Italic" />
-            </StackPanel>
+        <!-- Toolbar Superiore -->
+        <Border Grid.Row="0" Background="#22222C" Padding="10,8" BorderBrush="#353545" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+
+                <!-- Gruppo Pulsanti Principali -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="OpenFolderButton" Content="📂 Apri Cartella VB6..." ToolTip.Tip="Seleziona e analizza una cartella contenente sorgenti VB6 (.cls, .bas, .frm, .ctl)" />
+                    <Button x:Name="LoadFixturesButton" Content="🧪 Carica Fixtures Test" ToolTip.Tip="Carica la suite completa di 16 moduli VB6 con call chain e cicli" />
+
+                    <Rectangle Width="1" Height="22" Fill="#454555" Margin="4,0" VerticalAlignment="Center" />
+
+                    <Button x:Name="ResetViewButton" Content="🎯 Reset Vista" ToolTip.Tip="Ripristina zoom 100% e centra la visuale" />
+                    <Button x:Name="ExpandAllButton" Content="➕ Espandi Tutto" ToolTip.Tip="Espande tutti i moduli mostrando metodi e proprietà" />
+                    <Button x:Name="CollapseAllButton" Content="➖ Comprimi Tutto" ToolTip.Tip="Comprime tutti i moduli nascondendo i membri interni" />
+
+                    <Rectangle Width="1" Height="22" Fill="#454555" Margin="4,0" VerticalAlignment="Center" />
+
+                    <Button x:Name="ShowCallersButton" Content="⬅️ Mostra Callers" ToolTip.Tip="Evidenzia chi chiama la routine selezionata" />
+                    <Button x:Name="ShowCalleesButton" Content="➡️ Mostra Callees" ToolTip.Tip="Evidenzia cosa chiama la routine selezionata" />
+                    <Button x:Name="ClearHighlightButton" Content="✖ Pulisci Filtri" ToolTip.Tip="Rimuove le evidenziazioni attive" />
+                </StackPanel>
+
+                <!-- Casella di Ricerca -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock Text="🔍" VerticalAlignment="Center" FontSize="14" />
+                    <TextBox x:Name="SearchBox" Width="220" Watermark="Cerca simbolo..." TextChanged="OnSearchTextChanged" />
+                </StackPanel>
+            </Grid>
         </Border>
 
-        <!-- Explorer | Graph | Inspector -->
-        <Grid Grid.Row="1" ColumnDefinitions="240,*,280">
+        <!-- Area Centrale: Explorer | Graph | Inspector -->
+        <Grid Grid.Row="1" ColumnDefinitions="280,*,340">
 
-            <!-- Explorer -->
-            <Border Grid.Column="0" Background="#20202A" BorderBrush="#3A3A46" BorderThickness="0,0,1,0">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="Project Explorer" Margin="10,8" FontWeight="Bold" />
-                    <TreeView x:Name="ExplorerTree" Margin="4" SelectionChanged="OnExplorerSelectionChanged">
+            <!-- Pannello Sinistro: Project Explorer -->
+            <Border Grid.Column="0" Background="#1C1C24" BorderBrush="#353545" BorderThickness="0,0,1,0">
+                <DockPanel Margin="6">
+                    <Border DockPanel.Dock="Top" Padding="8,6" Background="#262632" CornerRadius="4" Margin="0,0,0,6">
+                        <TextBlock Text="📁 Project Explorer" FontWeight="SemiBold" FontSize="13" Foreground="#ECECF0" />
+                    </Border>
+
+                    <TreeView x:Name="ExplorerTree" SelectionChanged="OnExplorerSelectionChanged">
                         <TreeView.ItemTemplate>
                             <TreeDataTemplate x:DataType="models:ExplorerTreeItem" ItemsSource="{Binding Children}">
-                                <TextBlock Text="{Binding Name}" />
+                                <TextBlock Text="{Binding DisplayText}" FontSize="12" Margin="2,1" />
                             </TreeDataTemplate>
                         </TreeView.ItemTemplate>
                     </TreeView>
                 </DockPanel>
             </Border>
 
-            <!-- Graph -->
+            <!-- Area Centrale: Graph Control con Skia Canvas -->
             <controls:GraphControl x:Name="Graph" Grid.Column="1" SelectionChanged="OnGraphSelectionChanged" />
 
-            <!-- Inspector -->
-            <Border Grid.Column="2" Background="#20202A" BorderBrush="#3A3A46" BorderThickness="1,0,0,0">
-                <StackPanel Margin="12,8" Spacing="10">
-                    <TextBlock Text="Symbol Inspector" FontWeight="Bold" />
+            <!-- Pannello Destro: Symbol Inspector -->
+            <Border Grid.Column="2" Background="#1C1C24" BorderBrush="#353545" BorderThickness="1,0,0,0">
+                <ScrollViewer Margin="12,10">
+                    <StackPanel Spacing="10">
+                        <Border Padding="8,6" Background="#262632" CornerRadius="4">
+                            <TextBlock Text="🔎 Symbol Inspector" FontWeight="SemiBold" FontSize="13" Foreground="#ECECF0" />
+                        </Border>
 
-                    <StackPanel x:Name="InspectorEmptyPanel" Spacing="4">
-                        <TextBlock Text="Nessun nodo selezionato." Foreground="Gray" TextWrapping="Wrap" />
-                        <TextBlock Text="Clic su un nodo per vedere i dettagli. Doppio clic su Form/Class/Module per espandere o comprimere i metodi."
-                                   Foreground="Gray" FontSize="11" TextWrapping="Wrap" />
+                        <!-- Messaggio Nodo Non Selezionato -->
+                        <StackPanel x:Name="InspectorEmptyPanel" Spacing="6" Margin="4,8">
+                            <TextBlock Text="Nessun simbolo selezionato." Foreground="#9090A0" FontWeight="Medium" />
+                            <TextBlock Text="• Clicca su un nodo per visualizzare dettagli semantici, tipi, parametri e chiamate." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
+                            <TextBlock Text="• Doppio clic su una Classe, Form o Modulo per espandere/comprimere i membri." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
+                            <TextBlock Text="• Usa 'Mostra Callers' o 'Mostra Callees' per esplorare il flusso di esecuzione." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <!-- Dettagli Simbolo Selezionato -->
+                        <StackPanel x:Name="InspectorDetailsPanel" Spacing="8" IsVisible="False">
+                            <!-- Nome -->
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="SIMBOLO" Foreground="#707080" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorName" FontWeight="Bold" FontSize="15" Foreground="#FFD700" TextWrapping="Wrap" />
+                                <TextBlock x:Name="InspectorQualifiedName" Foreground="#A0A0B0" FontSize="11" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <!-- Kind & Visibilità -->
+                            <Grid ColumnDefinitions="*,*" Margin="0,4">
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="CATEGORIA" Foreground="#707080" FontSize="10" FontWeight="Bold" />
+                                    <TextBlock x:Name="InspectorKind" FontWeight="SemiBold" Foreground="#FFFFFF" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="2">
+                                    <TextBlock Text="VISIBILITÀ" Foreground="#707080" FontSize="10" FontWeight="Bold" />
+                                    <TextBlock x:Name="InspectorAccessibility" FontWeight="SemiBold" Foreground="#FFFFFF" />
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Tipo Dichiarato & Risolto -->
+                            <StackPanel x:Name="InspectorTypeSection" Spacing="2" Margin="0,2">
+                                <TextBlock Text="TIPO" Foreground="#707080" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorType" TextWrapping="Wrap" Foreground="#4AE8D0" FontSize="12" />
+                            </StackPanel>
+
+                            <!-- Parametri Routine -->
+                            <StackPanel x:Name="InspectorParamsSection" Spacing="3" Margin="0,2">
+                                <TextBlock Text="PARAMETRI FORMALI" Foreground="#707080" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorParams" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" FontFamily="Consolas, monospace" />
+                            </StackPanel>
+
+                            <!-- File e Righe -->
+                            <StackPanel x:Name="InspectorFileSection" Spacing="2" Margin="0,2">
+                                <TextBlock Text="FILE &amp; RIGHE" Foreground="#707080" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorFile" TextWrapping="Wrap" Foreground="#A0A0B0" FontSize="11" />
+                            </StackPanel>
+
+                            <Rectangle Height="1" Fill="#353545" Margin="0,6" />
+
+                            <!-- Chiamanti Diretti (Callers) -->
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="CHIAMANTI DIRETTI (WHO CALLS ME?)" Foreground="#FF9933" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorCallers" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
+                            </StackPanel>
+
+                            <!-- Chiamati Diretti (Callees) -->
+                            <StackPanel Spacing="3" Margin="0,4">
+                                <TextBlock Text="CHIAMATE EFFETTUATE (WHAT DO I CALL?)" Foreground="#33CCFF" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorCallees" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
+                            </StackPanel>
+
+                            <!-- Istanziazioni -->
+                            <StackPanel x:Name="InspectorInstantiatesSection" Spacing="3" Margin="0,4">
+                                <TextBlock Text="CLASSI ISTANZIATE (NEW)" Foreground="#E88C38" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorInstantiates" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
-
-                    <StackPanel x:Name="InspectorDetailsPanel" Spacing="6" IsVisible="False">
-                        <TextBlock Text="Name" Foreground="Gray" FontSize="11" />
-                        <TextBlock x:Name="InspectorName" FontWeight="Bold" TextWrapping="Wrap" />
-
-                        <TextBlock Text="Kind" Foreground="Gray" FontSize="11" Margin="0,6,0,0" />
-                        <TextBlock x:Name="InspectorKind" />
-
-                        <TextBlock Text="Callers diretti" Foreground="Gray" FontSize="11" Margin="0,6,0,0" />
-                        <TextBlock x:Name="InspectorCallers" TextWrapping="Wrap" />
-
-                        <TextBlock Text="Callees diretti" Foreground="Gray" FontSize="11" Margin="0,6,0,0" />
-                        <TextBlock x:Name="InspectorCallees" TextWrapping="Wrap" />
-                    </StackPanel>
-                </StackPanel>
+                </ScrollViewer>
             </Border>
         </Grid>
 
-        <!-- Status bar -->
-        <Border Grid.Row="2" Background="#252530" Padding="8,4" BorderBrush="#3A3A46" BorderThickness="0,1,0,0">
-            <TextBlock x:Name="StatusText" Text="Pronto." Foreground="Gray" FontSize="12" />
+        <!-- Barra di Stato Inferiore -->
+        <Border Grid.Row="2" Background="#22222C" Padding="12,6" BorderBrush="#353545" BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <TextBlock x:Name="StatusText" Grid.Column="0" Text="Pronto." Foreground="#A0A0B0" FontSize="12" />
+                <TextBlock x:Name="StatusStats" Grid.Column="2" Text="Nodi: 0 | Relazioni: 0" Foreground="#A0A0B0" FontSize="12" />
+            </Grid>
         </Border>
     </Grid>
 </Window>

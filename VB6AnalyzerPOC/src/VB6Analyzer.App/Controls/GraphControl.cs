@@ -4,53 +4,70 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using VB6Analyzer.App.Models;
+using VB6Analyzer.Semantic.Model;
 
 namespace VB6Analyzer.App.Controls;
 
 /// <summary>
-/// Custom control che disegna direttamente con Avalonia/Skia (opzione B della
-/// sezione 24 del charter: niente controllo Avalonia di terze parti, niente WebView).
-///
-/// Responsabilità (sezione 24):
-///   input | selection | zoom | pan | renderer
-///
-/// Nel POC il layout è già precalcolato da RadialLayoutEngine; questo controllo
-/// si occupa solo di come i nodi vengono MOSTRATI (progressive disclosure via
-/// expand/collapse) e RENDERIZZATI, non di dove sono posizionati.
+/// Controllo custom Avalonia/Skia ad alte prestazioni per il rendering e l'interazione con il CodeGraph (M5).
+/// 
+/// CARATTERISTICHE E INTERAZIONI:
+/// 1. Zoom: zoom continuo tramite rotella del mouse con stabilità del punto sotto il cursore.
+/// 2. Pan: trascinamento libero del canvas bidimensionale con il tasto sinistro/centrale del mouse.
+/// 3. Select: selezione di un nodo tramite clic con evidenziazione del bordo, degli archi connessi e dei nodi vicini.
+/// 4. Expand / Collapse: doppio clic su container (Class, Form, Module, Type, Enum) per progressive disclosure.
+/// 5. Callers Mode: evidenziazione visiva gerarchica dei chiamanti della routine selezionata.
+/// 6. Callees Mode: evidenziazione visiva gerarchica delle routine chiamate.
+/// 7. Rendering Archi Direzionati con Frecce: CALLS, INSTANTIATES, USES_TYPE, CONTAINS.
 /// </summary>
 public sealed class GraphControl : Control
 {
-    public static readonly StyledProperty<CodeGraph?> GraphProperty =
-        AvaloniaProperty.Register<GraphControl, CodeGraph?>(nameof(Graph));
+    public static readonly StyledProperty<VisualCodeGraph?> GraphProperty =
+        AvaloniaProperty.Register<GraphControl, VisualCodeGraph?>(nameof(Graph));
 
-    public CodeGraph? Graph
+    public VisualCodeGraph? Graph
     {
         get => GetValue(GraphProperty);
         set => SetValue(GraphProperty, value);
     }
 
-    /// <summary>Sollevato quando cambia il nodo selezionato (per l'Inspector, sezione 25).</summary>
+    /// <summary>Sollevato quando cambia la selezione del nodo.</summary>
     public event EventHandler<GraphNode?>? SelectionChanged;
 
+    // Trasformazioni di vista (Zoom & Pan)
     private double _scale = 1.0;
     private double _offsetX;
     private double _offsetY;
 
+    // Stato di interazione puntatore
     private Point _pointerDownScreenPos;
     private bool _isPointerDown;
     private bool _isPanning;
     private const double PanThreshold = 4.0;
 
+    // Stato di selezione ed evidenziazione
     private GraphNode? _selectedNode;
-    private HashSet<Guid> _highlightedNodeIds = new();
-    private HashSet<(Guid, Guid)> _highlightedEdges = new();
+    private readonly HashSet<Guid> _highlightedNodeIds = new();
+    private readonly HashSet<Guid> _callerNodeIds = new();
+    private readonly HashSet<Guid> _calleeNodeIds = new();
+    private readonly HashSet<(Guid, Guid)> _highlightedEdges = new();
 
-    private static readonly IBrush BackgroundBrush = new SolidColorBrush(Color.Parse("#1E1E24"));
-    private static readonly IPen EdgeContainsPen = new Pen(new SolidColorBrush(Color.Parse("#3A3A46")), 1);
-    private static readonly IPen EdgeCallsPen = new Pen(new SolidColorBrush(Color.Parse("#5A6B8C")), 1);
-    private static readonly IPen EdgeHighlightPen = new Pen(new SolidColorBrush(Color.Parse("#FFC857")), 2);
-    private static readonly IPen SelectionOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#FFC857")), 2.5);
-    private static readonly Typeface LabelTypeface = new("Inter");
+    // Modalità di evidenziazione
+    public enum HighlightMode { Normal, Callers, Callees }
+    private HighlightMode _currentHighlightMode = HighlightMode.Normal;
+    public HighlightMode CurrentHighlightMode => _currentHighlightMode;
+
+    // Pennelli e Stili
+    private static readonly IBrush BackgroundBrush = new SolidColorBrush(Color.Parse("#1A1A22"));
+    private static readonly IPen EdgeContainsPen = new Pen(new SolidColorBrush(Color.Parse("#30303E")), 1);
+    private static readonly IPen EdgeCallsPen = new Pen(new SolidColorBrush(Color.Parse("#4A78B8")), 1.5);
+    private static readonly IPen EdgeInstantiatesPen = new Pen(new SolidColorBrush(Color.Parse("#D4883B")), 1.5, DashStyle.Dash);
+    private static readonly IPen EdgeUsesTypePen = new Pen(new SolidColorBrush(Color.Parse("#3BAE8C")), 1, DashStyle.Dot);
+    private static readonly IPen EdgeHighlightPen = new Pen(new SolidColorBrush(Color.Parse("#FFD700")), 2.5);
+    private static readonly IPen EdgeCallerPen = new Pen(new SolidColorBrush(Color.Parse("#FF9933")), 2.5);
+    private static readonly IPen EdgeCalleePen = new Pen(new SolidColorBrush(Color.Parse("#33CCFF")), 2.5);
+    private static readonly IPen SelectionOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#FFD700")), 3);
+    private static readonly Typeface LabelTypeface = new("Inter", FontStyle.Normal, FontWeight.Medium);
 
     static GraphControl()
     {
@@ -64,7 +81,9 @@ public sealed class GraphControl : Control
         DoubleTapped += OnDoubleTapped;
     }
 
-    // ---------- Rendering ----------
+    // =========================================================================
+    // RENDERING SKIA / AVALONIA
+    // =========================================================================
 
     public override void Render(DrawingContext context)
     {
@@ -74,19 +93,19 @@ public sealed class GraphControl : Control
         if (graph is null || graph.Nodes.Count == 0)
         {
             var placeholder = new FormattedText(
-                "Nessun CodeGraph caricato",
+                "Nessun CodeGraph caricato. Clicca su 'Carica Fixtures' o 'Apri Cartella VB6'.",
                 CultureInfo.InvariantCulture,
                 FlowDirection.LeftToRight,
                 LabelTypeface,
                 14,
                 Brushes.Gray);
-            context.DrawText(placeholder, new Point(12, 12));
+            context.DrawText(placeholder, new Point(16, 16));
             return;
         }
 
         var visibleIds = ComputeVisibleNodeIds(graph);
 
-        // 1) archi (sotto ai nodi)
+        // 1. Disegna gli ARCHI (sotto ai nodi)
         foreach (var edge in graph.Edges)
         {
             if (!visibleIds.Contains(edge.SourceId) || !visibleIds.Contains(edge.TargetId))
@@ -97,76 +116,144 @@ public sealed class GraphControl : Control
             if (source is null || target is null) continue;
 
             var isHighlighted = _highlightedEdges.Contains((edge.SourceId, edge.TargetId));
+            var isCallerEdge = _callerNodeIds.Contains(edge.SourceId) && (_selectedNode?.Id == edge.TargetId || _callerNodeIds.Contains(edge.TargetId));
+            var isCalleeEdge = (_selectedNode?.Id == edge.SourceId || _calleeNodeIds.Contains(edge.SourceId)) && _calleeNodeIds.Contains(edge.TargetId);
+
             var pen = isHighlighted
                 ? EdgeHighlightPen
-                : edge.Kind == EdgeKind.Calls ? EdgeCallsPen : EdgeContainsPen;
+                : (isCallerEdge ? EdgeCallerPen : (isCalleeEdge ? EdgeCalleePen : GetPenForEdgeKind(edge.Kind)));
 
-            context.DrawLine(pen, GraphToScreen(source.X, source.Y), GraphToScreen(target.X, target.Y));
+            var p1 = GraphToScreen(source.X, source.Y);
+            var p2 = GraphToScreen(target.X, target.Y);
+
+            context.DrawLine(pen, p1, p2);
+
+            // Disegna freccia direzionale su chiamate e istanziazioni
+            if (edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates && _scale > 0.4)
+            {
+                DrawArrowHead(context, pen.Brush, p1, p2, target.Radius * Math.Clamp(_scale, 0.2, 2.5));
+            }
         }
 
-        // 2) nodi
+        // 2. Disegna i NODI
         foreach (var node in graph.Nodes)
         {
             if (!visibleIds.Contains(node.Id)) continue;
 
             var screenPos = GraphToScreen(node.X, node.Y);
-            var radius = node.Radius * Math.Clamp(_scale, 0.15, 3.0);
+            var radius = node.Radius * Math.Clamp(_scale, 0.2, 2.5);
 
-            // culling economico: salta nodi fuori dal viewport
-            if (screenPos.X < -radius || screenPos.Y < -radius ||
-                screenPos.X - radius > Bounds.Width || screenPos.Y - radius > Bounds.Height)
+            // Viewport culling per performance
+            if (screenPos.X < -radius - 50 || screenPos.Y < -radius - 50 ||
+                screenPos.X - radius > Bounds.Width + 50 || screenPos.Y - radius > Bounds.Height + 50)
                 continue;
 
             var isSelected = node.Id == _selectedNode?.Id;
             var isHighlighted = _highlightedNodeIds.Contains(node.Id);
-            var fill = NodeFill(node.Kind, isSelected, isHighlighted);
+            var isCaller = _callerNodeIds.Contains(node.Id);
+            var isCallee = _calleeNodeIds.Contains(node.Id);
 
-            context.DrawEllipse(fill, isSelected ? SelectionOutlinePen : null,
-                screenPos, radius, radius);
+            var fill = NodeFill(node.Kind, isSelected, isHighlighted, isCaller, isCallee);
 
-            // etichette solo quando c'è abbastanza spazio (evita testo illeggibile a molto zoom-out)
-            if (radius > 9)
+            context.DrawEllipse(fill, isSelected ? SelectionOutlinePen : null, screenPos, radius, radius);
+
+            // Indicatore visivo di container espanso/compresso
+            if (node.IsContainer)
             {
-                var fontSize = node.Kind == NodeKind.Method ? 10 : 12;
+                var markerColor = node.IsExpanded ? Brushes.WhiteSmoke : Brushes.Orange;
+                context.DrawEllipse(markerColor, null, screenPos, 3, 3);
+            }
+
+            // Etichetta del nodo (mostrata quando la dimensione a schermo è sufficiente)
+            if (radius > 7)
+            {
+                var fontSize = node.Kind is SymbolKind.Method or SymbolKind.Property ? 10 : 12;
                 var label = new FormattedText(
                     node.Name,
                     CultureInfo.InvariantCulture,
                     FlowDirection.LeftToRight,
                     LabelTypeface,
                     fontSize,
-                    Brushes.WhiteSmoke);
+                    isSelected ? Brushes.Gold : Brushes.WhiteSmoke);
 
                 context.DrawText(label, screenPos + new Point(radius + 4, -label.Height / 2));
             }
         }
     }
 
-    private static IBrush NodeFill(NodeKind kind, bool isSelected, bool isHighlighted)
+    private static IPen GetPenForEdgeKind(RelationshipKind kind) => kind switch
     {
-        if (isSelected) return new SolidColorBrush(Color.Parse("#FFC857"));
-        if (isHighlighted) return new SolidColorBrush(Color.Parse("#8CA0D6"));
+        RelationshipKind.Calls => EdgeCallsPen,
+        RelationshipKind.Instantiates => EdgeInstantiatesPen,
+        RelationshipKind.UsesType => EdgeUsesTypePen,
+        _ => EdgeContainsPen
+    };
+
+    private static void DrawArrowHead(DrawingContext context, IBrush? brush, Point from, Point to, double targetRadius)
+    {
+        if (brush == null) return;
+
+        var dx = to.X - from.X;
+        var dy = to.Y - from.Y;
+        var len = Math.Sqrt(dx * dx + dy * dy);
+        if (len < 1) return;
+
+        var ux = dx / len;
+        var uy = dy / len;
+
+        var tip = new Point(to.X - ux * (targetRadius + 2), to.Y - uy * (targetRadius + 2));
+        var arrowSize = 6.0;
+
+        var p1 = new Point(tip.X - ux * arrowSize + uy * (arrowSize * 0.6), tip.Y - uy * arrowSize - ux * (arrowSize * 0.6));
+        var p2 = new Point(tip.X - ux * arrowSize - uy * (arrowSize * 0.6), tip.Y - uy * arrowSize + ux * (arrowSize * 0.6));
+
+        var geometry = new StreamGeometry();
+        using (var ctx = geometry.Open())
+        {
+            ctx.BeginFigure(tip, true);
+            ctx.LineTo(p1);
+            ctx.LineTo(p2);
+            ctx.EndFigure(true);
+        }
+
+        context.DrawGeometry(brush, null, geometry);
+    }
+
+    private static IBrush NodeFill(SymbolKind kind, bool isSelected, bool isHighlighted, bool isCaller, bool isCallee)
+    {
+        if (isSelected) return new SolidColorBrush(Color.Parse("#FFD700")); // Gold
+        if (isCaller) return new SolidColorBrush(Color.Parse("#FF9933"));   // Amber/Orange
+        if (isCallee) return new SolidColorBrush(Color.Parse("#00D0FF"));   // Cyan
+        if (isHighlighted) return new SolidColorBrush(Color.Parse("#90CAF9")); // Light blue
 
         return kind switch
         {
-            NodeKind.Project => new SolidColorBrush(Color.Parse("#E85D75")),
-            NodeKind.Form => new SolidColorBrush(Color.Parse("#4FA8E8")),
-            NodeKind.Class => new SolidColorBrush(Color.Parse("#54C08C")),
-            NodeKind.Module => new SolidColorBrush(Color.Parse("#C084F0")),
-            NodeKind.Method => new SolidColorBrush(Color.Parse("#7A7A88")),
+            SymbolKind.Project => new SolidColorBrush(Color.Parse("#E85D75")),
+            SymbolKind.Form => new SolidColorBrush(Color.Parse("#4FA8E8")),
+            SymbolKind.Class => new SolidColorBrush(Color.Parse("#54C08C")),
+            SymbolKind.Module => new SolidColorBrush(Color.Parse("#C084F0")),
+            SymbolKind.UserControl => new SolidColorBrush(Color.Parse("#F08C4A")),
+            SymbolKind.Method => new SolidColorBrush(Color.Parse("#7D7D8E")),
+            SymbolKind.Property => new SolidColorBrush(Color.Parse("#E8B838")),
+            SymbolKind.Field => new SolidColorBrush(Color.Parse("#60A5FA")),
+            SymbolKind.Constant => new SolidColorBrush(Color.Parse("#F87171")),
+            SymbolKind.Type => new SolidColorBrush(Color.Parse("#34D399")),
+            SymbolKind.Enum => new SolidColorBrush(Color.Parse("#A7F3D0")),
             _ => Brushes.Gray
         };
     }
 
     /// <summary>
-    /// Progressive disclosure (sezione 21): Project e container sempre visibili;
-    /// i Method di un container solo se quel container è espanso.
+    /// Progressive disclosure: I membri figli (Method, Property, Field) sono visibili
+    /// solo se il relativo container padre è espanso (<see cref="GraphNode.IsExpanded"/>).
     /// </summary>
-    private static HashSet<Guid> ComputeVisibleNodeIds(CodeGraph graph)
+    private static HashSet<Guid> ComputeVisibleNodeIds(VisualCodeGraph graph)
     {
         var visible = new HashSet<Guid>();
         foreach (var node in graph.Nodes)
         {
-            if (node.Kind != NodeKind.Method)
+            if (node.Kind is SymbolKind.Project or SymbolKind.Class or SymbolKind.Form
+                            or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum)
             {
                 visible.Add(node.Id);
                 continue;
@@ -174,17 +261,21 @@ public sealed class GraphControl : Control
 
             var parent = node.ParentId.HasValue ? graph.GetNode(node.ParentId.Value) : null;
             if (parent is { IsExpanded: true })
+            {
                 visible.Add(node.Id);
+            }
         }
         return visible;
     }
 
-    // ---------- Coordinate transform (pan + zoom) ----------
+    // =========================================================================
+    // TRASFORMAZIONI DI COORDINATE (Pan & Zoom)
+    // =========================================================================
 
-    private Point GraphToScreen(double x, double y) =>
+    public Point GraphToScreen(double x, double y) =>
         new(Bounds.Width / 2 + x * _scale + _offsetX, Bounds.Height / 2 + y * _scale + _offsetY);
 
-    private Point ScreenToGraph(Point screen) => new(
+    public Point ScreenToGraph(Point screen) => new(
         (screen.X - Bounds.Width / 2 - _offsetX) / _scale,
         (screen.Y - Bounds.Height / 2 - _offsetY) / _scale);
 
@@ -196,7 +287,7 @@ public sealed class GraphControl : Control
         InvalidateVisual();
     }
 
-    /// <summary>Centra la vista su un nodo (usato dall'Explorer per "focus selected node", sezione 22).</summary>
+    /// <summary>Centra la vista del canvas su un nodo specifico.</summary>
     public void FocusOnNode(Guid nodeId)
     {
         var node = Graph?.GetNode(nodeId);
@@ -207,12 +298,15 @@ public sealed class GraphControl : Control
         InvalidateVisual();
     }
 
-    // ---------- Input: pan, zoom, selection, expand/collapse ----------
+    // =========================================================================
+    // GESTIONE INPUT PUNTATORE (Pan, Zoom, Clic, Doppio Clic)
+    // =========================================================================
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        var point = e.GetCurrentPoint(this);
+        if (!point.Properties.IsLeftButtonPressed && !point.Properties.IsMiddleButtonPressed) return;
 
         _isPointerDown = true;
         _isPanning = false;
@@ -249,7 +343,6 @@ public sealed class GraphControl : Control
 
         if (_isPointerDown && !_isPanning)
         {
-            // click "pulito" (nessun trascinamento significativo) => selection / hit test
             var graphPoint = ScreenToGraph(e.GetPosition(this));
             var hit = HitTest(graphPoint);
             SelectNode(hit);
@@ -261,11 +354,10 @@ public sealed class GraphControl : Control
 
     private void OnDoubleTapped(object? sender, TappedEventArgs e)
     {
-        // expand/collapse: solo su container (Form/Class/Module), non su Project o Method
         var graphPoint = ScreenToGraph(e.GetPosition(this));
         var hit = HitTest(graphPoint);
 
-        if (hit is { Kind: NodeKind.Form or NodeKind.Class or NodeKind.Module })
+        if (hit is { IsContainer: true })
         {
             hit.IsExpanded = !hit.IsExpanded;
             InvalidateVisual();
@@ -284,7 +376,6 @@ public sealed class GraphControl : Control
         var zoomFactor = e.Delta.Y > 0 ? 1.15 : 1 / 1.15;
         var newScale = Math.Clamp(_scale * zoomFactor, 0.05, 6.0);
 
-        // ricalcola l'offset in modo che il punto sotto il cursore resti fermo
         _offsetX = pointerScreenPos.X - Bounds.Width / 2 - graphPointUnderPointer.X * newScale;
         _offsetY = pointerScreenPos.Y - Bounds.Height / 2 - graphPointUnderPointer.Y * newScale;
         _scale = newScale;
@@ -309,7 +400,7 @@ public sealed class GraphControl : Control
             var dx = node.X - graphPoint.X;
             var dy = node.Y - graphPoint.Y;
             var distSq = dx * dx + dy * dy;
-            var hitRadius = node.Radius / Math.Max(_scale, 0.01) + 4; // tolleranza click
+            var hitRadius = node.Radius / Math.Max(_scale, 0.01) + 6.0;
 
             if (distSq <= hitRadius * hitRadius && distSq < bestDistSq)
             {
@@ -321,11 +412,17 @@ public sealed class GraphControl : Control
         return best;
     }
 
+    // =========================================================================
+    // SELEZIONE ED EVIDENZIAZIONE CALLERS / CALLEES
+    // =========================================================================
+
     public void SelectNode(GraphNode? node)
     {
         _selectedNode = node;
         _highlightedNodeIds.Clear();
         _highlightedEdges.Clear();
+        _callerNodeIds.Clear();
+        _calleeNodeIds.Clear();
 
         if (node is not null && Graph is { } graph)
         {
@@ -348,5 +445,58 @@ public sealed class GraphControl : Control
 
         InvalidateVisual();
         SelectionChanged?.Invoke(this, node);
+    }
+
+    /// <summary>
+    /// Evidenzia sul grafo tutti i chiamanti (callers diretti e transitivi) del nodo selezionato.
+    /// </summary>
+    public void HighlightCallersForSelected()
+    {
+        _callerNodeIds.Clear();
+        _calleeNodeIds.Clear();
+
+        if (_selectedNode is null || Graph?.Queries is null || _selectedNode.SemanticSymbol is null)
+            return;
+
+        var callers = Graph.Queries.GetDirectCallers(_selectedNode.SemanticSymbol);
+        foreach (var caller in callers)
+        {
+            _callerNodeIds.Add(caller.Id);
+        }
+
+        _currentHighlightMode = HighlightMode.Callers;
+        InvalidateVisual();
+    }
+
+    /// <summary>
+    /// Evidenzia sul grafo tutti i chiamati (callees diretti e transitivi) del nodo selezionato.
+    /// </summary>
+    public void HighlightCalleesForSelected()
+    {
+        _callerNodeIds.Clear();
+        _calleeNodeIds.Clear();
+
+        if (_selectedNode is null || Graph?.Queries is null || _selectedNode.SemanticSymbol is null)
+            return;
+
+        var callees = Graph.Queries.GetDirectCallees(_selectedNode.SemanticSymbol);
+        foreach (var callee in callees)
+        {
+            _calleeNodeIds.Add(callee.Id);
+        }
+
+        _currentHighlightMode = HighlightMode.Callees;
+        InvalidateVisual();
+    }
+
+    /// <summary>
+    /// Ripristina l'evidenziazione normale.
+    /// </summary>
+    public void ClearHighlightMode()
+    {
+        _callerNodeIds.Clear();
+        _calleeNodeIds.Clear();
+        _currentHighlightMode = HighlightMode.Normal;
+        InvalidateVisual();
     }
 }

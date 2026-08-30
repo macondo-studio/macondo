@@ -1,23 +1,28 @@
+using VB6Analyzer.Semantic.Model;
+
 namespace VB6Analyzer.App.Models;
 
 /// <summary>
-/// Sottoinsieme del RelationshipKind descritto nella sezione 8 del charter,
-/// sufficiente per il POC (CONTAINS per la gerarchia, CALLS per il call graph fittizio).
-/// </summary>
-public enum EdgeKind
-{
-    Contains,
-    Calls
-}
-
-/// <summary>
-/// Arco del CodeGraph fittizio. Corrisponde concettualmente a Relationship
-/// (sezione 10), senza ancora Confidence/ResolutionConfidence: quello
-/// arriverà quando ci sarà un vero symbol resolver (M3).
+/// Arco visuale del CodeGraph renderizzato dal GraphControl.
+/// Incapsula la relazione semantica reale (<see cref="RelationshipKind"/>)
+/// collegando un nodo sorgente a un nodo di destinazione.
 /// </summary>
 public sealed class GraphEdge
 {
+    /// <summary>ID del nodo sorgente.</summary>
     public required Guid SourceId { get; init; }
+
+    /// <summary>ID del nodo di destinazione.</summary>
     public required Guid TargetId { get; init; }
-    public required EdgeKind Kind { get; init; }
+
+    /// <summary>Tipo di relazione semantica (Contains, Calls, Instantiates, UsesType, etc.).</summary>
+    public required RelationshipKind Kind { get; init; }
+
+    /// <summary>Grado di confidenza della risoluzione (Exact, Inferred, Unknown).</summary>
+    public ResolutionConfidence Confidence { get; init; } = ResolutionConfidence.Exact;
+
+    /// <summary>Numero di riga nel sorgente in cui si origina la relazione.</summary>
+    public int? Line { get; init; }
+
+    public override string ToString() => $"{Kind}: {SourceId} -> {TargetId} ({Confidence})";
 }

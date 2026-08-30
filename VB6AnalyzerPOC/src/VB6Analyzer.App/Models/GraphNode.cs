@@ -1,50 +1,58 @@
+using VB6Analyzer.Semantic.Model;
+
 namespace VB6Analyzer.App.Models;
 
 /// <summary>
-/// Categoria del nodo. Rispecchia (in forma ridotta) il SymbolKind
-/// descritto nella sezione 8-9 del project charter.
-/// </summary>
-public enum NodeKind
-{
-    Project,
-    Form,
-    Class,
-    Module,
-    Method
-}
-
-/// <summary>
-/// Nodo del CodeGraph fittizio usato dal POC.
-/// Non rappresenta ancora un vero Symbol VB6 (quello arriverà con M2/M3),
-/// serve solo a validare rendering, layout e interazione del GraphControl.
+/// Nodo visuale del CodeGraph renderizzato dal GraphControl (sezione 21 e 24 del charter).
+/// Incapsula il <see cref="Symbol"/> semantico reale estratto dalla pipeline di analisi VB6
+/// e mantiene le coordinate per il layout e lo stato di interazione (zoom, selezione, espansione).
 /// </summary>
 public sealed class GraphNode
 {
+    /// <summary>ID univoco del nodo (corrisponde al Symbol.Id per i simboli reali).</summary>
     public required Guid Id { get; init; }
+
+    /// <summary>Nome visualizzato del simbolo.</summary>
     public required string Name { get; init; }
-    public required NodeKind Kind { get; init; }
 
-    /// <summary>Nodo padre nella gerarchia CONTAINS (null per il Project root).</summary>
-    public Guid? ParentId { get; init; }
+    /// <summary>Nome qualificato completo (es. "Customer.Save").</summary>
+    public required string QualifiedName { get; init; }
 
-    /// <summary>Posizione nel layout, calcolata dal GraphLayout (vedi sezione 23).</summary>
+    /// <summary>Categoria del simbolo semantico.</summary>
+    public required SymbolKind Kind { get; init; }
+
+    /// <summary>Il simbolo semantico reale sottostante (null per il nodo radice di progetto sintetico).</summary>
+    public Symbol? SemanticSymbol { get; init; }
+
+    /// <summary>Nodo contenitore padre nella gerarchia CONTAINS (null per il Project root).</summary>
+    public Guid? ParentId { get; set; }
+
+    /// <summary>Posizione X nel grafo (calcolata dal layout engine).</summary>
     public double X { get; set; }
+
+    /// <summary>Posizione Y nel grafo (calcolata dal layout engine).</summary>
     public double Y { get; set; }
 
-    /// <summary>Raggio di disegno, dipende dal Kind (progressive disclosure, sezione 21).</summary>
+    /// <summary>Raggio di disegno del nodo in pixel.</summary>
     public double Radius => Kind switch
     {
-        NodeKind.Project => 26,
-        NodeKind.Form or NodeKind.Class or NodeKind.Module => 18,
-        NodeKind.Method => 8,
+        SymbolKind.Project => 28,
+        SymbolKind.Form or SymbolKind.Class or SymbolKind.Module or SymbolKind.UserControl => 20,
+        SymbolKind.Method or SymbolKind.Property => 11,
+        SymbolKind.Field or SymbolKind.Constant or SymbolKind.Enum or SymbolKind.Type => 9,
         _ => 10
     };
 
     /// <summary>
-    /// Stato di espansione: i figli (es. i Method di una Class) sono visibili
-    /// solo se il nodo è espanso. Vedi "expand/collapse" sezione 22.
+    /// Indica se il nodo è un container espandibile (Class, Form, Module, Type, Enum).
     /// </summary>
-    public bool IsExpanded { get; set; }
+    public bool IsContainer => Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module
+                                    or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum;
 
-    public override string ToString() => $"{Kind}: {Name}";
+    /// <summary>
+    /// Stato di espansione: i membri figli sono visibili solo se il container è espanso (progressive disclosure).
+    /// </summary>
+    public bool IsExpanded { get; set; } = true;
+
+    public override string ToString() => $"{Kind}: {QualifiedName}";
 }
