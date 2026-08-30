@@ -21,6 +21,7 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         LoadFixturesButton.Click += (_, _) => LoadDefaultFixtures();
+        GenerateFakeButton.Click += (_, _) => LoadSyntheticGraph();
         OpenFolderButton.Click += async (_, _) => await OpenFolderAsync();
         ResetViewButton.Click += (_, _) => Graph.ResetView();
         ExpandAllButton.Click += (_, _) => SetAllExpanded(true);
@@ -32,6 +33,24 @@ public partial class MainWindow : Window
 
         // Caricamento iniziale automatico delle fixture reali
         LoadDefaultFixtures();
+    }
+
+    /// <summary>
+    /// Genera e carica un grafo sintetico di ~500 nodi tramite FakeGraphGenerator per benchmark e test.
+    /// </summary>
+    private void LoadSyntheticGraph()
+    {
+        try
+        {
+            StatusText.Text = "Generazione del grafo sintetico (~500 nodi)...";
+            _graph = Generation.FakeGraphGenerator.Generate(seed: Environment.TickCount);
+            ApplyGraphToUI();
+            StatusText.Text = "Grafo sintetico di benchmark (~500 nodi) generato con successo.";
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Errore durante la generazione: {ex.Message}";
+        }
     }
 
     /// <summary>
