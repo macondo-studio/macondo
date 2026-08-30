@@ -16,7 +16,8 @@
                 <!-- Gruppo Pulsanti Principali -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                     <Button x:Name="OpenFolderButton" Content="📂 Apri Cartella VB6..." ToolTip.Tip="Seleziona e analizza una cartella contenente sorgenti VB6 (.cls, .bas, .frm, .ctl)" />
-                    <Button x:Name="LoadFixturesButton" Content="🧪 Carica Fixtures Test" ToolTip.Tip="Carica la suite completa di 16 moduli VB6 con call chain e cicli" />
+                    <Button x:Name="LoadFixturesButton" Content="🧪 Carica Fixtures Test" ToolTip.Tip="Carica la suite completa di 16 moduli VB6 reali con call chain e cicli" />
+                    <Button x:Name="GenerateFakeButton" Content="⚡ Grafo Demo (~500 nodi)" ToolTip.Tip="Genera un grafo sintetico di ~500 nodi per test di carico e benchmark visuale" />
 
                     <Rectangle Width="1" Height="22" Fill="#454555" Margin="4,0" VerticalAlignment="Center" />
 

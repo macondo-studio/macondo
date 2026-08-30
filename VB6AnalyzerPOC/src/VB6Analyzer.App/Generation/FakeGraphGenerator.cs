@@ -1,152 +1,207 @@
+using VB6Analyzer.App.Layout;
 using VB6Analyzer.App.Models;
+using VB6Analyzer.Semantic.Graph;
+using VB6Analyzer.Semantic.Model;
 
 namespace VB6Analyzer.App.Generation;
 
 /// <summary>
-/// Genera un CodeGraph fittizio per validare rendering/layout/interazione
-/// del GraphControl (sezione 41, punti 2-3: "creare un CodeGraph fittizio,
-/// generare ~500 nodi"). NON fa parsing VB6: quello è compito del vero
-/// Analyzer (M1-M4), fuori dallo scope di questo POC.
+/// Generatore di grafi sintetici/fittizi per test di carico, benchmark UI e modalità demo (sezione 41 del charter).
+/// Produce una struttura gerarchica realistica (~500 nodi) con Progetto, Form, Classi, Moduli, Metodi,
+/// Proprietà, Campi e relazioni semantiche di chiamata (CALLS), contenimento (CONTAINS) e istanziazione (INSTANTIATES).
 /// </summary>
 public static class FakeGraphGenerator
 {
-    private static readonly string[] ContainerPrefixes =
-    {
-        "frm", "cls", "mod", "ctl"
-    };
-
-    private static readonly string[] NameFragments =
-    {
-        "Order", "Customer", "Invoice", "Payment", "Repository", "Service",
-        "Validator", "Logger", "Config", "Report", "User", "Session",
-        "Database", "Export", "Import", "Print", "Search", "Cache"
-    };
-
-    private static readonly string[] MethodVerbs =
-    {
-        "Save", "Load", "Validate", "Insert", "Update", "Delete", "Calculate",
-        "Refresh", "Init", "Close", "Open", "Execute", "Build", "Render",
-        "Parse", "Format", "Check", "Notify", "Handle", "Process"
-    };
-
     /// <summary>
-    /// Genera un CodeGraph fittizio. containerCount controlla il numero di
-    /// Form/Class/Module; methodsPerContainerRange controlla i figli di ciascuno.
-    /// Con i default si ottengono circa 500 nodi complessivi.
+    /// Genera un <see cref="VisualCodeGraph"/> sintetico con un numero configurabile di container e metodi.
     /// </summary>
-    public static CodeGraph Generate(
-        int containerCount = 18,
-        (int min, int max) methodsPerContainerRange = default,
-        int callEdgesPerMethod = 2,
-        int? seed = null)
+    /// <param name="seed">Seed del generatore di numeri casuali (per riproducibilità deterministica).</param>
+    /// <param name="containerCount">Numero di classi/form/moduli da generare (default 24).</param>
+    /// <param name="methodsPerContainer">Numero medio di metodi/membri per ciascun container (default 18).</param>
+    public static VisualCodeGraph Generate(int seed = 42, int containerCount = 24, int methodsPerContainer = 18)
     {
-        if (methodsPerContainerRange == default)
-            methodsPerContainerRange = (40, 50);
+        var random = new Random(seed);
+        var semanticGraph = new Semantic.Model.CodeGraph();
+        var visualGraph = new VisualCodeGraph
+        {
+            SemanticGraph = semanticGraph,
+            Queries = new CallGraphQueries(semanticGraph)
+        };
 
-        var random = seed.HasValue ? new Random(seed.Value) : new Random();
-        var graph = new CodeGraph();
-
-        var project = new GraphNode
+        // 1. Nodo Radice di Progetto
+        var projectNode = new GraphNode
         {
             Id = Guid.NewGuid(),
-            Name = "SampleVB6Project",
-            Kind = NodeKind.Project,
-            ParentId = null,
+            Name = "SyntheticProject",
+            QualifiedName = "SyntheticProject",
+            Kind = SymbolKind.Project,
             IsExpanded = true
         };
-        graph.Nodes.Add(project);
+        visualGraph.Nodes.Add(projectNode);
 
-        var allMethods = new List<GraphNode>();
+        var containerNodes = new List<GraphNode>();
+        var methodNodes = new List<GraphNode>();
 
+        var containerPrefixes = new[] { "frmOrder", "frmCustomer", "frmInvoice", "frmReport", "frmLogin", "frmMain",
+                                        "clsCustomer", "clsOrder", "clsInvoice", "clsPayment", "clsSecurity", "clsValidation",
+                                        "modDatabase", "modUtils", "modGlobals", "modLogger", "modExport", "modConfig" };
+
+        var verbList = new[] { "Process", "Validate", "Calculate", "Execute", "Save", "Load", "Delete",
+                               "Format", "Log", "Init", "Reset", "Export", "Import", "Update", "Check" };
+
+        var nounList = new[] { "Data", "Order", "Customer", "Invoice", "Record", "Report", "Transaction", "Item", "Status", "Total" };
+
+        // 2. Genera i Container (Form, Class, Module)
         for (var i = 0; i < containerCount; i++)
         {
-            var kind = PickContainerKind(i);
-            var container = new GraphNode
+            var baseName = i < containerPrefixes.Length
+                ? containerPrefixes[i]
+                : $"Module_{i + 1}";
+
+            var kind = baseName.StartsWith("frm")
+                ? SymbolKind.Form
+                : (baseName.StartsWith("cls") ? SymbolKind.Class : SymbolKind.Module);
+
+            var containerSymbol = new Symbol
             {
                 Id = Guid.NewGuid(),
-                Name = MakeContainerName(kind, random),
+                Name = baseName,
+                QualifiedName = baseName,
                 Kind = kind,
-                ParentId = project.Id,
-                IsExpanded = false
+                Accessibility = Accessibility.Public,
+                FilePath = $"{baseName}.{(kind == SymbolKind.Form ? "frm" : (kind == SymbolKind.Class ? "cls" : "bas"))}",
+                LineStart = 1,
+                LineEnd = 100
             };
-            graph.Nodes.Add(container);
+            semanticGraph.Symbols.Add(containerSymbol);
 
-            graph.Edges.Add(new GraphEdge
+            var containerNode = new GraphNode
             {
-                SourceId = project.Id,
-                TargetId = container.Id,
-                Kind = EdgeKind.Contains
+                Id = containerSymbol.Id,
+                Name = baseName,
+                QualifiedName = baseName,
+                Kind = kind,
+                SemanticSymbol = containerSymbol,
+                ParentId = projectNode.Id,
+                IsExpanded = true
+            };
+
+            containerNodes.Add(containerNode);
+            visualGraph.Nodes.Add(containerNode);
+
+            // Relazione Contains: Project -> Container
+            visualGraph.Edges.Add(new GraphEdge
+            {
+                SourceId = projectNode.Id,
+                TargetId = containerNode.Id,
+                Kind = RelationshipKind.Contains,
+                Confidence = ResolutionConfidence.Exact
             });
 
-            var methodCount = random.Next(methodsPerContainerRange.min, methodsPerContainerRange.max + 1);
-            for (var m = 0; m < methodCount; m++)
+            // 3. Genera i membri interni (Metodi e Proprietà)
+            for (var m = 0; m < methodsPerContainer; m++)
             {
-                var method = new GraphNode
+                var verb = verbList[random.Next(verbList.Length)];
+                var noun = nounList[random.Next(nounList.Length)];
+                var methodName = $"{verb}{noun}_{m + 1}";
+                var memberKind = (m % 5 == 0) ? SymbolKind.Property : SymbolKind.Method;
+
+                var memberSymbol = new Symbol
                 {
                     Id = Guid.NewGuid(),
-                    Name = MakeMethodName(random),
-                    Kind = NodeKind.Method,
-                    ParentId = container.Id
+                    Name = methodName,
+                    QualifiedName = $"{baseName}.{methodName}",
+                    Kind = memberKind,
+                    Accessibility = (m % 3 == 0) ? Accessibility.Private : Accessibility.Public,
+                    FilePath = containerSymbol.FilePath,
+                    LineStart = 10 + m * 8,
+                    LineEnd = 10 + m * 8 + 6
                 };
-                graph.Nodes.Add(method);
-                allMethods.Add(method);
+                semanticGraph.Symbols.Add(memberSymbol);
+                semanticGraph.AddContains(containerSymbol, memberSymbol, memberSymbol.LineStart);
 
-                graph.Edges.Add(new GraphEdge
+                var methodNode = new GraphNode
                 {
-                    SourceId = container.Id,
-                    TargetId = method.Id,
-                    Kind = EdgeKind.Contains
+                    Id = memberSymbol.Id,
+                    Name = methodName,
+                    QualifiedName = $"{baseName}.{methodName}",
+                    Kind = memberKind,
+                    SemanticSymbol = memberSymbol,
+                    ParentId = containerNode.Id,
+                    IsExpanded = false
+                };
+
+                methodNodes.Add(methodNode);
+                visualGraph.Nodes.Add(methodNode);
+
+                // Relazione Contains: Container -> Member
+                visualGraph.Edges.Add(new GraphEdge
+                {
+                    SourceId = containerNode.Id,
+                    TargetId = methodNode.Id,
+                    Kind = RelationshipKind.Contains,
+                    Confidence = ResolutionConfidence.Exact,
+                    Line = memberSymbol.LineStart
                 });
             }
         }
 
-        // CALLS fittizi tra metodi, per avere un call graph da esplorare
-        // (sezione 16). Nessun significato semantico reale: solo dati di prova.
-        foreach (var method in allMethods)
+        // 4. Genera chiamate tra routine (CALLS)
+        var totalCalls = containerCount * methodsPerContainer * 2;
+        for (var c = 0; c < totalCalls; c++)
         {
-            var callCount = random.Next(0, callEdgesPerMethod + 1);
-            for (var c = 0; c < callCount; c++)
+            var caller = methodNodes[random.Next(methodNodes.Count)];
+            var callee = methodNodes[random.Next(methodNodes.Count)];
+
+            // Evita auto-chiamate
+            if (caller.Id == callee.Id) continue;
+
+            var line = random.Next(1, 80);
+
+            if (caller.SemanticSymbol != null && callee.SemanticSymbol != null)
             {
-                var target = allMethods[random.Next(allMethods.Count)];
-                if (target.Id == method.Id) continue;
+                semanticGraph.AddCalls(caller.SemanticSymbol, callee.SemanticSymbol, line, ResolutionConfidence.Exact);
+            }
 
-                graph.Edges.Add(new GraphEdge
+            visualGraph.Edges.Add(new GraphEdge
+            {
+                SourceId = caller.Id,
+                TargetId = callee.Id,
+                Kind = RelationshipKind.Calls,
+                Confidence = ResolutionConfidence.Exact,
+                Line = line
+            });
+        }
+
+        // 5. Genera istanziazioni (INSTANTIATES)
+        var classContainers = containerNodes.Where(n => n.Kind == SymbolKind.Class).ToList();
+        if (classContainers.Count > 0)
+        {
+            for (var inst = 0; inst < containerCount; inst++)
+            {
+                var sourceMethod = methodNodes[random.Next(methodNodes.Count)];
+                var targetClass = classContainers[random.Next(classContainers.Count)];
+
+                if (sourceMethod.SemanticSymbol != null && targetClass.SemanticSymbol != null)
                 {
-                    SourceId = method.Id,
-                    TargetId = target.Id,
-                    Kind = EdgeKind.Calls
+                    semanticGraph.AddInstantiates(sourceMethod.SemanticSymbol, targetClass.SemanticSymbol, 15);
+                }
+
+                visualGraph.Edges.Add(new GraphEdge
+                {
+                    SourceId = sourceMethod.Id,
+                    TargetId = targetClass.Id,
+                    Kind = RelationshipKind.Instantiates,
+                    Confidence = ResolutionConfidence.Exact,
+                    Line = 15
                 });
             }
         }
 
-        graph.Invalidate();
-        return graph;
-    }
+        // 6. Calcola il layout radiale e finalizza il grafo
+        RadialLayoutEngine.Apply(visualGraph);
+        visualGraph.Invalidate();
 
-    private static NodeKind PickContainerKind(int index) => (index % 3) switch
-    {
-        0 => NodeKind.Form,
-        1 => NodeKind.Class,
-        _ => NodeKind.Module
-    };
-
-    private static string MakeContainerName(NodeKind kind, Random random)
-    {
-        var prefix = kind switch
-        {
-            NodeKind.Form => "frm",
-            NodeKind.Class => "cls",
-            NodeKind.Module => "mod",
-            _ => "ctl"
-        };
-        var fragment = NameFragments[random.Next(NameFragments.Length)];
-        return $"{prefix}{fragment}";
-    }
-
-    private static string MakeMethodName(Random random)
-    {
-        var verb = MethodVerbs[random.Next(MethodVerbs.Length)];
-        var fragment = NameFragments[random.Next(NameFragments.Length)];
-        return $"{verb}{fragment}";
+        return visualGraph;
     }
 }
