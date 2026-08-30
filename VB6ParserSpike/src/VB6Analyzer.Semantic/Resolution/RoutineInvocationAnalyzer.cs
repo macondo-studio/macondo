@@ -5,22 +5,60 @@ using VB6Analyzer.Semantic.Model;
 namespace VB6Analyzer.Semantic.Resolution;
 
 /// <summary>
-/// Analizzatore AST per individuare e risolvere tutti i call-site e gli accessi a membro (Milestone M3).
+/// Rappresenta un call-site (punto di invocazione o accesso a membro) analizzato e risolto nel codice VB6.
+/// </summary>
+public sealed class ResolvedCallSite
+{
+    /// <summary>Testo sorgente della chiamata o accesso (es. "Customer.Update", "c.Save", "LogMessage").</summary>
+    public required string CallText { get; init; }
+
+    /// <summary>Numero di riga nel file sorgente in cui risiede la chiamata.</summary>
+    public required int Line { get; init; }
+
+    /// <summary>Esito della risoluzione semantica con confidenza (Exact, Unknown, Ambiguous).</summary>
+    public required ResolutionResult Result { get; init; }
+
+    /// <summary>Nome della routine contenitore in cui risiede la chiamata (es. "ProcessOrder").</summary>
+    public string? EnclosingRoutineName { get; init; }
+
+    /// <summary>Indica se la chiamata risiede all'interno di un blocco contestuale 'With'.</summary>
+    public bool IsInWithBlock { get; init; }
+
+    public override string ToString() =>
+        $"Riga {Line,3}: '{CallText}' -> {Result}";
+}
+
+/// <summary>
+/// Rappresenta un'istanziazione di classe rilevata nel codice (es. "Set c = New Customer" o "New OrderRepository").
+/// </summary>
+public sealed class ResolvedInstantiation
+{
+    /// <summary>Nome della classe istanziata (es. "Customer").</summary>
+    public required string ClassName { get; init; }
+
+    /// <summary>Numero di riga nel file sorgente in cui risiede l'istanziazione.</summary>
+    public required int Line { get; init; }
+
+    /// <summary>Simbolo della classe istanziata nel CodeGraph (se risolta).</summary>
+    public Symbol? TargetClassSymbol { get; init; }
+
+    /// <summary>Nome della routine contenitore che esegue l'istanziazione.</summary>
+    public string? EnclosingRoutineName { get; init; }
+
+    /// <summary>Livello di confidenza della risoluzione della classe.</summary>
+    public ResolutionConfidence Confidence { get; init; } = ResolutionConfidence.Exact;
+
+    public override string ToString() =>
+        $"Riga {Line,3}: New '{ClassName}' -> {(TargetClassSymbol != null ? TargetClassSymbol.QualifiedName : "[Unknown]")}";
+}
+
+/// <summary>
+/// Analizzatore AST per individuare e risolvere tutti i call-site, gli accessi a membro
+/// e le istanziazioni di oggetti all'interno del corpo di un modulo VB6 (Milestone M3 + M4).
 /// 
 /// Questa classe implementa il pattern Visitor di ANTLR (<see cref="VisualBasic6ParserBaseVisitor{TResult}"/>)
 /// per percorrere le istruzioni all'interno dei corpi di Sub, Function e Property, tracciando lo scope attivo
-/// (inclusi i blocchi 'With') e risolvendo ogni chiamata tramite <see cref="SymbolResolver"/>.
-/// 
-/// CASI D'USO GESTITI:
-/// 1. Routine Scopes: all'ingresso di Sub/Function/Property crea e spinge un <see cref="LocalScope"/> sullo stack.
-/// 2. With Blocks: all'ingresso di "With expr ... End With" risolve 'expr', crea un <see cref="WithScope"/> e lo spinge sullo stack.
-/// 3. Chiamate Esplicite 'Call':
-///    - "Call Procedure()" -> regola ANTLR 'eCS_ProcedureCall'.
-///    - "Call Target.Method()" o "Call .Method()" -> regola ANTLR 'eCS_MemberProcedureCall'.
-/// 4. Chiamate Implicite Nude (Statement):
-///    - "Procedure arg1, arg2" -> regola ANTLR 'iCS_B_ProcedureCall'.
-///    - "Target.Method arg1" o ".Method arg1" -> regola ANTLR 'iCS_B_MemberProcedureCall'.
-/// 5. Registrazione CallSite: ogni chiamata viene registrata in <see cref="CallSites"/> con riga, testo sorgente ed esito semantico.
+/// (inclusi i blocchi 'With') e registrando invocazioni e istanziazioni.
 /// </summary>
 public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<object?>
 {
@@ -33,11 +71,17 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     /// <summary>Lista dei call-site individuati e risolti durante l'attraversamento.</summary>
     private readonly List<ResolvedCallSite> _callSites = new();
 
+    /// <summary>Lista delle istanziazioni (New Type) individuate nel modulo.</summary>
+    private readonly List<ResolvedInstantiation> _instantiations = new();
+
     /// <summary>Nome della routine attualmente in fase di analisi (es. "ProcessOrder").</summary>
     private string? _currentRoutineName;
 
     /// <summary>Elenco pubblico di tutti i call-site risolti nel modulo.</summary>
     public IReadOnlyList<ResolvedCallSite> CallSites => _callSites;
+
+    /// <summary>Elenco pubblico di tutte le istanziazioni risolte nel modulo.</summary>
+    public IReadOnlyList<ResolvedInstantiation> Instantiations => _instantiations;
 
     /// <summary>
     /// Inizializza l'analizzatore per il modulo specificato.
@@ -199,6 +243,31 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
 
         _scopeStack.Pop();
         return null;
+    }
+
+    // =========================================================================
+    // ISTANZIAZIONI (New TypeName)
+    // =========================================================================
+
+    /// <summary>
+    /// Visita un'espressione di istanziazione "New &lt;Tipo&gt;" (regola ANTLR 'vsNew').
+    /// Esempi: "Set c = New Customer", "New OrderRepository".
+    /// </summary>
+    public override object? VisitVsNew(VisualBasic6Parser.VsNewContext context)
+    {
+        var typeName = context.valueStmt().GetText();
+        var typeSymbol = _symbolResolver.ProjectScope.FindTypeSymbol(typeName);
+
+        _instantiations.Add(new ResolvedInstantiation
+        {
+            ClassName = typeName,
+            Line = context.Start.Line,
+            TargetClassSymbol = typeSymbol,
+            EnclosingRoutineName = _currentRoutineName,
+            Confidence = typeSymbol != null ? ResolutionConfidence.Exact : ResolutionConfidence.Unknown
+        });
+
+        return base.VisitVsNew(context);
     }
 
     // =========================================================================

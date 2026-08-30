@@ -2,29 +2,7 @@ using VB6Analyzer.Semantic.Model;
 
 namespace VB6Analyzer.Semantic.Resolution;
 
-/// <summary>
-/// Rappresenta un call-site (punto di invocazione o accesso a membro) analizzato e risolto nel codice VB6.
-/// </summary>
-public sealed class ResolvedCallSite
-{
-    /// <summary>Testo sorgente della chiamata o accesso (es. "Customer.Update", "c.Save", "LogMessage").</summary>
-    public required string CallText { get; init; }
 
-    /// <summary>Numero di riga nel file sorgente in cui risiede la chiamata.</summary>
-    public required int Line { get; init; }
-
-    /// <summary>Esito della risoluzione semantica con confidenza (Exact, Unknown, Ambiguous).</summary>
-    public required ResolutionResult Result { get; init; }
-
-    /// <summary>Nome della routine contenitore in cui risiede la chiamata (es. "ProcessOrder").</summary>
-    public string? EnclosingRoutineName { get; init; }
-
-    /// <summary>Indica se la chiamata risiede all'interno di un blocco contestuale 'With'.</summary>
-    public bool IsInWithBlock { get; init; }
-
-    public override string ToString() =>
-        $"Riga {Line,3}: '{CallText}' -> {Result}";
-}
 
 /// <summary>
 /// Motore principale di risoluzione dei simboli e degli accessi per VB6 (Milestone M3, sezioni 11, 12, 13, 14 del charter).
