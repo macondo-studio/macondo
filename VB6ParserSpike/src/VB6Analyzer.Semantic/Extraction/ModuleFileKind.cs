@@ -2,9 +2,24 @@ using VB6Analyzer.Semantic.Model;
 
 namespace VB6Analyzer.Semantic.Extraction;
 
-/// <summary>Determina il SymbolKind del modulo dall'estensione del file (sezione 7).</summary>
+/// <summary>
+/// Helper per determinare la categoria di modulo (<see cref="SymbolKind"/>)
+/// a partire dall'estensione del file sorgente VB6 (come descritto nella sezione 7 del charter).
+/// 
+/// MAPPATURA:
+/// - .cls -> <see cref="SymbolKind.Class"/> (Classe VB6)
+/// - .frm -> <see cref="SymbolKind.Form"/> (Form / Finestra utente VB6)
+/// - .bas -> <see cref="SymbolKind.Module"/> (Modulo di codice standard VB6)
+/// - .ctl -> <see cref="SymbolKind.UserControl"/> (Controllo utente ActiveX VB6)
+/// </summary>
 public static class ModuleFileKind
 {
+    /// <summary>
+    /// Restituisce il <see cref="SymbolKind"/> corrispondente all'estensione del file specificato.
+    /// </summary>
+    /// <param name="filePath">Percorso o nome del file da analizzare.</param>
+    /// <returns>Il <see cref="SymbolKind"/> associato.</returns>
+    /// <exception cref="NotSupportedException">Lanciata se l'estensione del file non è tra quelle supportate.</exception>
     public static SymbolKind FromExtension(string filePath)
     {
         var ext = Path.GetExtension(filePath).ToLowerInvariant();
@@ -16,7 +31,7 @@ public static class ModuleFileKind
             ".ctl" => SymbolKind.UserControl,
             _ => throw new NotSupportedException(
                 $"Estensione non supportata da ModuleFileKind: '{ext}' (file: {filePath}). " +
-                "M2 copre .cls/.frm/.bas/.ctl come da sezione 7 del charter.")
+                "I formati supportati sono .cls, .frm, .bas, .ctl (sezione 7 del charter).")
         };
     }
 }

@@ -5,11 +5,20 @@ using VB6Analyzer.Semantic.Resolution;
 namespace VB6Analyzer.Semantic.Spike;
 
 /// <summary>
-/// Spike M3: Symbol Resolution & Type Resolution.
-/// Verifica l'estrazione arricchita dei simboli (tipi, parametri, visibilità),
-/// l'indicizzazione dei tipi (TypeResolver), e la risoluzione degli accessi e chiamate
-/// su tutta la gerarchia di scope VB6 (local, parameter, class member, .bas module member,
-/// With block, e late binding su Object/Variant).
+/// Programma di verifica / Spike per la Milestone M3: Symbol Resolution &amp; Type Resolution.
+/// 
+/// OBIETTIVO:
+/// Dimostrare che l'analizzatore semantico è in grado di:
+/// 1. Estrarre metadati ricchi (tipi, parametri, visibilità, UDT, enum) su più file (.cls, .bas) in un unico CodeGraph.
+/// 2. Risolvere i tipi di dato con <see cref="TypeResolver"/> (primitivi, dinamici e tipi utente).
+/// 3. Risolvere tutti gli accessi e chiamate su tutta la gerarchia di scope VB6 tramite <see cref="SymbolResolver"/> e <see cref="RoutineInvocationAnalyzer"/>:
+///    - Local scope (variabili locali Dim/Static)
+///    - Parameter scope (parametri ByVal/ByRef)
+///    - Class member scope e keyword 'Me'
+///    - .bas module member scope (chiamate non qualificate a routine Public in file .bas)
+///    - Qualified member scope (es. "Customer.Update", "c.Save")
+///    - With block contextual scope (es. ".Save" dentro "With cust")
+///    - Late binding handling su Object e Variant con <see cref="ResolutionConfidence.Unknown"/>.
 /// </summary>
 internal static class Program
 {
@@ -27,7 +36,9 @@ internal static class Program
         Console.WriteLine("================================================================================");
         Console.WriteLine();
 
-        // 1. Un unico CodeGraph condiviso per l'intero progetto/fixtures
+        // ---------------------------------------------------------------------
+        // PASSO 1: Estrazione di tutti i file in un unico CodeGraph condiviso
+        // ---------------------------------------------------------------------
         var graph = new CodeGraph();
         var extractionResults = new List<ModuleExtractionResult>();
 
@@ -44,6 +55,8 @@ internal static class Program
         {
             var fileName = Path.GetFileName(file);
             var source = File.ReadAllText(file);
+
+            // Estrae i simboli del file popolare il CodeGraph in-place
             var result = ModuleExtractor.ExtractModule(graph, fileName, source);
             extractionResults.Add(result);
 
@@ -58,7 +71,9 @@ internal static class Program
         Console.WriteLine($"Estrazione completata: {graph.Symbols.Count} simboli totali nel CodeGraph.");
         Console.WriteLine();
 
-        // 2. Risoluzione dei Tipi (TypeResolver)
+        // ---------------------------------------------------------------------
+        // PASSO 2: Risoluzione Globale dei Tipi (TypeResolver)
+        // ---------------------------------------------------------------------
         Console.WriteLine("--------------------------------------------------------------------------------");
         Console.WriteLine("1. TYPE RESOLUTION (TypeResolver)");
         Console.WriteLine("--------------------------------------------------------------------------------");
@@ -80,7 +95,9 @@ internal static class Program
         }
         Console.WriteLine();
 
-        // 3. Risoluzione dei Simboli e dei Call-Site (SymbolResolver + RoutineInvocationAnalyzer)
+        // ---------------------------------------------------------------------
+        // PASSO 3: Risoluzione dei Simboli e dei Call-Site (SymbolResolver + RoutineInvocationAnalyzer)
+        // ---------------------------------------------------------------------
         Console.WriteLine("--------------------------------------------------------------------------------");
         Console.WriteLine("2. SCOPE & SYMBOL RESOLUTION (SymbolResolver)");
         Console.WriteLine("--------------------------------------------------------------------------------");
@@ -96,6 +113,7 @@ internal static class Program
             if (!extraction.Success || extraction.ParseTree == null)
                 continue;
 
+            // Percorre le istruzioni del modulo usando il parse tree ANTLR salvato
             var analyzer = new RoutineInvocationAnalyzer(symbolResolver, extraction.ModuleSymbol);
             analyzer.Visit(extraction.ParseTree);
 
@@ -120,7 +138,9 @@ internal static class Program
             }
         }
 
-        // 4. Riepilogo Finale M3
+        // ---------------------------------------------------------------------
+        // PASSO 4: Riepilogo Finale e Checklist del Charter
+        // ---------------------------------------------------------------------
         Console.WriteLine("================================================================================");
         Console.WriteLine("                       RIEPILOGO FINALE MILESTONE M3                            ");
         Console.WriteLine("================================================================================");
