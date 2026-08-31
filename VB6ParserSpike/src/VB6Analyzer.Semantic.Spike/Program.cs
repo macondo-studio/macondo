@@ -182,10 +182,63 @@ internal static class Program
         Console.WriteLine();
 
         // ---------------------------------------------------------------------
-        // PASSO 7: Riepilogo Finale M4
+        // PASSO 7: Impact Analysis & Blast Radius (Milestone M6)
+        // ---------------------------------------------------------------------
+        Console.WriteLine("--------------------------------------------------------------------------------");
+        Console.WriteLine("5. IMPACT ANALYSIS & BLAST RADIUS (Milestone M6)");
+        Console.WriteLine("--------------------------------------------------------------------------------");
+
+        var impactAnalyzer = new Impact.ImpactAnalyzer(graph, queries);
+
+        // A. Blast Radius di una routine foglia/critica: DatabaseHelper.Execute
+        if (dbExecute != null)
+        {
+            var dbImpact = impactAnalyzer.AnalyzeRoutineImpact(dbExecute);
+            Console.WriteLine($"[BLAST RADIUS] Modifica a '{dbExecute.QualifiedName}':");
+            Console.WriteLine($"  - Chiamanti Diretti    : {dbImpact.DirectCallers.Count} ({string.Join(", ", dbImpact.DirectCallers.Select(c => c.QualifiedName))})");
+            Console.WriteLine($"  - Chiamanti Indiretti  : {dbImpact.IndirectCallers.Count} ({string.Join(", ", dbImpact.IndirectCallers.Select(c => $"{c.Symbol.QualifiedName} [Lv.{c.Depth}]"))})");
+            Console.WriteLine($"  - Classi Impattate     : {dbImpact.AffectedClasses.Count} ({string.Join(", ", dbImpact.AffectedClasses.Select(c => c.Name))})");
+            Console.WriteLine($"  - Moduli Impattati     : {dbImpact.AffectedModules.Count} ({string.Join(", ", dbImpact.AffectedModules.Select(c => c.Name))})");
+            Console.WriteLine($"  - Form Impattate (UI)  : {dbImpact.AffectedForms.Count}");
+            Console.WriteLine($"  - Profondità Massima   : {dbImpact.MaxDependencyDepth}");
+            Console.WriteLine($"  - Livello di Rischio   : {dbImpact.RiskLevel}");
+            Console.WriteLine($"  - Percorsi di Chiamata : {dbImpact.AffectedExecutionPaths.Count}");
+            foreach (var path in dbImpact.AffectedExecutionPaths)
+                Console.WriteLine($"      -> {path}");
+            Console.WriteLine();
+        }
+
+        // B. Blast Radius di un metodo di dominio: Customer.Save
+        if (custSave != null)
+        {
+            var saveImpact = impactAnalyzer.AnalyzeRoutineImpact(custSave);
+            Console.WriteLine($"[BLAST RADIUS] Modifica a '{custSave.QualifiedName}':");
+            Console.WriteLine($"  - Chiamanti Diretti    : {saveImpact.DirectCallers.Count} ({string.Join(", ", saveImpact.DirectCallers.Select(c => c.QualifiedName))})");
+            Console.WriteLine($"  - Classi Impattate     : {saveImpact.AffectedClasses.Count} ({string.Join(", ", saveImpact.AffectedClasses.Select(c => c.Name))})");
+            Console.WriteLine($"  - Profondità Massima   : {saveImpact.MaxDependencyDepth}");
+            Console.WriteLine($"  - Livello di Rischio   : {saveImpact.RiskLevel}");
+            Console.WriteLine();
+        }
+
+        // C. Blast Radius a livello di intera classe: Customer.cls
+        var customerClass = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Class && s.Name.Equals("Customer", StringComparison.OrdinalIgnoreCase));
+        if (customerClass != null)
+        {
+            var classImpact = impactAnalyzer.AnalyzeTypeImpact(customerClass);
+            Console.WriteLine($"[BLAST RADIUS] Modifica/Refactoring della Classe '{customerClass.QualifiedName}':");
+            Console.WriteLine($"  - Chiamanti Totali Membri: {classImpact.DirectCallers.Count + classImpact.IndirectCallers.Count}");
+            Console.WriteLine($"  - Classi che Istanziano  : {classImpact.Instantiators.Count} ({string.Join(", ", classImpact.Instantiators.Select(i => i.QualifiedName))})");
+            Console.WriteLine($"  - Dipendenze di Tipo     : {classImpact.TypeDependents.Count} ({string.Join(", ", classImpact.TypeDependents.Select(t => t.QualifiedName))})");
+            Console.WriteLine($"  - Classi Esterne Toccate : {classImpact.AffectedClasses.Count} ({string.Join(", ", classImpact.AffectedClasses.Select(c => c.Name))})");
+            Console.WriteLine($"  - Livello di Rischio     : {classImpact.RiskLevel}");
+            Console.WriteLine();
+        }
+
+        // ---------------------------------------------------------------------
+        // PASSO 8: Riepilogo Finale M4 + M6
         // ---------------------------------------------------------------------
         Console.WriteLine("================================================================================");
-        Console.WriteLine("                       RIEPILOGO FINALE MILESTONE M4                            ");
+        Console.WriteLine("                  RIEPILOGO FINALE MILESTONE M4 & M6                            ");
         Console.WriteLine("================================================================================");
         Console.WriteLine($"Totale moduli analizzati       : {extractionResults.Count}");
         Console.WriteLine($"Totale simboli nel CodeGraph   : {graph.Symbols.Count}");
@@ -196,14 +249,13 @@ internal static class Program
         Console.WriteLine($"  - USES_TYPE                  : {graph.Relationships.Count(r => r.Kind == RelationshipKind.UsesType)}");
         Console.WriteLine();
 
-        Console.WriteLine("Verifica dei punti chiave del Charter per M4:");
-        Console.WriteLine("  [OK] CALLS relationship generation (invocazioni dirette tra routine)");
-        Console.WriteLine("  [OK] INSTANTIATES relationship generation (New Type e Dim As New Type)");
-        Console.WriteLine("  [OK] USES_TYPE relationship generation (dipendenze di tipo su variabili/parametri/ritorni)");
-        Console.WriteLine("  [OK] Callers queries (Who calls X?)");
-        Console.WriteLine("  [OK] Callees queries (What does X call?)");
-        Console.WriteLine("  [OK] Execution path discovery (ricerca cammini multi-livello da sorgente a destinazione)");
-        Console.WriteLine("  [OK] Cycle detection (identificazione cicli ricorsivi con DFS a 3 stati)");
+        Console.WriteLine("Verifica dei punti chiave del Charter per M6:");
+        Console.WriteLine("  [OK] Direct & Indirect callers calculation with Depth levels");
+        Console.WriteLine("  [OK] Affected Forms, Classes, and Modules identification");
+        Console.WriteLine("  [OK] Affected Execution Paths (Call Chains) discovery");
+        Console.WriteLine("  [OK] Max dependency depth metric");
+        Console.WriteLine("  [OK] Type-level Blast Radius (INSTANTIATES + USES_TYPE + member calls)");
+        Console.WriteLine("  [OK] Risk Level estimation (Low, Medium, High, Critical)");
         Console.WriteLine("================================================================================");
     }
 }

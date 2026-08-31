@@ -1,20 +1,23 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using VB6Analyzer.App.Models;
 using VB6Analyzer.App.Services;
+using VB6Analyzer.Semantic.Impact;
 using VB6Analyzer.Semantic.Model;
 
 namespace VB6Analyzer.App;
 
 /// <summary>
-/// Finestra principale dell'applicazione VB6 Analyzer (Milestone M5).
+/// Finestra principale dell'applicazione VB6 Analyzer (Milestone M5 + M6).
 /// Gestisce l'interazione tra Toolbar, Project Explorer (TreeView),
-/// Canvas del Grafo (<see cref="Controls.GraphControl"/>) e Symbol Inspector.
+/// Canvas del Grafo (<see cref="Controls.GraphControl"/>), Symbol Inspector e Blast Radius Engine.
 /// </summary>
 public partial class MainWindow : Window
 {
     private VisualCodeGraph? _graph;
+    private GraphNode? _selectedNode;
 
     public MainWindow()
     {
@@ -27,6 +30,7 @@ public partial class MainWindow : Window
         ExpandAllButton.Click += (_, _) => SetAllExpanded(true);
         CollapseAllButton.Click += (_, _) => SetAllExpanded(false);
 
+        BlastRadiusButton.Click += (_, _) => OnBlastRadiusClicked();
         ShowCallersButton.Click += (_, _) => Graph.HighlightCallersForSelected();
         ShowCalleesButton.Click += (_, _) => Graph.HighlightCalleesForSelected();
         ClearHighlightButton.Click += (_, _) => Graph.ClearHighlightMode();
@@ -125,8 +129,22 @@ public partial class MainWindow : Window
         Graph.InvalidateVisual();
     }
 
+    private void OnBlastRadiusClicked()
+    {
+        if (_selectedNode?.SemanticSymbol is null || _graph?.Queries is null)
+        {
+            StatusText.Text = "Seleziona prima un simbolo per calcolare il Blast Radius.";
+            return;
+        }
+
+        var report = _graph.Queries.GetImpactReport(_selectedNode.SemanticSymbol);
+        Graph.HighlightBlastRadius(report);
+        StatusText.Text = $"Blast Radius per '{_selectedNode.QualifiedName}': {report.DirectCallers.Count} diretti, {report.IndirectCallers.Count} indiretti, {report.AffectedForms.Count} form, Rischio: {report.RiskLevel}";
+    }
+
     private void OnGraphSelectionChanged(object? sender, GraphNode? node)
     {
+        _selectedNode = node;
         if (node is null)
         {
             ShowEmptyInspector();
@@ -245,19 +263,73 @@ public partial class MainWindow : Window
             InspectorFileSection.IsVisible = false;
         }
 
-        // Callers & Callees dal Call Graph
+        // Calcolo Impact Analysis & Blast Radius (M6)
         if (_graph?.Queries != null && sym != null)
         {
-            var callers = _graph.Queries.GetDirectCallers(sym);
-            InspectorCallers.Text = callers.Count > 0
-                ? string.Join("\n", callers.Select(c => $"• {c.QualifiedName}"))
+            var impact = _graph.Queries.GetImpactReport(sym);
+
+            // Risk Badge
+            RiskLevelText.Text = $"RISK: {impact.RiskLevel.ToString().ToUpperInvariant()}";
+            RiskBadge.Background = impact.RiskLevel switch
+            {
+                ImpactRiskLevel.Low => new SolidColorBrush(Color.Parse("#2E7D32")),
+                ImpactRiskLevel.Medium => new SolidColorBrush(Color.Parse("#F57C00")),
+                ImpactRiskLevel.High => new SolidColorBrush(Color.Parse("#D32F2F")),
+                ImpactRiskLevel.Critical => new SolidColorBrush(Color.Parse("#880E4F")),
+                _ => new SolidColorBrush(Color.Parse("#454555"))
+            };
+
+            BlastDirectCallersCount.Text = impact.DirectCallers.Count.ToString();
+            BlastIndirectCallersCount.Text = impact.IndirectCallers.Count.ToString();
+            BlastMaxDepth.Text = impact.MaxDependencyDepth.ToString();
+
+            // Form UI impattate
+            if (impact.AffectedForms.Count > 0)
+            {
+                BlastFormsSection.IsVisible = true;
+                BlastFormsList.Text = string.Join(", ", impact.AffectedForms.Select(f => f.Name));
+            }
+            else
+            {
+                BlastFormsSection.IsVisible = false;
+            }
+
+            // Classi e Moduli toccati
+            var touchedContainers = impact.AffectedClasses.Concat(impact.AffectedModules).ToList();
+            if (touchedContainers.Count > 0)
+            {
+                BlastClassesSection.IsVisible = true;
+                BlastClassesList.Text = string.Join(", ", touchedContainers.Select(c => c.Name));
+            }
+            else
+            {
+                BlastClassesSection.IsVisible = false;
+            }
+
+            // Percorsi di esecuzione (call chains)
+            if (impact.AffectedExecutionPaths.Count > 0)
+            {
+                BlastPathsSection.IsVisible = true;
+                var paths = impact.AffectedExecutionPaths.Take(5).Select(p => $"• {p}");
+                BlastPathsList.Text = string.Join("\n", paths) + (impact.AffectedExecutionPaths.Count > 5 ? $"\n... (+ altri {impact.AffectedExecutionPaths.Count - 5})" : "");
+            }
+            else
+            {
+                BlastPathsSection.IsVisible = false;
+            }
+
+            // Callers diretti standard
+            InspectorCallers.Text = impact.DirectCallers.Count > 0
+                ? string.Join("\n", impact.DirectCallers.Select(c => $"• {c.QualifiedName}"))
                 : "(nessun chiamante diretto)";
 
+            // Callees diretti
             var callees = _graph.Queries.GetDirectCallees(sym);
             InspectorCallees.Text = callees.Count > 0
                 ? string.Join("\n", callees.Select(c => $"• {c.QualifiedName}"))
                 : "(nessuna chiamata effettuata)";
 
+            // Classi istanziate
             var instantiations = _graph.Queries.GetInstantiatedClasses(sym);
             if (instantiations.Count > 0)
             {
@@ -274,6 +346,9 @@ public partial class MainWindow : Window
             InspectorCallers.Text = "(nessuno)";
             InspectorCallees.Text = "(nessuno)";
             InspectorInstantiatesSection.IsVisible = false;
+            BlastFormsSection.IsVisible = false;
+            BlastClassesSection.IsVisible = false;
+            BlastPathsSection.IsVisible = false;
         }
     }
 

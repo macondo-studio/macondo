@@ -4,12 +4,13 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using VB6Analyzer.App.Models;
+using VB6Analyzer.Semantic.Impact;
 using VB6Analyzer.Semantic.Model;
 
 namespace VB6Analyzer.App.Controls;
 
 /// <summary>
-/// Controllo custom Avalonia/Skia ad alte prestazioni per il rendering e l'interazione con il CodeGraph (M5).
+/// Controllo custom Avalonia/Skia ad alte prestazioni per il rendering e l'interazione con il CodeGraph (M5 + M6).
 /// 
 /// CARATTERISTICHE E INTERAZIONI:
 /// 1. Zoom: zoom continuo tramite rotella del mouse con stabilità del punto sotto il cursore.
@@ -18,7 +19,8 @@ namespace VB6Analyzer.App.Controls;
 /// 4. Expand / Collapse: doppio clic su container (Class, Form, Module, Type, Enum) per progressive disclosure.
 /// 5. Callers Mode: evidenziazione visiva gerarchica dei chiamanti della routine selezionata.
 /// 6. Callees Mode: evidenziazione visiva gerarchica delle routine chiamate.
-/// 7. Rendering Archi Direzionati con Frecce: CALLS, INSTANTIATES, USES_TYPE, CONTAINS.
+/// 7. Blast Radius Mode (M6): visualizzazione dell'impatto di modifica con gradiente di colore per profondità (Rosso -> Arancione -> Giallo) e Form UI toccate.
+/// 8. Rendering Archi Direzionati con Frecce: CALLS, INSTANTIATES, USES_TYPE, CONTAINS.
 /// </summary>
 public sealed class GraphControl : Control
 {
@@ -52,8 +54,13 @@ public sealed class GraphControl : Control
     private readonly HashSet<Guid> _calleeNodeIds = new();
     private readonly HashSet<(Guid, Guid)> _highlightedEdges = new();
 
+    // Stato Blast Radius (M6)
+    private readonly Dictionary<Guid, int> _blastRadiusDepths = new();
+    private readonly HashSet<Guid> _affectedContainerIds = new();
+    private ImpactReport? _activeBlastRadiusReport;
+
     // Modalità di evidenziazione
-    public enum HighlightMode { Normal, Callers, Callees }
+    public enum HighlightMode { Normal, Callers, Callees, BlastRadius }
     private HighlightMode _currentHighlightMode = HighlightMode.Normal;
     public HighlightMode CurrentHighlightMode => _currentHighlightMode;
 
@@ -66,7 +73,10 @@ public sealed class GraphControl : Control
     private static readonly IPen EdgeHighlightPen = new Pen(new SolidColorBrush(Color.Parse("#FFD700")), 2.5);
     private static readonly IPen EdgeCallerPen = new Pen(new SolidColorBrush(Color.Parse("#FF9933")), 2.5);
     private static readonly IPen EdgeCalleePen = new Pen(new SolidColorBrush(Color.Parse("#33CCFF")), 2.5);
+    private static readonly IPen EdgeBlastRadiusPen = new Pen(new SolidColorBrush(Color.Parse("#FF6600")), 2.5);
     private static readonly IPen SelectionOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#FFD700")), 3);
+    private static readonly IPen TargetBlastOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#FF3344")), 3.5);
+    private static readonly IPen FormBlastOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#00D0FF")), 2.5);
     private static readonly Typeface LabelTypeface = new("Inter", FontStyle.Normal, FontWeight.Medium);
 
     static GraphControl()
@@ -118,10 +128,15 @@ public sealed class GraphControl : Control
             var isHighlighted = _highlightedEdges.Contains((edge.SourceId, edge.TargetId));
             var isCallerEdge = _callerNodeIds.Contains(edge.SourceId) && (_selectedNode?.Id == edge.TargetId || _callerNodeIds.Contains(edge.TargetId));
             var isCalleeEdge = (_selectedNode?.Id == edge.SourceId || _calleeNodeIds.Contains(edge.SourceId)) && _calleeNodeIds.Contains(edge.TargetId);
+            var isBlastRadiusEdge = _currentHighlightMode == HighlightMode.BlastRadius &&
+                                    (_blastRadiusDepths.ContainsKey(edge.SourceId) || _selectedNode?.Id == edge.SourceId) &&
+                                    (_blastRadiusDepths.ContainsKey(edge.TargetId) || _selectedNode?.Id == edge.TargetId);
 
             var pen = isHighlighted
                 ? EdgeHighlightPen
-                : (isCallerEdge ? EdgeCallerPen : (isCalleeEdge ? EdgeCalleePen : GetPenForEdgeKind(edge.Kind)));
+                : (isBlastRadiusEdge ? EdgeBlastRadiusPen :
+                  (isCallerEdge ? EdgeCallerPen :
+                  (isCalleeEdge ? EdgeCalleePen : GetPenForEdgeKind(edge.Kind))));
 
             var p1 = GraphToScreen(source.X, source.Y);
             var p2 = GraphToScreen(target.X, target.Y);
@@ -153,9 +168,16 @@ public sealed class GraphControl : Control
             var isCaller = _callerNodeIds.Contains(node.Id);
             var isCallee = _calleeNodeIds.Contains(node.Id);
 
-            var fill = NodeFill(node.Kind, isSelected, isHighlighted, isCaller, isCallee);
+            // Blast Radius info
+            var isInBlastRadius = _currentHighlightMode == HighlightMode.BlastRadius;
+            var blastDepth = _blastRadiusDepths.TryGetValue(node.Id, out var d) ? d : (int?)null;
+            var isAffectedContainer = _affectedContainerIds.Contains(node.Id);
 
-            context.DrawEllipse(fill, isSelected ? SelectionOutlinePen : null, screenPos, radius, radius);
+            var fill = GetNodeBrush(node, isSelected, isHighlighted, isCaller, isCallee, isInBlastRadius, blastDepth, isAffectedContainer);
+            var outlinePen = isSelected ? (isInBlastRadius ? TargetBlastOutlinePen : SelectionOutlinePen) :
+                            (isAffectedContainer && node.Kind == SymbolKind.Form ? FormBlastOutlinePen : null);
+
+            context.DrawEllipse(fill, outlinePen, screenPos, radius, radius);
 
             // Indicatore visivo di container espanso/compresso
             if (node.IsContainer)
@@ -174,7 +196,7 @@ public sealed class GraphControl : Control
                     FlowDirection.LeftToRight,
                     LabelTypeface,
                     fontSize,
-                    isSelected ? Brushes.Gold : Brushes.WhiteSmoke);
+                    isSelected ? Brushes.Gold : (blastDepth.HasValue ? Brushes.Gold : Brushes.WhiteSmoke));
 
                 context.DrawText(label, screenPos + new Point(radius + 4, -label.Height / 2));
             }
@@ -219,14 +241,50 @@ public sealed class GraphControl : Control
         context.DrawGeometry(brush, null, geometry);
     }
 
-    private static IBrush NodeFill(SymbolKind kind, bool isSelected, bool isHighlighted, bool isCaller, bool isCallee)
+    private static IBrush GetNodeBrush(
+        GraphNode node,
+        bool isSelected,
+        bool isHighlighted,
+        bool isCaller,
+        bool isCallee,
+        bool isInBlastRadius,
+        int? blastDepth,
+        bool isAffectedContainer)
     {
+        // Se siamo in modalità Blast Radius: colora in base alla profondità di rischio
+        if (isInBlastRadius)
+        {
+            if (isSelected)
+                return new SolidColorBrush(Color.Parse("#FF3344")); // Rosso acceso = Target di modifica
+
+            if (blastDepth.HasValue)
+            {
+                return blastDepth.Value switch
+                {
+                    1 => new SolidColorBrush(Color.Parse("#FF8800")), // Arancione = Chiamante diretto
+                    2 => new SolidColorBrush(Color.Parse("#FFBB00")), // Ambra = Chiamante 2° livello
+                    _ => new SolidColorBrush(Color.Parse("#FFE066"))  // Giallo chiaro = Chiamante 3°+ livello
+                };
+            }
+
+            if (isAffectedContainer)
+            {
+                return node.Kind == SymbolKind.Form
+                    ? new SolidColorBrush(Color.Parse("#00D0FF")) // Form UI toccata
+                    : new SolidColorBrush(Color.Parse("#54C08C")); // Classe/Modulo toccato
+            }
+
+            // Nodi non impattati: attenuati
+            return new SolidColorBrush(Color.Parse("#282834"));
+        }
+
+        // Modalità normale
         if (isSelected) return new SolidColorBrush(Color.Parse("#FFD700")); // Gold
         if (isCaller) return new SolidColorBrush(Color.Parse("#FF9933"));   // Amber/Orange
         if (isCallee) return new SolidColorBrush(Color.Parse("#00D0FF"));   // Cyan
         if (isHighlighted) return new SolidColorBrush(Color.Parse("#90CAF9")); // Light blue
 
-        return kind switch
+        return node.Kind switch
         {
             SymbolKind.Project => new SolidColorBrush(Color.Parse("#E85D75")),
             SymbolKind.Form => new SolidColorBrush(Color.Parse("#4FA8E8")),
@@ -244,10 +302,10 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Progressive disclosure: I membri figli (Method, Property, Field) sono visibili
-    /// solo se il relativo container padre è espanso (<see cref="GraphNode.IsExpanded"/>).
+    /// Progressive disclosure: I membri figli sono visibili solo se il relativo container è espanso.
+    /// In modalità Blast Radius, i container dei nodi impattati vengono forzati visibili.
     /// </summary>
-    private static HashSet<Guid> ComputeVisibleNodeIds(VisualCodeGraph graph)
+    private HashSet<Guid> ComputeVisibleNodeIds(VisualCodeGraph graph)
     {
         var visible = new HashSet<Guid>();
         foreach (var node in graph.Nodes)
@@ -260,7 +318,7 @@ public sealed class GraphControl : Control
             }
 
             var parent = node.ParentId.HasValue ? graph.GetNode(node.ParentId.Value) : null;
-            if (parent is { IsExpanded: true })
+            if (parent is { IsExpanded: true } || _blastRadiusDepths.ContainsKey(node.Id))
             {
                 visible.Add(node.Id);
             }
@@ -413,7 +471,7 @@ public sealed class GraphControl : Control
     }
 
     // =========================================================================
-    // SELEZIONE ED EVIDENZIAZIONE CALLERS / CALLEES
+    // SELEZIONE ED EVIDENZIAZIONE CALLERS / CALLEES / BLAST RADIUS
     // =========================================================================
 
     public void SelectNode(GraphNode? node)
@@ -423,6 +481,9 @@ public sealed class GraphControl : Control
         _highlightedEdges.Clear();
         _callerNodeIds.Clear();
         _calleeNodeIds.Clear();
+        _blastRadiusDepths.Clear();
+        _affectedContainerIds.Clear();
+        _currentHighlightMode = HighlightMode.Normal;
 
         if (node is not null && Graph is { } graph)
         {
@@ -454,6 +515,8 @@ public sealed class GraphControl : Control
     {
         _callerNodeIds.Clear();
         _calleeNodeIds.Clear();
+        _blastRadiusDepths.Clear();
+        _affectedContainerIds.Clear();
 
         if (_selectedNode is null || Graph?.Queries is null || _selectedNode.SemanticSymbol is null)
             return;
@@ -475,6 +538,8 @@ public sealed class GraphControl : Control
     {
         _callerNodeIds.Clear();
         _calleeNodeIds.Clear();
+        _blastRadiusDepths.Clear();
+        _affectedContainerIds.Clear();
 
         if (_selectedNode is null || Graph?.Queries is null || _selectedNode.SemanticSymbol is null)
             return;
@@ -490,12 +555,47 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
+    /// Evidenzia sul grafo l'intero Blast Radius (M6): target in rosso, chiamanti per livello di profondità e Form UI toccate.
+    /// </summary>
+    public void HighlightBlastRadius(ImpactReport report)
+    {
+        _callerNodeIds.Clear();
+        _calleeNodeIds.Clear();
+        _blastRadiusDepths.Clear();
+        _affectedContainerIds.Clear();
+        _activeBlastRadiusReport = report;
+
+        // Chiamanti diretti (Depth 1)
+        foreach (var dc in report.DirectCallers)
+        {
+            _blastRadiusDepths[dc.Id] = 1;
+        }
+
+        // Chiamanti indiretti (Depth >= 2)
+        foreach (var ic in report.IndirectCallers)
+        {
+            _blastRadiusDepths[ic.Symbol.Id] = ic.Depth;
+        }
+
+        // Container impattati (Form, Classi, Moduli)
+        foreach (var f in report.AffectedForms) _affectedContainerIds.Add(f.Id);
+        foreach (var c in report.AffectedClasses) _affectedContainerIds.Add(c.Id);
+        foreach (var m in report.AffectedModules) _affectedContainerIds.Add(m.Id);
+
+        _currentHighlightMode = HighlightMode.BlastRadius;
+        InvalidateVisual();
+    }
+
+    /// <summary>
     /// Ripristina l'evidenziazione normale.
     /// </summary>
     public void ClearHighlightMode()
     {
         _callerNodeIds.Clear();
         _calleeNodeIds.Clear();
+        _blastRadiusDepths.Clear();
+        _affectedContainerIds.Clear();
+        _activeBlastRadiusReport = null;
         _currentHighlightMode = HighlightMode.Normal;
         InvalidateVisual();
     }

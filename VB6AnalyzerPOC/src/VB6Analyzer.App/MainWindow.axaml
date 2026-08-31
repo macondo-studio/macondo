@@ -3,9 +3,9 @@
         xmlns:controls="using:VB6Analyzer.App.Controls"
         xmlns:models="using:VB6Analyzer.App.Models"
         x:Class="VB6Analyzer.App.MainWindow"
-        Title="VB6 Analyzer — Graph UI &amp; Call Graph Explorer"
-        Width="1400" Height="860"
-        MinWidth="1000" MinHeight="650">
+        Title="VB6 Semantic Code Analyzer"
+        Width="1400" Height="900"
+        Background="#181820">
 
     <Grid RowDefinitions="Auto,*,Auto">
 
@@ -27,6 +27,7 @@
 
                     <Rectangle Width="1" Height="22" Fill="#454555" Margin="4,0" VerticalAlignment="Center" />
 
+                    <Button x:Name="BlastRadiusButton" Content="💥 Blast Radius" ToolTip.Tip="Calcola ed evidenzia l'impatto di modifica (chiamanti indiretti, form e classi impattate)" />
                     <Button x:Name="ShowCallersButton" Content="⬅️ Mostra Callers" ToolTip.Tip="Evidenzia chi chiama la routine selezionata" />
                     <Button x:Name="ShowCalleesButton" Content="➡️ Mostra Callees" ToolTip.Tip="Evidenzia cosa chiama la routine selezionata" />
                     <Button x:Name="ClearHighlightButton" Content="✖ Pulisci Filtri" ToolTip.Tip="Rimuove le evidenziazioni attive" />
@@ -41,42 +42,40 @@
         </Border>
 
         <!-- Area Centrale: Explorer | Graph | Inspector -->
-        <Grid Grid.Row="1" ColumnDefinitions="280,*,340">
+        <Grid Grid.Row="1" ColumnDefinitions="280,*,360">
 
             <!-- Pannello Sinistro: Project Explorer -->
-            <Border Grid.Column="0" Background="#1C1C24" BorderBrush="#353545" BorderThickness="0,0,1,0">
-                <DockPanel Margin="6">
-                    <Border DockPanel.Dock="Top" Padding="8,6" Background="#262632" CornerRadius="4" Margin="0,0,0,6">
-                        <TextBlock Text="📁 Project Explorer" FontWeight="SemiBold" FontSize="13" Foreground="#ECECF0" />
-                    </Border>
-
+            <Border Grid.Column="0" Background="#1E1E28" BorderBrush="#353545" BorderThickness="0,0,1,0" Padding="8">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="📁 Project Explorer" FontWeight="Bold" FontSize="13" Foreground="#ECECF0" Margin="4,4,4,8" />
                     <TreeView x:Name="ExplorerTree" SelectionChanged="OnExplorerSelectionChanged">
                         <TreeView.ItemTemplate>
-                            <TreeDataTemplate x:DataType="models:ExplorerTreeItem" ItemsSource="{Binding Children}">
-                                <TextBlock Text="{Binding DisplayText}" FontSize="12" Margin="2,1" />
+                            <TreeDataTemplate DataType="models:ExplorerTreeItem" ItemsSource="{Binding Children}">
+                                <TextBlock Text="{Binding DisplayText}" FontSize="12" Foreground="#ECECF0" VerticalAlignment="Center" />
                             </TreeDataTemplate>
                         </TreeView.ItemTemplate>
                     </TreeView>
                 </DockPanel>
             </Border>
 
-            <!-- Area Centrale: Graph Control con Skia Canvas -->
-            <controls:GraphControl x:Name="Graph" Grid.Column="1" SelectionChanged="OnGraphSelectionChanged" />
+            <!-- Pannello Centrale: Canvas Interattivo del Grafo -->
+            <controls:GraphControl Grid.Column="1" x:Name="Graph" SelectionChanged="OnGraphSelectionChanged" />
 
-            <!-- Pannello Destro: Symbol Inspector -->
-            <Border Grid.Column="2" Background="#1C1C24" BorderBrush="#353545" BorderThickness="1,0,0,0">
-                <ScrollViewer Margin="12,10">
+            <!-- Pannello Destro: Symbol Inspector & Impact Analysis -->
+            <Border Grid.Column="2" Background="#1E1E28" BorderBrush="#353545" BorderThickness="1,0,0,0" Padding="12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="10">
+                        <!-- Intestazione Inspector -->
                         <Border Padding="8,6" Background="#262632" CornerRadius="4">
-                            <TextBlock Text="🔎 Symbol Inspector" FontWeight="SemiBold" FontSize="13" Foreground="#ECECF0" />
+                            <TextBlock Text="🔎 Symbol Inspector &amp; Blast Radius" FontWeight="SemiBold" FontSize="13" Foreground="#ECECF0" />
                         </Border>
 
                         <!-- Messaggio Nodo Non Selezionato -->
                         <StackPanel x:Name="InspectorEmptyPanel" Spacing="6" Margin="4,8">
                             <TextBlock Text="Nessun simbolo selezionato." Foreground="#9090A0" FontWeight="Medium" />
                             <TextBlock Text="• Clicca su un nodo per visualizzare dettagli semantici, tipi, parametri e chiamate." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
+                            <TextBlock Text="• Clicca su '💥 Blast Radius' per calcolare il raggio di impatto e il rischio di regressione." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
                             <TextBlock Text="• Doppio clic su una Classe, Form o Modulo per espandere/comprimere i membri." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
-                            <TextBlock Text="• Usa 'Mostra Callers' o 'Mostra Callees' per esplorare il flusso di esecuzione." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
                         </StackPanel>
 
                         <!-- Dettagli Simbolo Selezionato -->
@@ -120,6 +119,50 @@
 
                             <Rectangle Height="1" Fill="#353545" Margin="0,6" />
 
+                            <!-- Sezione Impact Analysis & Blast Radius (M6) -->
+                            <Border Background="#242432" BorderBrush="#3D3D52" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,4">
+                                <StackPanel Spacing="6">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="💥 BLAST RADIUS (IMPACT)" Foreground="#FF6633" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" />
+                                        <Border Grid.Column="1" x:Name="RiskBadge" CornerRadius="4" Padding="6,2" Background="#2E7D32">
+                                            <TextBlock x:Name="RiskLevelText" Text="RISK: LOW" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" />
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Metriche di Impatto -->
+                                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" Margin="0,4">
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Chiamanti Diretti:" Foreground="#A0A0B0" FontSize="11" />
+                                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="BlastDirectCallersCount" Text="0" Foreground="#FFFFFF" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right" />
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Chiamanti Indiretti:" Foreground="#A0A0B0" FontSize="11" />
+                                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="BlastIndirectCallersCount" Text="0" Foreground="#FFFFFF" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right" />
+
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Profondità Max (Depth):" Foreground="#A0A0B0" FontSize="11" />
+                                        <TextBlock Grid.Row="2" Grid.Column="1" x:Name="BlastMaxDepth" Text="0" Foreground="#FFCC00" FontSize="11" FontWeight="Bold" HorizontalAlignment="Right" />
+                                    </Grid>
+
+                                    <!-- Form UI Impattate -->
+                                    <StackPanel x:Name="BlastFormsSection" Spacing="2" Margin="0,2">
+                                        <TextBlock Text="🖼️ FORM UI IMPATTATE" Foreground="#00D0FF" FontSize="10" FontWeight="Bold" />
+                                        <TextBlock x:Name="BlastFormsList" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
+                                    </StackPanel>
+
+                                    <!-- Classi & Moduli Impattati -->
+                                    <StackPanel x:Name="BlastClassesSection" Spacing="2" Margin="0,2">
+                                        <TextBlock Text="📦 CLASSI &amp; MODULI TOCCATI" Foreground="#54C08C" FontSize="10" FontWeight="Bold" />
+                                        <TextBlock x:Name="BlastClassesList" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
+                                    </StackPanel>
+
+                                    <!-- Percorsi di Esecuzione a Rischio -->
+                                    <StackPanel x:Name="BlastPathsSection" Spacing="2" Margin="0,2">
+                                        <TextBlock Text="⚡ PERCORSI DI ESECUZIONE (CALL CHAINS)" Foreground="#FFCC00" FontSize="10" FontWeight="Bold" />
+                                        <TextBlock x:Name="BlastPathsList" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="10" FontFamily="Consolas, monospace" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <Rectangle Height="1" Fill="#353545" Margin="0,6" />
+
                             <!-- Chiamanti Diretti (Callers) -->
                             <StackPanel Spacing="3">
                                 <TextBlock Text="CHIAMANTI DIRETTI (WHO CALLS ME?)" Foreground="#FF9933" FontSize="10" FontWeight="Bold" />
@@ -144,10 +187,10 @@
         </Grid>
 
         <!-- Barra di Stato Inferiore -->
-        <Border Grid.Row="2" Background="#22222C" Padding="12,6" BorderBrush="#353545" BorderThickness="0,1,0,0">
-            <Grid ColumnDefinitions="Auto,*,Auto">
-                <TextBlock x:Name="StatusText" Grid.Column="0" Text="Pronto." Foreground="#A0A0B0" FontSize="12" />
-                <TextBlock x:Name="StatusStats" Grid.Column="2" Text="Nodi: 0 | Relazioni: 0" Foreground="#A0A0B0" FontSize="12" />
+        <Border Grid.Row="2" Background="#16161D" Padding="12,6" BorderBrush="#353545" BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" x:Name="StatusText" Text="Pronto." Foreground="#808090" FontSize="11" />
+                <TextBlock Grid.Column="1" x:Name="StatusStats" Text="Nodi: 0 | Relazioni: 0" Foreground="#606070" FontSize="11" />
             </Grid>
         </Border>
     </Grid>

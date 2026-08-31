@@ -1,29 +1,24 @@
-/VB6AnalyzerPOC/src/VB6Analyzer.App/obj
-/VB6AnalyzerPOC/src/VB6Analyzer.App/bin
-/VB6ParserSpike/src/VB6Analyzer.Parser.Spike/bin
-/VB6ParserSpike/src/VB6Analyzer.Parser.Spike/obj
-/VB6ParserSpike/src/VB6Analyzer.Parser/obj
-/VB6ParserSpike/src/VB6Analyzer.Parser/bin
-/VB6AnalyzerPOC/.vs
-/VB6AnalyzerPOC/.vs
-/VB6ParserSpike/.vs
-/VB6AnalyzerPOC/.vs
-/VB6ParserSpike/src/VB6Analyzer.Semantic.Spike/obj
-/VB6ParserSpike/src/VB6Analyzer.Semantic/bin
-/VB6ParserSpike/src/VB6Analyzer.Semantic/obj
-/VB6ParserSpike/src/VB6Analyzer.Semantic.Spike/bin
-/VB6AnalyzerPOC/.vs
-/VB6AnalyzerPOC/.vs
-/VB6AnalyzerPOC/.vs
-/VB6AnalyzerPOC/.vs
-/VB6AnalyzerPOC/.vs/VB6AnalyzerPOC
-/VB6AnalyzerPOC/.vs/ProjectEvaluation
-VB6AnalyzerPOC/.vs/ProjectEvaluation/vb6analyzerpoc.metadata.v10.bin
-VB6AnalyzerPOC/.vs/ProjectEvaluation/vb6analyzerpoc.projects.v10.bin
-VB6AnalyzerPOC/.vs/ProjectEvaluation/vb6analyzerpoc.strings.v10.bin
-VB6AnalyzerPOC/.vs/VB6AnalyzerPOC/DesignTimeBuild/.dtbcache.v2
-VB6AnalyzerPOC/.vs/VB6AnalyzerPOC/FileContentIndex/027e6c7c-9498-406f-bde0-60c5212d4387.vsidx
-VB6AnalyzerPOC/.vs/VB6AnalyzerPOC/v18/.futdcache.v2
-VB6AnalyzerPOC/.vs/VB6AnalyzerPOC/v18/.suo
-VB6AnalyzerPOC/.vs/VB6AnalyzerPOC/v18/DocumentLayout.backup.json
-VB6AnalyzerPOC/.vs/VB6AnalyzerPOC/v18/DocumentLayout.json
+# Visual Studio / VS Code / Rider cache
+.vs/
+**/.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build outputs (bin / obj)
+**/[Bb]in/
+**/[Oo]bj/
+[Bb]in/
+[Oo]bj/
+
+# Test and coverage results
+TestResults/
+[Tt]est[Rr]esult*/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+/VB6AnalyzerPOC/.vs/CopilotSnapshots

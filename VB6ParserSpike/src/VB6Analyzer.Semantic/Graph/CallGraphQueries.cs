@@ -287,4 +287,17 @@ public sealed class CallGraphQueries
             .Select(s => s!)
             .DistinctBy(s => s.Id)
             .ToList();
+
+    // =========================================================================
+    // IMPACT ANALYSIS & BLAST RADIUS (Milestone M6)
+    // =========================================================================
+
+    /// <summary>
+    /// Esegue l'analisi completa del Blast Radius per il simbolo specificato.
+    /// </summary>
+    public Impact.ImpactReport GetImpactReport(Symbol symbol, int maxDepth = 10)
+    {
+        var analyzer = new Impact.ImpactAnalyzer(_graph, this);
+        return analyzer.AnalyzeSymbolImpact(symbol, maxDepth);
+    }
 }
