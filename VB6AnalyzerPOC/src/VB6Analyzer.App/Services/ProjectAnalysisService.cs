@@ -30,19 +30,12 @@ public static class ProjectAnalysisService
             .ToList();
 
         var projectName = Path.GetFileName(folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-        return AnalyzeFiles(files, projectName);
-    }
 
-    /// <summary>
-    /// Esegue la pipeline di analisi semantica (estrazione, risoluzione tipi, call graph) su un set di file.
-    /// </summary>
-    public static VisualCodeGraph AnalyzeFiles(IReadOnlyList<string> filePaths, string projectName = "VB6 Project")
-    {
         var semanticGraph = new Semantic.Model.CodeGraph();
         var extractionResults = new List<ModuleExtractionResult>();
 
         // 1. Estrazione AST e simboli per ciascun file
-        foreach (var file in filePaths)
+        foreach (var file in files)
         {
             var fileName = Path.GetFileName(file);
             var source = File.ReadAllText(file);

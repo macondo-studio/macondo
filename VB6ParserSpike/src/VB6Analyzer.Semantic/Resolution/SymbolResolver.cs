@@ -83,62 +83,6 @@ public sealed class SymbolResolver
         return new WithScope(parentScope, targetResult, _graph, _typeResolver);
     }
 
-    /// <summary>
-    /// Risolve un identificatore non qualificato (es. "SaveCustomer", "mCount", "i", "Customer") nello scope specificato.
-    /// </summary>
-    public ResolutionResult ResolveIdentifier(IScope scope, string name)
-    {
-        return scope.Resolve(name);
-    }
-
-    /// <summary>
-    /// Risolve un accesso qualificato a 2 elementi (es. "c.Save", "Customer.Update", "Me.Reset", "obj.DoSomething").
-    /// </summary>
-    /// <param name="scope">Lo scope da cui parte la risoluzione del target.</param>
-    /// <param name="targetName">Il nome del target (variabile, classe, modulo o 'Me').</param>
-    /// <param name="memberName">Il nome del membro da accedere sul target.</param>
-    public ResolutionResult ResolveMemberAccess(IScope scope, string targetName, string memberName)
-    {
-        // 1. Risolve prima il target nello scope corrente (es. trova la variabile locale 'c')
-        var targetResult = scope.Resolve(targetName);
-
-        if (!targetResult.IsSuccess && targetResult.Confidence != ResolutionConfidence.Unknown)
-        {
-            return targetResult;
-        }
-
-        // 2. Risolve il membro sul target identificato
-        return ResolveMemberOnTarget(targetResult, memberName);
-    }
-
-    /// <summary>
-    /// Risolve una catena di accessi qualificati arbitrariamente lunga (es. ["a", "b", "c"]).
-    /// </summary>
-    public ResolutionResult ResolveChainedAccess(IScope scope, IReadOnlyList<string> chain)
-    {
-        if (chain.Count == 0)
-        {
-            return new ResolutionResult
-            {
-                Confidence = ResolutionConfidence.Unknown,
-                Details = "Catena di accesso vuota"
-            };
-        }
-
-        if (chain.Count == 1)
-            return scope.Resolve(chain[0]);
-
-        var currentResult = scope.Resolve(chain[0]);
-
-        for (var i = 1; i < chain.Count; i++)
-        {
-            currentResult = ResolveMemberOnTarget(currentResult, chain[i]);
-            if (currentResult.Confidence == ResolutionConfidence.Unknown)
-                break;
-        }
-
-        return currentResult;
-    }
 
     /// <summary>
     /// Risolve un membro su un target già precedentemente risolto.

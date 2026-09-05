@@ -32,17 +32,6 @@ public sealed class VisualCodeGraph
     public IEnumerable<GraphNode> GetChildren(Guid parentId) =>
         Nodes.Where(n => n.ParentId == parentId);
 
-    /// <summary>Restituisce i nodi che chiamano direttamente il nodo specificato (Who calls X?).</summary>
-    public IEnumerable<GraphNode> GetCallers(Guid nodeId) =>
-        Edges.Where(e => e.Kind == RelationshipKind.Calls && e.TargetId == nodeId)
-             .Select(e => GetNode(e.SourceId))
-             .Where(n => n is not null)!;
-
-    /// <summary>Restituisce i nodi chiamati direttamente dal nodo specificato (What does X call?).</summary>
-    public IEnumerable<GraphNode> GetCallees(Guid nodeId) =>
-        Edges.Where(e => e.Kind == RelationshipKind.Calls && e.SourceId == nodeId)
-             .Select(e => GetNode(e.TargetId))
-             .Where(n => n is not null)!;
 
     /// <summary>Invalida la cache degli ID dopo modifiche alla lista dei nodi.</summary>
     public void Invalidate() => _nodesById = null;

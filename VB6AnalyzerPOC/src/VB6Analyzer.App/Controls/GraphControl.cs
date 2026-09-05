@@ -60,7 +60,6 @@ public sealed class GraphControl : Control
     private ImpactReport? _activeBlastRadiusReport;
 
     // Modalità di evidenziazione
-    public enum HighlightMode { Normal, Callers, Callees, BlastRadius }
     private HighlightMode _currentHighlightMode = HighlightMode.Normal;
     public HighlightMode CurrentHighlightMode => _currentHighlightMode;
 

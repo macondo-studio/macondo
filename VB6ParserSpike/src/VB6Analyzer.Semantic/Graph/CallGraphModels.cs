@@ -47,24 +47,3 @@ public sealed class CallCycle
     public override string ToString() =>
         string.Join(" -> ", CycleSymbols.Select(s => s.QualifiedName));
 }
-
-/// <summary>
-/// Nodo gerarchico per la navigazione e visualizzazione ad albero dei chiamanti o dei chiamati.
-/// </summary>
-public sealed class CallTreeNode
-{
-    /// <summary>Simbolo rappresentato da questo nodo dell'albero.</summary>
-    public required Symbol Symbol { get; init; }
-
-    /// <summary>Numero di riga della chiamata verso il nodo figlio.</summary>
-    public int? CallLine { get; init; }
-
-    /// <summary>Grado di confidenza della chiamata.</summary>
-    public ResolutionConfidence Confidence { get; init; } = ResolutionConfidence.Exact;
-
-    /// <summary>Nodi figli (chiamati o chiamanti successivi nella gerarchia).</summary>
-    public List<CallTreeNode> Children { get; } = new();
-
-    public override string ToString() =>
-        $"{Symbol.QualifiedName} (Children: {Children.Count})";
-}

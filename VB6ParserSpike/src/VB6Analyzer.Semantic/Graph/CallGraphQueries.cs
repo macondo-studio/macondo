@@ -55,86 +55,6 @@ public sealed class CallGraphQueries
             .ToList();
     }
 
-    // =========================================================================
-    // GERARCHIA TRANSITIVA (Albero di Chiamata)
-    // =========================================================================
-
-    /// <summary>
-    /// Costruisce l'albero transitivo dei chiamati (callees) a partire dalla routine radice, fino a una profondità massima.
-    /// </summary>
-    public CallTreeNode GetTransitiveCalleesTree(Symbol root, int maxDepth = 10)
-    {
-        var visited = new HashSet<Guid>();
-        return BuildCalleeTreeRecursive(root, visited, currentDepth: 0, maxDepth);
-    }
-
-    private CallTreeNode BuildCalleeTreeRecursive(Symbol current, HashSet<Guid> visited, int currentDepth, int maxDepth)
-    {
-        var node = new CallTreeNode { Symbol = current };
-        if (currentDepth >= maxDepth || visited.Contains(current.Id))
-            return node;
-
-        visited.Add(current.Id);
-
-        var callRels = _graph.Relationships
-            .Where(r => r.Kind == RelationshipKind.Calls && r.SourceId == current.Id);
-
-        foreach (var rel in callRels)
-        {
-            var targetSymbol = _graph.FindSymbolById(rel.TargetId);
-            if (targetSymbol != null)
-            {
-                var childNode = BuildCalleeTreeRecursive(targetSymbol, new HashSet<Guid>(visited), currentDepth + 1, maxDepth);
-                node.Children.Add(new CallTreeNode
-                {
-                    Symbol = targetSymbol,
-                    CallLine = rel.Line,
-                    Confidence = rel.Confidence,
-                    Children = { }
-                });
-            }
-        }
-
-        return node;
-    }
-
-    /// <summary>
-    /// Costruisce l'albero transitivo dei chiamanti (callers) che portano alla routine target specificata.
-    /// </summary>
-    public CallTreeNode GetTransitiveCallersTree(Symbol root, int maxDepth = 10)
-    {
-        var visited = new HashSet<Guid>();
-        return BuildCallerTreeRecursive(root, visited, currentDepth: 0, maxDepth);
-    }
-
-    private CallTreeNode BuildCallerTreeRecursive(Symbol current, HashSet<Guid> visited, int currentDepth, int maxDepth)
-    {
-        var node = new CallTreeNode { Symbol = current };
-        if (currentDepth >= maxDepth || visited.Contains(current.Id))
-            return node;
-
-        visited.Add(current.Id);
-
-        var callerRels = _graph.Relationships
-            .Where(r => r.Kind == RelationshipKind.Calls && r.TargetId == current.Id);
-
-        foreach (var rel in callerRels)
-        {
-            var callerSymbol = _graph.FindSymbolById(rel.SourceId);
-            if (callerSymbol != null)
-            {
-                var parentNode = BuildCallerTreeRecursive(callerSymbol, new HashSet<Guid>(visited), currentDepth + 1, maxDepth);
-                node.Children.Add(new CallTreeNode
-                {
-                    Symbol = callerSymbol,
-                    CallLine = rel.Line,
-                    Confidence = rel.Confidence
-                });
-            }
-        }
-
-        return node;
-    }
 
     // =========================================================================
     // EXECUTION PATH DISCOVERY (Ricerca Cammini di Esecuzione)
@@ -274,17 +194,6 @@ public sealed class CallGraphQueries
             .DistinctBy(s => s.Id)
             .ToList();
 
-    /// <summary>
-    /// Restituisce tutti i tipi utilizzati dal simbolo specificato (variabili, parametri, ritorni).
-    /// </summary>
-    public IReadOnlyList<Symbol> GetTypeDependencies(Symbol source) =>
-        _graph.Relationships
-            .Where(r => r.Kind == RelationshipKind.UsesType && r.SourceId == source.Id)
-            .Select(r => _graph.FindSymbolById(r.TargetId))
-            .Where(s => s != null)
-            .Select(s => s!)
-            .DistinctBy(s => s.Id)
-            .ToList();
 
     // =========================================================================
     // IMPACT ANALYSIS & BLAST RADIUS (Milestone M6)
