@@ -67,14 +67,15 @@ public sealed class CallGraphQueries
     /// <param name="source">Simbolo di partenza.</param>
     /// <param name="target">Simbolo di arrivo.</param>
     /// <param name="maxDepth">Profondità massima di ricerca.</param>
+    /// <param name="cancellationToken">Token opzionale per annullare la ricerca.</param>
     /// <returns>Elenco dei cammini (<see cref="CallPath"/>) identificati.</returns>
-    public IReadOnlyList<CallPath> FindExecutionPaths(Symbol source, Symbol target, int maxDepth = 10)
+    public IReadOnlyList<CallPath> FindExecutionPaths(Symbol source, Symbol target, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
         var paths = new List<CallPath>();
         var currentPath = new List<Symbol> { source };
         var visitedOnPath = new HashSet<Guid> { source.Id };
 
-        DfsFindPaths(source, target, currentPath, visitedOnPath, paths, maxDepth);
+        DfsFindPaths(source, target, currentPath, visitedOnPath, paths, maxDepth, cancellationToken);
         return paths;
     }
 
@@ -84,8 +85,14 @@ public sealed class CallGraphQueries
         List<Symbol> currentPath,
         HashSet<Guid> visitedOnPath,
         List<CallPath> results,
-        int maxDepth)
+        int maxDepth,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (results.Count >= 50)
+            return;
+
         if (current.Id == target.Id)
         {
             results.Add(new CallPath(currentPath));
@@ -98,12 +105,14 @@ public sealed class CallGraphQueries
         var callees = GetDirectCallees(current);
         foreach (var callee in callees)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!visitedOnPath.Contains(callee.Id))
             {
                 visitedOnPath.Add(callee.Id);
                 currentPath.Add(callee);
 
-                DfsFindPaths(callee, target, currentPath, visitedOnPath, results, maxDepth);
+                DfsFindPaths(callee, target, currentPath, visitedOnPath, results, maxDepth, cancellationToken);
 
                 currentPath.RemoveAt(currentPath.Count - 1);
                 visitedOnPath.Remove(callee.Id);
@@ -202,9 +211,9 @@ public sealed class CallGraphQueries
     /// <summary>
     /// Esegue l'analisi completa del Blast Radius per il simbolo specificato.
     /// </summary>
-    public Impact.ImpactReport GetImpactReport(Symbol symbol, int maxDepth = 10)
+    public Impact.ImpactReport GetImpactReport(Symbol symbol, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
         var analyzer = new Impact.ImpactAnalyzer(_graph, this);
-        return analyzer.AnalyzeSymbolImpact(symbol, maxDepth);
+        return analyzer.AnalyzeSymbolImpact(symbol, maxDepth, cancellationToken);
     }
 }

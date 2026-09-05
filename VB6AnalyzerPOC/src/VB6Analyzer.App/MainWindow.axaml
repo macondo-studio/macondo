@@ -193,5 +193,77 @@
                 <TextBlock Grid.Column="1" x:Name="StatusStats" Text="Nodi: 0 | Relazioni: 0" Foreground="#606070" FontSize="11" />
             </Grid>
         </Border>
+
+        <!-- Overlay di Caricamento Centrato a Schermo (Blast Radius & Analisi Asincrona) -->
+        <Grid x:Name="LoadingOverlay" Grid.Row="0" Grid.RowSpan="3"
+              Background="#75101018"
+              IsVisible="False"
+              ZIndex="999">
+            <Border Background="#22222E"
+                    BorderBrush="#3D3D52"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="32,24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BoxShadow="0 8 32 0 #80000000">
+                <Border.Styles>
+                    <Style Selector="Path.spinner">
+                        <Style.Animations>
+                            <Animation Duration="0:0:1" IterationCount="Infinite">
+                                <KeyFrame Cue="0%">
+                                    <Setter Property="RotateTransform.Angle" Value="0"/>
+                                </KeyFrame>
+                                <KeyFrame Cue="100%">
+                                    <Setter Property="RotateTransform.Angle" Value="360"/>
+                                </KeyFrame>
+                            </Animation>
+                        </Style.Animations>
+                    </Style>
+                </Border.Styles>
+                <StackPanel Spacing="14" HorizontalAlignment="Center" Width="280">
+                    <!-- Icona Spinner Rotante -->
+                    <Panel Width="44" Height="44" HorizontalAlignment="Center">
+                        <Ellipse Width="44" Height="44" Stroke="#353545" StrokeThickness="3.5" />
+                        <Path Classes="spinner"
+                              Width="44" Height="44"
+                              Stroke="#FF6633" StrokeThickness="3.5"
+                              StrokeLineCap="Round"
+                              Data="M 22 4 A 18 18 0 0 1 40 22"
+                              RenderTransformOrigin="50%,50%">
+                            <Path.RenderTransform>
+                                <RotateTransform />
+                            </Path.RenderTransform>
+                        </Path>
+                    </Panel>
+
+                    <!-- Titolo e Sottotitolo -->
+                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                        <TextBlock x:Name="LoadingTitle"
+                                   Text="Calcolo Blast Radius in corso..."
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Foreground="#ECECF0"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center" />
+                        <TextBlock x:Name="LoadingSubtitle"
+                                   Text="Esplorazione chiamanti e percorsi di chiamata..."
+                                   FontSize="11"
+                                   Foreground="#A0A0B0"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <!-- Barra Indeterminata Fluida -->
+                    <ProgressBar IsIndeterminate="True"
+                                 Height="4"
+                                 Foreground="#FF6633"
+                                 Background="#353545"
+                                 CornerRadius="2"
+                                 Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

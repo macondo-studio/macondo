@@ -38,17 +38,20 @@ public sealed class ImpactAnalyzer
     /// </summary>
     /// <param name="target">Il simbolo selezionato per l'analisi.</param>
     /// <param name="maxDepth">Profondità massima di risalita nel grafo (default 10).</param>
-    public ImpactReport AnalyzeSymbolImpact(Symbol target, int maxDepth = 10)
+    /// <param name="cancellationToken">Token opzionale per annullare l'analisi.</param>
+    public ImpactReport AnalyzeSymbolImpact(Symbol target, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (target.Kind is SymbolKind.Method or SymbolKind.Property)
         {
-            return AnalyzeRoutineImpact(target, maxDepth);
+            return AnalyzeRoutineImpact(target, maxDepth, cancellationToken);
         }
 
         if (target.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module
                          or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum)
         {
-            return AnalyzeTypeImpact(target, maxDepth);
+            return AnalyzeTypeImpact(target, maxDepth, cancellationToken);
         }
 
         // Calcola il Blast Radius per un campo o costante.
@@ -75,8 +78,10 @@ public sealed class ImpactAnalyzer
     /// <summary>
     /// Calcola il Blast Radius per una singola routine (Sub, Function, Property).
     /// </summary>
-    public ImpactReport AnalyzeRoutineImpact(Symbol routine, int maxDepth = 10)
+    public ImpactReport AnalyzeRoutineImpact(Symbol routine, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var directCallers = _queries.GetDirectCallers(routine).ToList();
         var indirectCallers = new List<ImpactedCaller>();
         var callersByDepth = new Dictionary<int, List<Symbol>>();
@@ -104,6 +109,8 @@ public sealed class ImpactAnalyzer
 
         while (queue.Count > 0)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var (current, depth) = queue.Dequeue();
 
             if (depth >= maxDepth)
@@ -160,7 +167,8 @@ public sealed class ImpactAnalyzer
 
         foreach (var root in rootCallers)
         {
-            var rootPaths = _queries.FindExecutionPaths(root, routine, maxDepth);
+            cancellationToken.ThrowIfCancellationRequested();
+            var rootPaths = _queries.FindExecutionPaths(root, routine, maxDepth, cancellationToken);
             executionPathsList.AddRange(rootPaths);
         }
 
@@ -190,8 +198,10 @@ public sealed class ImpactAnalyzer
     /// <summary>
     /// Calcola il Blast Radius per un intero tipo di dato o modulo (Class, Form, Module, Type, Enum).
     /// </summary>
-    public ImpactReport AnalyzeTypeImpact(Symbol typeSymbol, int maxDepth = 10)
+    public ImpactReport AnalyzeTypeImpact(Symbol typeSymbol, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var members = _graph.GetChildren(typeSymbol.Id).ToList();
         var directCallersSet = new HashSet<Guid>();
         var directCallersList = new List<Symbol>();
@@ -204,7 +214,9 @@ public sealed class ImpactAnalyzer
         // 1. Aggrega l'impatto di tutti i metodi/proprietà membri del tipo
         foreach (var member in members.Where(m => m.Kind is SymbolKind.Method or SymbolKind.Property))
         {
-            var memberReport = AnalyzeRoutineImpact(member, maxDepth);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var memberReport = AnalyzeRoutineImpact(member, maxDepth, cancellationToken);
 
             foreach (var dc in memberReport.DirectCallers)
             {

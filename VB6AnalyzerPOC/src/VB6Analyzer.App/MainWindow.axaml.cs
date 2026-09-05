@@ -2,6 +2,10 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using VB6Analyzer.App.Models;
 using VB6Analyzer.App.Services;
 using VB6Analyzer.Semantic.Impact;
@@ -18,6 +22,7 @@ public partial class MainWindow : Window
 {
     private VisualCodeGraph? _graph;
     private GraphNode? _selectedNode;
+    private CancellationTokenSource? _selectionCts;
 
     public MainWindow()
     {
@@ -40,14 +45,35 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Mostra l'overlay modale di caricamento centrato a tutto schermo.
+    /// </summary>
+    private void ShowLoading(string title, string subtitle)
+    {
+        LoadingTitle.Text = title;
+        LoadingSubtitle.Text = subtitle;
+        LoadingOverlay.IsVisible = true;
+    }
+
+    /// <summary>
+    /// Nasconde l'overlay di caricamento.
+    /// </summary>
+    private void HideLoading()
+    {
+        LoadingOverlay.IsVisible = false;
+    }
+
+    /// <summary>
     /// Genera e carica un grafo sintetico di ~500 nodi tramite FakeGraphGenerator per benchmark e test.
     /// </summary>
-    private void LoadSyntheticGraph()
+    private async void LoadSyntheticGraph()
     {
+        ShowLoading("Generazione del grafo sintetico...", "Creazione di ~500 nodi e calcolo del layout radiale...");
+        await Task.Delay(16);
+
         try
         {
             StatusText.Text = "Generazione del grafo sintetico (~500 nodi)...";
-            _graph = Generation.FakeGraphGenerator.Generate(seed: Environment.TickCount);
+            _graph = await Task.Run(() => Generation.FakeGraphGenerator.Generate(seed: Environment.TickCount));
             ApplyGraphToUI();
             StatusText.Text = "Grafo sintetico di benchmark (~500 nodi) generato con successo.";
         }
@@ -55,23 +81,34 @@ public partial class MainWindow : Window
         {
             StatusText.Text = $"Errore durante la generazione: {ex.Message}";
         }
+        finally
+        {
+            HideLoading();
+        }
     }
 
     /// <summary>
     /// Carica e analizza la suite di fixture VB6 reali integrate nel progetto.
     /// </summary>
-    private void LoadDefaultFixtures()
+    private async void LoadDefaultFixtures()
     {
+        ShowLoading("Caricamento fixture VB6...", "Analisi semantica dei 16 moduli reali in corso...");
+        await Task.Delay(16);
+
         try
         {
             StatusText.Text = "Analisi semantica delle fixture in corso...";
-            _graph = ProjectAnalysisService.LoadDefaultFixtures();
+            _graph = await Task.Run(() => ProjectAnalysisService.LoadDefaultFixtures());
             ApplyGraphToUI();
             StatusText.Text = "Suite di fixture VB6 analizzata con successo in memoria.";
         }
         catch (Exception ex)
         {
             StatusText.Text = $"Errore durante il caricamento: {ex.Message}";
+        }
+        finally
+        {
+            HideLoading();
         }
     }
 
@@ -89,16 +126,23 @@ public partial class MainWindow : Window
         if (folders.Count == 0) return;
 
         var folderPath = folders[0].Path.LocalPath;
+        ShowLoading("Analisi del progetto VB6...", $"Scansione ed estrazione da '{Path.GetFileName(folderPath)}'...");
+        await Task.Delay(16);
+
         try
         {
             StatusText.Text = $"Analisi cartella '{folderPath}' in corso...";
-            _graph = ProjectAnalysisService.AnalyzeFolder(folderPath);
+            _graph = await Task.Run(() => ProjectAnalysisService.AnalyzeFolder(folderPath));
             ApplyGraphToUI();
             StatusText.Text = $"Progetto '{Path.GetFileName(folderPath)}' analizzato con successo.";
         }
         catch (Exception ex)
         {
             StatusText.Text = $"Errore durante l'analisi: {ex.Message}";
+        }
+        finally
+        {
+            HideLoading();
         }
     }
 
@@ -129,7 +173,10 @@ public partial class MainWindow : Window
         Graph.InvalidateVisual();
     }
 
-    private void OnBlastRadiusClicked()
+    /// <summary>
+    /// Calcola ed evidenzia il Blast Radius per il nodo selezionato in modo asincrono con loading overlay.
+    /// </summary>
+    private async void OnBlastRadiusClicked()
     {
         if (_selectedNode?.SemanticSymbol is null || _graph?.Queries is null)
         {
@@ -137,9 +184,31 @@ public partial class MainWindow : Window
             return;
         }
 
-        var report = _graph.Queries.GetImpactReport(_selectedNode.SemanticSymbol);
-        Graph.HighlightBlastRadius(report);
-        StatusText.Text = $"Blast Radius per '{_selectedNode.QualifiedName}': {report.DirectCallers.Count} diretti, {report.IndirectCallers.Count} indiretti, {report.AffectedForms.Count} form, Rischio: {report.RiskLevel}";
+        var node = _selectedNode;
+        var sym = node.SemanticSymbol;
+
+        ShowLoading("Calcolo Blast Radius in corso...", $"Analisi d'impatto e percorsi di chiamata per '{node.Name}'");
+        await Task.Delay(16);
+
+        try
+        {
+            var report = await Task.Run(() => _graph.Queries.GetImpactReport(sym));
+
+            if (_selectedNode?.Id == node.Id)
+            {
+                Graph.HighlightBlastRadius(report);
+                UpdateInspectorImpactSection(report);
+                StatusText.Text = $"Blast Radius per '{node.QualifiedName}': {report.DirectCallers.Count} diretti, {report.IndirectCallers.Count} indiretti, {report.AffectedForms.Count} form, Rischio: {report.RiskLevel}";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Errore nel calcolo del Blast Radius: {ex.Message}";
+        }
+        finally
+        {
+            HideLoading();
+        }
     }
 
     private void OnGraphSelectionChanged(object? sender, GraphNode? node)
@@ -147,12 +216,13 @@ public partial class MainWindow : Window
         _selectedNode = node;
         if (node is null)
         {
+            _selectionCts?.Cancel();
             ShowEmptyInspector();
             StatusText.Text = "Nessun simbolo selezionato.";
         }
         else
         {
-            ShowInspectorDetails(node);
+            SelectAndInspectNodeAsync(node);
             StatusText.Text = $"Selezionato: [{node.Kind}] {node.QualifiedName}";
         }
     }
@@ -206,8 +276,15 @@ public partial class MainWindow : Window
         InspectorDetailsPanel.IsVisible = false;
     }
 
-    private void ShowInspectorDetails(GraphNode node)
+    private async void SelectAndInspectNodeAsync(GraphNode node)
     {
+        // Annulla ogni analisi precedente ancora in corso
+        _selectionCts?.Cancel();
+        _selectionCts?.Dispose();
+        _selectionCts = new CancellationTokenSource();
+        var ct = _selectionCts.Token;
+
+        // 1. Mostra istantaneamente i metadati statici del simbolo
         InspectorEmptyPanel.IsVisible = false;
         InspectorDetailsPanel.IsVisible = true;
 
@@ -263,92 +340,163 @@ public partial class MainWindow : Window
             InspectorFileSection.IsVisible = false;
         }
 
-        // Calcolo Impact Analysis & Blast Radius (M6)
-        if (_graph?.Queries != null && sym != null)
+        // Se non abbiamo simboli o query, svuota i pannelli dinamici
+        if (_graph?.Queries is null || sym is null)
         {
-            var impact = _graph.Queries.GetImpactReport(sym);
+            ClearDynamicInspectorSections();
+            return;
+        }
 
-            // Risk Badge
-            RiskLevelText.Text = $"RISK: {impact.RiskLevel.ToString().ToUpperInvariant()}";
-            RiskBadge.Background = impact.RiskLevel switch
-            {
-                ImpactRiskLevel.Low => new SolidColorBrush(Color.Parse("#2E7D32")),
-                ImpactRiskLevel.Medium => new SolidColorBrush(Color.Parse("#F57C00")),
-                ImpactRiskLevel.High => new SolidColorBrush(Color.Parse("#D32F2F")),
-                ImpactRiskLevel.Critical => new SolidColorBrush(Color.Parse("#880E4F")),
-                _ => new SolidColorBrush(Color.Parse("#454555"))
-            };
+        // 2. Imposta lo stato di caricamento nell'Inspector per Blast Radius e chiamanti
+        RiskLevelText.Text = "CALCOLO...";
+        RiskBadge.Background = new SolidColorBrush(Color.Parse("#FF6633"));
+        BlastDirectCallersCount.Text = "...";
+        BlastIndirectCallersCount.Text = "...";
+        BlastMaxDepth.Text = "...";
+        InspectorCallers.Text = "Calcolo chiamanti in corso...";
+        InspectorCallees.Text = "Calcolo chiamate in corso...";
+        BlastFormsSection.IsVisible = false;
+        BlastClassesSection.IsVisible = false;
+        BlastPathsSection.IsVisible = false;
+        InspectorInstantiatesSection.IsVisible = false;
 
-            BlastDirectCallersCount.Text = impact.DirectCallers.Count.ToString();
-            BlastIndirectCallersCount.Text = impact.IndirectCallers.Count.ToString();
-            BlastMaxDepth.Text = impact.MaxDependencyDepth.ToString();
+        var targetId = node.Id;
 
-            // Form UI impattate
-            if (impact.AffectedForms.Count > 0)
+        // Se il calcolo richiede più di 60ms (tipico per nodi con molti chiamanti indiretti), mostra il loading overlay centrato
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(60, ct);
+            if (!ct.IsCancellationRequested)
             {
-                BlastFormsSection.IsVisible = true;
-                BlastFormsList.Text = string.Join(", ", impact.AffectedForms.Select(f => f.Name));
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    if (!ct.IsCancellationRequested && _selectedNode?.Id == targetId)
+                    {
+                        ShowLoading("Analisi del nodo in corso...", $"Esplorazione chiamanti e dipendenze per '{node.Name}'");
+                    }
+                });
             }
-            else
-            {
-                BlastFormsSection.IsVisible = false;
-            }
+        }, ct);
 
-            // Classi e Moduli toccati
-            var touchedContainers = impact.AffectedClasses.Concat(impact.AffectedModules).ToList();
-            if (touchedContainers.Count > 0)
-            {
-                BlastClassesSection.IsVisible = true;
-                BlastClassesList.Text = string.Join(", ", touchedContainers.Select(c => c.Name));
-            }
-            else
-            {
-                BlastClassesSection.IsVisible = false;
-            }
+        try
+        {
+            // 3. Esegue i calcoli pesanti su un thread in background
+            var impact = await Task.Run(() => _graph.Queries.GetImpactReport(sym, cancellationToken: ct), ct);
+            var callees = await Task.Run(() => _graph.Queries.GetDirectCallees(sym), ct);
+            var instantiations = await Task.Run(() => _graph.Queries.GetInstantiatedClasses(sym), ct);
 
-            // Percorsi di esecuzione (call chains)
-            if (impact.AffectedExecutionPaths.Count > 0)
-            {
-                BlastPathsSection.IsVisible = true;
-                var paths = impact.AffectedExecutionPaths.Take(5).Select(p => $"• {p}");
-                BlastPathsList.Text = string.Join("\n", paths) + (impact.AffectedExecutionPaths.Count > 5 ? $"\n... (+ altri {impact.AffectedExecutionPaths.Count - 5})" : "");
-            }
-            else
-            {
-                BlastPathsSection.IsVisible = false;
-            }
+            if (ct.IsCancellationRequested || _selectedNode?.Id != targetId)
+                return;
 
-            // Callers diretti standard
-            InspectorCallers.Text = impact.DirectCallers.Count > 0
-                ? string.Join("\n", impact.DirectCallers.Select(c => $"• {c.QualifiedName}"))
-                : "(nessun chiamante diretto)";
-
-            // Callees diretti
-            var callees = _graph.Queries.GetDirectCallees(sym);
-            InspectorCallees.Text = callees.Count > 0
-                ? string.Join("\n", callees.Select(c => $"• {c.QualifiedName}"))
-                : "(nessuna chiamata effettuata)";
-
-            // Classi istanziate
-            var instantiations = _graph.Queries.GetInstantiatedClasses(sym);
-            if (instantiations.Count > 0)
+            // 4. Popola l'Inspector con i risultati completi
+            UpdateInspectorImpactDetails(impact, callees, instantiations);
+        }
+        catch (OperationCanceledException)
+        {
+            // Analisi annullata da una nuova selezione: operazione normale
+        }
+        catch (Exception ex)
+        {
+            if (!ct.IsCancellationRequested && _selectedNode?.Id == targetId)
             {
-                InspectorInstantiatesSection.IsVisible = true;
-                InspectorInstantiates.Text = string.Join("\n", instantiations.Select(i => $"• {i.QualifiedName}"));
+                StatusText.Text = $"Errore nell'analisi del simbolo: {ex.Message}";
             }
-            else
+        }
+        finally
+        {
+            if (_selectedNode?.Id == targetId)
             {
-                InspectorInstantiatesSection.IsVisible = false;
+                HideLoading();
             }
+        }
+    }
+
+    private void ClearDynamicInspectorSections()
+    {
+        InspectorCallers.Text = "(nessuno)";
+        InspectorCallees.Text = "(nessuno)";
+        InspectorInstantiatesSection.IsVisible = false;
+        BlastFormsSection.IsVisible = false;
+        BlastClassesSection.IsVisible = false;
+        BlastPathsSection.IsVisible = false;
+    }
+
+    private void UpdateInspectorImpactSection(ImpactReport impact)
+    {
+        // Risk Badge
+        RiskLevelText.Text = $"RISK: {impact.RiskLevel.ToString().ToUpperInvariant()}";
+        RiskBadge.Background = impact.RiskLevel switch
+        {
+            ImpactRiskLevel.Low => new SolidColorBrush(Color.Parse("#2E7D32")),
+            ImpactRiskLevel.Medium => new SolidColorBrush(Color.Parse("#F57C00")),
+            ImpactRiskLevel.High => new SolidColorBrush(Color.Parse("#D32F2F")),
+            ImpactRiskLevel.Critical => new SolidColorBrush(Color.Parse("#880E4F")),
+            _ => new SolidColorBrush(Color.Parse("#454555"))
+        };
+
+        BlastDirectCallersCount.Text = impact.DirectCallers.Count.ToString();
+        BlastIndirectCallersCount.Text = impact.IndirectCallers.Count.ToString();
+        BlastMaxDepth.Text = impact.MaxDependencyDepth.ToString();
+
+        // Form UI impattate
+        if (impact.AffectedForms.Count > 0)
+        {
+            BlastFormsSection.IsVisible = true;
+            BlastFormsList.Text = string.Join(", ", impact.AffectedForms.Select(f => f.Name));
         }
         else
         {
-            InspectorCallers.Text = "(nessuno)";
-            InspectorCallees.Text = "(nessuno)";
-            InspectorInstantiatesSection.IsVisible = false;
             BlastFormsSection.IsVisible = false;
+        }
+
+        // Classi e Moduli toccati
+        var touchedContainers = impact.AffectedClasses.Concat(impact.AffectedModules).ToList();
+        if (touchedContainers.Count > 0)
+        {
+            BlastClassesSection.IsVisible = true;
+            BlastClassesList.Text = string.Join(", ", touchedContainers.Select(c => c.Name));
+        }
+        else
+        {
             BlastClassesSection.IsVisible = false;
+        }
+
+        // Percorsi di esecuzione (call chains)
+        if (impact.AffectedExecutionPaths.Count > 0)
+        {
+            BlastPathsSection.IsVisible = true;
+            var paths = impact.AffectedExecutionPaths.Take(5).Select(p => $"• {p}");
+            BlastPathsList.Text = string.Join("\n", paths) + (impact.AffectedExecutionPaths.Count > 5 ? $"\n... (+ altri {impact.AffectedExecutionPaths.Count - 5})" : "");
+        }
+        else
+        {
             BlastPathsSection.IsVisible = false;
+        }
+    }
+
+    private void UpdateInspectorImpactDetails(ImpactReport impact, IReadOnlyList<Symbol> callees, IReadOnlyList<Symbol> instantiations)
+    {
+        UpdateInspectorImpactSection(impact);
+
+        // Callers diretti standard
+        InspectorCallers.Text = impact.DirectCallers.Count > 0
+            ? string.Join("\n", impact.DirectCallers.Select(c => $"• {c.QualifiedName}"))
+            : "(nessun chiamante diretto)";
+
+        // Callees diretti
+        InspectorCallees.Text = callees.Count > 0
+            ? string.Join("\n", callees.Select(c => $"• {c.QualifiedName}"))
+            : "(nessuna chiamata effettuata)";
+
+        // Classi istanziate
+        if (instantiations.Count > 0)
+        {
+            InspectorInstantiatesSection.IsVisible = true;
+            InspectorInstantiates.Text = string.Join("\n", instantiations.Select(i => $"• {i.QualifiedName}"));
+        }
+        else
+        {
+            InspectorInstantiatesSection.IsVisible = false;
         }
     }
 
