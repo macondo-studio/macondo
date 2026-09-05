@@ -36,9 +36,13 @@ public partial class MainWindow : Window
         CollapseAllButton.Click += (_, _) => SetAllExpanded(false);
 
         BlastRadiusButton.Click += (_, _) => OnBlastRadiusClicked();
-        ShowCallersButton.Click += (_, _) => Graph.HighlightCallersForSelected();
-        ShowCalleesButton.Click += (_, _) => Graph.HighlightCalleesForSelected();
-        ClearHighlightButton.Click += (_, _) => Graph.ClearHighlightMode();
+        ShowCallersButton.Click += (_, _) => OnShowCallersClicked();
+        ShowCalleesButton.Click += (_, _) => OnShowCalleesClicked();
+        ClearHighlightButton.Click += (_, _) =>
+        {
+            Graph.ClearHighlightMode();
+            StatusText.Text = "Evidenziazione ripristinata alla modalità standard.";
+        };
 
         // Caricamento iniziale automatico delle fixture reali
         LoadDefaultFixtures();
@@ -218,6 +222,54 @@ public partial class MainWindow : Window
         finally
         {
             HideLoading();
+        }
+    }
+
+    /// <summary>
+    /// Evidenzia sul grafo tutte le routine e classi chiamate dalla routine/container selezionato (callees).
+    /// </summary>
+    private void OnShowCalleesClicked()
+    {
+        if (_selectedNode is null)
+        {
+            StatusText.Text = "Seleziona prima una routine o un modulo per visualizzare le chiamate uscenti (callees).";
+            return;
+        }
+
+        var callees = Graph.HighlightCalleesForSelected();
+        if (callees.Count > 0)
+        {
+            var names = string.Join(", ", callees.Take(4).Select(c => c.Name));
+            if (callees.Count > 4) names += $" e altri {callees.Count - 4}...";
+            StatusText.Text = $"Callees per '{_selectedNode.Name}': trovate {callees.Count} chiamate uscenti verso ({names}).";
+        }
+        else
+        {
+            StatusText.Text = $"Nessuna chiamata uscente effettuata da '{_selectedNode.Name}'.";
+        }
+    }
+
+    /// <summary>
+    /// Evidenzia sul grafo tutti i chiamanti della routine/container selezionato (callers).
+    /// </summary>
+    private void OnShowCallersClicked()
+    {
+        if (_selectedNode is null)
+        {
+            StatusText.Text = "Seleziona prima una routine o un modulo per visualizzare i chiamanti (callers).";
+            return;
+        }
+
+        var callers = Graph.HighlightCallersForSelected();
+        if (callers.Count > 0)
+        {
+            var names = string.Join(", ", callers.Take(4).Select(c => c.Name));
+            if (callers.Count > 4) names += $" e altri {callers.Count - 4}...";
+            StatusText.Text = $"Callers per '{_selectedNode.Name}': trovati {callers.Count} chiamanti diretti da ({names}).";
+        }
+        else
+        {
+            StatusText.Text = $"Nessun chiamante diretto per '{_selectedNode.Name}'.";
         }
     }
 

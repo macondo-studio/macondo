@@ -52,6 +52,10 @@ public sealed class GraphControl : Control
     private readonly HashSet<Guid> _highlightedNodeIds = new();
     private readonly HashSet<Guid> _callerNodeIds = new();
     private readonly HashSet<Guid> _calleeNodeIds = new();
+    private readonly HashSet<Guid> _calleeContainerIds = new();
+    private readonly HashSet<Guid> _callerContainerIds = new();
+    private readonly HashSet<(Guid, Guid)> _calleeEdgeIds = new();
+    private readonly HashSet<(Guid, Guid)> _callerEdgeIds = new();
     private readonly HashSet<(Guid, Guid)> _highlightedEdges = new();
 
     // Stato Blast Radius (M6)
@@ -73,6 +77,7 @@ public sealed class GraphControl : Control
     private static readonly IPen EdgeCallerPen = new Pen(new SolidColorBrush(Color.Parse("#FF9933")), 2.5);
     private static readonly IPen EdgeCalleePen = new Pen(new SolidColorBrush(Color.Parse("#33CCFF")), 2.5);
     private static readonly IPen EdgeBlastRadiusPen = new Pen(new SolidColorBrush(Color.Parse("#FF6600")), 2.5);
+    private static readonly IPen EdgeDimmedPen = new Pen(new SolidColorBrush(Color.Parse("#252532")), 0.8);
     private static readonly IPen SelectionOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#FFD700")), 3);
     private static readonly IPen TargetBlastOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#FF3344")), 3.5);
     private static readonly IPen FormBlastOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#00D0FF")), 2.5);
@@ -124,26 +129,46 @@ public sealed class GraphControl : Control
             var target = graph.GetNode(edge.TargetId);
             if (source is null || target is null) continue;
 
-            var isHighlighted = _highlightedEdges.Contains((edge.SourceId, edge.TargetId));
-            var isCallerEdge = _callerNodeIds.Contains(edge.SourceId) && (_selectedNode?.Id == edge.TargetId || _callerNodeIds.Contains(edge.TargetId));
-            var isCalleeEdge = (_selectedNode?.Id == edge.SourceId || _calleeNodeIds.Contains(edge.SourceId)) && _calleeNodeIds.Contains(edge.TargetId);
+            var isCalleeEdge = _currentHighlightMode == HighlightMode.Callees && _calleeEdgeIds.Contains((edge.SourceId, edge.TargetId));
+            var isCallerEdge = _currentHighlightMode == HighlightMode.Callers && _callerEdgeIds.Contains((edge.SourceId, edge.TargetId));
             var isBlastRadiusEdge = _currentHighlightMode == HighlightMode.BlastRadius &&
                                     (_blastRadiusDepths.ContainsKey(edge.SourceId) || _selectedNode?.Id == edge.SourceId) &&
                                     (_blastRadiusDepths.ContainsKey(edge.TargetId) || _selectedNode?.Id == edge.TargetId);
+            var isHighlighted = _highlightedEdges.Contains((edge.SourceId, edge.TargetId));
 
-            var pen = isHighlighted
-                ? EdgeHighlightPen
-                : (isBlastRadiusEdge ? EdgeBlastRadiusPen :
-                  (isCallerEdge ? EdgeCallerPen :
-                  (isCalleeEdge ? EdgeCalleePen : GetPenForEdgeKind(edge.Kind))));
+            IPen pen;
+            if (isCalleeEdge)
+            {
+                pen = EdgeCalleePen;
+            }
+            else if (isCallerEdge)
+            {
+                pen = EdgeCallerPen;
+            }
+            else if (isBlastRadiusEdge)
+            {
+                pen = EdgeBlastRadiusPen;
+            }
+            else if (isHighlighted)
+            {
+                pen = EdgeHighlightPen;
+            }
+            else if (_currentHighlightMode is HighlightMode.Callees or HighlightMode.Callers or HighlightMode.BlastRadius)
+            {
+                pen = EdgeDimmedPen;
+            }
+            else
+            {
+                pen = GetPenForEdgeKind(edge.Kind);
+            }
 
             var p1 = GraphToScreen(source.X, source.Y);
             var p2 = GraphToScreen(target.X, target.Y);
 
             context.DrawLine(pen, p1, p2);
 
-            // Disegna freccia direzionale su chiamate e istanziazioni
-            if (edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates && _scale > 0.4)
+            // Disegna freccia direzionale su chiamate e istanziazioni o archi attivi
+            if ((isCalleeEdge || isCallerEdge || edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates) && _scale > 0.25)
             {
                 DrawArrowHead(context, pen.Brush, p1, p2, target.Radius * Math.Clamp(_scale, 0.2, 2.5));
             }
@@ -189,13 +214,38 @@ public sealed class GraphControl : Control
             if (radius > 7)
             {
                 var fontSize = node.Kind is SymbolKind.Method or SymbolKind.Property ? 10 : 12;
+                IBrush labelBrush;
+                if (isSelected)
+                {
+                    labelBrush = Brushes.Gold;
+                }
+                else if (_currentHighlightMode == HighlightMode.Callees)
+                {
+                    labelBrush = isCallee ? new SolidColorBrush(Color.Parse("#00D0FF")) :
+                                 (_calleeContainerIds.Contains(node.Id) ? Brushes.WhiteSmoke : new SolidColorBrush(Color.Parse("#555566")));
+                }
+                else if (_currentHighlightMode == HighlightMode.Callers)
+                {
+                    labelBrush = isCaller ? new SolidColorBrush(Color.Parse("#FF9933")) :
+                                 (_callerContainerIds.Contains(node.Id) ? Brushes.WhiteSmoke : new SolidColorBrush(Color.Parse("#555566")));
+                }
+                else if (_currentHighlightMode == HighlightMode.BlastRadius)
+                {
+                    labelBrush = blastDepth.HasValue ? Brushes.Gold :
+                                 (isAffectedContainer ? Brushes.WhiteSmoke : new SolidColorBrush(Color.Parse("#555566")));
+                }
+                else
+                {
+                    labelBrush = Brushes.WhiteSmoke;
+                }
+
                 var label = new FormattedText(
                     node.Name,
                     CultureInfo.InvariantCulture,
                     FlowDirection.LeftToRight,
                     LabelTypeface,
                     fontSize,
-                    isSelected ? Brushes.Gold : (blastDepth.HasValue ? Brushes.Gold : Brushes.WhiteSmoke));
+                    labelBrush);
 
                 context.DrawText(label, screenPos + new Point(radius + 4, -label.Height / 2));
             }
@@ -240,7 +290,7 @@ public sealed class GraphControl : Control
         context.DrawGeometry(brush, null, geometry);
     }
 
-    private static IBrush GetNodeBrush(
+    private IBrush GetNodeBrush(
         GraphNode node,
         bool isSelected,
         bool isHighlighted,
@@ -277,10 +327,60 @@ public sealed class GraphControl : Control
             return new SolidColorBrush(Color.Parse("#282834"));
         }
 
+        // Modalità Callees: evidenzia il chiamante sorgente, le routine chiamate (Cyan) e i loro container
+        if (_currentHighlightMode == HighlightMode.Callees)
+        {
+            if (isSelected) return new SolidColorBrush(Color.Parse("#FFD700")); // Gold
+            if (isCallee) return new SolidColorBrush(Color.Parse("#00D0FF"));   // Bright Cyan
+
+            if (_selectedNode is { IsContainer: true } && node.ParentId == _selectedNode.Id)
+            {
+                // Routine interna del container che effettua chiamate
+                if (_calleeEdgeIds.Any(e => e.Item1 == node.Id))
+                    return new SolidColorBrush(Color.Parse("#FFE57F")); // Light Gold
+            }
+
+            if (node.IsContainer && _calleeContainerIds.Contains(node.Id))
+            {
+                return new SolidColorBrush(Color.Parse("#3A6073")); // Slate Cyan per il modulo destinazione
+            }
+
+            if (_selectedNode?.ParentId == node.Id)
+            {
+                return new SolidColorBrush(Color.Parse("#5C5535")); // Slate Gold per il container della routine selezionata
+            }
+
+            return new SolidColorBrush(Color.Parse("#22222E")); // Attenuato
+        }
+
+        // Modalità Callers: evidenzia la routine target, i chiamanti (Amber/Orange) e i loro container
+        if (_currentHighlightMode == HighlightMode.Callers)
+        {
+            if (isSelected) return new SolidColorBrush(Color.Parse("#FFD700")); // Gold
+            if (isCaller) return new SolidColorBrush(Color.Parse("#FF9933"));   // Bright Amber
+
+            if (_selectedNode is { IsContainer: true } && node.ParentId == _selectedNode.Id)
+            {
+                // Routine interna del container chiamata dall'esterno
+                if (_callerEdgeIds.Any(e => e.Item2 == node.Id))
+                    return new SolidColorBrush(Color.Parse("#FFE57F")); // Light Gold
+            }
+
+            if (node.IsContainer && _callerContainerIds.Contains(node.Id))
+            {
+                return new SolidColorBrush(Color.Parse("#5C4335")); // Slate Amber per il modulo chiamante
+            }
+
+            if (_selectedNode?.ParentId == node.Id)
+            {
+                return new SolidColorBrush(Color.Parse("#5C5535")); // Slate Gold per il container della routine selezionata
+            }
+
+            return new SolidColorBrush(Color.Parse("#22222E")); // Attenuato
+        }
+
         // Modalità normale
         if (isSelected) return new SolidColorBrush(Color.Parse("#FFD700")); // Gold
-        if (isCaller) return new SolidColorBrush(Color.Parse("#FF9933"));   // Amber/Orange
-        if (isCallee) return new SolidColorBrush(Color.Parse("#00D0FF"));   // Cyan
         if (isHighlighted) return new SolidColorBrush(Color.Parse("#90CAF9")); // Light blue
 
         return node.Kind switch
@@ -302,7 +402,7 @@ public sealed class GraphControl : Control
 
     /// <summary>
     /// Progressive disclosure: I membri figli sono visibili solo se il relativo container è espanso.
-    /// In modalità Blast Radius, i container dei nodi impattati vengono forzati visibili.
+    /// In modalità Blast Radius o Callees/Callers, i container e nodi impattati vengono forzati visibili.
     /// </summary>
     private HashSet<Guid> ComputeVisibleNodeIds(VisualCodeGraph graph)
     {
@@ -317,7 +417,10 @@ public sealed class GraphControl : Control
             }
 
             var parent = node.ParentId.HasValue ? graph.GetNode(node.ParentId.Value) : null;
-            if (parent is { IsExpanded: true } || _blastRadiusDepths.ContainsKey(node.Id))
+            if (parent is { IsExpanded: true } ||
+                _blastRadiusDepths.ContainsKey(node.Id) ||
+                _calleeNodeIds.Contains(node.Id) ||
+                _callerNodeIds.Contains(node.Id))
             {
                 visible.Add(node.Id);
             }
@@ -473,15 +576,24 @@ public sealed class GraphControl : Control
     // SELEZIONE ED EVIDENZIAZIONE CALLERS / CALLEES / BLAST RADIUS
     // =========================================================================
 
+    private void ClearInternalHighlightState()
+    {
+        _callerNodeIds.Clear();
+        _calleeNodeIds.Clear();
+        _calleeContainerIds.Clear();
+        _callerContainerIds.Clear();
+        _calleeEdgeIds.Clear();
+        _callerEdgeIds.Clear();
+        _blastRadiusDepths.Clear();
+        _affectedContainerIds.Clear();
+        _highlightedEdges.Clear();
+    }
+
     public void SelectNode(GraphNode? node)
     {
         _selectedNode = node;
         _highlightedNodeIds.Clear();
-        _highlightedEdges.Clear();
-        _callerNodeIds.Clear();
-        _calleeNodeIds.Clear();
-        _blastRadiusDepths.Clear();
-        _affectedContainerIds.Clear();
+        ClearInternalHighlightState();
         _currentHighlightMode = HighlightMode.Normal;
 
         if (node is not null && Graph is { } graph)
@@ -508,72 +620,174 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Evidenzia sul grafo tutti i chiamanti (callers diretti e transitivi) del nodo selezionato.
+    /// Evidenzia sul grafo tutti i chiamanti (callers diretti) del nodo selezionato (routine o container).
+    /// Se è selezionato un container (Classe, Modulo, Form), aggrega i chiamanti di tutte le routine membro.
+    /// Espande automaticamente i container dei chiamanti per rendere i nodi visibili.
     /// </summary>
-    public void HighlightCallersForSelected()
+    public IReadOnlyList<Symbol> HighlightCallersForSelected()
     {
-        _callerNodeIds.Clear();
-        _calleeNodeIds.Clear();
-        _blastRadiusDepths.Clear();
-        _affectedContainerIds.Clear();
+        ClearInternalHighlightState();
 
-        if (_selectedNode is null || Graph?.Queries is null || _selectedNode.SemanticSymbol is null)
-            return;
+        if (_selectedNode is null || Graph?.Queries is null)
+            return Array.Empty<Symbol>();
 
-        var callers = Graph.Queries.GetDirectCallers(_selectedNode.SemanticSymbol);
-        foreach (var caller in callers)
+        var symbolsToQuery = new List<Symbol>();
+
+        if (_selectedNode.IsContainer)
         {
-            _callerNodeIds.Add(caller.Id);
+            _selectedNode.IsExpanded = true;
+            foreach (var childNode in Graph.GetChildren(_selectedNode.Id))
+            {
+                if (childNode.SemanticSymbol is not null && childNode.Kind is SymbolKind.Method or SymbolKind.Property)
+                {
+                    symbolsToQuery.Add(childNode.SemanticSymbol);
+                }
+            }
+        }
+        else if (_selectedNode.SemanticSymbol is not null)
+        {
+            symbolsToQuery.Add(_selectedNode.SemanticSymbol);
+        }
+
+        if (symbolsToQuery.Count == 0)
+            return Array.Empty<Symbol>();
+
+        var callersSet = new HashSet<Guid>();
+        var resultList = new List<Symbol>();
+
+        foreach (var targetSym in symbolsToQuery)
+        {
+            var directCallers = Graph.Queries.GetDirectCallers(targetSym);
+            foreach (var caller in directCallers)
+            {
+                _callerEdgeIds.Add((caller.Id, targetSym.Id));
+
+                if (callersSet.Add(caller.Id))
+                {
+                    resultList.Add(caller);
+                    _callerNodeIds.Add(caller.Id);
+
+                    // Auto-espansione del container del caller
+                    var callerNode = Graph.GetNode(caller.Id);
+                    if (callerNode?.ParentId.HasValue == true)
+                    {
+                        _callerContainerIds.Add(callerNode.ParentId.Value);
+                        if (Graph.GetNode(callerNode.ParentId.Value) is { } parentNode)
+                        {
+                            parentNode.IsExpanded = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Espandi il container padre del nodo selezionato se presente
+        if (_selectedNode.ParentId.HasValue && Graph.GetNode(_selectedNode.ParentId.Value) is { } selParent)
+        {
+            selParent.IsExpanded = true;
         }
 
         _currentHighlightMode = HighlightMode.Callers;
         InvalidateVisual();
+        return resultList;
     }
 
     /// <summary>
-    /// Evidenzia sul grafo tutti i chiamati (callees diretti e transitivi) del nodo selezionato.
+    /// Evidenzia sul grafo tutti i chiamati (callees diretti) del nodo selezionato (routine o container).
+    /// Se è selezionato un container (Classe, Modulo, Form), aggrega le chiamate di tutte le routine membro.
+    /// Espande automaticamente i container di destinazione per rendere i nodi visibili.
     /// </summary>
-    public void HighlightCalleesForSelected()
+    public IReadOnlyList<Symbol> HighlightCalleesForSelected()
     {
-        _callerNodeIds.Clear();
-        _calleeNodeIds.Clear();
-        _blastRadiusDepths.Clear();
-        _affectedContainerIds.Clear();
+        ClearInternalHighlightState();
 
-        if (_selectedNode is null || Graph?.Queries is null || _selectedNode.SemanticSymbol is null)
-            return;
+        if (_selectedNode is null || Graph?.Queries is null)
+            return Array.Empty<Symbol>();
 
-        var callees = Graph.Queries.GetDirectCallees(_selectedNode.SemanticSymbol);
-        foreach (var callee in callees)
+        var symbolsToQuery = new List<Symbol>();
+
+        if (_selectedNode.IsContainer)
         {
-            _calleeNodeIds.Add(callee.Id);
+            _selectedNode.IsExpanded = true;
+            foreach (var childNode in Graph.GetChildren(_selectedNode.Id))
+            {
+                if (childNode.SemanticSymbol is not null && childNode.Kind is SymbolKind.Method or SymbolKind.Property)
+                {
+                    symbolsToQuery.Add(childNode.SemanticSymbol);
+                }
+            }
+        }
+        else if (_selectedNode.SemanticSymbol is not null)
+        {
+            symbolsToQuery.Add(_selectedNode.SemanticSymbol);
+        }
+
+        if (symbolsToQuery.Count == 0)
+            return Array.Empty<Symbol>();
+
+        var calleesSet = new HashSet<Guid>();
+        var resultList = new List<Symbol>();
+
+        foreach (var callerSym in symbolsToQuery)
+        {
+            var directCallees = Graph.Queries.GetDirectCallees(callerSym);
+            foreach (var callee in directCallees)
+            {
+                _calleeEdgeIds.Add((callerSym.Id, callee.Id));
+
+                if (calleesSet.Add(callee.Id))
+                {
+                    resultList.Add(callee);
+                    _calleeNodeIds.Add(callee.Id);
+
+                    // Auto-espansione del container del callee
+                    var calleeNode = Graph.GetNode(callee.Id);
+                    if (calleeNode?.ParentId.HasValue == true)
+                    {
+                        _calleeContainerIds.Add(calleeNode.ParentId.Value);
+                        if (Graph.GetNode(calleeNode.ParentId.Value) is { } parentNode)
+                        {
+                            parentNode.IsExpanded = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Espandi il container padre del nodo selezionato se presente
+        if (_selectedNode.ParentId.HasValue && Graph.GetNode(_selectedNode.ParentId.Value) is { } selParent)
+        {
+            selParent.IsExpanded = true;
         }
 
         _currentHighlightMode = HighlightMode.Callees;
         InvalidateVisual();
+        return resultList;
     }
 
     /// <summary>
     /// Evidenzia sul grafo l'intero Blast Radius (M6): target in rosso, chiamanti per livello di profondità e Form UI toccate.
+    /// Espande automaticamente i container dei nodi impattati.
     /// </summary>
     public void HighlightBlastRadius(ImpactReport report)
     {
-        _callerNodeIds.Clear();
-        _calleeNodeIds.Clear();
-        _blastRadiusDepths.Clear();
-        _affectedContainerIds.Clear();
+        ClearInternalHighlightState();
         _activeBlastRadiusReport = report;
 
         // Chiamanti diretti (Depth 1)
         foreach (var dc in report.DirectCallers)
         {
             _blastRadiusDepths[dc.Id] = 1;
+            if (Graph?.GetNode(dc.Id) is { ParentId: { } pId } && Graph.GetNode(pId) is { } pNode)
+                pNode.IsExpanded = true;
         }
 
         // Chiamanti indiretti (Depth >= 2)
         foreach (var ic in report.IndirectCallers)
         {
             _blastRadiusDepths[ic.Symbol.Id] = ic.Depth;
+            if (Graph?.GetNode(ic.Symbol.Id) is { ParentId: { } pId } && Graph.GetNode(pId) is { } pNode)
+                pNode.IsExpanded = true;
         }
 
         // Container impattati (Form, Classi, Moduli)
@@ -590,10 +804,7 @@ public sealed class GraphControl : Control
     /// </summary>
     public void ClearHighlightMode()
     {
-        _callerNodeIds.Clear();
-        _calleeNodeIds.Clear();
-        _blastRadiusDepths.Clear();
-        _affectedContainerIds.Clear();
+        ClearInternalHighlightState();
         _activeBlastRadiusReport = null;
         _currentHighlightMode = HighlightMode.Normal;
         InvalidateVisual();
