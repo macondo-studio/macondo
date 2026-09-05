@@ -63,14 +63,8 @@ public sealed class TypeResolver
     public TypeResolver(CodeGraph graph)
     {
         _graph = graph;
-        IndexUserTypes();
-    }
 
-    /// <summary>
-    /// Costruisce l'indice dei tipi utente (Class, Form, UserControl, Type UDT, Enum) presenti nel grafo.
-    /// </summary>
-    private void IndexUserTypes()
-    {
+        // Costruisce l'indice dei tipi utente (Class, Form, UserControl, Type UDT, Enum) presenti nel grafo.
         foreach (var symbol in _graph.Symbols)
         {
             if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum)

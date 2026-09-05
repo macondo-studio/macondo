@@ -3,23 +3,6 @@ using VB6Analyzer.Semantic.Model;
 
 namespace VB6Analyzer.Semantic.Impact;
 
-/// <summary>
-/// Livello di rischio stimato per la modifica di un simbolo in base al suo Blast Radius.
-/// </summary>
-public enum ImpactRiskLevel
-{
-    /// <summary>Rischio Basso: nessun chiamante o solo chiamanti privati interni alla stessa classe.</summary>
-    Low,
-
-    /// <summary>Rischio Medio: chiamanti in altre classi, ma nessuna Form UI direttamente impattata.</summary>
-    Medium,
-
-    /// <summary>Rischio Alto: più classi e almeno una Form UI impattata dalla modifica.</summary>
-    High,
-
-    /// <summary>Rischio Critico: elevato numero di form, classi o moduli impattati con catena di chiamate profonda.</summary>
-    Critical
-}
 
 /// <summary>
 /// Descrittore di un chiamante impattato lungo la catena del Blast Radius, con indicazione della profondità.

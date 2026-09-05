@@ -223,8 +223,6 @@ public sealed class CallGraphQueries
         return cycles;
     }
 
-    private enum NodeColor { White, Gray, Black }
-
     private void DfsDetectCycles(
         Symbol current,
         Dictionary<Guid, NodeColor> state,

@@ -51,7 +51,25 @@ public sealed class ImpactAnalyzer
             return AnalyzeTypeImpact(target, maxDepth);
         }
 
-        return AnalyzeMemberImpact(target, maxDepth);
+        // Calcola il Blast Radius per un campo o costante.
+        var container = FindEnclosingContainer(target);
+        var memberTypeDependents = GetTypeDependentsForSymbol(target);
+
+        return new ImpactReport
+        {
+            TargetSymbol = target,
+            DirectCallers = Array.Empty<Symbol>(),
+            IndirectCallers = Array.Empty<ImpactedCaller>(),
+            CallersByDepth = new Dictionary<int, IReadOnlyList<Symbol>>(),
+            AffectedClasses = container?.Kind == SymbolKind.Class ? new[] { container } : Array.Empty<Symbol>(),
+            AffectedModules = container?.Kind == SymbolKind.Module ? new[] { container } : Array.Empty<Symbol>(),
+            AffectedForms = container?.Kind == SymbolKind.Form ? new[] { container } : Array.Empty<Symbol>(),
+            AffectedUserControls = container?.Kind == SymbolKind.UserControl ? new[] { container } : Array.Empty<Symbol>(),
+            AffectedExecutionPaths = Array.Empty<CallPath>(),
+            MaxDependencyDepth = 0,
+            Instantiators = Array.Empty<Symbol>(),
+            TypeDependents = memberTypeDependents
+        };
     }
 
     /// <summary>
@@ -134,7 +152,19 @@ public sealed class ImpactAnalyzer
         var affectedUserControls = affectedContainers.Where(c => c.Kind == SymbolKind.UserControl).ToList();
 
         // Ricostruzione di tutti i cammini di esecuzione dai chiamanti di vertice al target
-        var executionPaths = FindAllExecutionPathsToTarget(routine, allImpactedRoutines, maxDepth);
+        var executionPathsList = new List<CallPath>();
+        var callerIds = new HashSet<Guid>(allImpactedRoutines.Select(c => c.Id));
+        var rootCallers = allImpactedRoutines
+            .Where(c => _queries.GetDirectCallers(c).All(parent => !callerIds.Contains(parent.Id)))
+            .ToList();
+
+        foreach (var root in rootCallers)
+        {
+            var rootPaths = _queries.FindExecutionPaths(root, routine, maxDepth);
+            executionPathsList.AddRange(rootPaths);
+        }
+
+        var executionPaths = executionPathsList.DistinctBy(p => p.ToString()).ToList();
 
         // Dipendenze di tipo e istanziazioni dirette
         var instantiators = _queries.GetDirectCallers(routine); // per routine tipicamente vuoto o delegate
@@ -257,30 +287,6 @@ public sealed class ImpactAnalyzer
         };
     }
 
-    /// <summary>
-    /// Calcola il Blast Radius per un campo o costante.
-    /// </summary>
-    private ImpactReport AnalyzeMemberImpact(Symbol member, int maxDepth = 10)
-    {
-        var container = FindEnclosingContainer(member);
-        var typeDependents = GetTypeDependentsForSymbol(member);
-
-        return new ImpactReport
-        {
-            TargetSymbol = member,
-            DirectCallers = Array.Empty<Symbol>(),
-            IndirectCallers = Array.Empty<ImpactedCaller>(),
-            CallersByDepth = new Dictionary<int, IReadOnlyList<Symbol>>(),
-            AffectedClasses = container?.Kind == SymbolKind.Class ? new[] { container } : Array.Empty<Symbol>(),
-            AffectedModules = container?.Kind == SymbolKind.Module ? new[] { container } : Array.Empty<Symbol>(),
-            AffectedForms = container?.Kind == SymbolKind.Form ? new[] { container } : Array.Empty<Symbol>(),
-            AffectedUserControls = container?.Kind == SymbolKind.UserControl ? new[] { container } : Array.Empty<Symbol>(),
-            AffectedExecutionPaths = Array.Empty<CallPath>(),
-            MaxDependencyDepth = 0,
-            Instantiators = Array.Empty<Symbol>(),
-            TypeDependents = typeDependents
-        };
-    }
 
     // =========================================================================
     // HELPER PRIVATI
@@ -310,27 +316,6 @@ public sealed class ImpactAnalyzer
         return null;
     }
 
-    /// <summary>
-    /// Trova tutti i cammini di esecuzione a ritroso che partono da routine di vertice e arrivano al target.
-    /// </summary>
-    private IReadOnlyList<CallPath> FindAllExecutionPathsToTarget(Symbol target, IReadOnlyList<Symbol> allCallers, int maxDepth)
-    {
-        var paths = new List<CallPath>();
-
-        // Individua le routine radice (chiamanti che non sono chiamati da nessun altro chiamante nel gruppo)
-        var callerIds = new HashSet<Guid>(allCallers.Select(c => c.Id));
-        var rootCallers = allCallers
-            .Where(c => _queries.GetDirectCallers(c).All(parent => !callerIds.Contains(parent.Id)))
-            .ToList();
-
-        foreach (var root in rootCallers)
-        {
-            var rootPaths = _queries.FindExecutionPaths(root, target, maxDepth);
-            paths.AddRange(rootPaths);
-        }
-
-        return paths.DistinctBy(p => p.ToString()).ToList();
-    }
 
     private IReadOnlyList<Symbol> GetTypeDependentsForSymbol(Symbol symbol)
     {

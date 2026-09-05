@@ -75,14 +75,12 @@ public static class ModuleExtractor
         var errors = new List<string>();
 
         // 3. Configura Lexer ANTLR
-        var inputStream = new AntlrInputStream(sourceText);
-        var lexer = new VisualBasic6Lexer(inputStream);
+        var lexer = new VisualBasic6Lexer(new AntlrInputStream(sourceText));
         lexer.RemoveErrorListeners();
         lexer.AddErrorListener(new CollectingErrorListener(errors));
 
         // 4. Configura TokenStream e Parser ANTLR
-        var tokenStream = new CommonTokenStream(lexer);
-        var parser = new VisualBasic6Parser(tokenStream);
+        var parser = new VisualBasic6Parser(new CommonTokenStream(lexer));
         parser.RemoveErrorListeners();
         parser.AddErrorListener(new CollectingErrorListener(errors));
 

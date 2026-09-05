@@ -412,7 +412,11 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
             return currentResult;
         }
 
-        return ResolutionResult.Unknown(context.GetText());
+        return new ResolutionResult
+        {
+            Confidence = ResolutionConfidence.Unknown,
+            Details = $"Simbolo non risolvibile staticamente: '{context.GetText()}'"
+        };
     }
 
     /// <summary>

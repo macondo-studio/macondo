@@ -121,12 +121,20 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         var parameters = ExtractParameters(context.argList());
         symbol.Parameters.AddRange(parameters);
 
-        // 4. Registra la relazione strutturale CONTAINS (Modulo -> Sub) nel CodeGraph
+        // 4. Registra il simbolo e la relazione strutturale CONTAINS (Modulo -> Sub) nel CodeGraph
+        _graph.Symbols.Add(symbol);
         _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
 
-        // 5. Verifica se il nome rispetta il pattern di un event handler VB6 (es. "cmdOK_Click")
-        if (LooksLikeEventHandler(name))
-            LikelyEventHandlerNames.Add(name);
+        // 5. Verifica se il nome rispetta la convenzione standard di un event handler VB6 (Controllo_Evento, es. "cmdOK_Click")
+        var underscoreIndex = name.LastIndexOf('_');
+        if (underscoreIndex > 0 && underscoreIndex < name.Length - 1)
+        {
+            var eventPart = name[(underscoreIndex + 1)..];
+            if (CommonEventNames.Contains(eventPart, StringComparer.OrdinalIgnoreCase))
+            {
+                LikelyEventHandlerNames.Add(name);
+            }
+        }
 
         // 6. Imposta la Sub come nuovo container attivo ed estrae il corpo (variabili locali, ecc.)
         VisitBodyAsNewContainer(symbol, context.block());
@@ -156,7 +164,8 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         var parameters = ExtractParameters(context.argList());
         symbol.Parameters.AddRange(parameters);
 
-        // 5. Registra la relazione strutturale CONTAINS (Modulo -> Function)
+        // 5. Registra il simbolo e la relazione strutturale CONTAINS (Modulo -> Function)
+        _graph.Symbols.Add(symbol);
         _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
 
         // 6. Visita il corpo della funzione impostandola come container per le variabili locali
@@ -193,8 +202,12 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         var parameters = ExtractParameters(context.argList());
         MergeParameters(symbol.Parameters, parameters);
 
-        // Aggiunge la relazione CONTAINS solo se il simbolo della proprietà è appena stato creato
-        if (wasCreated) _graph.AddContains(_moduleSymbol, symbol, context.Start.Line);
+        // Aggiunge il simbolo e la relazione CONTAINS solo se il simbolo della proprietà è appena stato creato
+        if (wasCreated)
+        {
+            _graph.Symbols.Add(symbol);
+            _graph.AddContains(_moduleSymbol, symbol, context.Start.Line);
+        }
 
         VisitBodyAsNewContainer(symbol, context.block());
         return null;
@@ -215,7 +228,11 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         var parameters = ExtractParameters(context.argList());
         MergeParameters(symbol.Parameters, parameters);
 
-        if (wasCreated) _graph.AddContains(_moduleSymbol, symbol, context.Start.Line);
+        if (wasCreated)
+        {
+            _graph.Symbols.Add(symbol);
+            _graph.AddContains(_moduleSymbol, symbol, context.Start.Line);
+        }
 
         VisitBodyAsNewContainer(symbol, context.block());
         return null;
@@ -242,7 +259,11 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             symbol.DeclaredTypeName = parameters[^1].DeclaredTypeName;
         }
 
-        if (wasCreated) _graph.AddContains(_moduleSymbol, symbol, context.Start.Line);
+        if (wasCreated)
+        {
+            _graph.Symbols.Add(symbol);
+            _graph.AddContains(_moduleSymbol, symbol, context.Start.Line);
+        }
 
         VisitBodyAsNewContainer(symbol, context.block());
         return null;
@@ -308,7 +329,8 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         // Rileva se è un array ("Dim arr() As String" o "Dim arr(10) As Integer")
         symbol.IsArray = context.LPAREN() is not null;
 
-        // Registra la relazione CONTAINS verso il container attivo (Modulo o Routine)
+        // Registra il simbolo e la relazione CONTAINS verso il container attivo (Modulo o Routine)
+        _graph.Symbols.Add(symbol);
         _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
         return base.VisitVariableSubStmt(context);
     }
@@ -324,7 +346,14 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
     public override object? VisitConstStmt(VisualBasic6Parser.ConstStmtContext context)
     {
         var prevAccessibility = _currentVarAccessibility;
-        _currentVarAccessibility = GetAccessibility(context.publicPrivateGlobalVisibility());
+        // Mappa la regola ANTLR 'publicPrivateGlobalVisibility' all'enum Accessibility
+        _currentVarAccessibility = context.publicPrivateGlobalVisibility()?.GetText().ToUpperInvariant() switch
+        {
+            "PUBLIC" => Accessibility.Public,
+            "PRIVATE" => Accessibility.Private,
+            "GLOBAL" => Accessibility.Global,
+            _ => Accessibility.Default
+        };
 
         var result = base.VisitConstStmt(context);
 
@@ -342,6 +371,7 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         symbol.Accessibility = _currentVarAccessibility;
         symbol.DeclaredTypeName = ExtractTypeName(context.asTypeClause());
 
+        _graph.Symbols.Add(symbol);
         _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
         return base.VisitConstSubStmt(context);
     }
@@ -359,7 +389,14 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
     {
         var name = context.ambiguousIdentifier().GetText();
         var symbol = CreateChildSymbol(SymbolKind.Enum, name, context);
-        symbol.Accessibility = GetAccessibility(context.publicPrivateVisibility());
+        // Mappa la regola ANTLR 'publicPrivateVisibility' all'enum Accessibility
+        symbol.Accessibility = context.publicPrivateVisibility()?.GetText().ToUpperInvariant() switch
+        {
+            "PUBLIC" => Accessibility.Public,
+            "PRIVATE" => Accessibility.Private,
+            _ => Accessibility.Default
+        };
+        _graph.Symbols.Add(symbol);
         _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
 
         // Spinge l'Enum sullo stack in modo che le singole costanti siano figlie dell'Enum
@@ -370,6 +407,8 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             var constSymbol = CreateChildSymbol(SymbolKind.Constant, constName, constantCtx);
             constSymbol.Accessibility = Accessibility.Public;
             constSymbol.DeclaredTypeName = symbol.Name; // Il tipo del valore è l'Enum stesso
+
+            _graph.Symbols.Add(constSymbol);
             _graph.AddContains(symbol, constSymbol, constantCtx.Start.Line);
         }
         _containerStack.Pop();
@@ -391,6 +430,8 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         var name = context.ambiguousIdentifier().GetText();
         var symbol = CreateChildSymbol(SymbolKind.Type, name, context);
         symbol.Accessibility = GetAccessibility(context.visibility());
+
+        _graph.Symbols.Add(symbol);
         _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
 
         // Spinge l'UDT sullo stack dei container per contenere i campi
@@ -402,6 +443,8 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             elemSymbol.Accessibility = Accessibility.Public;
             elemSymbol.DeclaredTypeName = ExtractTypeName(elem.asTypeClause());
             elemSymbol.IsArray = elem.LPAREN() is not null;
+
+            _graph.Symbols.Add(elemSymbol);
             _graph.AddContains(symbol, elemSymbol, elem.Start.Line);
         }
         _containerStack.Pop();
@@ -431,12 +474,11 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
 
     /// <summary>
     /// Crea un'istanza di <see cref="Symbol"/> figlio calcolando automaticamente il nome qualificato
-    /// rispetto al container corrente (es. "Modulo1.MiaSub" o "Modulo1.MiaSub.miaVariabileLocale")
-    /// e la registra nella lista dei simboli del <see cref="_graph"/>.
+    /// rispetto al container corrente (es. "Modulo1.MiaSub" o "Modulo1.MiaSub.miaVariabileLocale").
     /// </summary>
     private Symbol CreateChildSymbol(SymbolKind kind, string name, ParserRuleContext context)
     {
-        var symbol = new Symbol
+        return new Symbol
         {
             Id = Guid.NewGuid(),
             Kind = kind,
@@ -446,8 +488,6 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             LineStart = context.Start.Line,
             LineEnd = context.Stop?.Line ?? context.Start.Line
         };
-        _graph.Symbols.Add(symbol);
-        return symbol;
     }
 
     /// <summary>
@@ -474,7 +514,6 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             LineStart = context.Start.Line,
             LineEnd = context.Stop?.Line ?? context.Start.Line
         };
-        _graph.Symbols.Add(symbol);
         _propertiesByName[name] = symbol;
         wasCreated = true;
         return symbol;
@@ -549,34 +588,4 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             _ => Accessibility.Default
         };
 
-    /// <summary>Mappa la regola ANTLR 'publicPrivateVisibility' all'enum <see cref="Accessibility"/>.</summary>
-    private static Accessibility GetAccessibility(VisualBasic6Parser.PublicPrivateVisibilityContext? ctx) =>
-        ctx?.GetText().ToUpperInvariant() switch
-        {
-            "PUBLIC" => Accessibility.Public,
-            "PRIVATE" => Accessibility.Private,
-            _ => Accessibility.Default
-        };
-
-    /// <summary>Mappa la regola ANTLR 'publicPrivateGlobalVisibility' all'enum <see cref="Accessibility"/>.</summary>
-    private static Accessibility GetAccessibility(VisualBasic6Parser.PublicPrivateGlobalVisibilityContext? ctx) =>
-        ctx?.GetText().ToUpperInvariant() switch
-        {
-            "PUBLIC" => Accessibility.Public,
-            "PRIVATE" => Accessibility.Private,
-            "GLOBAL" => Accessibility.Global,
-            _ => Accessibility.Default
-        };
-
-    /// <summary>
-    /// Verifica se il nome della Sub corrisponde alla convenzione standard di un event handler VB6 (Controllo_Evento).
-    /// </summary>
-    private static bool LooksLikeEventHandler(string subName)
-    {
-        var underscoreIndex = subName.LastIndexOf('_');
-        if (underscoreIndex <= 0 || underscoreIndex == subName.Length - 1) return false;
-
-        var eventPart = subName[(underscoreIndex + 1)..];
-        return CommonEventNames.Contains(eventPart, StringComparer.OrdinalIgnoreCase);
-    }
 }

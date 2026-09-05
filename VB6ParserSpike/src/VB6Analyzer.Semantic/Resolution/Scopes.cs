@@ -34,14 +34,8 @@ public sealed class ProjectScope : IScope
     {
         _graph = graph;
         _typeResolver = typeResolver;
-        BuildIndex();
-    }
 
-    /// <summary>
-    /// Costruisce gli indici del progetto per tipi e membri globali .bas.
-    /// </summary>
-    private void BuildIndex()
-    {
+        // Costruisce gli indici del progetto per tipi e membri globali .bas.
         // 1. Indicizza tutti i tipi definiti a livello di progetto
         foreach (var symbol in _graph.Symbols)
         {
@@ -87,28 +81,53 @@ public sealed class ProjectScope : IScope
             if (basMemberList.Count == 1)
             {
                 var target = basMemberList[0];
-                return ResolutionResult.Exact(target);
+                return new ResolutionResult
+                {
+                    TargetSymbol = target,
+                    Confidence = ResolutionConfidence.Exact,
+                    TargetTypeName = target.DeclaredTypeName,
+                    ResolvedTypeSymbolId = target.ResolvedTypeSymbolId
+                };
             }
             if (basMemberList.Count > 1)
             {
-                return ResolutionResult.Ambiguous(name, $"Simbolo '{name}' ambiguo: definito in più moduli standard .bas ({string.Join(", ", basMemberList.Select(m => m.QualifiedName))})");
+                return new ResolutionResult
+                {
+                    Confidence = ResolutionConfidence.Ambiguous,
+                    Details = $"Simbolo '{name}' ambiguo: definito in più moduli standard .bas ({string.Join(", ", basMemberList.Select(m => m.QualifiedName))})"
+                };
             }
         }
 
         // 2. Cerca tra i tipi di progetto (es. "Customer", "Address")
         if (_projectTypes.TryGetValue(name, out var typeSymbol))
         {
-            return ResolutionResult.Exact(typeSymbol);
+            return new ResolutionResult
+            {
+                TargetSymbol = typeSymbol,
+                Confidence = ResolutionConfidence.Exact,
+                TargetTypeName = typeSymbol.DeclaredTypeName,
+                ResolvedTypeSymbolId = typeSymbol.ResolvedTypeSymbolId
+            };
         }
 
         // 3. Verifica se è un tipo primitivo standard
         var typeInfo = _typeResolver.ResolveType(name);
         if (typeInfo.IsPrimitive)
         {
-            return ResolutionResult.Unknown(name, typeInfo.Name, $"Tipo primitivo VB6: {name}");
+            return new ResolutionResult
+            {
+                Confidence = ResolutionConfidence.Unknown,
+                TargetTypeName = typeInfo.Name,
+                Details = $"Tipo primitivo VB6: {name}"
+            };
         }
 
-        return ResolutionResult.Unknown(name, details: $"Simbolo '{name}' non trovato nello scope di progetto");
+        return new ResolutionResult
+        {
+            Confidence = ResolutionConfidence.Unknown,
+            Details = $"Simbolo '{name}' non trovato nello scope di progetto"
+        };
     }
 
     /// <summary>
@@ -146,11 +165,8 @@ public sealed class ModuleScope : IScope
         _moduleSymbol = moduleSymbol;
         _graph = graph;
         _projectScope = projectScope;
-        BuildIndex();
-    }
 
-    private void BuildIndex()
-    {
+        // Indicizza i membri del modulo per nome
         foreach (var child in _graph.GetChildren(_moduleSymbol.Id))
         {
             _members[child.Name] = child;
@@ -166,13 +182,25 @@ public sealed class ModuleScope : IScope
         // 1. Keyword Me: si riferisce all'istanza della classe/form corrente
         if (string.Equals(name, "Me", StringComparison.OrdinalIgnoreCase))
         {
-            return ResolutionResult.Exact(_moduleSymbol, _moduleSymbol.Name, _moduleSymbol.Id);
+            return new ResolutionResult
+            {
+                TargetSymbol = _moduleSymbol,
+                Confidence = ResolutionConfidence.Exact,
+                TargetTypeName = _moduleSymbol.Name,
+                ResolvedTypeSymbolId = _moduleSymbol.Id
+            };
         }
 
         // 2. Membri del modulo corrente (campi, costanti, metodi, proprietà)
         if (_members.TryGetValue(name, out var member))
         {
-            return ResolutionResult.Exact(member);
+            return new ResolutionResult
+            {
+                TargetSymbol = member,
+                Confidence = ResolutionConfidence.Exact,
+                TargetTypeName = member.DeclaredTypeName,
+                ResolvedTypeSymbolId = member.ResolvedTypeSymbolId
+            };
         }
 
         // 3. Deferisce allo scope di progetto per membri globali .bas o tipi
@@ -220,11 +248,7 @@ public sealed class LocalScope : IScope
         _routineSymbol = routineSymbol;
         _parentScope = parentScope;
         _graph = graph;
-        BuildIndex();
-    }
 
-    private void BuildIndex()
-    {
         // 1. Indicizza i parametri formali della routine
         foreach (var param in _routineSymbol.Parameters)
         {
@@ -249,19 +273,37 @@ public sealed class LocalScope : IScope
         // 1. Variabili locali (Dim / Static)
         if (_localVariables.TryGetValue(name, out var localVar))
         {
-            return ResolutionResult.Exact(localVar);
+            return new ResolutionResult
+            {
+                TargetSymbol = localVar,
+                Confidence = ResolutionConfidence.Exact,
+                TargetTypeName = localVar.DeclaredTypeName,
+                ResolvedTypeSymbolId = localVar.ResolvedTypeSymbolId
+            };
         }
 
         // 2. Parametri formali
         if (_parameters.TryGetValue(name, out var param))
         {
-            return ResolutionResult.ExactParam(param);
+            return new ResolutionResult
+            {
+                TargetParameter = param,
+                Confidence = ResolutionConfidence.Exact,
+                TargetTypeName = param.DeclaredTypeName,
+                ResolvedTypeSymbolId = param.ResolvedTypeSymbolId
+            };
         }
 
         // 3. Assegnazione al nome della funzione stessa per il valore di ritorno (es. "CalculateTotal = 42")
         if (string.Equals(name, _routineSymbol.Name, StringComparison.OrdinalIgnoreCase))
         {
-            return ResolutionResult.Exact(_routineSymbol);
+            return new ResolutionResult
+            {
+                TargetSymbol = _routineSymbol,
+                Confidence = ResolutionConfidence.Exact,
+                TargetTypeName = _routineSymbol.DeclaredTypeName,
+                ResolvedTypeSymbolId = _routineSymbol.ResolvedTypeSymbolId
+            };
         }
 
         // 4. Deferisce allo scope genitore (ModuleScope o WithScope sovrastante)
@@ -322,7 +364,11 @@ public sealed class WithScope : IScope
             string.Equals(_targetResult.TargetTypeName, "Object", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(_targetResult.TargetTypeName, "Variant", StringComparison.OrdinalIgnoreCase))
         {
-            return ResolutionResult.Unknown(memberName, details: $"Late binding contestuale su blocco With con target dinamico/sconosciuto ({_targetResult})");
+            return new ResolutionResult
+            {
+                Confidence = ResolutionConfidence.Unknown,
+                Details = $"Late binding contestuale su blocco With con target dinamico/sconosciuto ({_targetResult})"
+            };
         }
 
         // 2. Risolve il tipo target associato all'espressione del With
@@ -353,12 +399,26 @@ public sealed class WithScope : IScope
 
             if (member != null)
             {
-                return ResolutionResult.Exact(member);
+                return new ResolutionResult
+                {
+                    TargetSymbol = member,
+                    Confidence = ResolutionConfidence.Exact,
+                    TargetTypeName = member.DeclaredTypeName,
+                    ResolvedTypeSymbolId = member.ResolvedTypeSymbolId
+                };
             }
 
-            return ResolutionResult.Unknown(memberName, details: $"Membro '{memberName}' non trovato nel tipo '{targetTypeSymbol.QualifiedName}' del blocco With");
+            return new ResolutionResult
+            {
+                Confidence = ResolutionConfidence.Unknown,
+                Details = $"Membro '{memberName}' non trovato nel tipo '{targetTypeSymbol.QualifiedName}' del blocco With"
+            };
         }
 
-        return ResolutionResult.Unknown(memberName, details: $"Impossibile determinare il tipo target del blocco With: {_targetResult}");
+        return new ResolutionResult
+        {
+            Confidence = ResolutionConfidence.Unknown,
+            Details = $"Impossibile determinare il tipo target del blocco With: {_targetResult}"
+        };
     }
 }

@@ -36,65 +36,6 @@ public sealed class ResolutionResult
     /// <summary>Indica se la risoluzione ha avuto esito positivo con certezza Exact o Inferred.</summary>
     public bool IsSuccess => Confidence == ResolutionConfidence.Exact || Confidence == ResolutionConfidence.Inferred;
 
-    /// <summary>
-    /// Crea un risultato di risoluzione esatta (<see cref="ResolutionConfidence.Exact"/>) verso un <see cref="Symbol"/>.
-    /// </summary>
-    public static ResolutionResult Exact(Symbol symbol, string? typeName = null, Guid? typeSymbolId = null) =>
-        new()
-        {
-            TargetSymbol = symbol,
-            Confidence = ResolutionConfidence.Exact,
-            TargetTypeName = typeName ?? symbol.DeclaredTypeName,
-            ResolvedTypeSymbolId = typeSymbolId ?? symbol.ResolvedTypeSymbolId
-        };
-
-    /// <summary>
-    /// Crea un risultato di risoluzione esatta (<see cref="ResolutionConfidence.Exact"/>) verso un <see cref="ParameterSymbol"/>.
-    /// </summary>
-    public static ResolutionResult ExactParam(ParameterSymbol param) =>
-        new()
-        {
-            TargetParameter = param,
-            Confidence = ResolutionConfidence.Exact,
-            TargetTypeName = param.DeclaredTypeName,
-            ResolvedTypeSymbolId = param.ResolvedTypeSymbolId
-        };
-
-    /// <summary>
-    /// Crea un risultato di risoluzione inferita (<see cref="ResolutionConfidence.Inferred"/>).
-    /// </summary>
-    public static ResolutionResult Inferred(Symbol symbol, string? details = null) =>
-        new()
-        {
-            TargetSymbol = symbol,
-            Confidence = ResolutionConfidence.Inferred,
-            TargetTypeName = symbol.DeclaredTypeName,
-            ResolvedTypeSymbolId = symbol.ResolvedTypeSymbolId,
-            Details = details
-        };
-
-    /// <summary>
-    /// Crea un risultato per risoluzione ambigua (<see cref="ResolutionConfidence.Ambiguous"/>).
-    /// </summary>
-    public static ResolutionResult Ambiguous(string name, string details) =>
-        new()
-        {
-            Confidence = ResolutionConfidence.Ambiguous,
-            Details = details
-        };
-
-    /// <summary>
-    /// Crea un risultato per simbolo o chiamata non risolvibile staticamente (<see cref="ResolutionConfidence.Unknown"/>),
-    /// tipico di late binding su Object, Variant o chiamate CreateObject.
-    /// </summary>
-    public static ResolutionResult Unknown(string name, string? typeName = null, string? details = null) =>
-        new()
-        {
-            Confidence = ResolutionConfidence.Unknown,
-            TargetTypeName = typeName,
-            Details = details ?? $"Simbolo non risolvibile staticamente: '{name}'"
-        };
-
     public override string ToString()
     {
         if (TargetSymbol is not null)

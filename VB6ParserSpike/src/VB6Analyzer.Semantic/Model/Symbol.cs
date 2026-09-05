@@ -1,47 +1,5 @@
 namespace VB6Analyzer.Semantic.Model;
 
-/// <summary>
-/// Categoria del simbolo semantico, allineata con l'elenco della sezione 8 del charter.
-/// Rappresenta la tipologia di elemento nel modello concettuale del codice VB6.
-/// </summary>
-public enum SymbolKind
-{
-    /// <summary>Progetto VB6 (.vbp).</summary>
-    Project,
-
-    /// <summary>Form / Finestra visuale (.frm).</summary>
-    Form,
-
-    /// <summary>Modulo di classe (.cls).</summary>
-    Class,
-
-    /// <summary>Modulo standard di codice (.bas).</summary>
-    Module,
-
-    /// <summary>Controllo utente ActiveX (.ctl).</summary>
-    UserControl,
-
-    /// <summary>Metodo o procedura (Sub o Function).</summary>
-    Method,
-
-    /// <summary>Proprietà (Property Get / Let / Set unificate).</summary>
-    Property,
-
-    /// <summary>Campo o variabile (sia a livello di modulo che variabile locale a una routine).</summary>
-    Field,
-
-    /// <summary>Costante (Const a livello di modulo o locale, o singolo valore di un Enum).</summary>
-    Constant,
-
-    /// <summary>Enumerazione (Enum ... End Enum).</summary>
-    Enum,
-
-    /// <summary>Tipo definito dall'utente / Struttura UDT (Type ... End Type).</summary>
-    Type,
-
-    /// <summary>Evento dichiarato in una classe o UserControl (Event ...).</summary>
-    Event
-}
 
 /// <summary>
 /// Rappresenta un'entità / nodo all'interno del <see cref="CodeGraph"/> (sezioni 8 e 9 del charter).

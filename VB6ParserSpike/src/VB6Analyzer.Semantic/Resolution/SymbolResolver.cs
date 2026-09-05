@@ -44,14 +44,7 @@ public sealed class SymbolResolver
         _typeResolver = typeResolver;
         _projectScope = new ProjectScope(graph, typeResolver);
 
-        BuildModuleScopes();
-    }
-
-    /// <summary>
-    /// Inizializza i <see cref="ModuleScope"/> per tutte le classi, form, moduli e user control presenti nel grafo.
-    /// </summary>
-    private void BuildModuleScopes()
-    {
+        // Inizializza i ModuleScope per tutte le classi, form, moduli e user control presenti nel grafo.
         foreach (var symbol in _graph.Symbols)
         {
             if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl)
@@ -124,7 +117,13 @@ public sealed class SymbolResolver
     public ResolutionResult ResolveChainedAccess(IScope scope, IReadOnlyList<string> chain)
     {
         if (chain.Count == 0)
-            return ResolutionResult.Unknown("", details: "Catena di accesso vuota");
+        {
+            return new ResolutionResult
+            {
+                Confidence = ResolutionConfidence.Unknown,
+                Details = "Catena di accesso vuota"
+            };
+        }
 
         if (chain.Count == 1)
             return scope.Resolve(chain[0]);
@@ -154,7 +153,12 @@ public sealed class SymbolResolver
         if (string.Equals(targetResult.TargetTypeName, "Object", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(targetResult.TargetTypeName, "Variant", StringComparison.OrdinalIgnoreCase))
         {
-            return ResolutionResult.Unknown(memberName, typeName: "Variant", details: $"Late binding su oggetto non tipizzato ({targetResult.TargetTypeName})");
+            return new ResolutionResult
+            {
+                Confidence = ResolutionConfidence.Unknown,
+                TargetTypeName = "Variant",
+                Details = $"Late binding su oggetto non tipizzato ({targetResult.TargetTypeName})"
+            };
         }
 
         Symbol? targetTypeSymbol = null;
@@ -212,12 +216,26 @@ public sealed class SymbolResolver
 
             if (member != null)
             {
-                return ResolutionResult.Exact(member);
+                return new ResolutionResult
+                {
+                    TargetSymbol = member,
+                    Confidence = ResolutionConfidence.Exact,
+                    TargetTypeName = member.DeclaredTypeName,
+                    ResolvedTypeSymbolId = member.ResolvedTypeSymbolId
+                };
             }
 
-            return ResolutionResult.Unknown(memberName, details: $"Membro '{memberName}' non trovato nel tipo '{targetTypeSymbol.QualifiedName}'");
+            return new ResolutionResult
+            {
+                Confidence = ResolutionConfidence.Unknown,
+                Details = $"Membro '{memberName}' non trovato nel tipo '{targetTypeSymbol.QualifiedName}'"
+            };
         }
 
-        return ResolutionResult.Unknown(memberName, details: $"Tipo del target '{targetResult}' non risolto o non definito nel progetto");
+        return new ResolutionResult
+        {
+            Confidence = ResolutionConfidence.Unknown,
+            Details = $"Tipo del target '{targetResult}' non risolto o non definito nel progetto"
+        };
     }
 }
