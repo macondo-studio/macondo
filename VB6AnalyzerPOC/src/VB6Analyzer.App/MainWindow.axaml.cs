@@ -175,6 +175,7 @@ public partial class MainWindow : Window
 
     /// <summary>
     /// Calcola ed evidenzia il Blast Radius per il nodo selezionato in modo asincrono con loading overlay.
+    /// Se il risultato è già in cache, viene applicato all'istante senza mostrare l'overlay.
     /// </summary>
     private async void OnBlastRadiusClicked()
     {
@@ -186,6 +187,15 @@ public partial class MainWindow : Window
 
         var node = _selectedNode;
         var sym = node.SemanticSymbol;
+
+        // Se già calcolato e presente in cache, applica all'istante (0 ms)
+        if (_graph.Queries.TryGetCachedImpactReport(sym, 10, out var cachedReport) && cachedReport != null)
+        {
+            Graph.HighlightBlastRadius(cachedReport);
+            UpdateInspectorImpactSection(cachedReport);
+            StatusText.Text = $"Blast Radius per '{node.QualifiedName}': {cachedReport.DirectCallers.Count} diretti, {cachedReport.IndirectCallers.Count} indiretti, {cachedReport.AffectedForms.Count} form, Rischio: {cachedReport.RiskLevel}";
+            return;
+        }
 
         ShowLoading("Calcolo Blast Radius in corso...", $"Analisi d'impatto e percorsi di chiamata per '{node.Name}'");
         await Task.Delay(16);
@@ -347,6 +357,15 @@ public partial class MainWindow : Window
             return;
         }
 
+        // Se il simbolo è già presente in cache, aggiorna immediatamente a 0ms (nessun overlay, nessun task ritardato)
+        if (_graph.Queries.TryGetCachedImpactReport(sym, 10, out var cachedImpact) && cachedImpact != null)
+        {
+            var cachedCallees = _graph.Queries.GetDirectCallees(sym);
+            var cachedInstantiations = _graph.Queries.GetInstantiatedClasses(sym);
+            UpdateInspectorImpactDetails(cachedImpact, cachedCallees, cachedInstantiations);
+            return;
+        }
+
         // 2. Imposta lo stato di caricamento nell'Inspector per Blast Radius e chiamanti
         RiskLevelText.Text = "CALCOLO...";
         RiskBadge.Background = new SolidColorBrush(Color.Parse("#FF6633"));
@@ -361,16 +380,17 @@ public partial class MainWindow : Window
         InspectorInstantiatesSection.IsVisible = false;
 
         var targetId = node.Id;
+        bool isCompleted = false;
 
-        // Se il calcolo richiede più di 60ms (tipico per nodi con molti chiamanti indiretti), mostra il loading overlay centrato
+        // Se il calcolo richiede più di 80ms (tipico per nodi complessi), mostra il loading overlay centrato
         _ = Task.Run(async () =>
         {
-            await Task.Delay(60, ct);
-            if (!ct.IsCancellationRequested)
+            await Task.Delay(80, ct);
+            if (!ct.IsCancellationRequested && !isCompleted)
             {
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    if (!ct.IsCancellationRequested && _selectedNode?.Id == targetId)
+                    if (!ct.IsCancellationRequested && !isCompleted && _selectedNode?.Id == targetId)
                     {
                         ShowLoading("Analisi del nodo in corso...", $"Esplorazione chiamanti e dipendenze per '{node.Name}'");
                     }
@@ -404,6 +424,7 @@ public partial class MainWindow : Window
         }
         finally
         {
+            isCompleted = true;
             if (_selectedNode?.Id == targetId)
             {
                 HideLoading();

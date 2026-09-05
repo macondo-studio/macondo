@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Threading;
 using VB6Analyzer.Semantic.Model;
 
 namespace VB6Analyzer.Semantic.Graph;
@@ -11,14 +13,34 @@ namespace VB6Analyzer.Semantic.Graph;
 /// 3. Execution Path Discovery: trovare tutti i cammini di esecuzione tra due routine (es. da entry point a database).
 /// 4. Cycle Detection: individuare chiamate ricorsive e cicli di dipendenza nel grafo.
 /// 5. Dependency Analysis: interrogare istanziazioni (INSTANTIATES) e dipendenze di tipo (USES_TYPE).
+/// Include caching a grana fine (Memoization thread-safe) su tutte le sotto-query per massimizzare le performance.
 /// </summary>
 public sealed class CallGraphQueries
 {
     private readonly CodeGraph _graph;
 
+    // Cache a grana fine (Opzione 3)
+    private readonly ConcurrentDictionary<Guid, IReadOnlyList<Symbol>> _directCallersCache = new();
+    private readonly ConcurrentDictionary<Guid, IReadOnlyList<Symbol>> _directCalleesCache = new();
+    private readonly ConcurrentDictionary<(Guid SourceId, Guid TargetId, int MaxDepth), IReadOnlyList<CallPath>> _executionPathsCache = new();
+    private readonly ConcurrentDictionary<Guid, IReadOnlyList<Symbol>> _instantiatedClassesCache = new();
+    private readonly ConcurrentDictionary<(Guid SymbolId, int MaxDepth), Impact.ImpactReport> _impactReportCache = new();
+
     public CallGraphQueries(CodeGraph graph)
     {
         _graph = graph;
+    }
+
+    /// <summary>
+    /// Svuota tutte le cache interne delle sotto-query e dei report di impatto.
+    /// </summary>
+    public void ClearCache()
+    {
+        _directCallersCache.Clear();
+        _directCalleesCache.Clear();
+        _executionPathsCache.Clear();
+        _instantiatedClassesCache.Clear();
+        _impactReportCache.Clear();
     }
 
     // =========================================================================
@@ -27,32 +49,36 @@ public sealed class CallGraphQueries
 
     /// <summary>
     /// Restituisce l'elenco di tutte le routine che chiamano direttamente la routine specificata (Who calls target?).
+    /// Risultato memorizzato in cache per accessi istantanei successivi.
     /// </summary>
     /// <param name="callee">La routine chiamata target.</param>
     public IReadOnlyList<Symbol> GetDirectCallers(Symbol callee)
     {
-        return _graph.Relationships
-            .Where(r => r.Kind == RelationshipKind.Calls && r.TargetId == callee.Id)
-            .Select(r => _graph.FindSymbolById(r.SourceId))
-            .Where(s => s != null)
-            .Select(s => s!)
-            .DistinctBy(s => s.Id)
-            .ToList();
+        return _directCallersCache.GetOrAdd(callee.Id, _ =>
+            _graph.Relationships
+                .Where(r => r.Kind == RelationshipKind.Calls && r.TargetId == callee.Id)
+                .Select(r => _graph.FindSymbolById(r.SourceId))
+                .Where(s => s != null)
+                .Select(s => s!)
+                .DistinctBy(s => s.Id)
+                .ToList());
     }
 
     /// <summary>
     /// Restituisce l'elenco di tutte le routine chiamate direttamente dalla routine specificata (What does source call?).
+    /// Risultato memorizzato in cache per accessi istantanei successivi.
     /// </summary>
     /// <param name="caller">La routine chiamante sorgente.</param>
     public IReadOnlyList<Symbol> GetDirectCallees(Symbol caller)
     {
-        return _graph.Relationships
-            .Where(r => r.Kind == RelationshipKind.Calls && r.SourceId == caller.Id)
-            .Select(r => _graph.FindSymbolById(r.TargetId))
-            .Where(s => s != null)
-            .Select(s => s!)
-            .DistinctBy(s => s.Id)
-            .ToList();
+        return _directCalleesCache.GetOrAdd(caller.Id, _ =>
+            _graph.Relationships
+                .Where(r => r.Kind == RelationshipKind.Calls && r.SourceId == caller.Id)
+                .Select(r => _graph.FindSymbolById(r.TargetId))
+                .Where(s => s != null)
+                .Select(s => s!)
+                .DistinctBy(s => s.Id)
+                .ToList());
     }
 
 
@@ -71,11 +97,19 @@ public sealed class CallGraphQueries
     /// <returns>Elenco dei cammini (<see cref="CallPath"/>) identificati.</returns>
     public IReadOnlyList<CallPath> FindExecutionPaths(Symbol source, Symbol target, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
+        var key = (source.Id, target.Id, maxDepth);
+        if (_executionPathsCache.TryGetValue(key, out var cachedPaths))
+        {
+            return cachedPaths;
+        }
+
         var paths = new List<CallPath>();
         var currentPath = new List<Symbol> { source };
         var visitedOnPath = new HashSet<Guid> { source.Id };
 
         DfsFindPaths(source, target, currentPath, visitedOnPath, paths, maxDepth, cancellationToken);
+
+        _executionPathsCache[key] = paths;
         return paths;
     }
 
@@ -193,15 +227,17 @@ public sealed class CallGraphQueries
 
     /// <summary>
     /// Restituisce tutte le classi istanziate direttamente dal simbolo specificato.
+    /// Risultato memorizzato in cache per accessi istantanei successivi.
     /// </summary>
     public IReadOnlyList<Symbol> GetInstantiatedClasses(Symbol source) =>
-        _graph.Relationships
-            .Where(r => r.Kind == RelationshipKind.Instantiates && r.SourceId == source.Id)
-            .Select(r => _graph.FindSymbolById(r.TargetId))
-            .Where(s => s != null)
-            .Select(s => s!)
-            .DistinctBy(s => s.Id)
-            .ToList();
+        _instantiatedClassesCache.GetOrAdd(source.Id, _ =>
+            _graph.Relationships
+                .Where(r => r.Kind == RelationshipKind.Instantiates && r.SourceId == source.Id)
+                .Select(r => _graph.FindSymbolById(r.TargetId))
+                .Where(s => s != null)
+                .Select(s => s!)
+                .DistinctBy(s => s.Id)
+                .ToList());
 
 
     // =========================================================================
@@ -210,10 +246,26 @@ public sealed class CallGraphQueries
 
     /// <summary>
     /// Esegue l'analisi completa del Blast Radius per il simbolo specificato.
+    /// Risultato memorizzato in cache per accessi istantanei successivi.
     /// </summary>
     public Impact.ImpactReport GetImpactReport(Symbol symbol, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
+        var key = (symbol.Id, maxDepth);
+        if (_impactReportCache.TryGetValue(key, out var cachedReport))
+        {
+            return cachedReport;
+        }
+
         var analyzer = new Impact.ImpactAnalyzer(_graph, this);
-        return analyzer.AnalyzeSymbolImpact(symbol, maxDepth, cancellationToken);
+        var report = analyzer.AnalyzeSymbolImpact(symbol, maxDepth, cancellationToken);
+
+        _impactReportCache[key] = report;
+        return report;
     }
+
+    /// <summary>
+    /// Verifica se il report di impatto per il simbolo specificato è già presente nella cache.
+    /// </summary>
+    public bool TryGetCachedImpactReport(Symbol symbol, int maxDepth, out Impact.ImpactReport? report) =>
+        _impactReportCache.TryGetValue((symbol.Id, maxDepth), out report);
 }

@@ -33,6 +33,10 @@ public sealed class VisualCodeGraph
         Nodes.Where(n => n.ParentId == parentId);
 
 
-    /// <summary>Invalida la cache degli ID dopo modifiche alla lista dei nodi.</summary>
-    public void Invalidate() => _nodesById = null;
+    /// <summary>Invalida la cache degli ID e delle query dopo modifiche alla struttura del grafo.</summary>
+    public void Invalidate()
+    {
+        _nodesById = null;
+        Queries?.ClearCache();
+    }
 }
