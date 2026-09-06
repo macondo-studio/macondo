@@ -29,11 +29,41 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // Menu Bar Superiore - File
+        // Menu Bar Superiore - File (Command + Click per massima affidabilità)
+        OpenFolderMenuItem.Command = new ActionCommand(async () => await OpenFolderAsync());
+        LoadFixturesMenuItem.Command = new ActionCommand(() => LoadDefaultFixtures());
+        GenerateFakeMenuItem.Command = new ActionCommand(() => LoadSyntheticGraph());
+        ExitMenuItem.Command = new ActionCommand(() => Close());
+
         OpenFolderMenuItem.Click += async (_, _) => await OpenFolderAsync();
         LoadFixturesMenuItem.Click += (_, _) => LoadDefaultFixtures();
         GenerateFakeMenuItem.Click += (_, _) => LoadSyntheticGraph();
         ExitMenuItem.Click += (_, _) => Close();
+
+        // Menu Bar Superiore - Visualizza & Analisi
+        ResetViewMenuItem.Command = new ActionCommand(() => Graph.ResetView());
+        ExpandAllMenuItem.Command = new ActionCommand(() => SetAllExpanded(true));
+        CollapseAllMenuItem.Command = new ActionCommand(() => SetAllExpanded(false));
+        BlastRadiusMenuItem.Command = new ActionCommand(() => OnBlastRadiusClicked());
+        ShowCallersMenuItem.Command = new ActionCommand(() => OnShowCallersClicked());
+        ShowCalleesMenuItem.Command = new ActionCommand(() => OnShowCalleesClicked());
+        ClearHighlightMenuItem.Command = new ActionCommand(() =>
+        {
+            Graph.ClearHighlightMode();
+            StatusText.Text = "Evidenziazione ripristinata alla modalità standard.";
+        });
+
+        ResetViewMenuItem.Click += (_, _) => Graph.ResetView();
+        ExpandAllMenuItem.Click += (_, _) => SetAllExpanded(true);
+        CollapseAllMenuItem.Click += (_, _) => SetAllExpanded(false);
+        BlastRadiusMenuItem.Click += (_, _) => OnBlastRadiusClicked();
+        ShowCallersMenuItem.Click += (_, _) => OnShowCallersClicked();
+        ShowCalleesMenuItem.Click += (_, _) => OnShowCalleesClicked();
+        ClearHighlightMenuItem.Click += (_, _) =>
+        {
+            Graph.ClearHighlightMode();
+            StatusText.Text = "Evidenziazione ripristinata alla modalità standard.";
+        };
                 
         // Toolbar Azioni Rapide
         ResetViewButton.Click += (_, _) => Graph.ResetView();
@@ -71,13 +101,23 @@ public partial class MainWindow : Window
             }
         };
 
-        // Tasto di scelta rapida globale Ctrl + F: focus immediato e selezione nella casella di ricerca
+        // Scorciatoie da tastiera globali (Ctrl + F per ricerca, Ctrl + O per cartella, F5 per blast radius)
         AddHandler(KeyDownEvent, (sender, e) =>
         {
             if (e.KeyModifiers == KeyModifiers.Control && e.Key == Key.F)
             {
                 SearchBox.Focus();
                 SearchBox.SelectAll();
+                e.Handled = true;
+            }
+            else if (e.KeyModifiers == KeyModifiers.Control && e.Key == Key.O)
+            {
+                _ = OpenFolderAsync();
+                e.Handled = true;
+            }
+            else if (e.KeyModifiers == KeyModifiers.None && e.Key == Key.F5)
+            {
+                OnBlastRadiusClicked();
                 e.Handled = true;
             }
         }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
@@ -87,22 +127,22 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Consente il trascinamento della finestra dallo spazio vuoto della barra superiore,
-    /// oppure di massimizzare/ripristinare con doppio click.
+    /// Consente il trascinamento della finestra dall'area centrale libera della barra del titolo.
     /// </summary>
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            if (e.ClickCount == 2)
-            {
-                ToggleMaximize();
-            }
-            else
-            {
-                BeginMoveDrag(e);
-            }
+            BeginMoveDrag(e);
         }
+    }
+
+    /// <summary>
+    /// Doppio click sull'area centrale libera della barra del titolo per massimizzare o ripristinare.
+    /// </summary>
+    private void OnTitleBarDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        ToggleMaximize();
     }
 
     private void ToggleMaximize()
@@ -741,4 +781,16 @@ public partial class MainWindow : Window
 
         StatusStats.Text = $"Nodi: {nodeCount} | Relazioni: {relCount} (Calls: {callCount}, Instantiates: {instCount})";
     }
+}
+
+/// <summary>
+/// Implementazione compatta di ICommand per eseguire azioni delegate dai menu e controlli UI.
+/// </summary>
+public sealed class ActionCommand : System.Windows.Input.ICommand
+{
+    private readonly Action _action;
+    public ActionCommand(Action action) => _action = action;
+    public event EventHandler? CanExecuteChanged { add { } remove { } }
+    public bool CanExecute(object? parameter) => true;
+    public void Execute(object? parameter) => _action();
 }

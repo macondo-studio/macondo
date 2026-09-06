@@ -12,12 +12,11 @@
 
     <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="{Binding $parent[Window].OffScreenMargin}">
 
-        <!-- Barra Superiore Stile IDE (Brand & Menu a Sinistra | Controlli Finestra a Destra) -->
-        <Border Grid.Row="0" Background="#14141D" BorderBrush="#2D2D3E" BorderThickness="0,0,0,1" Padding="8,0,0,0" Height="36"
-                PointerPressed="OnTitleBarPointerPressed">
-            <Panel>
+        <!-- Barra Superiore Stile IDE (Brand & Menu a Sinistra | Area Trascinamento al Centro | Controlli Finestra a Destra) -->
+        <Border Grid.Row="0" Background="#14141D" BorderBrush="#2D2D3E" BorderThickness="0,0,0,1" Padding="8,0,0,0" Height="36">
+            <Grid ColumnDefinitions="Auto,*,Auto">
                 <!-- Sinistra: Brand / Logo App + Menu a Discesa -->
-                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,16,0" Spacing="6">
                         <TextBlock Text="⚡" FontSize="12" VerticalAlignment="Center" Foreground="#FF6633" />
                         <TextBlock Text="VB6 Analyzer" FontWeight="SemiBold" FontSize="12" Foreground="#8A8A9E" VerticalAlignment="Center" />
@@ -25,11 +24,11 @@
 
                     <Menu Background="Transparent">
                         <MenuItem Header="_File">
-                            <MenuItem x:Name="OpenFolderMenuItem" Header="📂 Apri Cartella VB6..." HotKey="Ctrl+O" />
+                            <MenuItem x:Name="OpenFolderMenuItem" Header="📂 Apri Cartella VB6..." InputGesture="Ctrl+O" />
                             <MenuItem x:Name="LoadFixturesMenuItem" Header="🧪 Carica Fixtures Test" />
                             <MenuItem x:Name="GenerateFakeMenuItem" Header="⚡ Grafo Demo (~500 nodi)" />
                             <Separator />
-                            <MenuItem x:Name="ExitMenuItem" Header="❌ Esci" HotKey="Alt+F4" />
+                            <MenuItem x:Name="ExitMenuItem" Header="❌ Esci" InputGesture="Alt+F4" />
                         </MenuItem>
                         <MenuItem Header="_Visualizza">
                             <MenuItem x:Name="ResetViewMenuItem" Header="🎯 Reset Vista" />
@@ -37,7 +36,7 @@
                             <MenuItem x:Name="CollapseAllMenuItem" Header="➖ Comprimi Tutto" />
                         </MenuItem>
                         <MenuItem Header="_Analisi">
-                            <MenuItem x:Name="BlastRadiusMenuItem" Header="💥 Calcola Blast Radius" HotKey="F5" />
+                            <MenuItem x:Name="BlastRadiusMenuItem" Header="💥 Calcola Blast Radius" InputGesture="F5" />
                             <MenuItem x:Name="ShowCallersMenuItem" Header="⬅️ Mostra Callers" />
                             <MenuItem x:Name="ShowCalleesMenuItem" Header="➡️ Mostra Callees" />
                             <Separator />
@@ -46,8 +45,13 @@
                     </Menu>
                 </StackPanel>
 
+                <!-- Centro: Area di Trascinamento Finestra e Doppio Click per Massimizzare -->
+                <Border Grid.Column="1" Background="Transparent"
+                        PointerPressed="OnTitleBarPointerPressed"
+                        DoubleTapped="OnTitleBarDoubleTapped" />
+
                 <!-- Destra: Pulsanti di Controllo Finestra (Riduci a icona, Ingrandisci, Chiudi) -->
-                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Stretch">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch">
                     <StackPanel.Styles>
                         <Style Selector="Button.caption-btn">
                             <Setter Property="Width" Value="46" />
@@ -80,7 +84,7 @@
                         <TextBlock Text="✕" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Center" />
                     </Button>
                 </StackPanel>
-            </Panel>
+            </Grid>
         </Border>
 
         <!-- Barra Secondaria: Casella di Ricerca Dedicata con Hint Ctrl + F -->
