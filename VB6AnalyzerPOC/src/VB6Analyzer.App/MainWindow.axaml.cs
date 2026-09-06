@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
@@ -42,6 +43,15 @@ public partial class MainWindow : Window
         {
             Graph.ClearHighlightMode();
             StatusText.Text = "Evidenziazione ripristinata alla modalità standard.";
+        };
+
+        SearchBox.GotFocus += (_, _) =>
+        {
+            var query = SearchBox.Text?.Trim();
+            if (!string.IsNullOrEmpty(query) && SearchResultsList.ItemsSource is IList<GraphNode> { Count: > 1 })
+            {
+                SearchResultsPopup.IsOpen = true;
+            }
         };
 
         // Caricamento iniziale automatico delle fixture reali
@@ -289,14 +299,9 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnExplorerSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void SelectAndFocusGraphNode(GraphNode node)
     {
-        if (e.AddedItems.Count == 0) return;
-        if (e.AddedItems[0] is not ExplorerTreeItem item) return;
         if (_graph is null) return;
-
-        var node = _graph.GetNode(item.NodeId);
-        if (node is null) return;
 
         // Se è un membro interno, assicurati che il container padre sia espanso
         if (node.ParentId.HasValue)
@@ -308,27 +313,127 @@ public partial class MainWindow : Window
 
         Graph.FocusOnNode(node.Id);
         Graph.SelectNode(node);
+        StatusText.Text = $"Selezionato: [{node.Kind}] {node.QualifiedName}";
+    }
+
+    private void OnExplorerSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count == 0) return;
+        if (e.AddedItems[0] is not ExplorerTreeItem item) return;
+        if (_graph is null) return;
+
+        var node = _graph.GetNode(item.NodeId);
+        if (node is not null)
+            SelectAndFocusGraphNode(node);
     }
 
     private void OnSearchTextChanged(object? sender, TextChangedEventArgs e)
     {
         var query = SearchBox.Text?.Trim();
-        if (string.IsNullOrEmpty(query) || _graph is null) return;
-
-        var match = _graph.Nodes
-            .FirstOrDefault(n => n.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                                n.QualifiedName.Contains(query, StringComparison.OrdinalIgnoreCase));
-
-        if (match != null)
+        if (string.IsNullOrEmpty(query) || _graph is null)
         {
-            if (match.ParentId.HasValue)
-            {
-                var parent = _graph.GetNode(match.ParentId.Value);
-                if (parent is not null) parent.IsExpanded = true;
-            }
+            SearchResultsPopup.IsOpen = false;
+            SearchResultsList.ItemsSource = null;
+            return;
+        }
 
-            Graph.FocusOnNode(match.Id);
-            Graph.SelectNode(match);
+        // Cerca tutti i nodi corrispondenti per nome o nome qualificato (escludendo il root di progetto sintetico)
+        var matches = _graph.Nodes
+            .Where(n => n.Kind != SymbolKind.Project &&
+                       (n.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                        n.QualifiedName.Contains(query, StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(n => n.Name.StartsWith(query, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .ThenBy(n => n.Name)
+            .Take(30)
+            .ToList();
+
+        if (matches.Count == 0)
+        {
+            SearchResultsHeader.Text = $"Nessun simbolo trovato per '{query}'";
+            SearchResultsList.ItemsSource = null;
+            SearchResultsPopup.IsOpen = true;
+            StatusText.Text = $"Nessun simbolo corrispondente a '{query}'.";
+        }
+        else if (matches.Count == 1)
+        {
+            // Un solo risultato: chiudi la lista e seleziona direttamente il nodo
+            SearchResultsPopup.IsOpen = false;
+            SearchResultsList.ItemsSource = matches;
+            SelectAndFocusGraphNode(matches[0]);
+            StatusText.Text = $"Trovato 1 simbolo: [{matches[0].Kind}] {matches[0].QualifiedName}";
+        }
+        else
+        {
+            // Più di un risultato: NON mostrare direttamente il primo nodo nel grafico,
+            // ma mostra la lista dei risultati da cui l'utente può selezionare l'elemento specifico
+            SearchResultsHeader.Text = $"Trovati {matches.Count} simboli (clicca per selezionare):";
+            SearchResultsList.ItemsSource = matches;
+            SearchResultsPopup.IsOpen = true;
+            StatusText.Text = $"Trovati {matches.Count} simboli corrispondenti a '{query}'. Seleziona un elemento dalla lista.";
+        }
+    }
+
+    private void OnSearchResultSelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is GraphNode selectedNode)
+        {
+            SelectAndFocusGraphNode(selectedNode);
+            SearchResultsPopup.IsOpen = false;
+            Dispatcher.UIThread.Post(() => SearchResultsList.SelectedItem = null);
+        }
+    }
+
+    private void OnSearchBoxKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            if (SearchResultsList.SelectedItem is GraphNode selected)
+            {
+                SelectAndFocusGraphNode(selected);
+                SearchResultsPopup.IsOpen = false;
+                e.Handled = true;
+            }
+            else if (SearchResultsList.ItemsSource is IList<GraphNode> list && list.Count > 0)
+            {
+                SelectAndFocusGraphNode(list[0]);
+                SearchResultsPopup.IsOpen = false;
+                e.Handled = true;
+            }
+        }
+        else if (e.Key == Key.Down)
+        {
+            if (SearchResultsPopup.IsOpen && SearchResultsList.ItemsSource is IList<GraphNode> list && list.Count > 0)
+            {
+                SearchResultsList.Focus();
+                if (SearchResultsList.SelectedIndex < 0)
+                    SearchResultsList.SelectedIndex = 0;
+                e.Handled = true;
+            }
+        }
+        else if (e.Key == Key.Escape)
+        {
+            SearchResultsPopup.IsOpen = false;
+            e.Handled = true;
+        }
+    }
+
+    private void OnSearchResultsListKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            if (SearchResultsList.SelectedItem is GraphNode selected)
+            {
+                SelectAndFocusGraphNode(selected);
+                SearchResultsPopup.IsOpen = false;
+                SearchBox.Focus();
+                e.Handled = true;
+            }
+        }
+        else if (e.Key == Key.Escape)
+        {
+            SearchResultsPopup.IsOpen = false;
+            SearchBox.Focus();
+            e.Handled = true;
         }
     }
 

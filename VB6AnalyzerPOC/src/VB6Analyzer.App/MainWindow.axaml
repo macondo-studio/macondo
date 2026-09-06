@@ -42,10 +42,68 @@
                     <Button x:Name="ClearHighlightButton" Content="✖ Pulisci Filtri" ToolTip.Tip="Rimuove le evidenziazioni attive" />
                 </WrapPanel>
 
-                <!-- Casella di Ricerca -->
+                <!-- Casella di Ricerca con Lista a Discesa dei Risultati -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="10,3,0,3">
                     <TextBlock Text="🔍" VerticalAlignment="Center" FontSize="14" />
-                    <TextBox x:Name="SearchBox" Width="200" Watermark="Cerca simbolo..." TextChanged="OnSearchTextChanged" />
+                    <Panel>
+                        <TextBox x:Name="SearchBox"
+                                 Width="220"
+                                 Watermark="Cerca simbolo..."
+                                 TextChanged="OnSearchTextChanged"
+                                 KeyDown="OnSearchBoxKeyDown" />
+
+                        <!-- Dropdown Risultati Multipli -->
+                        <Popup x:Name="SearchResultsPopup"
+                               PlacementTarget="{Binding ElementName=SearchBox}"
+                               Placement="Bottom"
+                               IsLightDismissEnabled="True"
+                               VerticalOffset="4">
+                            <Border Background="#1E1E28"
+                                    BorderBrush="#3D3D52"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    BoxShadow="0 8 24 0 #90000000"
+                                    MinWidth="260"
+                                    MaxWidth="380"
+                                    MaxHeight="320"
+                                    Padding="6">
+                                <DockPanel>
+                                    <TextBlock x:Name="SearchResultsHeader"
+                                               DockPanel.Dock="Top"
+                                               Text="Risultati trovati:"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               Foreground="#9090A0"
+                                               Margin="6,4,6,6" />
+                                    <ListBox x:Name="SearchResultsList"
+                                             Background="Transparent"
+                                             SelectionChanged="OnSearchResultSelected"
+                                             KeyDown="OnSearchResultsListKeyDown">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate DataType="models:GraphNode">
+                                                <Grid ColumnDefinitions="Auto,*" Margin="2">
+                                                    <Border Grid.Column="0"
+                                                            Background="#28283C"
+                                                            BorderBrush="#3D3D55"
+                                                            BorderThickness="1"
+                                                            CornerRadius="3"
+                                                            Padding="4,1"
+                                                            Margin="0,0,8,0"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Kind}" FontSize="10" FontWeight="SemiBold" Foreground="#4AE8D0" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="#ECECF0" />
+                                                        <TextBlock Text="{Binding QualifiedName}" FontSize="10" Foreground="#8A8A9C" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </DockPanel>
+                            </Border>
+                        </Popup>
+                    </Panel>
                 </StackPanel>
             </Grid>
         </Border>
