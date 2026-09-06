@@ -34,20 +34,7 @@ public partial class MainWindow : Window
         LoadFixturesMenuItem.Click += (_, _) => LoadDefaultFixtures();
         GenerateFakeMenuItem.Click += (_, _) => LoadSyntheticGraph();
         ExitMenuItem.Click += (_, _) => Close();
-
-        // Menu Bar Superiore - Visualizza & Analisi
-        ResetViewMenuItem.Click += (_, _) => Graph.ResetView();
-        ExpandAllMenuItem.Click += (_, _) => SetAllExpanded(true);
-        CollapseAllMenuItem.Click += (_, _) => SetAllExpanded(false);
-        BlastRadiusMenuItem.Click += (_, _) => OnBlastRadiusClicked();
-        ShowCallersMenuItem.Click += (_, _) => OnShowCallersClicked();
-        ShowCalleesMenuItem.Click += (_, _) => OnShowCalleesClicked();
-        ClearHighlightMenuItem.Click += (_, _) =>
-        {
-            Graph.ClearHighlightMode();
-            StatusText.Text = "Evidenziazione ripristinata alla modalità standard.";
-        };
-
+                
         // Toolbar Azioni Rapide
         ResetViewButton.Click += (_, _) => Graph.ResetView();
         ExpandAllButton.Click += (_, _) => SetAllExpanded(true);
@@ -83,6 +70,17 @@ public partial class MainWindow : Window
                 SearchResultsPopup.IsOpen = true;
             }
         };
+
+        // Tasto di scelta rapida globale Ctrl + F: focus immediato e selezione nella casella di ricerca
+        AddHandler(KeyDownEvent, (sender, e) =>
+        {
+            if (e.KeyModifiers == KeyModifiers.Control && e.Key == Key.F)
+            {
+                SearchBox.Focus();
+                SearchBox.SelectAll();
+                e.Handled = true;
+            }
+        }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
 
         // Caricamento iniziale automatico delle fixture reali
         LoadDefaultFixtures();

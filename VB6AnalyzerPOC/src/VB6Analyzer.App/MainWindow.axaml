@@ -10,9 +10,9 @@
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="-1">
 
-    <Grid RowDefinitions="Auto,*,Auto" Margin="{Binding $parent[Window].OffScreenMargin}">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="{Binding $parent[Window].OffScreenMargin}">
 
-        <!-- Barra Superiore Stile IDE (Brand & Menu a Sinistra | Ricerca Centrata | Controlli Finestra a Destra) -->
+        <!-- Barra Superiore Stile IDE (Brand & Menu a Sinistra | Controlli Finestra a Destra) -->
         <Border Grid.Row="0" Background="#14141D" BorderBrush="#2D2D3E" BorderThickness="0,0,0,1" Padding="8,0,0,0" Height="36"
                 PointerPressed="OnTitleBarPointerPressed">
             <Panel>
@@ -44,70 +44,6 @@
                             <MenuItem x:Name="ClearHighlightMenuItem" Header="✖ Pulisci Filtri" />
                         </MenuItem>
                     </Menu>
-                </StackPanel>
-
-                <!-- Centro: Casella di Ricerca Centrata con Lista a Discesa dei Risultati -->
-                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8" Margin="0,2">
-                    <TextBlock Text="🔍" VerticalAlignment="Center" FontSize="13" Foreground="#7A7A90" />
-                    <Panel>
-                        <TextBox x:Name="SearchBox"
-                                 Width="340"
-                                 Watermark="Cerca simbolo..."
-                                 TextChanged="OnSearchTextChanged"
-                                 KeyDown="OnSearchBoxKeyDown" />
-
-                        <!-- Dropdown Risultati Multipli -->
-                        <Popup x:Name="SearchResultsPopup"
-                               PlacementTarget="{Binding ElementName=SearchBox}"
-                               Placement="Bottom"
-                               IsLightDismissEnabled="True"
-                               VerticalOffset="4">
-                            <Border Background="#1E1E28"
-                                    BorderBrush="#3D3D52"
-                                    BorderThickness="1"
-                                    CornerRadius="6"
-                                    BoxShadow="0 8 24 0 #90000000"
-                                    MinWidth="300"
-                                    MaxWidth="440"
-                                    MaxHeight="320"
-                                    Padding="6">
-                                <DockPanel>
-                                    <TextBlock x:Name="SearchResultsHeader"
-                                               DockPanel.Dock="Top"
-                                               Text="Risultati trovati:"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#9090A0"
-                                               Margin="6,4,6,6" />
-                                    <ListBox x:Name="SearchResultsList"
-                                             Background="Transparent"
-                                             SelectionChanged="OnSearchResultSelected"
-                                             KeyDown="OnSearchResultsListKeyDown">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate DataType="models:GraphNode">
-                                                <Grid ColumnDefinitions="Auto,*" Margin="2">
-                                                    <Border Grid.Column="0"
-                                                            Background="#28283C"
-                                                            BorderBrush="#3D3D55"
-                                                            BorderThickness="1"
-                                                            CornerRadius="3"
-                                                            Padding="4,1"
-                                                            Margin="0,0,8,0"
-                                                            VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding Kind}" FontSize="10" FontWeight="SemiBold" Foreground="#4AE8D0" />
-                                                    </Border>
-                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="#ECECF0" />
-                                                        <TextBlock Text="{Binding QualifiedName}" FontSize="10" Foreground="#8A8A9C" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
-                                </DockPanel>
-                            </Border>
-                        </Popup>
-                    </Panel>
                 </StackPanel>
 
                 <!-- Destra: Pulsanti di Controllo Finestra (Riduci a icona, Ingrandisci, Chiudi) -->
@@ -147,8 +83,90 @@
             </Panel>
         </Border>
 
+        <!-- Barra Secondaria: Casella di Ricerca Dedicata con Hint Ctrl + F -->
+        <Border Grid.Row="1" Background="#181822" BorderBrush="#2A2A38" BorderThickness="0,0,0,1" Padding="10,6">
+            <Panel HorizontalAlignment="Center">
+                <TextBox x:Name="SearchBox"
+                         Width="440"
+                         Watermark="Cerca simbolo nel grafo..."
+                         TextChanged="OnSearchTextChanged"
+                         KeyDown="OnSearchBoxKeyDown">
+                    <TextBox.InnerLeftContent>
+                        <TextBlock Text="🔍" FontSize="12" VerticalAlignment="Center" Margin="8,0,4,0" Foreground="#7A7A90" />
+                    </TextBox.InnerLeftContent>
+                    <TextBox.InnerRightContent>
+                        <Border Background="#252535"
+                                BorderBrush="#3D3D52"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                Padding="6,2"
+                                Margin="0,0,6,0"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="Ctrl + F"
+                                       FontSize="10"
+                                       FontWeight="SemiBold"
+                                       Foreground="#8A8AA0"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+
+                <!-- Dropdown Risultati Multipli -->
+                <Popup x:Name="SearchResultsPopup"
+                       PlacementTarget="{Binding ElementName=SearchBox}"
+                       Placement="Bottom"
+                       IsLightDismissEnabled="True"
+                       VerticalOffset="4">
+                    <Border Background="#1E1E28"
+                            BorderBrush="#3D3D52"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            BoxShadow="0 8 24 0 #90000000"
+                            MinWidth="360"
+                            MaxWidth="500"
+                            MaxHeight="320"
+                            Padding="6">
+                        <DockPanel>
+                            <TextBlock x:Name="SearchResultsHeader"
+                                       DockPanel.Dock="Top"
+                                       Text="Risultati trovati:"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="#9090A0"
+                                       Margin="6,4,6,6" />
+                            <ListBox x:Name="SearchResultsList"
+                                     Background="Transparent"
+                                     SelectionChanged="OnSearchResultSelected"
+                                     KeyDown="OnSearchResultsListKeyDown">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="models:GraphNode">
+                                        <Grid ColumnDefinitions="Auto,*" Margin="2">
+                                            <Border Grid.Column="0"
+                                                    Background="#28283C"
+                                                    BorderBrush="#3D3D55"
+                                                    BorderThickness="1"
+                                                    CornerRadius="3"
+                                                    Padding="4,1"
+                                                    Margin="0,0,8,0"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Kind}" FontSize="10" FontWeight="SemiBold" Foreground="#4AE8D0" />
+                                            </Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="#ECECF0" />
+                                                <TextBlock Text="{Binding QualifiedName}" FontSize="10" Foreground="#8A8A9C" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+                    </Border>
+                </Popup>
+            </Panel>
+        </Border>
+
         <!-- Area Centrale: Explorer | Graph + Floating Actions | Inspector -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="280" />
                 <ColumnDefinition Width="*" MinWidth="300" />
@@ -351,7 +369,7 @@
         </Grid>
 
         <!-- Barra di Stato Inferiore -->
-        <Border Grid.Row="2" Background="#16161D" Padding="12,6" BorderBrush="#353545" BorderThickness="0,1,0,0">
+        <Border Grid.Row="3" Background="#16161D" Padding="12,6" BorderBrush="#353545" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Grid.Column="0" x:Name="StatusText" Text="Pronto." Foreground="#808090" FontSize="11" />
                 <TextBlock Grid.Column="1" x:Name="StatusStats" Text="Nodi: 0 | Relazioni: 0" Foreground="#606070" FontSize="11" />
@@ -359,7 +377,7 @@
         </Border>
 
         <!-- Overlay di Caricamento Centrato a Schermo (Blast Radius & Analisi Asincrona) -->
-        <Grid x:Name="LoadingOverlay" Grid.Row="0" Grid.RowSpan="3"
+        <Grid x:Name="LoadingOverlay" Grid.Row="0" Grid.RowSpan="4"
               Background="#75101018"
               IsVisible="False"
               ZIndex="999">
