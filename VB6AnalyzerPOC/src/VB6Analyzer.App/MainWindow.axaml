@@ -7,10 +7,44 @@
         Width="1400" Height="900"
         Background="#181820">
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
 
-        <!-- Toolbar Superiore -->
-        <Border Grid.Row="0" Background="#22222C" Padding="10,6" BorderBrush="#353545" BorderThickness="0,0,0,1">
+        <!-- Menu Bar Superiore Stile IDE (Titolo | File | Visualizza | Analisi) -->
+        <Border Grid.Row="0" Background="#14141D" BorderBrush="#2D2D3E" BorderThickness="0,0,0,1" Padding="6,1">
+            <DockPanel>
+                <!-- Brand / Logo App (stile IDE da screenshot) -->
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,16,0" Spacing="6">
+                    <TextBlock Text="⚡" FontSize="12" VerticalAlignment="Center" Foreground="#FF6633" />
+                    <TextBlock Text="VB6 Analyzer" FontWeight="SemiBold" FontSize="12" Foreground="#8A8A9E" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Menu a Discesa -->
+                <Menu DockPanel.Dock="Left" Background="Transparent">
+                    <MenuItem Header="_File">
+                        <MenuItem x:Name="OpenFolderMenuItem" Header="📂 Apri Cartella VB6..." HotKey="Ctrl+O" />
+                        <MenuItem x:Name="LoadFixturesMenuItem" Header="🧪 Carica Fixtures Test" />
+                        <MenuItem x:Name="GenerateFakeMenuItem" Header="⚡ Grafo Demo (~500 nodi)" />
+                        <Separator />
+                        <MenuItem x:Name="ExitMenuItem" Header="❌ Esci" HotKey="Alt+F4" />
+                    </MenuItem>
+                    <MenuItem Header="_Visualizza">
+                        <MenuItem x:Name="ResetViewMenuItem" Header="🎯 Reset Vista" />
+                        <MenuItem x:Name="ExpandAllMenuItem" Header="➕ Espandi Tutto" />
+                        <MenuItem x:Name="CollapseAllMenuItem" Header="➖ Comprimi Tutto" />
+                    </MenuItem>
+                    <MenuItem Header="_Analisi">
+                        <MenuItem x:Name="BlastRadiusMenuItem" Header="💥 Calcola Blast Radius" HotKey="F5" />
+                        <MenuItem x:Name="ShowCallersMenuItem" Header="⬅️ Mostra Callers" />
+                        <MenuItem x:Name="ShowCalleesMenuItem" Header="➡️ Mostra Callees" />
+                        <Separator />
+                        <MenuItem x:Name="ClearHighlightMenuItem" Header="✖ Pulisci Filtri" />
+                    </MenuItem>
+                </Menu>
+            </DockPanel>
+        </Border>
+
+        <!-- Toolbar Superiore (Azioni Rapide e Ricerca) -->
+        <Border Grid.Row="1" Background="#22222C" Padding="10,6" BorderBrush="#353545" BorderThickness="0,0,0,1">
             <Grid ColumnDefinitions="*,Auto">
 
                 <!-- Gruppo Pulsanti Principali con a capo automatico -->
@@ -23,12 +57,6 @@
                             <Setter Property="Margin" Value="4,3,10,3" />
                         </Style>
                     </WrapPanel.Styles>
-
-                    <Button x:Name="OpenFolderButton" Content="📂 Apri Cartella VB6..." ToolTip.Tip="Seleziona e analizza una cartella contenente sorgenti VB6 (.cls, .bas, .frm, .ctl)" />
-                    <Button x:Name="LoadFixturesButton" Content="🧪 Carica Fixtures Test" ToolTip.Tip="Carica la suite completa di 16 moduli VB6 reali con call chain e cicli" />
-                    <Button x:Name="GenerateFakeButton" Content="⚡ Grafo Demo (~500 nodi)" ToolTip.Tip="Genera un grafo sintetico di ~500 nodi per test di carico e benchmark visuale" />
-
-                    <Rectangle Width="1" Height="22" Fill="#454555" VerticalAlignment="Center" />
 
                     <Button x:Name="ResetViewButton" Content="🎯 Reset Vista" ToolTip.Tip="Ripristina zoom 100% e centra la visuale" />
                     <Button x:Name="ExpandAllButton" Content="➕ Espandi Tutto" ToolTip.Tip="Espande tutti i moduli mostrando metodi e proprietà" />
@@ -109,7 +137,7 @@
         </Border>
 
         <!-- Area Centrale: Explorer | Graph | Inspector -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="280" />
                 <ColumnDefinition Width="*" MinWidth="300" />
@@ -268,7 +296,7 @@
         </Grid>
 
         <!-- Barra di Stato Inferiore -->
-        <Border Grid.Row="2" Background="#16161D" Padding="12,6" BorderBrush="#353545" BorderThickness="0,1,0,0">
+        <Border Grid.Row="3" Background="#16161D" Padding="12,6" BorderBrush="#353545" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Grid.Column="0" x:Name="StatusText" Text="Pronto." Foreground="#808090" FontSize="11" />
                 <TextBlock Grid.Column="1" x:Name="StatusStats" Text="Nodi: 0 | Relazioni: 0" Foreground="#606070" FontSize="11" />
@@ -276,7 +304,7 @@
         </Border>
 
         <!-- Overlay di Caricamento Centrato a Schermo (Blast Radius & Analisi Asincrona) -->
-        <Grid x:Name="LoadingOverlay" Grid.Row="0" Grid.RowSpan="3"
+        <Grid x:Name="LoadingOverlay" Grid.Row="0" Grid.RowSpan="4"
               Background="#75101018"
               IsVisible="False"
               ZIndex="999">
