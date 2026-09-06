@@ -62,6 +62,19 @@ public partial class MainWindow : Window
             StatusText.Text = "Evidenziazione ripristinata alla modalità standard.";
         };
 
+        // Controlli Finestra Stile IDE (Riduci a icona, Ingrandisci/Ripristina, Chiudi)
+        MinimizeButton.Click += (_, _) => WindowState = WindowState.Minimized;
+        MaximizeButton.Click += (_, _) => ToggleMaximize();
+        CloseButton.Click += (_, _) => Close();
+
+        PropertyChanged += (s, e) =>
+        {
+            if (e.Property == WindowStateProperty && MaximizeIcon != null)
+            {
+                MaximizeIcon.Text = WindowState == WindowState.Maximized ? "🗗" : "□";
+            }
+        };
+
         SearchBox.GotFocus += (_, _) =>
         {
             var query = SearchBox.Text?.Trim();
@@ -73,6 +86,30 @@ public partial class MainWindow : Window
 
         // Caricamento iniziale automatico delle fixture reali
         LoadDefaultFixtures();
+    }
+
+    /// <summary>
+    /// Consente il trascinamento della finestra dallo spazio vuoto della barra superiore,
+    /// oppure di massimizzare/ripristinare con doppio click.
+    /// </summary>
+    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            if (e.ClickCount == 2)
+            {
+                ToggleMaximize();
+            }
+            else
+            {
+                BeginMoveDrag(e);
+            }
+        }
+    }
+
+    private void ToggleMaximize()
+    {
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     }
 
     /// <summary>
