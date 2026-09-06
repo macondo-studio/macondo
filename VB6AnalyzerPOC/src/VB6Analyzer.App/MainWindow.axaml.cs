@@ -24,6 +24,8 @@ public partial class MainWindow : Window
     private VisualCodeGraph? _graph;
     private GraphNode? _selectedNode;
     private CancellationTokenSource? _selectionCts;
+    private List<BlastRadiusGridRow> _allBlastRadiusRows = new();
+    private bool _isSyncingSelection;
 
     public MainWindow()
     {
@@ -121,6 +123,9 @@ public partial class MainWindow : Window
                 e.Handled = true;
             }
         }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
+
+        // Sincronizzazione selezione tra Tab Grafo e Tab Griglia Blast Radius
+        CentralTabControl.SelectionChanged += OnCentralTabSelectionChanged;
 
         // Caricamento iniziale automatico delle fixture reali
         LoadDefaultFixtures();
@@ -267,6 +272,7 @@ public partial class MainWindow : Window
 
         ShowEmptyInspector();
         UpdateStatsBar();
+        _ = PopulateBlastRadiusGridAsync();
     }
 
     private void SetAllExpanded(bool expanded)
@@ -378,6 +384,25 @@ public partial class MainWindow : Window
     private void OnGraphSelectionChanged(object? sender, GraphNode? node)
     {
         _selectedNode = node;
+
+        if (!_isSyncingSelection && CentralTabControl?.SelectedIndex == 1 && node != null)
+        {
+            var matchingRow = _allBlastRadiusRows.FirstOrDefault(r => r.NodeId == node.Id);
+            if (matchingRow != null && BlastRadiusDataGrid.SelectedItem != matchingRow)
+            {
+                _isSyncingSelection = true;
+                try
+                {
+                    BlastRadiusDataGrid.SelectedItem = matchingRow;
+                    BlastRadiusDataGrid.ScrollIntoView(matchingRow, null);
+                }
+                finally
+                {
+                    _isSyncingSelection = false;
+                }
+            }
+        }
+
         if (node is null)
         {
             _selectionCts?.Cancel();
@@ -768,6 +793,236 @@ public partial class MainWindow : Window
         {
             InspectorInstantiatesSection.IsVisible = false;
         }
+    }
+
+    // =========================================================================
+    // VISTA GRIGLIA BLAST RADIUS (Milestone M6 - Tab Risultati Tabulari)
+    // =========================================================================
+
+    private void OnCentralTabSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.Source == CentralTabControl && CentralTabControl.SelectedIndex == 1 && _selectedNode != null)
+        {
+            var matchingRow = _allBlastRadiusRows.FirstOrDefault(r => r.NodeId == _selectedNode.Id);
+            if (matchingRow != null && BlastRadiusDataGrid.SelectedItem != matchingRow)
+            {
+                _isSyncingSelection = true;
+                try
+                {
+                    BlastRadiusDataGrid.SelectedItem = matchingRow;
+                    BlastRadiusDataGrid.ScrollIntoView(matchingRow, null);
+                }
+                finally
+                {
+                    _isSyncingSelection = false;
+                }
+            }
+        }
+    }
+
+    private async Task PopulateBlastRadiusGridAsync()
+    {
+        if (_graph is null)
+        {
+            _allBlastRadiusRows = new();
+            if (BlastRadiusDataGrid != null) BlastRadiusDataGrid.ItemsSource = null;
+            if (GridStatsTextBlock != null) GridStatsTextBlock.Text = "0 routine analizzate";
+            return;
+        }
+
+        var graph = _graph;
+        var queries = graph.Queries;
+        if (queries == null) return;
+
+        // Raccogliamo tutti i nodi di tipo routine (Method e Property)
+        var routineNodes = graph.Nodes
+            .Where(n => n.SemanticSymbol is not null &&
+                        (n.SemanticSymbol.Kind == SymbolKind.Method || n.SemanticSymbol.Kind == SymbolKind.Property))
+            .ToList();
+
+        if (GridStatsTextBlock != null)
+            GridStatsTextBlock.Text = $"Calcolo audit in corso per {routineNodes.Count} routine...";
+
+        var rows = await Task.Run(() =>
+        {
+            var result = new List<BlastRadiusGridRow>(routineNodes.Count);
+            foreach (var node in routineNodes)
+            {
+                var sym = node.SemanticSymbol!;
+                var report = queries.GetImpactReport(sym);
+                string containerName = "(globale)";
+                if (node.ParentId.HasValue && graph.GetNode(node.ParentId.Value) is { } parentNode)
+                {
+                    containerName = parentNode.Name;
+                }
+                else if (!string.IsNullOrEmpty(sym.FilePath))
+                {
+                    containerName = Path.GetFileName(sym.FilePath);
+                }
+                var affectedForms = report.AffectedForms.Select(f => f.Name).ToList();
+
+                result.Add(new BlastRadiusGridRow
+                {
+                    TargetSymbol = sym,
+                    NodeId = node.Id,
+                    Name = sym.Name,
+                    QualifiedName = sym.QualifiedName,
+                    ContainerName = containerName,
+                    Kind = sym.Kind.ToString(),
+                    DirectCallersCount = report.DirectCallers.Count,
+                    IndirectCallersCount = report.IndirectCallers.Count,
+                    MaxDepth = report.MaxDependencyDepth,
+                    RiskLevel = report.RiskLevel,
+                    AffectedFormsCount = report.AffectedForms.Count,
+                    AffectedFormsSummary = affectedForms.Count > 0 ? string.Join(", ", affectedForms) : "-",
+                    TotalImpactedCount = report.DirectCallers.Count + report.IndirectCallers.Count + report.AffectedForms.Count + report.AffectedClasses.Count + report.AffectedModules.Count
+                });
+            }
+
+            // Ordinamento predefinito: Rischio decrescente (Critical -> High -> Medium -> Low), poi Impatto Totale decrescente
+            return result
+                .OrderByDescending(r => r.RiskLevel)
+                .ThenByDescending(r => r.TotalImpactedCount)
+                .ToList();
+        });
+
+        _allBlastRadiusRows = rows;
+        ApplyGridFilters();
+    }
+
+    private void ApplyGridFilters()
+    {
+        if (BlastRadiusDataGrid == null || GridStatsTextBlock == null) return;
+
+        var filterText = GridFilterTextBox?.Text?.Trim() ?? string.Empty;
+        var selectedRiskIndex = RiskFilterComboBox?.SelectedIndex ?? 0;
+
+        IEnumerable<BlastRadiusGridRow> query = _allBlastRadiusRows;
+
+        if (!string.IsNullOrEmpty(filterText))
+        {
+            query = query.Where(r =>
+                r.Name.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
+                r.ContainerName.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
+                r.QualifiedName.Contains(filterText, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (selectedRiskIndex > 0)
+        {
+            var targetRisk = selectedRiskIndex switch
+            {
+                1 => ImpactRiskLevel.Critical,
+                2 => ImpactRiskLevel.High,
+                3 => ImpactRiskLevel.Medium,
+                4 => ImpactRiskLevel.Low,
+                _ => (ImpactRiskLevel?)null
+            };
+
+            if (targetRisk.HasValue)
+            {
+                query = query.Where(r => r.RiskLevel == targetRisk.Value);
+            }
+        }
+
+        var filteredList = query.ToList();
+        BlastRadiusDataGrid.ItemsSource = filteredList;
+        GridStatsTextBlock.Text = $"{filteredList.Count} di {_allBlastRadiusRows.Count} routine";
+
+        // Se c'è un nodo selezionato, sincronizza la riga corrispondente
+        if (_selectedNode != null)
+        {
+            var matchingRow = filteredList.FirstOrDefault(r => r.NodeId == _selectedNode.Id);
+            if (matchingRow != null && BlastRadiusDataGrid.SelectedItem != matchingRow)
+            {
+                _isSyncingSelection = true;
+                try
+                {
+                    BlastRadiusDataGrid.SelectedItem = matchingRow;
+                    BlastRadiusDataGrid.ScrollIntoView(matchingRow, null);
+                }
+                finally
+                {
+                    _isSyncingSelection = false;
+                }
+            }
+        }
+    }
+
+    private void OnGridFilterTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        ApplyGridFilters();
+    }
+
+    private void OnRiskFilterChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        ApplyGridFilters();
+    }
+
+    private void OnRefreshGridClicked(object? sender, RoutedEventArgs e)
+    {
+        _ = PopulateBlastRadiusGridAsync();
+    }
+
+    private void OnGridRowSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_isSyncingSelection || BlastRadiusDataGrid.SelectedItem is not BlastRadiusGridRow row)
+            return;
+
+        if (_graph == null) return;
+        var node = _graph.GetNode(row.NodeId);
+        if (node != null && node != _selectedNode)
+        {
+            _isSyncingSelection = true;
+            try
+            {
+                _selectedNode = node;
+                if (node.ParentId.HasValue)
+                {
+                    var parent = _graph.GetNode(node.ParentId.Value);
+                    if (parent is not null)
+                        parent.IsExpanded = true;
+                }
+                Graph.SelectNode(node);
+                SelectAndInspectNodeAsync(node);
+                StatusText.Text = $"Selezionato dalla griglia: [{node.Kind}] {node.QualifiedName}";
+            }
+            finally
+            {
+                _isSyncingSelection = false;
+            }
+        }
+    }
+
+    private void OnGridRowDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (BlastRadiusDataGrid.SelectedItem is BlastRadiusGridRow row)
+        {
+            NavigateToNodeInGraph(row.NodeId);
+        }
+    }
+
+    private void OnShowInGraphButtonClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: BlastRadiusGridRow row })
+        {
+            NavigateToNodeInGraph(row.NodeId);
+        }
+    }
+
+    private void NavigateToNodeInGraph(Guid nodeId)
+    {
+        if (_graph == null) return;
+        var node = _graph.GetNode(nodeId);
+        if (node == null) return;
+
+        // 1. Passa alla scheda Vista Grafo
+        CentralTabControl.SelectedIndex = 0;
+
+        // 2. Seleziona, espande il container genitore se necessario e centra la visuale sul nodo
+        SelectAndFocusGraphNode(node);
+
+        // 3. Calcola ed evidenzia il Blast Radius grafico
+        OnBlastRadiusClicked();
     }
 
     private void UpdateStatsBar()

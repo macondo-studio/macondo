@@ -192,52 +192,201 @@
                 </DockPanel>
             </Border>
 
-            <!-- Pannello Centrale: Canvas Interattivo del Grafo con Floating HUD in alto a destra -->
-            <Grid Grid.Column="1">
-                <!-- Canvas del Grafo -->
-                <controls:GraphControl x:Name="Graph" SelectionChanged="OnGraphSelectionChanged" />
+            <!-- Pannello Centrale con Tab (Vista Grafo / Griglia Blast Radius) -->
+            <TabControl Grid.Column="1" x:Name="CentralTabControl" SelectedIndex="0" Padding="0">
+                <TabControl.Styles>
+                    <Style Selector="TabItem">
+                        <Setter Property="FontSize" Value="12" />
+                        <Setter Property="FontWeight" Value="SemiBold" />
+                        <Setter Property="Padding" Value="16,8" />
+                        <Setter Property="Foreground" Value="#8A8A9E" />
+                    </Style>
+                    <Style Selector="TabItem:selected">
+                        <Setter Property="Foreground" Value="#FF6633" />
+                    </Style>
+                </TabControl.Styles>
 
-                <!-- Pannello Flottante Verticale Comandi Grafo (In alto a destra, Icona + Testo) -->
-                <Border HorizontalAlignment="Right" VerticalAlignment="Top"
-                        Margin="16"
-                        Background="#1C1C28F0"
-                        BorderBrush="#3D3D52"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        BoxShadow="0 6 24 0 #90000000"
-                        Padding="5">
-                    <Border.Styles>
-                        <Style Selector="Button">
-                            <Setter Property="HorizontalAlignment" Value="Stretch" />
-                            <Setter Property="HorizontalContentAlignment" Value="Left" />
-                            <Setter Property="Padding" Value="10,6" />
-                            <Setter Property="Margin" Value="0,1" />
-                            <Setter Property="FontSize" Value="11" />
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="BorderBrush" Value="Transparent" />
-                        </Style>
-                        <Style Selector="Button:pointerover">
-                            <Setter Property="Background" Value="#2D2D40" />
-                            <Setter Property="BorderBrush" Value="#464660" />
-                        </Style>
-                    </Border.Styles>
-                    <StackPanel Width="138">
-                        <!-- Gruppo Vista e Navigazione -->
-                        <Button x:Name="ResetViewButton" Content="🎯 Reset Vista" ToolTip.Tip="Ripristina zoom 100% e centra la visuale" />
-                        <Button x:Name="ExpandAllButton" Content="➕ Espandi Tutto" ToolTip.Tip="Espande tutti i moduli mostrando metodi e proprietà" />
-                        <Button x:Name="CollapseAllButton" Content="➖ Comprimi Tutto" ToolTip.Tip="Comprime tutti i moduli nascondendo i membri interni" />
+                <!-- TAB 1: Canvas Interattivo del Grafo con Floating HUD -->
+                <TabItem Header="🌐 Vista Grafo">
+                    <Grid>
+                        <!-- Canvas del Grafo -->
+                        <controls:GraphControl x:Name="Graph" SelectionChanged="OnGraphSelectionChanged" />
 
-                        <!-- Separatore Sottile -->
-                        <Rectangle Height="1" Fill="#323246" Margin="4,4" />
+                        <!-- Pannello Flottante Verticale Comandi Grafo (In alto a destra, Icona + Testo) -->
+                        <Border HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Margin="16"
+                                Background="#1C1C28F0"
+                                BorderBrush="#3D3D52"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                BoxShadow="0 6 24 0 #90000000"
+                                Padding="5">
+                            <Border.Styles>
+                                <Style Selector="Button">
+                                    <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                    <Setter Property="Padding" Value="10,6" />
+                                    <Setter Property="Margin" Value="0,1" />
+                                    <Setter Property="FontSize" Value="11" />
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                </Style>
+                                <Style Selector="Button:pointerover">
+                                    <Setter Property="Background" Value="#2D2D40" />
+                                    <Setter Property="BorderBrush" Value="#464660" />
+                                </Style>
+                            </Border.Styles>
+                            <StackPanel Width="138">
+                                <!-- Gruppo Vista e Navigazione -->
+                                <Button x:Name="ResetViewButton" Content="🎯 Reset Vista" ToolTip.Tip="Ripristina zoom 100% e centra la visuale" />
+                                <Button x:Name="ExpandAllButton" Content="➕ Espandi Tutto" ToolTip.Tip="Espande tutti i moduli mostrando metodi e proprietà" />
+                                <Button x:Name="CollapseAllButton" Content="➖ Comprimi Tutto" ToolTip.Tip="Comprime tutti i moduli nascondendo i membri interni" />
 
-                        <!-- Gruppo Ispezione e Blast Radius -->
-                        <Button x:Name="BlastRadiusButton" Content="💥 Blast Radius" ToolTip.Tip="Calcola ed evidenzia l'impatto di modifica (chiamanti indiretti, form e classi impattate)" />
-                        <Button x:Name="ShowCallersButton" Content="⬅️ Mostra Callers" ToolTip.Tip="Evidenzia chi chiama la routine selezionata" />
-                        <Button x:Name="ShowCalleesButton" Content="➡️ Mostra Callees" ToolTip.Tip="Evidenzia cosa chiama la routine selezionata" />
-                        <Button x:Name="ClearHighlightButton" Content="✖ Pulisci Filtri" ToolTip.Tip="Rimuove le evidenziazioni attive" />
-                    </StackPanel>
-                </Border>
-            </Grid>
+                                <!-- Separatore Sottile -->
+                                <Rectangle Height="1" Fill="#323246" Margin="4,4" />
+
+                                <!-- Gruppo Ispezione e Blast Radius -->
+                                <Button x:Name="BlastRadiusButton" Content="💥 Blast Radius" ToolTip.Tip="Calcola ed evidenzia l'impatto di modifica (chiamanti indiretti, form e classi impattate)" />
+                                <Button x:Name="ShowCallersButton" Content="⬅️ Mostra Callers" ToolTip.Tip="Evidenzia chi chiama la routine selezionata" />
+                                <Button x:Name="ShowCalleesButton" Content="➡️ Mostra Callees" ToolTip.Tip="Evidenzia cosa chiama la routine selezionata" />
+                                <Button x:Name="ClearHighlightButton" Content="✖ Pulisci Filtri" ToolTip.Tip="Rimuove le evidenziazioni attive" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 2: Griglia Risultati Blast Radius & Matrice di Rischio -->
+                <TabItem Header="📊 Griglia Blast Radius">
+                    <Grid RowDefinitions="Auto,*">
+                        <!-- Toolbar della Griglia: Filtri e Statistiche -->
+                        <Border Grid.Row="0" Background="#20202C" BorderBrush="#353545" BorderThickness="0,0,0,1" Padding="12,8">
+                            <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                                <!-- Filtro Testo nella Tabella -->
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <TextBlock Text="Filtra:" VerticalAlignment="Center" FontSize="11" Foreground="#8A8A9E" />
+                                    <TextBox x:Name="GridFilterTextBox"
+                                             Width="180"
+                                             Watermark="Nome routine o modulo..."
+                                             FontSize="11"
+                                             TextChanged="OnGridFilterTextChanged" />
+                                </StackPanel>
+
+                                <!-- Filtro Livello di Rischio -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="16,0,0,0">
+                                    <TextBlock Text="Rischio:" VerticalAlignment="Center" FontSize="11" Foreground="#8A8A9E" />
+                                    <ComboBox x:Name="RiskFilterComboBox" SelectedIndex="0" FontSize="11" Width="130" SelectionChanged="OnRiskFilterChanged">
+                                        <ComboBoxItem Content="Tutti i Livelli" />
+                                        <ComboBoxItem Content="Critical" />
+                                        <ComboBoxItem Content="High" />
+                                        <ComboBoxItem Content="Medium" />
+                                        <ComboBoxItem Content="Low" />
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <!-- Contatore Riassuntivo -->
+                                <TextBlock Grid.Column="2" x:Name="GridStatsTextBlock"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Right"
+                                           FontSize="11"
+                                           Foreground="#8A8A9E"
+                                           Margin="0,0,16,0" />
+
+                                <!-- Pulsante Aggiorna / Ricalcola Audit -->
+                                <Button Grid.Column="3" x:Name="RefreshGridButton"
+                                        Content="🔄 Ricalcola Audit"
+                                        FontSize="11"
+                                        Padding="10,5"
+                                        ToolTip.Tip="Ricalcola la matrice di rischio e impatto per tutte le routine"
+                                        Click="OnRefreshGridClicked" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Tabella Risultati Blast Radius (DataGrid) -->
+                        <DataGrid Grid.Row="1" x:Name="BlastRadiusDataGrid"
+                                  x:DataType="models:BlastRadiusGridRow"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserSortColumns="True"
+                                  CanUserResizeColumns="True"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="0"
+                                  Background="#161620"
+                                  RowBackground="#181824"
+                                  SelectionMode="Single"
+                                  SelectionChanged="OnGridRowSelectionChanged"
+                                  DoubleTapped="OnGridRowDoubleTapped">
+                            <DataGrid.Columns>
+                                <!-- Simbolo / Routine -->
+                                <DataGridTextColumn Header="Routine / Simbolo"
+                                                    Binding="{Binding Name}"
+                                                    Width="2*" />
+
+                                <!-- Modulo / Container -->
+                                <DataGridTextColumn Header="Modulo / Container"
+                                                    Binding="{Binding ContainerName}"
+                                                    Width="1.5*" />
+
+                                <!-- Chiamanti Diretti -->
+                                <DataGridTextColumn Header="Chiamanti Diretti"
+                                                    Binding="{Binding DirectCallersCount}"
+                                                    Width="120" />
+
+                                <!-- Chiamanti Indiretti -->
+                                <DataGridTextColumn Header="Chiamanti Indiretti"
+                                                    Binding="{Binding IndirectCallersCount}"
+                                                    Width="130" />
+
+                                <!-- Profondità Max -->
+                                <DataGridTextColumn Header="Profondità"
+                                                    Binding="{Binding MaxDepth}"
+                                                    Width="90" />
+
+                                <!-- Livello di Rischio (Badge Colorato) -->
+                                <DataGridTemplateColumn Header="Rischio" Width="100" SortMemberPath="RiskLevel">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate DataType="models:BlastRadiusGridRow">
+                                            <Border Background="{Binding RiskBadgeBackground}"
+                                                    CornerRadius="3"
+                                                    Padding="6,2"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding RiskText}"
+                                                           FontSize="10"
+                                                           FontWeight="Bold"
+                                                           Foreground="{Binding RiskBadgeForeground}" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Form UI Impattate -->
+                                <DataGridTextColumn Header="Form Impattate"
+                                                    Binding="{Binding AffectedFormsCount}"
+                                                    Width="110" />
+
+                                <!-- Totale Entità Impattate -->
+                                <DataGridTextColumn Header="Tot. Impatto"
+                                                    Binding="{Binding TotalImpactedCount}"
+                                                    Width="95" />
+
+                                <!-- Azione Rapida -->
+                                <DataGridTemplateColumn Header="Azione" Width="120">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate DataType="models:BlastRadiusGridRow">
+                                            <Button Content="🎯 Mostra Grafo"
+                                                    FontSize="10"
+                                                    Padding="8,3"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Click="OnShowInGraphButtonClicked" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+            </TabControl>
 
             <!-- Splitter Ridimensionamento Pannello Destro -->
             <GridSplitter Grid.Column="2"
