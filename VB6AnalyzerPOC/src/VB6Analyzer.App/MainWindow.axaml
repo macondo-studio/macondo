@@ -7,75 +7,47 @@
         Width="1400" Height="900"
         Background="#181820">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Grid RowDefinitions="Auto,*,Auto">
 
-        <!-- Menu Bar Superiore Stile IDE (Titolo | File | Visualizza | Analisi) -->
-        <Border Grid.Row="0" Background="#14141D" BorderBrush="#2D2D3E" BorderThickness="0,0,0,1" Padding="6,1">
-            <DockPanel>
-                <!-- Brand / Logo App (stile IDE da screenshot) -->
-                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,16,0" Spacing="6">
-                    <TextBlock Text="⚡" FontSize="12" VerticalAlignment="Center" Foreground="#FF6633" />
-                    <TextBlock Text="VB6 Analyzer" FontWeight="SemiBold" FontSize="12" Foreground="#8A8A9E" VerticalAlignment="Center" />
+        <!-- Barra Superiore Stile IDE (Brand & Menu a Sinistra | Ricerca Centrata) -->
+        <Border Grid.Row="0" Background="#14141D" BorderBrush="#2D2D3E" BorderThickness="0,0,0,1" Padding="8,2">
+            <Panel>
+                <!-- Sinistra: Brand / Logo App + Menu a Discesa -->
+                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,16,0" Spacing="6">
+                        <TextBlock Text="⚡" FontSize="12" VerticalAlignment="Center" Foreground="#FF6633" />
+                        <TextBlock Text="VB6 Analyzer" FontWeight="SemiBold" FontSize="12" Foreground="#8A8A9E" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <Menu Background="Transparent">
+                        <MenuItem Header="_File">
+                            <MenuItem x:Name="OpenFolderMenuItem" Header="📂 Apri Cartella VB6..." HotKey="Ctrl+O" />
+                            <MenuItem x:Name="LoadFixturesMenuItem" Header="🧪 Carica Fixtures Test" />
+                            <MenuItem x:Name="GenerateFakeMenuItem" Header="⚡ Grafo Demo (~500 nodi)" />
+                            <Separator />
+                            <MenuItem x:Name="ExitMenuItem" Header="❌ Esci" HotKey="Alt+F4" />
+                        </MenuItem>
+                        <MenuItem Header="_Visualizza">
+                            <MenuItem x:Name="ResetViewMenuItem" Header="🎯 Reset Vista" />
+                            <MenuItem x:Name="ExpandAllMenuItem" Header="➕ Espandi Tutto" />
+                            <MenuItem x:Name="CollapseAllMenuItem" Header="➖ Comprimi Tutto" />
+                        </MenuItem>
+                        <MenuItem Header="_Analisi">
+                            <MenuItem x:Name="BlastRadiusMenuItem" Header="💥 Calcola Blast Radius" HotKey="F5" />
+                            <MenuItem x:Name="ShowCallersMenuItem" Header="⬅️ Mostra Callers" />
+                            <MenuItem x:Name="ShowCalleesMenuItem" Header="➡️ Mostra Callees" />
+                            <Separator />
+                            <MenuItem x:Name="ClearHighlightMenuItem" Header="✖ Pulisci Filtri" />
+                        </MenuItem>
+                    </Menu>
                 </StackPanel>
 
-                <!-- Menu a Discesa -->
-                <Menu DockPanel.Dock="Left" Background="Transparent">
-                    <MenuItem Header="_File">
-                        <MenuItem x:Name="OpenFolderMenuItem" Header="📂 Apri Cartella VB6..." HotKey="Ctrl+O" />
-                        <MenuItem x:Name="LoadFixturesMenuItem" Header="🧪 Carica Fixtures Test" />
-                        <MenuItem x:Name="GenerateFakeMenuItem" Header="⚡ Grafo Demo (~500 nodi)" />
-                        <Separator />
-                        <MenuItem x:Name="ExitMenuItem" Header="❌ Esci" HotKey="Alt+F4" />
-                    </MenuItem>
-                    <MenuItem Header="_Visualizza">
-                        <MenuItem x:Name="ResetViewMenuItem" Header="🎯 Reset Vista" />
-                        <MenuItem x:Name="ExpandAllMenuItem" Header="➕ Espandi Tutto" />
-                        <MenuItem x:Name="CollapseAllMenuItem" Header="➖ Comprimi Tutto" />
-                    </MenuItem>
-                    <MenuItem Header="_Analisi">
-                        <MenuItem x:Name="BlastRadiusMenuItem" Header="💥 Calcola Blast Radius" HotKey="F5" />
-                        <MenuItem x:Name="ShowCallersMenuItem" Header="⬅️ Mostra Callers" />
-                        <MenuItem x:Name="ShowCalleesMenuItem" Header="➡️ Mostra Callees" />
-                        <Separator />
-                        <MenuItem x:Name="ClearHighlightMenuItem" Header="✖ Pulisci Filtri" />
-                    </MenuItem>
-                </Menu>
-            </DockPanel>
-        </Border>
-
-        <!-- Toolbar Superiore (Azioni Rapide e Ricerca) -->
-        <Border Grid.Row="1" Background="#22222C" Padding="10,6" BorderBrush="#353545" BorderThickness="0,0,0,1">
-            <Grid ColumnDefinitions="*,Auto">
-
-                <!-- Gruppo Pulsanti Principali con a capo automatico -->
-                <WrapPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <WrapPanel.Styles>
-                        <Style Selector="Button">
-                            <Setter Property="Margin" Value="0,3,6,3" />
-                        </Style>
-                        <Style Selector="Rectangle">
-                            <Setter Property="Margin" Value="4,3,10,3" />
-                        </Style>
-                    </WrapPanel.Styles>
-
-                    <Button x:Name="ResetViewButton" Content="🎯 Reset Vista" ToolTip.Tip="Ripristina zoom 100% e centra la visuale" />
-                    <Button x:Name="ExpandAllButton" Content="➕ Espandi Tutto" ToolTip.Tip="Espande tutti i moduli mostrando metodi e proprietà" />
-                    <Button x:Name="CollapseAllButton" Content="➖ Comprimi Tutto" ToolTip.Tip="Comprime tutti i moduli nascondendo i membri interni" />
-
-                    <Rectangle Width="1" Height="22" Fill="#454555" VerticalAlignment="Center" />
-
-                    <Button x:Name="BlastRadiusButton" Content="💥 Blast Radius" ToolTip.Tip="Calcola ed evidenzia l'impatto di modifica (chiamanti indiretti, form e classi impattate)" />
-                    <Button x:Name="ShowCallersButton" Content="⬅️ Mostra Callers" ToolTip.Tip="Evidenzia chi chiama la routine selezionata" />
-                    <Button x:Name="ShowCalleesButton" Content="➡️ Mostra Callees" ToolTip.Tip="Evidenzia cosa chiama la routine selezionata" />
-                    <Button x:Name="ClearHighlightButton" Content="✖ Pulisci Filtri" ToolTip.Tip="Rimuove le evidenziazioni attive" />
-                </WrapPanel>
-
-                <!-- Casella di Ricerca con Lista a Discesa dei Risultati -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="10,3,0,3">
-                    <TextBlock Text="🔍" VerticalAlignment="Center" FontSize="14" />
+                <!-- Centro: Casella di Ricerca Centrata con Lista a Discesa dei Risultati -->
+                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8" Margin="0,2">
+                    <TextBlock Text="🔍" VerticalAlignment="Center" FontSize="13" Foreground="#7A7A90" />
                     <Panel>
                         <TextBox x:Name="SearchBox"
-                                 Width="220"
+                                 Width="340"
                                  Watermark="Cerca simbolo..."
                                  TextChanged="OnSearchTextChanged"
                                  KeyDown="OnSearchBoxKeyDown" />
@@ -91,8 +63,8 @@
                                     BorderThickness="1"
                                     CornerRadius="6"
                                     BoxShadow="0 8 24 0 #90000000"
-                                    MinWidth="260"
-                                    MaxWidth="380"
+                                    MinWidth="300"
+                                    MaxWidth="440"
                                     MaxHeight="320"
                                     Padding="6">
                                 <DockPanel>
@@ -133,11 +105,11 @@
                         </Popup>
                     </Panel>
                 </StackPanel>
-            </Grid>
+            </Panel>
         </Border>
 
-        <!-- Area Centrale: Explorer | Graph | Inspector -->
-        <Grid Grid.Row="2">
+        <!-- Area Centrale: Explorer | Graph + Floating Actions | Inspector -->
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="280" />
                 <ColumnDefinition Width="*" MinWidth="300" />
@@ -159,8 +131,52 @@
                 </DockPanel>
             </Border>
 
-            <!-- Pannello Centrale: Canvas Interattivo del Grafo -->
-            <controls:GraphControl Grid.Column="1" x:Name="Graph" SelectionChanged="OnGraphSelectionChanged" />
+            <!-- Pannello Centrale: Canvas Interattivo del Grafo con Floating HUD in alto a destra -->
+            <Grid Grid.Column="1">
+                <!-- Canvas del Grafo -->
+                <controls:GraphControl x:Name="Graph" SelectionChanged="OnGraphSelectionChanged" />
+
+                <!-- Pannello Flottante Verticale Comandi Grafo (In alto a destra, Icona + Testo) -->
+                <Border HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Margin="16"
+                        Background="#1C1C28F0"
+                        BorderBrush="#3D3D52"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        BoxShadow="0 6 24 0 #90000000"
+                        Padding="5">
+                    <Border.Styles>
+                        <Style Selector="Button">
+                            <Setter Property="HorizontalAlignment" Value="Stretch" />
+                            <Setter Property="HorizontalContentAlignment" Value="Left" />
+                            <Setter Property="Padding" Value="10,6" />
+                            <Setter Property="Margin" Value="0,1" />
+                            <Setter Property="FontSize" Value="11" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderBrush" Value="Transparent" />
+                        </Style>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Background" Value="#2D2D40" />
+                            <Setter Property="BorderBrush" Value="#464660" />
+                        </Style>
+                    </Border.Styles>
+                    <StackPanel Width="138">
+                        <!-- Gruppo Vista e Navigazione -->
+                        <Button x:Name="ResetViewButton" Content="🎯 Reset Vista" ToolTip.Tip="Ripristina zoom 100% e centra la visuale" />
+                        <Button x:Name="ExpandAllButton" Content="➕ Espandi Tutto" ToolTip.Tip="Espande tutti i moduli mostrando metodi e proprietà" />
+                        <Button x:Name="CollapseAllButton" Content="➖ Comprimi Tutto" ToolTip.Tip="Comprime tutti i moduli nascondendo i membri interni" />
+
+                        <!-- Separatore Sottile -->
+                        <Rectangle Height="1" Fill="#323246" Margin="4,4" />
+
+                        <!-- Gruppo Ispezione e Blast Radius -->
+                        <Button x:Name="BlastRadiusButton" Content="💥 Blast Radius" ToolTip.Tip="Calcola ed evidenzia l'impatto di modifica (chiamanti indiretti, form e classi impattate)" />
+                        <Button x:Name="ShowCallersButton" Content="⬅️ Mostra Callers" ToolTip.Tip="Evidenzia chi chiama la routine selezionata" />
+                        <Button x:Name="ShowCalleesButton" Content="➡️ Mostra Callees" ToolTip.Tip="Evidenzia cosa chiama la routine selezionata" />
+                        <Button x:Name="ClearHighlightButton" Content="✖ Pulisci Filtri" ToolTip.Tip="Rimuove le evidenziazioni attive" />
+                    </StackPanel>
+                </Border>
+            </Grid>
 
             <!-- Splitter Ridimensionamento Pannello Destro -->
             <GridSplitter Grid.Column="2"
@@ -296,7 +312,7 @@
         </Grid>
 
         <!-- Barra di Stato Inferiore -->
-        <Border Grid.Row="3" Background="#16161D" Padding="12,6" BorderBrush="#353545" BorderThickness="0,1,0,0">
+        <Border Grid.Row="2" Background="#16161D" Padding="12,6" BorderBrush="#353545" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Grid.Column="0" x:Name="StatusText" Text="Pronto." Foreground="#808090" FontSize="11" />
                 <TextBlock Grid.Column="1" x:Name="StatusStats" Text="Nodi: 0 | Relazioni: 0" Foreground="#606070" FontSize="11" />
@@ -304,7 +320,7 @@
         </Border>
 
         <!-- Overlay di Caricamento Centrato a Schermo (Blast Radius & Analisi Asincrona) -->
-        <Grid x:Name="LoadingOverlay" Grid.Row="0" Grid.RowSpan="4"
+        <Grid x:Name="LoadingOverlay" Grid.Row="0" Grid.RowSpan="3"
               Background="#75101018"
               IsVisible="False"
               ZIndex="999">
