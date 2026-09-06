@@ -10,39 +10,54 @@
     <Grid RowDefinitions="Auto,*,Auto">
 
         <!-- Toolbar Superiore -->
-        <Border Grid.Row="0" Background="#22222C" Padding="10,8" BorderBrush="#353545" BorderThickness="0,0,0,1">
-            <Grid ColumnDefinitions="Auto,*,Auto">
+        <Border Grid.Row="0" Background="#22222C" Padding="10,6" BorderBrush="#353545" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="*,Auto">
 
-                <!-- Gruppo Pulsanti Principali -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                <!-- Gruppo Pulsanti Principali con a capo automatico -->
+                <WrapPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <WrapPanel.Styles>
+                        <Style Selector="Button">
+                            <Setter Property="Margin" Value="0,3,6,3" />
+                        </Style>
+                        <Style Selector="Rectangle">
+                            <Setter Property="Margin" Value="4,3,10,3" />
+                        </Style>
+                    </WrapPanel.Styles>
+
                     <Button x:Name="OpenFolderButton" Content="📂 Apri Cartella VB6..." ToolTip.Tip="Seleziona e analizza una cartella contenente sorgenti VB6 (.cls, .bas, .frm, .ctl)" />
                     <Button x:Name="LoadFixturesButton" Content="🧪 Carica Fixtures Test" ToolTip.Tip="Carica la suite completa di 16 moduli VB6 reali con call chain e cicli" />
                     <Button x:Name="GenerateFakeButton" Content="⚡ Grafo Demo (~500 nodi)" ToolTip.Tip="Genera un grafo sintetico di ~500 nodi per test di carico e benchmark visuale" />
 
-                    <Rectangle Width="1" Height="22" Fill="#454555" Margin="4,0" VerticalAlignment="Center" />
+                    <Rectangle Width="1" Height="22" Fill="#454555" VerticalAlignment="Center" />
 
                     <Button x:Name="ResetViewButton" Content="🎯 Reset Vista" ToolTip.Tip="Ripristina zoom 100% e centra la visuale" />
                     <Button x:Name="ExpandAllButton" Content="➕ Espandi Tutto" ToolTip.Tip="Espande tutti i moduli mostrando metodi e proprietà" />
                     <Button x:Name="CollapseAllButton" Content="➖ Comprimi Tutto" ToolTip.Tip="Comprime tutti i moduli nascondendo i membri interni" />
 
-                    <Rectangle Width="1" Height="22" Fill="#454555" Margin="4,0" VerticalAlignment="Center" />
+                    <Rectangle Width="1" Height="22" Fill="#454555" VerticalAlignment="Center" />
 
                     <Button x:Name="BlastRadiusButton" Content="💥 Blast Radius" ToolTip.Tip="Calcola ed evidenzia l'impatto di modifica (chiamanti indiretti, form e classi impattate)" />
                     <Button x:Name="ShowCallersButton" Content="⬅️ Mostra Callers" ToolTip.Tip="Evidenzia chi chiama la routine selezionata" />
                     <Button x:Name="ShowCalleesButton" Content="➡️ Mostra Callees" ToolTip.Tip="Evidenzia cosa chiama la routine selezionata" />
                     <Button x:Name="ClearHighlightButton" Content="✖ Pulisci Filtri" ToolTip.Tip="Rimuove le evidenziazioni attive" />
-                </StackPanel>
+                </WrapPanel>
 
                 <!-- Casella di Ricerca -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="10,3,0,3">
                     <TextBlock Text="🔍" VerticalAlignment="Center" FontSize="14" />
-                    <TextBox x:Name="SearchBox" Width="220" Watermark="Cerca simbolo..." TextChanged="OnSearchTextChanged" />
+                    <TextBox x:Name="SearchBox" Width="200" Watermark="Cerca simbolo..." TextChanged="OnSearchTextChanged" />
                 </StackPanel>
             </Grid>
         </Border>
 
         <!-- Area Centrale: Explorer | Graph | Inspector -->
-        <Grid Grid.Row="1" ColumnDefinitions="280,*,360">
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" />
+                <ColumnDefinition Width="*" MinWidth="300" />
+                <ColumnDefinition Width="4" />
+                <ColumnDefinition Width="360" MinWidth="240" MaxWidth="800" />
+            </Grid.ColumnDefinitions>
 
             <!-- Pannello Sinistro: Project Explorer -->
             <Border Grid.Column="0" Background="#1E1E28" BorderBrush="#353545" BorderThickness="0,0,1,0" Padding="8">
@@ -61,8 +76,16 @@
             <!-- Pannello Centrale: Canvas Interattivo del Grafo -->
             <controls:GraphControl Grid.Column="1" x:Name="Graph" SelectionChanged="OnGraphSelectionChanged" />
 
+            <!-- Splitter Ridimensionamento Pannello Destro -->
+            <GridSplitter Grid.Column="2"
+                          Width="4"
+                          Background="#2A2A38"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"
+                          Cursor="SizeWestEast" />
+
             <!-- Pannello Destro: Symbol Inspector & Impact Analysis -->
-            <Border Grid.Column="2" Background="#1E1E28" BorderBrush="#353545" BorderThickness="1,0,0,0" Padding="12">
+            <Border Grid.Column="3" Background="#1E1E28" BorderBrush="#353545" BorderThickness="1,0,0,0" Padding="12">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="10">
                         <!-- Intestazione Inspector -->
