@@ -18,29 +18,73 @@
                 <!-- Sinistra: Brand / Logo App + Menu a Discesa -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,16,0" Spacing="6">
-                        <TextBlock Text="⚡" FontSize="12" VerticalAlignment="Center" Foreground="#FF6633" />
+                        <PathIcon Data="{StaticResource IconAppLogo}" Width="12" Height="12" Foreground="#FF6633" VerticalAlignment="Center" />
                         <TextBlock Text="VB6 Analyzer" FontWeight="SemiBold" FontSize="12" Foreground="#8A8A9E" VerticalAlignment="Center" />
                     </StackPanel>
 
                     <Menu Background="Transparent">
                         <MenuItem Header="_File">
-                            <MenuItem x:Name="OpenFolderMenuItem" Header="📂 Apri Cartella VB6..." InputGesture="Ctrl+O" />
-                            <MenuItem x:Name="LoadFixturesMenuItem" Header="🧪 Carica Fixtures Test" />
-                            <MenuItem x:Name="GenerateFakeMenuItem" Header="⚡ Grafo Demo (~500 nodi)" />
+                            <MenuItem x:Name="OpenFolderMenuItem" Header="Apri Cartella VB6..." InputGesture="Ctrl+O">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="LoadFixturesMenuItem" Header="Carica Fixtures Test">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconBeaker}" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="GenerateFakeMenuItem" Header="Grafo Demo (~500 nodi)">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconZap}" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                             <Separator />
-                            <MenuItem x:Name="ExitMenuItem" Header="❌ Esci" InputGesture="Alt+F4" />
+                            <MenuItem x:Name="ExitMenuItem" Header="Esci" InputGesture="Alt+F4">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconExit}" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                         </MenuItem>
                         <MenuItem Header="_Visualizza">
-                            <MenuItem x:Name="ResetViewMenuItem" Header="🎯 Reset Vista" />
-                            <MenuItem x:Name="ExpandAllMenuItem" Header="➕ Espandi Tutto" />
-                            <MenuItem x:Name="CollapseAllMenuItem" Header="➖ Comprimi Tutto" />
+                            <MenuItem x:Name="ResetViewMenuItem" Header="Reset Vista">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconTarget}" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="ExpandAllMenuItem" Header="Espandi Tutto">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconExpandAll}" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="CollapseAllMenuItem" Header="Comprimi Tutto">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconCollapseAll}" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                         </MenuItem>
                         <MenuItem Header="_Analisi">
-                            <MenuItem x:Name="BlastRadiusMenuItem" Header="💥 Calcola Blast Radius" InputGesture="F5" />
-                            <MenuItem x:Name="ShowCallersMenuItem" Header="⬅️ Mostra Callers" />
-                            <MenuItem x:Name="ShowCalleesMenuItem" Header="➡️ Mostra Callees" />
+                            <MenuItem x:Name="BlastRadiusMenuItem" Header="Calcola Blast Radius" InputGesture="F5">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconBlastRadius}" Width="14" Height="14" Foreground="#FF6633" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="ShowCallersMenuItem" Header="Mostra Callers">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconCallers}" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="ShowCalleesMenuItem" Header="Mostra Callees">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconCallees}" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                             <Separator />
-                            <MenuItem x:Name="ClearHighlightMenuItem" Header="✖ Pulisci Filtri" />
+                            <MenuItem x:Name="ClearHighlightMenuItem" Header="Pulisci Filtri">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconClearFilter}" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                         </MenuItem>
                     </Menu>
                 </StackPanel>
@@ -75,13 +119,13 @@
                     </StackPanel.Styles>
 
                     <Button x:Name="MinimizeButton" Classes="caption-btn" ToolTip.Tip="Riduci a icona">
-                        <TextBlock Text="—" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        <PathIcon Data="{StaticResource IconWindowMinimize}" Width="10" Height="10" />
                     </Button>
                     <Button x:Name="MaximizeButton" Classes="caption-btn" ToolTip.Tip="Ingrandisci / Ripristina">
-                        <TextBlock x:Name="MaximizeIcon" Text="□" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        <PathIcon x:Name="MaximizeIcon" Data="{StaticResource IconWindowMaximize}" Width="10" Height="10" />
                     </Button>
                     <Button x:Name="CloseButton" Classes="caption-btn caption-close" ToolTip.Tip="Chiudi">
-                        <TextBlock Text="✕" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        <PathIcon Data="{StaticResource IconWindowClose}" Width="10" Height="10" />
                     </Button>
                 </StackPanel>
             </Grid>
@@ -96,7 +140,7 @@
                          TextChanged="OnSearchTextChanged"
                          KeyDown="OnSearchBoxKeyDown">
                     <TextBox.InnerLeftContent>
-                        <TextBlock Text="🔍" FontSize="12" VerticalAlignment="Center" Margin="8,0,4,0" Foreground="#7A7A90" />
+                        <PathIcon Data="{StaticResource IconSearch}" Width="13" Height="13" VerticalAlignment="Center" Margin="8,0,4,0" Foreground="#7A7A90" />
                     </TextBox.InnerLeftContent>
                     <TextBox.InnerRightContent>
                         <Border Background="#252535"
@@ -181,11 +225,25 @@
             <!-- Pannello Sinistro: Project Explorer -->
             <Border Grid.Column="0" Background="#1E1E28" BorderBrush="#353545" BorderThickness="0,0,1,0" Padding="8">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="📁 Project Explorer" FontWeight="Bold" FontSize="13" Foreground="#ECECF0" Margin="4,4,4,8" />
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="4,4,4,8">
+                        <PathIcon Data="{StaticResource IconFolder}" Width="13" Height="13" Foreground="#FF6633" VerticalAlignment="Center" />
+                        <TextBlock Text="Project Explorer" FontWeight="Bold" FontSize="13" Foreground="#ECECF0" VerticalAlignment="Center" />
+                    </StackPanel>
                     <TreeView x:Name="ExplorerTree" SelectionChanged="OnExplorerSelectionChanged">
                         <TreeView.ItemTemplate>
                             <TreeDataTemplate DataType="models:ExplorerTreeItem" ItemsSource="{Binding Children}">
-                                <TextBlock Text="{Binding DisplayText}" FontSize="12" Foreground="#ECECF0" VerticalAlignment="Center" />
+                                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,1">
+                                    <Border Background="{Binding BadgeBackground}"
+                                            CornerRadius="3"
+                                            Padding="4,1"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding KindBadge}"
+                                                   FontSize="9"
+                                                   FontWeight="Bold"
+                                                   Foreground="{Binding BadgeForeground}" />
+                                    </Border>
+                                    <TextBlock Text="{Binding DisplayText}" FontSize="12" Foreground="#ECECF0" VerticalAlignment="Center" />
+                                </StackPanel>
                             </TreeDataTemplate>
                         </TreeView.ItemTemplate>
                     </TreeView>
@@ -207,7 +265,13 @@
                 </TabControl.Styles>
 
                 <!-- TAB 1: Canvas Interattivo del Grafo con Floating HUD -->
-                <TabItem Header="🌐 Vista Grafo">
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconGraph}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock Text="Vista Grafo" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
                     <Grid>
                         <!-- Canvas del Grafo -->
                         <controls:GraphControl x:Name="Graph" SelectionChanged="OnGraphSelectionChanged" />
@@ -238,25 +302,66 @@
                             </Border.Styles>
                             <StackPanel Width="138">
                                 <!-- Gruppo Vista e Navigazione -->
-                                <Button x:Name="ResetViewButton" Content="🎯 Reset Vista" ToolTip.Tip="Ripristina zoom 100% e centra la visuale" />
-                                <Button x:Name="ExpandAllButton" Content="➕ Espandi Tutto" ToolTip.Tip="Espande tutti i moduli mostrando metodi e proprietà" />
-                                <Button x:Name="CollapseAllButton" Content="➖ Comprimi Tutto" ToolTip.Tip="Comprime tutti i moduli nascondendo i membri interni" />
+                                <Button x:Name="ResetViewButton" ToolTip.Tip="Ripristina zoom 100% e centra la visuale">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Data="{StaticResource IconTarget}" Width="13" Height="13" Foreground="#4AE8D0" VerticalAlignment="Center" />
+                                        <TextBlock Text="Reset Vista" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="ExpandAllButton" ToolTip.Tip="Espande tutti i moduli mostrando metodi e proprietà">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Data="{StaticResource IconExpandAll}" Width="13" Height="13" Foreground="#A0A0B8" VerticalAlignment="Center" />
+                                        <TextBlock Text="Espandi Tutto" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="CollapseAllButton" ToolTip.Tip="Comprime tutti i moduli nascondendo i membri interni">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Data="{StaticResource IconCollapseAll}" Width="13" Height="13" Foreground="#A0A0B8" VerticalAlignment="Center" />
+                                        <TextBlock Text="Comprimi Tutto" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
 
                                 <!-- Separatore Sottile -->
                                 <Rectangle Height="1" Fill="#323246" Margin="4,4" />
 
                                 <!-- Gruppo Ispezione e Blast Radius -->
-                                <Button x:Name="BlastRadiusButton" Content="💥 Blast Radius" ToolTip.Tip="Calcola ed evidenzia l'impatto di modifica (chiamanti indiretti, form e classi impattate)" />
-                                <Button x:Name="ShowCallersButton" Content="⬅️ Mostra Callers" ToolTip.Tip="Evidenzia chi chiama la routine selezionata" />
-                                <Button x:Name="ShowCalleesButton" Content="➡️ Mostra Callees" ToolTip.Tip="Evidenzia cosa chiama la routine selezionata" />
-                                <Button x:Name="ClearHighlightButton" Content="✖ Pulisci Filtri" ToolTip.Tip="Rimuove le evidenziazioni attive" />
+                                <Button x:Name="BlastRadiusButton" ToolTip.Tip="Calcola ed evidenzia l'impatto di modifica (chiamanti indiretti, form e classi impattate)">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Data="{StaticResource IconBlastRadius}" Width="13" Height="13" Foreground="#FF6633" VerticalAlignment="Center" />
+                                        <TextBlock Text="Blast Radius" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="ShowCallersButton" ToolTip.Tip="Evidenzia chi chiama la routine selezionata">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Data="{StaticResource IconCallers}" Width="13" Height="13" Foreground="#50E3C2" VerticalAlignment="Center" />
+                                        <TextBlock Text="Mostra Callers" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="ShowCalleesButton" ToolTip.Tip="Evidenzia cosa chiama la routine selezionata">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Data="{StaticResource IconCallees}" Width="13" Height="13" Foreground="#61AFEF" VerticalAlignment="Center" />
+                                        <TextBlock Text="Mostra Callees" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="ClearHighlightButton" ToolTip.Tip="Rimuove le evidenziazioni attive">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Data="{StaticResource IconClearFilter}" Width="13" Height="13" Foreground="#E06C75" VerticalAlignment="Center" />
+                                        <TextBlock Text="Pulisci Filtri" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                         </Border>
                     </Grid>
                 </TabItem>
 
                 <!-- TAB 2: Griglia Risultati Blast Radius & Matrice di Rischio -->
-                <TabItem Header="📊 Griglia Blast Radius">
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconTable}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock Text="Griglia Blast Radius" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
                     <Grid RowDefinitions="Auto,*">
                         <!-- Toolbar della Griglia: Filtri e Statistiche -->
                         <Border Grid.Row="0" Background="#20202C" BorderBrush="#353545" BorderThickness="0,0,0,1" Padding="12,8">
@@ -293,11 +398,15 @@
 
                                 <!-- Pulsante Aggiorna / Ricalcola Audit -->
                                 <Button Grid.Column="3" x:Name="RefreshGridButton"
-                                        Content="🔄 Ricalcola Audit"
                                         FontSize="11"
                                         Padding="10,5"
                                         ToolTip.Tip="Ricalcola la matrice di rischio e impatto per tutte le routine"
-                                        Click="OnRefreshGridClicked" />
+                                        Click="OnRefreshGridClicked">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <PathIcon Data="{StaticResource IconRefresh}" Width="11" Height="11" Foreground="#4AE8D0" VerticalAlignment="Center" />
+                                        <TextBlock Text="Ricalcola Audit" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
                             </Grid>
                         </Border>
 
@@ -373,12 +482,16 @@
                                 <DataGridTemplateColumn Header="Azione" Width="120">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate DataType="models:BlastRadiusGridRow">
-                                            <Button Content="🎯 Mostra Grafo"
-                                                    FontSize="10"
+                                            <Button FontSize="10"
                                                     Padding="8,3"
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
-                                                    Click="OnShowInGraphButtonClicked" />
+                                                    Click="OnShowInGraphButtonClicked">
+                                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                                    <PathIcon Data="{StaticResource IconTarget}" Width="10" Height="10" Foreground="#4AE8D0" VerticalAlignment="Center" />
+                                                    <TextBlock Text="Mostra Grafo" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Button>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
@@ -402,14 +515,17 @@
                     <StackPanel Spacing="10">
                         <!-- Intestazione Inspector -->
                         <Border Padding="8,6" Background="#262632" CornerRadius="4">
-                            <TextBlock Text="🔎 Symbol Inspector &amp; Blast Radius" FontWeight="SemiBold" FontSize="13" Foreground="#ECECF0" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconInspect}" Width="13" Height="13" Foreground="#FF6633" VerticalAlignment="Center" />
+                                <TextBlock Text="Symbol Inspector &amp; Blast Radius" FontWeight="SemiBold" FontSize="13" Foreground="#ECECF0" VerticalAlignment="Center" />
+                            </StackPanel>
                         </Border>
 
                         <!-- Messaggio Nodo Non Selezionato -->
                         <StackPanel x:Name="InspectorEmptyPanel" Spacing="6" Margin="4,8">
                             <TextBlock Text="Nessun simbolo selezionato." Foreground="#9090A0" FontWeight="Medium" />
                             <TextBlock Text="• Clicca su un nodo per visualizzare dettagli semantici, tipi, parametri e chiamate." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
-                            <TextBlock Text="• Clicca su '💥 Blast Radius' per calcolare il raggio di impatto e il rischio di regressione." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
+                            <TextBlock Text="• Clicca su 'Blast Radius' per calcolare il raggio di impatto e il rischio di regressione." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
                             <TextBlock Text="• Doppio clic su una Classe, Form o Modulo per espandere/comprimere i membri." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
                         </StackPanel>
 
@@ -458,7 +574,7 @@
                             <Border Background="#242432" BorderBrush="#3D3D52" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,4">
                                 <StackPanel Spacing="6">
                                     <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock Text="💥 BLAST RADIUS (IMPACT)" Foreground="#FF6633" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" />
+                                        <TextBlock Text="BLAST RADIUS (IMPACT)" Foreground="#FF6633" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" />
                                         <Border Grid.Column="1" x:Name="RiskBadge" CornerRadius="4" Padding="6,2" Background="#2E7D32">
                                             <TextBlock x:Name="RiskLevelText" Text="RISK: LOW" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" />
                                         </Border>
@@ -478,19 +594,19 @@
 
                                     <!-- Form UI Impattate -->
                                     <StackPanel x:Name="BlastFormsSection" Spacing="2" Margin="0,2">
-                                        <TextBlock Text="🖼️ FORM UI IMPATTATE" Foreground="#00D0FF" FontSize="10" FontWeight="Bold" />
+                                        <TextBlock Text="FORM UI IMPATTATE" Foreground="#00D0FF" FontSize="10" FontWeight="Bold" />
                                         <TextBlock x:Name="BlastFormsList" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
                                     </StackPanel>
 
                                     <!-- Classi & Moduli Impattati -->
                                     <StackPanel x:Name="BlastClassesSection" Spacing="2" Margin="0,2">
-                                        <TextBlock Text="📦 CLASSI &amp; MODULI TOCCATI" Foreground="#54C08C" FontSize="10" FontWeight="Bold" />
+                                        <TextBlock Text="CLASSI &amp; MODULI TOCCATI" Foreground="#54C08C" FontSize="10" FontWeight="Bold" />
                                         <TextBlock x:Name="BlastClassesList" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
                                     </StackPanel>
 
                                     <!-- Percorsi di Esecuzione a Rischio -->
                                     <StackPanel x:Name="BlastPathsSection" Spacing="2" Margin="0,2">
-                                        <TextBlock Text="⚡ PERCORSI DI ESECUZIONE (CALL CHAINS)" Foreground="#FFCC00" FontSize="10" FontWeight="Bold" />
+                                        <TextBlock Text="PERCORSI DI ESECUZIONE (CALL CHAINS)" Foreground="#FFCC00" FontSize="10" FontWeight="Bold" />
                                         <TextBlock x:Name="BlastPathsList" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="10" FontFamily="Consolas, monospace" />
                                     </StackPanel>
                                 </StackPanel>

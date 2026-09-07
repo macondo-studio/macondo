@@ -1,0 +1,44 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ===================================================================== -->
+    <!-- ICONE VETTORIALI MINIMALI IN STILE VS CODE / INSOMNIA (MIT / ISC)     -->
+    <!-- Geometrie StreamGeometry native ad altissima risoluzione per PathIcon  -->
+    <!-- ===================================================================== -->
+
+    <!-- Brand e Logo Applicazione -->
+    <StreamGeometry x:Key="IconAppLogo">M8.5 1.5L2 9.5h5L5.5 15.5 14 7.5H9z</StreamGeometry>
+    <StreamGeometry x:Key="IconZap">M8.5 1.5L2 9.5h5L5.5 15.5 14 7.5H9z</StreamGeometry>
+
+    <!-- File e Cartelle -->
+    <StreamGeometry x:Key="IconFolder">M1.5 3A1.5 1.5 0 0 1 3 1.5h3.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 0 10.12 3.8h2.88a1.5 1.5 0 0 1 1.5 1.5v7.2a1.5 1.5 0 0 1-1.5 1.5H3A1.5 1.5 0 0 1 1.5 12.5V3zm1.5-.5a.5.5 0 0 0-.5.5v2.5h10.5V5.3a.5.5 0 0 0-.5-.5h-2.88a2.5 2.5 0 0 1-1.768-.732L7.348 2.654A.5.5 0 0 0 6.586 2.5H3z</StreamGeometry>
+    <StreamGeometry x:Key="IconBeaker">M4 1.5h8v1H10.5v3.2l3.8 6.5A1.5 1.5 0 0 1 13 14.5H3a1.5 1.5 0 0 1-1.3-2.3l3.8-6.5V2.5H4v-1zm2.5 1v3.5L2.8 12.4a.5.5 0 0 0 .4.6h9.6a.5.5 0 0 0 .4-.6L9.5 6V2.5h-3z</StreamGeometry>
+    <StreamGeometry x:Key="IconExit">M2 2.5A1.5 1.5 0 0 1 3.5 1h5A1.5 1.5 0 0 1 10 2.5v1h-1v-1a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h5a.5.5 0 0 0 .5-.5v-1h1v1A1.5 1.5 0 0 1 8.5 15h-5A1.5 1.5 0 0 1 2 13.5v-11zm10.854 5.146l-2.5-2.5a.5.5 0 0 0-.708.708L11.293 7.5H6v1h5.293l-1.647 1.646a.5.5 0 0 0 .708.708l2.5-2.5a.5.5 0 0 0 0-.708z</StreamGeometry>
+
+    <!-- Navigazione Grafo e Visualizzazione -->
+    <StreamGeometry x:Key="IconTarget">M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM2.5 8a5.5 5.5 0 1 1 11 0 5.5 5.5 0 0 1-11 0zm5.5-2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm-1.5 2.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z</StreamGeometry>
+    <StreamGeometry x:Key="IconExpandAll">M1.5 3.5a2 2 0 0 1 2-2h2v1h-2a1 1 0 0 0-1 1v2h-1v-2zm13 0a2 2 0 0 0-2-2h-2v1h2a1 1 0 0 1 1 1v2h1v-2zm-13 9a2 2 0 0 0 2 2h2v-1h-2a1 1 0 0 1-1-1v-2h-1v2zm13 0a2 2 0 0 1-2 2h-2v-1h2a1 1 0 0 0 1-1v-2h1v2zM7.5 4.5h1v7h-1v-7zm-3 3.5h7v1h-7v-1z</StreamGeometry>
+    <StreamGeometry x:Key="IconCollapseAll">M4.5 6.5h-3v-1h3v-3h1v4h-1zm7 0h3v-1h-3v-3h-1v4h1zm-7 3h-3v1h3v3h1v-4h-1zm7 0h3v1h-3v3h-1v-4h1z</StreamGeometry>
+
+    <!-- Analisi, Callers, Callees e Blast Radius -->
+    <StreamGeometry x:Key="IconBlastRadius">M8 1a3.5 3.5 0 0 0-3.5 3.5c0 1.3.7 2.4 1.7 3-.8.4-1.5 1-2 1.8A5 5 0 1 0 13 8.3a4.4 4.4 0 0 0-1.7-2.8A3.5 3.5 0 0 0 8 1zm0 1c1.4 0 2.5 1.1 2.5 2.5 0 .6-.2 1.2-.6 1.7-.5-.4-1.1-.7-1.9-.7s-1.4.3-1.9.7c-.4-.5-.6-1.1-.6-1.7C5.5 3.1 6.6 2 8 2zm0 6c1.7 0 3 1.3 3 3s-1.3 3-3 3-3-1.3-3-3 1.3-3 3-3z</StreamGeometry>
+    <StreamGeometry x:Key="IconCallers">M11.5 8a.5.5 0 0 0-.5-.5H5.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L5.707 8.5H11a.5.5 0 0 0 .5-.5z</StreamGeometry>
+    <StreamGeometry x:Key="IconCallees">M4.5 8a.5.5 0 0 1 .5-.5h5.293L7.146 4.354a.5.5 0 1 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L10.293 8.5H5a.5.5 0 0 1-.5-.5z</StreamGeometry>
+    <StreamGeometry x:Key="IconClearFilter">M3.146 3.146a.5.5 0 0 1 .708 0L8 7.293l4.146-4.147a.5.5 0 0 1 .708.708L8.707 8l4.147 4.146a.5.5 0 0 1-.708.708L8 8.707l-4.146 4.147a.5.5 0 0 1-.708-.708L7.293 8 3.146 3.854a.5.5 0 0 1 0-.708z</StreamGeometry>
+
+    <!-- Ricerca e Ispezione -->
+    <StreamGeometry x:Key="IconSearch">M6.5 1.5a5 5 0 1 0 3.09 8.91l3.7 3.7.71-.71-3.7-3.7A5 5 0 0 0 6.5 1.5zm0 1a4 4 0 1 1 0 8 4 4 0 0 1 0-8z</StreamGeometry>
+    <StreamGeometry x:Key="IconInspect">M7.5 1.5a6 6 0 0 0-4.24 10.24l-1.9 1.9a.5.5 0 0 0 .7.7l1.9-1.9A6 6 0 1 0 7.5 1.5zm0 1a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm-2 4.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5z</StreamGeometry>
+
+    <!-- Viste a Schede e Griglia -->
+    <StreamGeometry x:Key="IconGraph">M3 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM8 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM3.8 5.7l3.4 4.5.8-.6L4.6 5.1l-.8.6zm8.4-.6l-3.4 4.5.8.6 3.4-4.5-.8-.6z</StreamGeometry>
+    <StreamGeometry x:Key="IconTable">M1.5 2.5A1.5 1.5 0 0 1 3 1h10a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5H3a1.5 1.5 0 0 1-1.5-1.5v-11zm1.5-.5a.5.5 0 0 0-.5.5V5h11V2.5a.5.5 0 0 0-.5-.5H3zm11 4H9.5v3.5h4V6zm-5 0h-4v3.5h4V6zm-5 0H2.5v3.5h4V6zm0 4.5H2.5V13.5a.5.5 0 0 0 .5.5h3.5v-3.5zm1 3.5H9v-3.5H6.5V14zm3.5 0h3a.5.5 0 0 0 .5-.5v-3H10V14z</StreamGeometry>
+    <StreamGeometry x:Key="IconRefresh">M13.65 2.35a.5.5 0 0 0-.85.35v1.65A6.5 6.5 0 1 0 14.5 8h-1.02A5.5 5.5 0 1 1 12 4.14V6a.5.5 0 0 0 .85.35l2.5-2.5a.5.5 0 0 0 0-.7l-2.5-2.5a.5.5 0 0 0-.7.7z</StreamGeometry>
+
+    <!-- Controlli Finestra Borderless (Stile Windows 11 / VS Code) -->
+    <StreamGeometry x:Key="IconWindowMinimize">M2 8h12v1H2z</StreamGeometry>
+    <StreamGeometry x:Key="IconWindowMaximize">M2.5 2.5v11h11v-11h-11zm1 1h9v9h-9v-9z</StreamGeometry>
+    <StreamGeometry x:Key="IconWindowRestore">M4 2v2H2v10h10v-2h2V2H4zm8 9H3V5h9v6zm1-3V3H5v1h7v4h1z</StreamGeometry>
+    <StreamGeometry x:Key="IconWindowClose">M3.15 3.15a.5.5 0 0 1 .7 0L8 7.29l4.15-4.14a.5.5 0 0 1 .7.7L8.71 8l4.14 4.15a.5.5 0 0 1-.7.7L8 8.71l-4.15 4.14a.5.5 0 0 1-.7-.7L7.29 8 3.15 3.85a.5.5 0 0 1 0-.7z</StreamGeometry>
+
+</ResourceDictionary>

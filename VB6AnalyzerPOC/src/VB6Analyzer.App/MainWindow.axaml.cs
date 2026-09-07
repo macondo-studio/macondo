@@ -90,7 +90,11 @@ public partial class MainWindow : Window
         {
             if (e.Property == WindowStateProperty && MaximizeIcon != null)
             {
-                MaximizeIcon.Text = WindowState == WindowState.Maximized ? "🗗" : "□";
+                var resourceKey = WindowState == WindowState.Maximized ? "IconWindowRestore" : "IconWindowMaximize";
+                if (this.TryFindResource(resourceKey, out var res) && res is Geometry geo)
+                {
+                    MaximizeIcon.Data = geo;
+                }
             }
         };
 
