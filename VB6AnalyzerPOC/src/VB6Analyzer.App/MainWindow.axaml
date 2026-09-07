@@ -29,6 +29,11 @@
                                     <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" />
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem x:Name="RefreshProjectMenuItem" Header="Ricarica Progetto Corrente" InputGesture="Ctrl+R">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconRefresh}" Width="14" Height="14" Foreground="#4AE8D0" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                             <MenuItem x:Name="LoadFixturesMenuItem" Header="Carica Fixtures Test">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconBeaker}" Width="14" Height="14" />
@@ -337,6 +342,12 @@
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <PathIcon Data="{StaticResource IconCollapseAll}" Width="13" Height="13" VerticalAlignment="Center" />
                                         <TextBlock x:Name="HudCollapseAllText" Text="Comprimi Tutto" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="RefreshProjectButton" ToolTip.Tip="Ricarica Progetto da disco e aggiorna cache (Ctrl+R)">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Data="{StaticResource IconRefresh}" Width="13" Height="13" Foreground="#4AE8D0" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="HudRefreshText" Text="Ricarica" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
 

@@ -20,6 +20,7 @@ public sealed class LocalizationService
         // Menu File
         ["Menu_File"] = "_File",
         ["Menu_OpenFolder"] = "Apri Cartella VB6...",
+        ["Menu_RefreshProject"] = "Ricarica Progetto Corrente",
         ["Menu_LoadFixtures"] = "Carica Fixtures Test",
         ["Menu_GenerateFake"] = "Grafo Demo (~500 nodi)",
         ["Menu_Settings"] = "Impostazioni...",
@@ -55,6 +56,7 @@ public sealed class LocalizationService
         ["HUD_ResetView"] = "Reset Vista",
         ["HUD_ExpandAll"] = "Espandi Tutto",
         ["HUD_CollapseAll"] = "Comprimi Tutto",
+        ["HUD_Refresh"] = "Ricarica",
         ["HUD_BlastRadius"] = "Blast Radius",
         ["HUD_ShowCallers"] = "Mostra Callers",
         ["HUD_ShowCallees"] = "Mostra Callees",
@@ -121,7 +123,11 @@ public sealed class LocalizationService
         // Barra di Stato
         ["Status_Ready"] = "Pronto.",
         ["Status_Selected"] = "Selezionato: [{0}] {1}",
-        ["Status_StatsFormat"] = "Nodi: {0} | Relazioni: {1} (Calls: {2}, Instantiates: {3})"
+        ["Status_StatsFormat"] = "Nodi: {0} | Relazioni: {1} (Calls: {2}, Instantiates: {3})",
+        ["Status_LoadedFromCache"] = "Progetto '{0}' caricato dalla cache locale ({1}). Premi 'Ricarica' (Ctrl+R) per rianalizzare.",
+        ["Status_CacheStale"] = "Progetto '{0}' caricato da cache. Modifiche rilevate su disco: premi 'Ricarica' (Ctrl+R) per aggiornare.",
+        ["Status_Refreshed"] = "Progetto '{0}' ricaricato da disco ({1} file analizzati).",
+        ["Status_CacheSaved"] = "Cache locale aggiornata per '{0}'."
     };
 
     private readonly Dictionary<string, string> _enStrings = new()
@@ -129,6 +135,7 @@ public sealed class LocalizationService
         // Menu File
         ["Menu_File"] = "_File",
         ["Menu_OpenFolder"] = "Open VB6 Folder...",
+        ["Menu_RefreshProject"] = "Reload Current Project",
         ["Menu_LoadFixtures"] = "Load Test Fixtures",
         ["Menu_GenerateFake"] = "Demo Graph (~500 nodes)",
         ["Menu_Settings"] = "Settings...",
@@ -164,6 +171,7 @@ public sealed class LocalizationService
         ["HUD_ResetView"] = "Reset View",
         ["HUD_ExpandAll"] = "Expand All",
         ["HUD_CollapseAll"] = "Collapse All",
+        ["HUD_Refresh"] = "Reload",
         ["HUD_BlastRadius"] = "Blast Radius",
         ["HUD_ShowCallers"] = "Show Callers",
         ["HUD_ShowCallees"] = "Show Callees",
@@ -230,7 +238,11 @@ public sealed class LocalizationService
         // Status Bar
         ["Status_Ready"] = "Ready.",
         ["Status_Selected"] = "Selected: [{0}] {1}",
-        ["Status_StatsFormat"] = "Nodes: {0} | Relations: {1} (Calls: {2}, Instantiates: {3})"
+        ["Status_StatsFormat"] = "Nodes: {0} | Relations: {1} (Calls: {2}, Instantiates: {3})",
+        ["Status_LoadedFromCache"] = "Project '{0}' loaded from local cache ({1}). Press 'Reload' (Ctrl+R) to reanalyze.",
+        ["Status_CacheStale"] = "Project '{0}' loaded from cache. Modified files detected on disk: press 'Reload' (Ctrl+R) to update.",
+        ["Status_Refreshed"] = "Project '{0}' reloaded from disk ({1} files analyzed).",
+        ["Status_CacheSaved"] = "Local cache updated for '{0}'."
     };
 
     private LocalizationService() { }

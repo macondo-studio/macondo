@@ -11,6 +11,10 @@ namespace VB6Analyzer.App.Layout;
 public static class GraphVisualAdapter
 {
     /// <summary>
+    /// <summary>ID deterministico globale del nodo radice di progetto.</summary>
+    public static readonly Guid ProjectRootId = new Guid("11111111-1111-1111-1111-111111111111");
+
+    /// <summary>
     /// Converte il grafo semantico in grafo visuale, collegando la gerarchia strutturale
     /// e calcolando il layout radiale dei nodi.
     /// </summary>
@@ -24,10 +28,10 @@ public static class GraphVisualAdapter
             Queries = new CallGraphQueries(semanticGraph)
         };
 
-        // 1. Crea il nodo radice di Progetto
+        // 1. Crea il nodo radice di Progetto con ID deterministico
         var projectNode = new GraphNode
         {
-            Id = Guid.NewGuid(),
+            Id = ProjectRootId,
             Name = projectName,
             QualifiedName = projectName,
             Kind = SymbolKind.Project,

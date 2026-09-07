@@ -28,6 +28,7 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _selectionCts;
     private List<BlastRadiusGridRow> _allBlastRadiusRows = new();
     private bool _isSyncingSelection;
+    private string? _currentFolderPath;
 
     public MainWindow()
     {
@@ -35,12 +36,14 @@ public partial class MainWindow : Window
 
         // Menu Bar Superiore - File (Command + Click per massima affidabilità)
         OpenFolderMenuItem.Command = new ActionCommand(async () => await OpenFolderAsync());
+        RefreshProjectMenuItem.Command = new ActionCommand(async () => await RefreshCurrentProjectAsync());
         LoadFixturesMenuItem.Command = new ActionCommand(() => LoadDefaultFixtures());
         GenerateFakeMenuItem.Command = new ActionCommand(() => LoadSyntheticGraph());
         SettingsMenuItem.Command = new ActionCommand(OpenSettings);
         ExitMenuItem.Command = new ActionCommand(() => Close());
 
         OpenFolderMenuItem.Click += async (_, _) => await OpenFolderAsync();
+        RefreshProjectMenuItem.Click += async (_, _) => await RefreshCurrentProjectAsync();
         LoadFixturesMenuItem.Click += (_, _) => LoadDefaultFixtures();
         GenerateFakeMenuItem.Click += (_, _) => LoadSyntheticGraph();
         SettingsMenuItem.Click += (_, _) => OpenSettings();
@@ -75,6 +78,7 @@ public partial class MainWindow : Window
         ResetViewButton.Click += (_, _) => Graph.ResetView();
         ExpandAllButton.Click += (_, _) => SetAllExpanded(true);
         CollapseAllButton.Click += (_, _) => SetAllExpanded(false);
+        RefreshProjectButton.Click += async (_, _) => await RefreshCurrentProjectAsync();
 
         BlastRadiusButton.Click += (_, _) => OnBlastRadiusClicked();
         ShowCallersButton.Click += (_, _) => OnShowCallersClicked();
@@ -124,6 +128,11 @@ public partial class MainWindow : Window
             else if (e.KeyModifiers == KeyModifiers.Control && e.Key == Key.O)
             {
                 _ = OpenFolderAsync();
+                e.Handled = true;
+            }
+            else if (e.KeyModifiers == KeyModifiers.Control && e.Key == Key.R)
+            {
+                _ = RefreshCurrentProjectAsync();
                 e.Handled = true;
             }
             else if (e.KeyModifiers == KeyModifiers.Control && (e.Key == Key.OemComma || e.Key == Key.OemPeriod))
@@ -261,6 +270,7 @@ public partial class MainWindow : Window
 
         try
         {
+            _currentFolderPath = null;
             StatusText.Text = "Generazione del grafo sintetico (~500 nodi)...";
             _graph = await Task.Run(() => Generation.FakeGraphGenerator.Generate(seed: Environment.TickCount));
             ApplyGraphToUI();
@@ -286,6 +296,7 @@ public partial class MainWindow : Window
 
         try
         {
+            _currentFolderPath = null;
             StatusText.Text = "Analisi semantica delle fixture in corso...";
             _graph = await Task.Run(() => ProjectAnalysisService.LoadDefaultFixtures());
             ApplyGraphToUI();
@@ -319,12 +330,63 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Esegue l'analisi semantica dei file VB6 di una cartella e memorizza il percorso nelle impostazioni utente.
+    /// Ricarica forzatamente il progetto corrente da disco, ri-eseguendo parsing e analisi e aggiornando la cache.
     /// </summary>
-    private async Task AnalyzeAndLoadFolderAsync(string folderPath)
+    private async Task RefreshCurrentProjectAsync()
+    {
+        var targetFolder = _currentFolderPath;
+        if (string.IsNullOrEmpty(targetFolder) || !Directory.Exists(targetFolder))
+        {
+            targetFolder = SettingsService.Instance.Settings.LastOpenedFolder;
+        }
+
+        if (string.IsNullOrEmpty(targetFolder) || !Directory.Exists(targetFolder))
+        {
+            StatusText.Text = LocalizationService.Instance.CurrentLanguage == AppLanguage.English
+                ? "No project open to reload. Use 'Open VB6 Folder...' (Ctrl+O)."
+                : "Nessun progetto aperto da ricaricare. Usa 'Apri Cartella VB6...' (Ctrl+O).";
+            return;
+        }
+
+        await AnalyzeAndLoadFolderAsync(targetFolder, forceReanalyze: true);
+    }
+
+    /// <summary>
+    /// Esegue o ripristina da cache l'analisi dei file VB6 di una cartella.
+    /// </summary>
+    private async Task AnalyzeAndLoadFolderAsync(string folderPath, bool forceReanalyze = false)
     {
         if (!Directory.Exists(folderPath)) return;
 
+        // 1. Tenta il ripristino ultra-rapido dalla cache locale (%APPDATA%\VB6Analyzer\cache\) se non forzato
+        if (!forceReanalyze)
+        {
+            var cachedSnapshot = await ProjectCacheService.Instance.TryLoadSnapshotAsync(folderPath);
+            if (cachedSnapshot != null)
+            {
+                var (cachedGraph, cachedRows) = ProjectCacheService.Instance.RestoreGraphAndRows(cachedSnapshot);
+                _graph = cachedGraph;
+                _currentFolderPath = folderPath;
+                ApplyGraphToUI(cachedRows);
+
+                // Salva l'ultima cartella aperta nelle impostazioni
+                SettingsService.Instance.Update(s => s.LastOpenedFolder = folderPath);
+
+                // Rileva eventuali modifiche ai sorgenti intervenute dopo il salvataggio della cache
+                var isStale = ProjectCacheService.Instance.CheckStaleness(cachedSnapshot, folderPath);
+                if (isStale)
+                {
+                    StatusText.Text = LocalizationService.Instance.Get("Status_CacheStale", cachedSnapshot.ProjectName);
+                }
+                else
+                {
+                    StatusText.Text = LocalizationService.Instance.Get("Status_LoadedFromCache", cachedSnapshot.ProjectName, cachedSnapshot.AnalyzedAtUtc.ToLocalTime().ToString("g"));
+                }
+                return;
+            }
+        }
+
+        // 2. Analisi completa da sorgenti su disco con overlay di caricamento
         ShowLoading("Analisi del progetto VB6...", $"Scansione ed estrazione da '{Path.GetFileName(folderPath)}'...");
         await Task.Delay(16);
 
@@ -332,8 +394,11 @@ public partial class MainWindow : Window
         {
             StatusText.Text = $"Analisi cartella '{folderPath}' in corso...";
             _graph = await Task.Run(() => ProjectAnalysisService.AnalyzeFolder(folderPath));
-            ApplyGraphToUI();
-            StatusText.Text = $"Progetto '{Path.GetFileName(folderPath)}' analizzato con successo.";
+            _currentFolderPath = folderPath;
+            ApplyGraphToUI(); // Avvierà PopulateBlastRadiusGridAsync che poi salverà la cache aggiornata
+
+            var projectName = Path.GetFileName(folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            StatusText.Text = LocalizationService.Instance.Get("Status_Refreshed", projectName, _graph.Nodes.Count);
 
             // Salva l'ultima cartella aperta nelle impostazioni
             SettingsService.Instance.Update(s => s.LastOpenedFolder = folderPath);
@@ -350,8 +415,9 @@ public partial class MainWindow : Window
 
     /// <summary>
     /// Aggiorna tutti i componenti della UI (Grafo, Explorer, Status) con il nuovo CodeGraph.
+    /// Se precalculatedRows è fornito (es. da cache), la griglia Blast Radius viene popolata istantaneamente.
     /// </summary>
-    private void ApplyGraphToUI()
+    private void ApplyGraphToUI(List<BlastRadiusGridRow>? precalculatedRows = null)
     {
         if (_graph is null) return;
 
@@ -363,7 +429,16 @@ public partial class MainWindow : Window
 
         ShowEmptyInspector();
         UpdateStatsBar();
-        _ = PopulateBlastRadiusGridAsync();
+
+        if (precalculatedRows != null && precalculatedRows.Count > 0)
+        {
+            _allBlastRadiusRows = precalculatedRows;
+            ApplyGridFilters();
+        }
+        else
+        {
+            _ = PopulateBlastRadiusGridAsync();
+        }
     }
 
     private void SetAllExpanded(bool expanded)
@@ -978,6 +1053,12 @@ public partial class MainWindow : Window
 
         _allBlastRadiusRows = rows;
         ApplyGridFilters();
+
+        // Salva in background nella cache persistente se stiamo analizzando una cartella su disco
+        if (!string.IsNullOrEmpty(_currentFolderPath) && _graph != null)
+        {
+            _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _graph, _allBlastRadiusRows);
+        }
     }
 
     private void ApplyGridFilters()
@@ -1183,6 +1264,7 @@ public partial class MainWindow : Window
         // Menu File
         FileMenu.Header = loc["Menu_File"];
         OpenFolderMenuItem.Header = loc["Menu_OpenFolder"];
+        RefreshProjectMenuItem.Header = loc["Menu_RefreshProject"];
         LoadFixturesMenuItem.Header = loc["Menu_LoadFixtures"];
         GenerateFakeMenuItem.Header = loc["Menu_GenerateFake"];
         SettingsMenuItem.Header = loc["Menu_Settings"];
@@ -1221,6 +1303,7 @@ public partial class MainWindow : Window
         HudResetViewText.Text = loc["HUD_ResetView"];
         HudExpandAllText.Text = loc["HUD_ExpandAll"];
         HudCollapseAllText.Text = loc["HUD_CollapseAll"];
+        HudRefreshText.Text = loc["HUD_Refresh"];
         HudBlastRadiusText.Text = loc["HUD_BlastRadius"];
         HudShowCallersText.Text = loc["HUD_ShowCallers"];
         HudShowCalleesText.Text = loc["HUD_ShowCallees"];

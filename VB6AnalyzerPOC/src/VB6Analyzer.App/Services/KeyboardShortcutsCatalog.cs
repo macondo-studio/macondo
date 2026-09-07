@@ -50,6 +50,15 @@ public static class KeyboardShortcutsCatalog
             },
             new()
             {
+                KeyBadges = new[] { "Ctrl", "R" },
+                ActionName = isEn ? "Reload Project" : "Ricarica Progetto",
+                Category = "File",
+                Description = isEn
+                    ? "Forces a re-scan and analysis of the current project from disk and updates local cache."
+                    : "Forza la rilettura e l'analisi da disco del progetto corrente aggiornando la cache locale."
+            },
+            new()
+            {
                 KeyBadges = new[] { "Ctrl", "," },
                 ActionName = isEn ? "Open Settings" : "Apri Impostazioni",
                 Category = isEn ? "General" : "Generale",
