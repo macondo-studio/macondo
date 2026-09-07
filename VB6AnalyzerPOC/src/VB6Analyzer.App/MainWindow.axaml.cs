@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -140,15 +141,72 @@ public partial class MainWindow : Window
         // Sincronizzazione selezione tra Tab Grafo e Tab Griglia Blast Radius
         CentralTabControl.SelectionChanged += OnCentralTabSelectionChanged;
 
-        // Servizi Reattivi: Localizzazione & Temi
-        LocalizationService.Instance.LanguageChanged += (_, _) => UpdateLocalizedUI();
-        ThemeService.Instance.ThemeChanged += (_, theme) => ApplyTheme(theme);
+        // Inizializzazione Impostazioni e Preferenze Utente (%APPDATA%\VB6Analyzer\settings.json)
+        var settings = SettingsService.Instance.Settings;
 
+        // Ripristino Geometria Finestra
+        if (settings.WindowWidth >= 600 && settings.WindowHeight >= 400)
+        {
+            Width = settings.WindowWidth;
+            Height = settings.WindowHeight;
+        }
+
+        if (settings.WindowX.HasValue && settings.WindowY.HasValue)
+        {
+            Position = new PixelPoint(settings.WindowX.Value, settings.WindowY.Value);
+        }
+
+        if (settings.IsMaximized)
+        {
+            WindowState = WindowState.Maximized;
+        }
+
+        // Salvataggio Geometria Finestra alla chiusura
+        Closing += (_, _) =>
+        {
+            SettingsService.Instance.Update(s =>
+            {
+                s.IsMaximized = WindowState == WindowState.Maximized;
+                if (WindowState == WindowState.Normal)
+                {
+                    s.WindowWidth = Width;
+                    s.WindowHeight = Height;
+                    s.WindowX = Position.X;
+                    s.WindowY = Position.Y;
+                }
+            });
+        };
+
+        // Servizi Reattivi: Localizzazione & Temi con Auto-Save
+        LocalizationService.Instance.LanguageChanged += (_, lang) =>
+        {
+            UpdateLocalizedUI();
+            SettingsService.Instance.Update(s => s.Language = lang);
+        };
+
+        ThemeService.Instance.ThemeChanged += (_, theme) =>
+        {
+            ApplyTheme(theme);
+            SettingsService.Instance.Update(s => s.Theme = theme.Theme);
+        };
+
+        // Applica i valori salvati prima del rendering iniziale
+        ThemeService.Instance.ApplyTheme(settings.Theme);
+        LocalizationService.Instance.SetLanguage(settings.Language);
         UpdateLocalizedUI();
-        ApplyTheme(ThemeService.Instance.CurrentDefinition);
 
-        // Caricamento iniziale automatico delle fixture reali
-        LoadDefaultFixtures();
+        // Ripristino Filtro di Rischio salvato
+        RiskFilterComboBox.SelectedIndex = Math.Clamp(settings.DefaultRiskFilterIndex, 0, 4);
+
+        // Caricamento del Progetto: Ultima cartella aperta o Fixture reali di default
+        if (!string.IsNullOrEmpty(settings.LastOpenedFolder) && Directory.Exists(settings.LastOpenedFolder))
+        {
+            _ = AnalyzeAndLoadFolderAsync(settings.LastOpenedFolder);
+        }
+        else
+        {
+            LoadDefaultFixtures();
+        }
     }
 
     /// <summary>
@@ -257,6 +315,16 @@ public partial class MainWindow : Window
         if (folders.Count == 0) return;
 
         var folderPath = folders[0].Path.LocalPath;
+        await AnalyzeAndLoadFolderAsync(folderPath);
+    }
+
+    /// <summary>
+    /// Esegue l'analisi semantica dei file VB6 di una cartella e memorizza il percorso nelle impostazioni utente.
+    /// </summary>
+    private async Task AnalyzeAndLoadFolderAsync(string folderPath)
+    {
+        if (!Directory.Exists(folderPath)) return;
+
         ShowLoading("Analisi del progetto VB6...", $"Scansione ed estrazione da '{Path.GetFileName(folderPath)}'...");
         await Task.Delay(16);
 
@@ -266,6 +334,9 @@ public partial class MainWindow : Window
             _graph = await Task.Run(() => ProjectAnalysisService.AnalyzeFolder(folderPath));
             ApplyGraphToUI();
             StatusText.Text = $"Progetto '{Path.GetFileName(folderPath)}' analizzato con successo.";
+
+            // Salva l'ultima cartella aperta nelle impostazioni
+            SettingsService.Instance.Update(s => s.LastOpenedFolder = folderPath);
         }
         catch (Exception ex)
         {
@@ -975,6 +1046,10 @@ public partial class MainWindow : Window
     private void OnRiskFilterChanged(object? sender, SelectionChangedEventArgs e)
     {
         ApplyGridFilters();
+        if (RiskFilterComboBox != null)
+        {
+            SettingsService.Instance.Update(s => s.DefaultRiskFilterIndex = RiskFilterComboBox.SelectedIndex);
+        }
     }
 
     private void OnRefreshGridClicked(object? sender, RoutedEventArgs e)
