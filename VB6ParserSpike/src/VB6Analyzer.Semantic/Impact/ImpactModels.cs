@@ -1,7 +1,7 @@
-using VB6Analyzer.Semantic.Graph;
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.Semantic.Graph;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.Semantic.Impact;
+namespace Macondo.Semantic.Impact;
 
 
 /// <summary>

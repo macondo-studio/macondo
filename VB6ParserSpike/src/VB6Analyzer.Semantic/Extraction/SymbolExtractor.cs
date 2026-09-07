@@ -1,8 +1,8 @@
-using Antlr4.Runtime;
-using VB6Analyzer.Parser.Grammar;
-using VB6Analyzer.Semantic.Model;
+﻿using Antlr4.Runtime;
+using Macondo.Parser.Grammar;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.Semantic.Extraction;
+namespace Macondo.Semantic.Extraction;
 
 /// <summary>
 /// Estrattore semantico dei simboli basato su parse tree ANTLR (Milestone M2 + M3).

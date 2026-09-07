@@ -1,7 +1,7 @@
-using VB6Analyzer.App.Models;
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.App.Models;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.App.Layout;
+namespace Macondo.App.Layout;
 
 /// <summary>
 /// Motore di layout radiale/gerarchico per il CodeGraph visuale (sezioni 21 e 23 del charter).

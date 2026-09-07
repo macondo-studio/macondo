@@ -1,11 +1,11 @@
-using VB6Analyzer.App.Models;
-using VB6Analyzer.Semantic.Graph;
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.App.Models;
+using Macondo.Semantic.Graph;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.App.Layout;
+namespace Macondo.App.Layout;
 
 /// <summary>
-/// Adattatore per convertire il <see cref="VB6Analyzer.Semantic.Model.CodeGraph"/> semantico reale
+/// Adattatore per convertire il <see cref="Macondo.Semantic.Model.CodeGraph"/> semantico reale
 /// nel modello visuale <see cref="VisualCodeGraph"/> pronto per il rendering e layout.
 /// </summary>
 public static class GraphVisualAdapter
@@ -20,7 +20,7 @@ public static class GraphVisualAdapter
     /// </summary>
     /// <param name="semanticGraph">Il CodeGraph semantico contenente simboli e relazioni reali.</param>
     /// <param name="projectName">Nome descrittivo del progetto visualizzato.</param>
-    public static VisualCodeGraph FromSemanticGraph(VB6Analyzer.Semantic.Model.CodeGraph semanticGraph, string projectName = "VB6 Project")
+    public static VisualCodeGraph FromSemanticGraph(Macondo.Semantic.Model.CodeGraph semanticGraph, string projectName = "VB6 Project")
     {
         var visualGraph = new VisualCodeGraph
         {

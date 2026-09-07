@@ -6,7 +6,8 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>VB6Analyzer.Parser.Spike</RootNamespace>
+    <RootNamespace>Macondo.Parser.Spike</RootNamespace>
+    <AssemblyName>Macondo.Parser.Spike</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

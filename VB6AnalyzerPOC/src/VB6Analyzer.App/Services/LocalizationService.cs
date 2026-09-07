@@ -1,4 +1,4 @@
-namespace VB6Analyzer.App.Services;
+﻿namespace Macondo.App.Services;
 
 public enum AppLanguage
 {

@@ -1,6 +1,6 @@
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.Semantic.Resolution;
+namespace Macondo.Semantic.Resolution;
 
 /// <summary>
 /// Scope a livello di intero progetto VB6 (radice della gerarchia di lookup).

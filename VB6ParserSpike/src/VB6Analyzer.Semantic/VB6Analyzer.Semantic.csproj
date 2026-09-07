@@ -5,7 +5,8 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>VB6Analyzer.Semantic</RootNamespace>
+    <RootNamespace>Macondo.Semantic</RootNamespace>
+    <AssemblyName>Macondo.Semantic</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

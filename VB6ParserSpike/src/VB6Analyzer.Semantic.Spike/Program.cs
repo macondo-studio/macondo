@@ -1,9 +1,9 @@
-using VB6Analyzer.Semantic.Extraction;
-using VB6Analyzer.Semantic.Graph;
-using VB6Analyzer.Semantic.Model;
-using VB6Analyzer.Semantic.Resolution;
+﻿using Macondo.Semantic.Extraction;
+using Macondo.Semantic.Graph;
+using Macondo.Semantic.Model;
+using Macondo.Semantic.Resolution;
 
-namespace VB6Analyzer.Semantic.Spike;
+namespace Macondo.Semantic.Spike;
 
 /// <summary>
 /// Programma di verifica / Spike per la Milestone M4: Call Graph.

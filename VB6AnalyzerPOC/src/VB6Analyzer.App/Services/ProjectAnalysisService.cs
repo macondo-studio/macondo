@@ -1,11 +1,11 @@
-using VB6Analyzer.App.Layout;
-using VB6Analyzer.App.Models;
-using VB6Analyzer.Semantic.Extraction;
-using VB6Analyzer.Semantic.Graph;
-using VB6Analyzer.Semantic.Model;
-using VB6Analyzer.Semantic.Resolution;
+﻿using Macondo.App.Layout;
+using Macondo.App.Models;
+using Macondo.Semantic.Extraction;
+using Macondo.Semantic.Graph;
+using Macondo.Semantic.Model;
+using Macondo.Semantic.Resolution;
 
-namespace VB6Analyzer.App.Services;
+namespace Macondo.App.Services;
 
 /// <summary>
 /// Servizio di analisi e pipeline per caricare e analizzare progetti VB6 reali in memoria (M5).
@@ -67,7 +67,7 @@ public static class ProjectAnalysisService
         if (!Directory.Exists(fixturesDir))
         {
             // Cerca nella cartella del progetto di spike se in esecuzione diretta da bin
-            var fallback = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\..\VB6ParserSpike\src\VB6Analyzer.Semantic.Spike\Fixtures"));
+            var fallback = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\..\VB6ParserSpike\src\Macondo.Semantic.Spike\Fixtures"));
             if (Directory.Exists(fallback))
                 fixturesDir = fallback;
         }

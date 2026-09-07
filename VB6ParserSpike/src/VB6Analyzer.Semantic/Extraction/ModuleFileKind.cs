@@ -1,6 +1,6 @@
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.Semantic.Extraction;
+namespace Macondo.Semantic.Extraction;
 
 /// <summary>
 /// Helper per determinare la categoria di modulo (<see cref="SymbolKind"/>)

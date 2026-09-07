@@ -1,14 +1,14 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
-using VB6Analyzer.App.Models;
-using VB6Analyzer.App.Services;
-using VB6Analyzer.Semantic.Impact;
-using VB6Analyzer.Semantic.Model;
+using Macondo.App.Models;
+using Macondo.App.Services;
+using Macondo.Semantic.Impact;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.App.Controls;
+namespace Macondo.App.Controls;
 
 /// <summary>
 /// Controllo custom Avalonia/Skia ad alte prestazioni per il rendering e l'interazione con il CodeGraph (M5 + M6).

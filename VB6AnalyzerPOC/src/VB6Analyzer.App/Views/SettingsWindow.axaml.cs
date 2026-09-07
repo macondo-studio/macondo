@@ -1,11 +1,11 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using System.Collections.Generic;
 using System.Linq;
-using VB6Analyzer.App.Services;
+using Macondo.App.Services;
 
-namespace VB6Analyzer.App.Views;
+namespace Macondo.App.Views;
 
 public partial class SettingsWindow : Window
 {

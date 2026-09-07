@@ -6,7 +6,8 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>VB6Analyzer.Semantic.Spike</RootNamespace>
+    <RootNamespace>Macondo.Semantic.Spike</RootNamespace>
+    <AssemblyName>Macondo.Semantic.Spike</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

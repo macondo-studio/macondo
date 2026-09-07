@@ -1,6 +1,6 @@
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.Semantic.Graph;
+namespace Macondo.Semantic.Graph;
 
 /// <summary>
 /// Rappresenta un cammino di esecuzione (execution path) ordinato tra un punto di partenza

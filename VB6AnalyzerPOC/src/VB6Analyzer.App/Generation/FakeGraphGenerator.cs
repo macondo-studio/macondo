@@ -1,9 +1,9 @@
-using VB6Analyzer.App.Layout;
-using VB6Analyzer.App.Models;
-using VB6Analyzer.Semantic.Graph;
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.App.Layout;
+using Macondo.App.Models;
+using Macondo.Semantic.Graph;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.App.Generation;
+namespace Macondo.App.Generation;
 
 /// <summary>
 /// Generatore di grafi sintetici/fittizi per test di carico, benchmark UI e modalità demo (sezione 41 del charter).

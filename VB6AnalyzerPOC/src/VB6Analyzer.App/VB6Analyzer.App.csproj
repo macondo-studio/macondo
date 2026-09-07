@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>VB6Analyzer.App</RootNamespace>
-    <AssemblyName>VB6Analyzer</AssemblyName>
+    <RootNamespace>Macondo.App</RootNamespace>
+    <AssemblyName>Macondo</AssemblyName>
 
     <!--
       NOTA IMPORTANTE: SelfContained / PublishSingleFile / RuntimeIdentifier NON sono

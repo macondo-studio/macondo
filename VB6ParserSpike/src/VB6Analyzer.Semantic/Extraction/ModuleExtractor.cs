@@ -1,9 +1,9 @@
-using Antlr4.Runtime;
-using VB6Analyzer.Parser.Diagnostics;
-using VB6Analyzer.Parser.Grammar;
-using VB6Analyzer.Semantic.Model;
+﻿using Antlr4.Runtime;
+using Macondo.Parser.Diagnostics;
+using Macondo.Parser.Grammar;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.Semantic.Extraction;
+namespace Macondo.Semantic.Extraction;
 
 /// <summary>
 /// Rappresenta l'esito dell'estrazione semantica di un singolo modulo o file VB6.
@@ -23,7 +23,7 @@ public sealed class ModuleExtractionResult
 
     /// <summary>
     /// Parse tree generato da ANTLR (<see cref="VisualBasic6Parser.StartRuleContext"/>).
-    /// Mantenuto in memoria per consentire a successivi analizzatori (es. <see cref="VB6Analyzer.Semantic.Resolution.RoutineInvocationAnalyzer"/>)
+    /// Mantenuto in memoria per consentire a successivi analizzatori (es. <see cref="Macondo.Semantic.Resolution.RoutineInvocationAnalyzer"/>)
     /// di attraversare i corpi dei metodi senza dover riparsare il file sorgente da zero.
     /// </summary>
     public VisualBasic6Parser.StartRuleContext? ParseTree { get; init; }

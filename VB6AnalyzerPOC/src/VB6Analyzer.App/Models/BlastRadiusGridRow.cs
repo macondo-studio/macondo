@@ -1,7 +1,7 @@
-using VB6Analyzer.Semantic.Impact;
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.Semantic.Impact;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.App.Models;
+namespace Macondo.App.Models;
 
 /// <summary>
 /// Rappresenta una riga di riepilogo del Blast Radius per il DataGrid della Vista Griglia.

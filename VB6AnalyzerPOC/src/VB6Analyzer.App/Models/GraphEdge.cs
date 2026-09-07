@@ -1,6 +1,6 @@
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.App.Models;
+namespace Macondo.App.Models;
 
 /// <summary>
 /// Arco visuale del CodeGraph renderizzato dal GraphControl.

@@ -1,8 +1,8 @@
-using Antlr4.Runtime.Tree;
-using VB6Analyzer.Parser.Grammar;
-using VB6Analyzer.Semantic.Model;
+﻿using Antlr4.Runtime.Tree;
+using Macondo.Parser.Grammar;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.Semantic.Resolution;
+namespace Macondo.Semantic.Resolution;
 
 /// <summary>
 /// Rappresenta un call-site (punto di invocazione o accesso a membro) analizzato e risolto nel codice VB6.

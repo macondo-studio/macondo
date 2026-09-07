@@ -1,8 +1,8 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Threading;
-using VB6Analyzer.Semantic.Model;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.Semantic.Graph;
+namespace Macondo.Semantic.Graph;
 
 /// <summary>
 /// Motore di interrogazione e algoritmi sul Call Graph (sezione 16 del charter).

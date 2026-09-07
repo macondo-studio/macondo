@@ -1,4 +1,4 @@
-namespace VB6Analyzer.Semantic.Model;
+﻿namespace Macondo.Semantic.Model;
 
 
 /// <summary>

@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -8,13 +8,13 @@ using Avalonia.Threading;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using VB6Analyzer.App.Models;
-using VB6Analyzer.App.Services;
-using VB6Analyzer.App.Views;
-using VB6Analyzer.Semantic.Impact;
-using VB6Analyzer.Semantic.Model;
+using Macondo.App.Models;
+using Macondo.App.Services;
+using Macondo.App.Views;
+using Macondo.Semantic.Impact;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.App;
+namespace Macondo.App;
 
 /// <summary>
 /// Finestra principale dell'applicazione VB6 Analyzer (Milestone M5 + M6).
@@ -150,7 +150,7 @@ public partial class MainWindow : Window
         // Sincronizzazione selezione tra Tab Grafo e Tab Griglia Blast Radius
         CentralTabControl.SelectionChanged += OnCentralTabSelectionChanged;
 
-        // Inizializzazione Impostazioni e Preferenze Utente (%APPDATA%\VB6Analyzer\settings.json)
+        // Inizializzazione Impostazioni e Preferenze Utente (%APPDATA%\Macondo\settings.json)
         var settings = SettingsService.Instance.Settings;
 
         // Ripristino Geometria Finestra
@@ -359,7 +359,7 @@ public partial class MainWindow : Window
     {
         if (!Directory.Exists(folderPath)) return;
 
-        // 1. Tenta il ripristino ultra-rapido dalla cache locale (%APPDATA%\VB6Analyzer\cache\) se non forzato
+        // 1. Tenta il ripristino ultra-rapido dalla cache locale (%APPDATA%\Macondo\cache\) se non forzato
         if (!forceReanalyze)
         {
             var cachedSnapshot = await ProjectCacheService.Instance.TryLoadSnapshotAsync(folderPath);

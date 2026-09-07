@@ -1,4 +1,4 @@
-namespace VB6Analyzer.Semantic.Model;
+﻿namespace Macondo.Semantic.Model;
 
 /// <summary>
 /// Categoria del simbolo semantico, allineata con l'elenco della sezione 8 del charter.

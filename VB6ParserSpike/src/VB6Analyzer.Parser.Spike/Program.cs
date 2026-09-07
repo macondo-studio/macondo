@@ -1,8 +1,8 @@
-using Antlr4.Runtime;
-using VB6Analyzer.Parser.Diagnostics;
-using VB6Analyzer.Parser.Grammar;
+﻿using Antlr4.Runtime;
+using Macondo.Parser.Diagnostics;
+using Macondo.Parser.Grammar;
 
-namespace VB6Analyzer.Parser.Spike;
+namespace Macondo.Parser.Spike;
 
 /// <summary>
 /// Spike M1: verifica che la grammar ANTLR4 VisualBasic6 (ProLeap/grammars-v4),

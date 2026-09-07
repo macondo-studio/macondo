@@ -1,12 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using VB6Analyzer.Semantic.Impact;
-using VB6Analyzer.Semantic.Model;
+using Macondo.Semantic.Impact;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.App.Services;
+namespace Macondo.App.Services;
 
 /// <summary>
-/// Snapshot completo del progetto analizzato salvato nella cache locale (%APPDATA%\VB6Analyzer\cache\).
+/// Snapshot completo del progetto analizzato salvato nella cache locale (%APPDATA%\Macondo\cache\).
 /// Permette l'avvio a freddo istantaneo (sub-50ms) ripristinando il CodeGraph semantico,
 /// il layout geometrico del grafo visuale e l'intera matrice del Blast Radius.
 /// </summary>

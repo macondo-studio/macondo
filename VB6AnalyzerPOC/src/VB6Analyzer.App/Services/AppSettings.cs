@@ -1,8 +1,8 @@
-namespace VB6Analyzer.App.Services;
+﻿namespace Macondo.App.Services;
 
 /// <summary>
 /// Modello serializzabile per la memorizzazione delle impostazioni e preferenze utente.
-/// Salvato in %APPDATA%\VB6Analyzer\settings.json.
+/// Salvato in %APPDATA%\Macondo\settings.json.
 /// </summary>
 public sealed class AppSettings
 {

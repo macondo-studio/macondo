@@ -1,6 +1,6 @@
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.Semantic.Resolution;
+namespace Macondo.Semantic.Resolution;
 
 /// <summary>
 /// Descrittore della classificazione semantica di un tipo di dato in VB6.

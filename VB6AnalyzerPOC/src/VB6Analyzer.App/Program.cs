@@ -1,6 +1,6 @@
-using Avalonia;
+﻿using Avalonia;
 
-namespace VB6Analyzer.App;
+namespace Macondo.App;
 
 internal static class Program
 {

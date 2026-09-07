@@ -1,6 +1,6 @@
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.Semantic.Resolution;
+namespace Macondo.Semantic.Resolution;
 
 /// <summary>
 /// Interfaccia per uno scope di visibilità e lookup dei simboli in VB6 (sezione 13 del charter).

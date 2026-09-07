@@ -1,9 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:VB6Analyzer.App.Controls"
-        xmlns:models="using:VB6Analyzer.App.Models"
-        x:Class="VB6Analyzer.App.MainWindow"
-        Title="VB6 Semantic Code Analyzer"
+        xmlns:controls="using:Macondo.App.Controls"
+        xmlns:models="using:Macondo.App.Models"
+        x:Class="Macondo.App.MainWindow"
+        Title="Macondo"
         Width="1400" Height="900"
         Background="#181820"
         ExtendClientAreaToDecorationsHint="True"
@@ -19,7 +19,7 @@
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,16,0" Spacing="6">
                         <PathIcon Data="{StaticResource IconAppLogo}" Width="12" Height="12" Foreground="#FF6633" VerticalAlignment="Center" />
-                        <TextBlock Text="VB6 Analyzer" FontWeight="SemiBold" FontSize="12" Foreground="#8A8A9E" VerticalAlignment="Center" />
+                        <TextBlock Text="Macondo" FontWeight="SemiBold" FontSize="12" Foreground="#ECECF0" VerticalAlignment="Center" />
                     </StackPanel>
 
                     <Menu Background="Transparent">

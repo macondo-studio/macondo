@@ -5,7 +5,8 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>VB6Analyzer.Parser</RootNamespace>
+    <RootNamespace>Macondo.Parser</RootNamespace>
+    <AssemblyName>Macondo.Parser</AssemblyName>
 
     <!--
       Antlr4BuildTasks invoca lo strumento antlr4 (Java) durante la build per rigenerare
@@ -36,12 +37,12 @@
       trovarli nello stesso namespace generato.
     -->
     <Antlr4 Include="Grammar\VisualBasic6Lexer.g4">
-      <Package>VB6Analyzer.Parser.Grammar</Package>
+      <Package>Macondo.Parser.Grammar</Package>
       <Visitor>true</Visitor>
       <Listener>false</Listener>
     </Antlr4>
     <Antlr4 Include="Grammar\VisualBasic6Parser.g4">
-      <Package>VB6Analyzer.Parser.Grammar</Package>
+      <Package>Macondo.Parser.Grammar</Package>
       <Visitor>true</Visitor>
       <Listener>false</Listener>
     </Antlr4>

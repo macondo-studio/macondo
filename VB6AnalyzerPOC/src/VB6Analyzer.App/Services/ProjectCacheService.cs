@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,15 +7,15 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using VB6Analyzer.App.Layout;
-using VB6Analyzer.App.Models;
-using VB6Analyzer.Semantic.Graph;
-using VB6Analyzer.Semantic.Model;
+using Macondo.App.Layout;
+using Macondo.App.Models;
+using Macondo.Semantic.Graph;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.App.Services;
+namespace Macondo.App.Services;
 
 /// <summary>
-/// Servizio ad alte prestazioni per il caching persistente dei progetti VB6 analizzati (%APPDATA%\VB6Analyzer\cache\).
+/// Servizio ad alte prestazioni per il caching persistente dei progetti VB6 analizzati (%APPDATA%\Macondo\cache\).
 /// Fornisce avvio istantaneo da disco, rilevamento dello stato di staleness rispetto ai file sorgente
 /// e ricostruzione del grafo e della tabella Blast Radius.
 /// </summary>
@@ -31,7 +31,7 @@ public sealed class ProjectCacheService
     {
         _cacheDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "VB6Analyzer",
+            "Macondo",
             "cache");
 
         Directory.CreateDirectory(_cacheDirectory);

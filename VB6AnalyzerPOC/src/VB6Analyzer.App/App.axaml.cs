@@ -1,8 +1,8 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
-namespace VB6Analyzer.App;
+namespace Macondo.App;
 
 public partial class App : Application
 {

@@ -1,4 +1,4 @@
-namespace VB6Analyzer.Semantic.Model;
+﻿namespace Macondo.Semantic.Model;
 
 
 /// <summary>
@@ -44,7 +44,7 @@ public sealed class Symbol
 
     /// <summary>
     /// ID del simbolo del tipo nel CodeGraph se si tratta di un tipo definito dall'utente/progetto (es. Class, Type, Enum).
-    /// Popolato dal <see cref="VB6Analyzer.Semantic.Resolution.TypeResolver"/>.
+    /// Popolato dal <see cref="Macondo.Semantic.Resolution.TypeResolver"/>.
     /// </summary>
     public Guid? ResolvedTypeSymbolId { get; set; }
 

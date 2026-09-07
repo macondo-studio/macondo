@@ -1,6 +1,6 @@
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.App.Models;
+namespace Macondo.App.Models;
 
 /// <summary>
 /// Nodo gerarchico per il Project Explorer (sezione 25 del charter).

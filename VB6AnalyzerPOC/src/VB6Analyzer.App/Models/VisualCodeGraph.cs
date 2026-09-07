@@ -1,7 +1,7 @@
-using VB6Analyzer.Semantic.Graph;
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.Semantic.Graph;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.App.Models;
+namespace Macondo.App.Models;
 
 /// <summary>
 /// Modello visuale del grafo per il rendering e l'interazione UI (sezione 18 e 24 del charter).
@@ -14,7 +14,7 @@ public sealed class VisualCodeGraph
     public List<GraphEdge> Edges { get; } = new();
 
     /// <summary>Riferimento al CodeGraph semantico reale sottostante.</summary>
-    public VB6Analyzer.Semantic.Model.CodeGraph? SemanticGraph { get; set; }
+    public Macondo.Semantic.Model.CodeGraph? SemanticGraph { get; set; }
 
     /// <summary>Motore di query semantiche sul Call Graph.</summary>
     public CallGraphQueries? Queries { get; set; }

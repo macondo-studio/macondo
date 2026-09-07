@@ -59,7 +59,7 @@ dotnet publish src/VB6Analyzer.App -c Release -r win-x64 --self-contained true -
 ```
 
 Verificare poi:
-- dimensione di `out/win-x64/VB6Analyzer.exe`
+- dimensione di `out/win-x64/Macondo.exe`
 - tempo di avvio (a freddo e a caldo)
 
 ## Publish — Native AOT (da validare, sezione 34/39)

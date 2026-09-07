@@ -1,6 +1,6 @@
-using Antlr4.Runtime;
+﻿using Antlr4.Runtime;
 
-namespace VB6Analyzer.Parser.Diagnostics;
+namespace Macondo.Parser.Diagnostics;
 
 /// <summary>
 /// Cattura gli errori di lexer/parser in una lista invece di stamparli grezzi su

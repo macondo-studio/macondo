@@ -1,4 +1,4 @@
-namespace VB6Analyzer.Semantic.Model;
+﻿namespace Macondo.Semantic.Model;
 
 /// <summary>
 /// Rappresenta un parametro formale nella firma di una routine (Sub, Function, Property) in VB6.

@@ -1,4 +1,4 @@
-namespace VB6Analyzer.Semantic.Model;
+﻿namespace Macondo.Semantic.Model;
 
 /// <summary>
 /// Rappresenta l'esito della risoluzione semantica di un identificatore, espressione o call-site in VB6 (M3).

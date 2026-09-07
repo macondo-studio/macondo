@@ -1,8 +1,8 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Media;
 using Avalonia.Styling;
 
-namespace VB6Analyzer.App.Services;
+namespace Macondo.App.Services;
 
 public enum AppTheme
 {

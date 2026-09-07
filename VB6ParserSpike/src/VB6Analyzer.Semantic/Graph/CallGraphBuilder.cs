@@ -1,8 +1,8 @@
-using VB6Analyzer.Semantic.Extraction;
-using VB6Analyzer.Semantic.Model;
-using VB6Analyzer.Semantic.Resolution;
+﻿using Macondo.Semantic.Extraction;
+using Macondo.Semantic.Model;
+using Macondo.Semantic.Resolution;
 
-namespace VB6Analyzer.Semantic.Graph;
+namespace Macondo.Semantic.Graph;
 
 /// <summary>
 /// Costruttore del Call Graph e generatore delle relazioni semantiche nel CodeGraph (Milestone M4).

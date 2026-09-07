@@ -1,12 +1,12 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace VB6Analyzer.App.Services;
+namespace Macondo.App.Services;
 
 /// <summary>
 /// Servizio singleton responsabile del caricamento, salvataggio e gestione della persistenza
-/// delle preferenze utente su file JSON (%APPDATA%\VB6Analyzer\settings.json).
+/// delle preferenze utente su file JSON (%APPDATA%\Macondo\settings.json).
 /// </summary>
 public sealed class SettingsService
 {
@@ -22,7 +22,7 @@ public sealed class SettingsService
     private SettingsService()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var dir = Path.Combine(appData, "VB6Analyzer");
+        var dir = Path.Combine(appData, "Macondo");
         _settingsFilePath = Path.Combine(dir, "settings.json");
 
         _jsonOptions = new JsonSerializerOptions

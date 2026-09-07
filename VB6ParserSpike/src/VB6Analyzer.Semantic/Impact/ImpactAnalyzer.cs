@@ -1,7 +1,7 @@
-using VB6Analyzer.Semantic.Graph;
-using VB6Analyzer.Semantic.Model;
+﻿using Macondo.Semantic.Graph;
+using Macondo.Semantic.Model;
 
-namespace VB6Analyzer.Semantic.Impact;
+namespace Macondo.Semantic.Impact;
 
 /// <summary>
 /// Motore di calcolo dell'Impact Analysis e del Blast Radius (sezione 17 e Milestone M6 del charter).
