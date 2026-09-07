@@ -276,76 +276,85 @@
                         <!-- Canvas del Grafo -->
                         <controls:GraphControl x:Name="Graph" SelectionChanged="OnGraphSelectionChanged" />
 
-                        <!-- Pannello Flottante Verticale Comandi Grafo (In alto a destra, Icona + Testo) -->
+                        <!-- Pannello Flottante Verticale Comandi Grafo (In alto a destra, Stile Solido Monocromatico) -->
                         <Border HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Margin="16"
-                                Background="#1C1C28F0"
-                                BorderBrush="#3D3D52"
+                                Margin="14"
+                                Background="#1C1C26"
+                                BorderBrush="#2E2E3E"
                                 BorderThickness="1"
-                                CornerRadius="8"
-                                BoxShadow="0 6 24 0 #90000000"
-                                Padding="5">
+                                CornerRadius="6"
+                                BoxShadow="0 4 16 0 #70000000"
+                                Padding="4">
                             <Border.Styles>
                                 <Style Selector="Button">
                                     <Setter Property="HorizontalAlignment" Value="Stretch" />
                                     <Setter Property="HorizontalContentAlignment" Value="Left" />
-                                    <Setter Property="Padding" Value="10,6" />
+                                    <Setter Property="Padding" Value="8,5" />
                                     <Setter Property="Margin" Value="0,1" />
                                     <Setter Property="FontSize" Value="11" />
                                     <Setter Property="Background" Value="Transparent" />
                                     <Setter Property="BorderBrush" Value="Transparent" />
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Setter Property="CornerRadius" Value="4" />
+                                    <Setter Property="Foreground" Value="#9E9EB0" />
                                 </Style>
                                 <Style Selector="Button:pointerover">
-                                    <Setter Property="Background" Value="#2D2D40" />
-                                    <Setter Property="BorderBrush" Value="#464660" />
+                                    <Setter Property="Background" Value="#2A2A3A" />
+                                    <Setter Property="Foreground" Value="#FFFFFF" />
+                                </Style>
+                                <Style Selector="Button PathIcon">
+                                    <Setter Property="Foreground" Value="#9E9EB0" />
+                                </Style>
+                                <Style Selector="Button:pointerover PathIcon">
+                                    <Setter Property="Foreground" Value="#FFFFFF" />
                                 </Style>
                             </Border.Styles>
-                            <StackPanel Width="138">
+                            <StackPanel Width="130">
                                 <!-- Gruppo Vista e Navigazione -->
                                 <Button x:Name="ResetViewButton" ToolTip.Tip="Ripristina zoom 100% e centra la visuale">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <PathIcon Data="{StaticResource IconTarget}" Width="13" Height="13" Foreground="#4AE8D0" VerticalAlignment="Center" />
+                                        <PathIcon Data="{StaticResource IconTarget}" Width="13" Height="13" VerticalAlignment="Center" />
                                         <TextBlock Text="Reset Vista" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                                 <Button x:Name="ExpandAllButton" ToolTip.Tip="Espande tutti i moduli mostrando metodi e proprietà">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <PathIcon Data="{StaticResource IconExpandAll}" Width="13" Height="13" Foreground="#A0A0B8" VerticalAlignment="Center" />
+                                        <PathIcon Data="{StaticResource IconExpandAll}" Width="13" Height="13" VerticalAlignment="Center" />
                                         <TextBlock Text="Espandi Tutto" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                                 <Button x:Name="CollapseAllButton" ToolTip.Tip="Comprime tutti i moduli nascondendo i membri interni">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <PathIcon Data="{StaticResource IconCollapseAll}" Width="13" Height="13" Foreground="#A0A0B8" VerticalAlignment="Center" />
+                                        <PathIcon Data="{StaticResource IconCollapseAll}" Width="13" Height="13" VerticalAlignment="Center" />
                                         <TextBlock Text="Comprimi Tutto" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
 
                                 <!-- Separatore Sottile -->
-                                <Rectangle Height="1" Fill="#323246" Margin="4,4" />
+                                <Rectangle Height="1" Fill="#2E2E3E" Margin="4,3" />
 
                                 <!-- Gruppo Ispezione e Blast Radius -->
                                 <Button x:Name="BlastRadiusButton" ToolTip.Tip="Calcola ed evidenzia l'impatto di modifica (chiamanti indiretti, form e classi impattate)">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <PathIcon Data="{StaticResource IconBlastRadius}" Width="13" Height="13" Foreground="#FF6633" VerticalAlignment="Center" />
+                                        <PathIcon Data="{StaticResource IconBlastRadius}" Width="13" Height="13" VerticalAlignment="Center" />
                                         <TextBlock Text="Blast Radius" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                                 <Button x:Name="ShowCallersButton" ToolTip.Tip="Evidenzia chi chiama la routine selezionata">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <PathIcon Data="{StaticResource IconCallers}" Width="13" Height="13" Foreground="#50E3C2" VerticalAlignment="Center" />
+                                        <PathIcon Data="{StaticResource IconCallers}" Width="13" Height="13" VerticalAlignment="Center" />
                                         <TextBlock Text="Mostra Callers" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                                 <Button x:Name="ShowCalleesButton" ToolTip.Tip="Evidenzia cosa chiama la routine selezionata">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <PathIcon Data="{StaticResource IconCallees}" Width="13" Height="13" Foreground="#61AFEF" VerticalAlignment="Center" />
+                                        <PathIcon Data="{StaticResource IconCallees}" Width="13" Height="13" VerticalAlignment="Center" />
                                         <TextBlock Text="Mostra Callees" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                                 <Button x:Name="ClearHighlightButton" ToolTip.Tip="Rimuove le evidenziazioni attive">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <PathIcon Data="{StaticResource IconClearFilter}" Width="13" Height="13" Foreground="#E06C75" VerticalAlignment="Center" />
+                                        <PathIcon Data="{StaticResource IconClearFilter}" Width="13" Height="13" VerticalAlignment="Center" />
                                         <TextBlock Text="Pulisci Filtri" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
