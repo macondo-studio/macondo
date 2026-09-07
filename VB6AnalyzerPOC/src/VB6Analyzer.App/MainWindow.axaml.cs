@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VB6Analyzer.App.Models;
 using VB6Analyzer.App.Services;
+using VB6Analyzer.App.Views;
 using VB6Analyzer.Semantic.Impact;
 using VB6Analyzer.Semantic.Model;
 
@@ -35,11 +36,13 @@ public partial class MainWindow : Window
         OpenFolderMenuItem.Command = new ActionCommand(async () => await OpenFolderAsync());
         LoadFixturesMenuItem.Command = new ActionCommand(() => LoadDefaultFixtures());
         GenerateFakeMenuItem.Command = new ActionCommand(() => LoadSyntheticGraph());
+        SettingsMenuItem.Command = new ActionCommand(OpenSettings);
         ExitMenuItem.Command = new ActionCommand(() => Close());
 
         OpenFolderMenuItem.Click += async (_, _) => await OpenFolderAsync();
         LoadFixturesMenuItem.Click += (_, _) => LoadDefaultFixtures();
         GenerateFakeMenuItem.Click += (_, _) => LoadSyntheticGraph();
+        SettingsMenuItem.Click += (_, _) => OpenSettings();
         ExitMenuItem.Click += (_, _) => Close();
 
         // Menu Bar Superiore - Visualizza & Analisi
@@ -52,7 +55,7 @@ public partial class MainWindow : Window
         ClearHighlightMenuItem.Command = new ActionCommand(() =>
         {
             Graph.ClearHighlightMode();
-            StatusText.Text = "Evidenziazione ripristinata alla modalità standard.";
+            StatusText.Text = LocalizationService.Instance["Menu_ClearHighlight"];
         });
 
         ResetViewMenuItem.Click += (_, _) => Graph.ResetView();
@@ -64,7 +67,7 @@ public partial class MainWindow : Window
         ClearHighlightMenuItem.Click += (_, _) =>
         {
             Graph.ClearHighlightMode();
-            StatusText.Text = "Evidenziazione ripristinata alla modalità standard.";
+            StatusText.Text = LocalizationService.Instance["Menu_ClearHighlight"];
         };
                 
         // Toolbar Azioni Rapide
@@ -78,10 +81,11 @@ public partial class MainWindow : Window
         ClearHighlightButton.Click += (_, _) =>
         {
             Graph.ClearHighlightMode();
-            StatusText.Text = "Evidenziazione ripristinata alla modalità standard.";
+            StatusText.Text = LocalizationService.Instance["Menu_ClearHighlight"];
         };
 
-        // Controlli Finestra Stile IDE (Riduci a icona, Ingrandisci/Ripristina, Chiudi)
+        // Controlli Finestra Stile IDE (Impostazioni, Riduci a icona, Ingrandisci/Ripristina, Chiudi)
+        SettingsButton.Click += (_, _) => OpenSettings();
         MinimizeButton.Click += (_, _) => WindowState = WindowState.Minimized;
         MaximizeButton.Click += (_, _) => ToggleMaximize();
         CloseButton.Click += (_, _) => Close();
@@ -107,7 +111,7 @@ public partial class MainWindow : Window
             }
         };
 
-        // Scorciatoie da tastiera globali (Ctrl + F per ricerca, Ctrl + O per cartella, F5 per blast radius)
+        // Scorciatoie da tastiera globali (Ctrl + F, Ctrl + O, Ctrl + ,, F5)
         AddHandler(KeyDownEvent, (sender, e) =>
         {
             if (e.KeyModifiers == KeyModifiers.Control && e.Key == Key.F)
@@ -121,6 +125,11 @@ public partial class MainWindow : Window
                 _ = OpenFolderAsync();
                 e.Handled = true;
             }
+            else if (e.KeyModifiers == KeyModifiers.Control && (e.Key == Key.OemComma || e.Key == Key.OemPeriod))
+            {
+                OpenSettings();
+                e.Handled = true;
+            }
             else if (e.KeyModifiers == KeyModifiers.None && e.Key == Key.F5)
             {
                 OnBlastRadiusClicked();
@@ -130,6 +139,13 @@ public partial class MainWindow : Window
 
         // Sincronizzazione selezione tra Tab Grafo e Tab Griglia Blast Radius
         CentralTabControl.SelectionChanged += OnCentralTabSelectionChanged;
+
+        // Servizi Reattivi: Localizzazione & Temi
+        LocalizationService.Instance.LanguageChanged += (_, _) => UpdateLocalizedUI();
+        ThemeService.Instance.ThemeChanged += (_, theme) => ApplyTheme(theme);
+
+        UpdateLocalizedUI();
+        ApplyTheme(ThemeService.Instance.CurrentDefinition);
 
         // Caricamento iniziale automatico delle fixture reali
         LoadDefaultFixtures();
@@ -411,12 +427,12 @@ public partial class MainWindow : Window
         {
             _selectionCts?.Cancel();
             ShowEmptyInspector();
-            StatusText.Text = "Nessun simbolo selezionato.";
+            StatusText.Text = LocalizationService.Instance["Inspector_NoSelection"];
         }
         else
         {
             SelectAndInspectNodeAsync(node);
-            StatusText.Text = $"Selezionato: [{node.Kind}] {node.QualifiedName}";
+            StatusText.Text = LocalizationService.Instance.Get("Status_Selected", node.Kind, node.QualifiedName);
         }
     }
 
@@ -470,10 +486,10 @@ public partial class MainWindow : Window
 
         if (matches.Count == 0)
         {
-            SearchResultsHeader.Text = $"Nessun simbolo trovato per '{query}'";
+            SearchResultsHeader.Text = LocalizationService.Instance.Get("Search_NoMatches", query);
             SearchResultsList.ItemsSource = null;
             SearchResultsPopup.IsOpen = true;
-            StatusText.Text = $"Nessun simbolo corrispondente a '{query}'.";
+            StatusText.Text = LocalizationService.Instance.Get("Search_NoMatches", query);
         }
         else if (matches.Count == 1)
         {
@@ -481,16 +497,15 @@ public partial class MainWindow : Window
             SearchResultsPopup.IsOpen = false;
             SearchResultsList.ItemsSource = matches;
             SelectAndFocusGraphNode(matches[0]);
-            StatusText.Text = $"Trovato 1 simbolo: [{matches[0].Kind}] {matches[0].QualifiedName}";
+            StatusText.Text = LocalizationService.Instance.Get("Search_SingleMatch", matches[0].Kind, matches[0].QualifiedName);
         }
         else
         {
-            // Più di un risultato: NON mostrare direttamente il primo nodo nel grafico,
-            // ma mostra la lista dei risultati da cui l'utente può selezionare l'elemento specifico
-            SearchResultsHeader.Text = $"Trovati {matches.Count} simboli (clicca per selezionare):";
+            // Più di un risultato: mostra la lista dei risultati da cui selezionare
+            SearchResultsHeader.Text = LocalizationService.Instance.Get("Search_MultipleMatches", matches.Count);
             SearchResultsList.ItemsSource = matches;
             SearchResultsPopup.IsOpen = true;
-            StatusText.Text = $"Trovati {matches.Count} simboli corrispondenti a '{query}'. Seleziona un elemento dalla lista.";
+            StatusText.Text = LocalizationService.Instance.Get("Search_MultipleMatches", matches.Count);
         }
     }
 
@@ -830,7 +845,7 @@ public partial class MainWindow : Window
         {
             _allBlastRadiusRows = new();
             if (BlastRadiusDataGrid != null) BlastRadiusDataGrid.ItemsSource = null;
-            if (GridStatsTextBlock != null) GridStatsTextBlock.Text = "0 routine analizzate";
+            if (GridStatsTextBlock != null) GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_StatsFormat", 0, 0);
             return;
         }
 
@@ -845,7 +860,7 @@ public partial class MainWindow : Window
             .ToList();
 
         if (GridStatsTextBlock != null)
-            GridStatsTextBlock.Text = $"Calcolo audit in corso per {routineNodes.Count} routine...";
+            GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_Calculating", routineNodes.Count);
 
         var rows = await Task.Run(() =>
         {
@@ -930,7 +945,7 @@ public partial class MainWindow : Window
 
         var filteredList = query.ToList();
         BlastRadiusDataGrid.ItemsSource = filteredList;
-        GridStatsTextBlock.Text = $"{filteredList.Count} di {_allBlastRadiusRows.Count} routine";
+        GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_StatsFormat", filteredList.Count, _allBlastRadiusRows.Count);
 
         // Se c'è un nodo selezionato, sincronizza la riga corrispondente
         if (_selectedNode != null)
@@ -1038,7 +1053,155 @@ public partial class MainWindow : Window
         var callCount = _graph.Edges.Count(e => e.Kind == RelationshipKind.Calls);
         var instCount = _graph.Edges.Count(e => e.Kind == RelationshipKind.Instantiates);
 
-        StatusStats.Text = $"Nodi: {nodeCount} | Relazioni: {relCount} (Calls: {callCount}, Instantiates: {instCount})";
+        StatusStats.Text = LocalizationService.Instance.Get("Status_StatsFormat", nodeCount, relCount, callCount, instCount);
+    }
+
+    private void OpenSettings()
+    {
+        var settingsWin = new SettingsWindow();
+        settingsWin.ShowDialog(this);
+    }
+
+    private void ApplyTheme(ThemeDefinition theme)
+    {
+        if (Color.TryParse(theme.BackgroundPrimary, out var bgPrimary))
+            Background = new SolidColorBrush(bgPrimary);
+
+        if (Color.TryParse(theme.BackgroundSecondary, out var bgSecondary))
+        {
+            var secondaryBrush = new SolidColorBrush(bgSecondary);
+            TopBarBorder.Background = secondaryBrush;
+            SearchBarBorder.Background = secondaryBrush;
+            StatusBarBorder.Background = secondaryBrush;
+            FloatingHudBorder.Background = secondaryBrush;
+        }
+
+        if (Color.TryParse(theme.BackgroundSurface, out var bgSurface))
+        {
+            var surfaceBrush = new SolidColorBrush(bgSurface);
+            ExplorerBorder.Background = surfaceBrush;
+            GridToolbarBorder.Background = surfaceBrush;
+            InspectorBorder.Background = surfaceBrush;
+            BlastRadiusDataGrid.Background = surfaceBrush;
+            BlastRadiusDataGrid.RowBackground = surfaceBrush;
+        }
+
+        if (Color.TryParse(theme.BorderDefault, out var borderCol))
+        {
+            var borderBrush = new SolidColorBrush(borderCol);
+            TopBarBorder.BorderBrush = borderBrush;
+            SearchBarBorder.BorderBrush = borderBrush;
+            StatusBarBorder.BorderBrush = borderBrush;
+            FloatingHudBorder.BorderBrush = borderBrush;
+            ExplorerBorder.BorderBrush = borderBrush;
+            GridToolbarBorder.BorderBrush = borderBrush;
+            InspectorBorder.BorderBrush = borderBrush;
+        }
+
+        Graph.ApplyTheme(theme);
+    }
+
+    private void UpdateLocalizedUI()
+    {
+        var loc = LocalizationService.Instance;
+
+        // Menu File
+        FileMenu.Header = loc["Menu_File"];
+        OpenFolderMenuItem.Header = loc["Menu_OpenFolder"];
+        LoadFixturesMenuItem.Header = loc["Menu_LoadFixtures"];
+        GenerateFakeMenuItem.Header = loc["Menu_GenerateFake"];
+        SettingsMenuItem.Header = loc["Menu_Settings"];
+        ExitMenuItem.Header = loc["Menu_Exit"];
+
+        // Menu Visualizza
+        ViewMenu.Header = loc["Menu_View"];
+        ResetViewMenuItem.Header = loc["Menu_ResetView"];
+        ExpandAllMenuItem.Header = loc["Menu_ExpandAll"];
+        CollapseAllMenuItem.Header = loc["Menu_CollapseAll"];
+
+        // Menu Analisi
+        AnalysisMenu.Header = loc["Menu_Analysis"];
+        BlastRadiusMenuItem.Header = loc["Menu_BlastRadius"];
+        ShowCallersMenuItem.Header = loc["Menu_ShowCallers"];
+        ShowCalleesMenuItem.Header = loc["Menu_ShowCallees"];
+        ClearHighlightMenuItem.Header = loc["Menu_ClearHighlight"];
+
+        // Caption Buttons Tooltips
+        ToolTip.SetTip(SettingsButton, loc["Settings_Title"] + " (Ctrl+,)");
+        ToolTip.SetTip(MinimizeButton, loc.CurrentLanguage == AppLanguage.English ? "Minimize" : "Riduci a icona");
+        ToolTip.SetTip(MaximizeButton, loc.CurrentLanguage == AppLanguage.English ? "Maximize / Restore" : "Ingrandisci / Ripristina");
+        ToolTip.SetTip(CloseButton, loc.CurrentLanguage == AppLanguage.English ? "Close" : "Chiudi");
+
+        // Ricerca
+        SearchBox.Watermark = loc["Search_Watermark"];
+
+        // Explorer
+        ExplorerTitleText.Text = loc["Explorer_Title"];
+
+        // Tab Centrali
+        GraphTabHeader.Text = loc["Tab_GraphView"];
+        GridTabHeader.Text = loc["Tab_BlastRadiusGrid"];
+
+        // Floating HUD
+        HudResetViewText.Text = loc["HUD_ResetView"];
+        HudExpandAllText.Text = loc["HUD_ExpandAll"];
+        HudCollapseAllText.Text = loc["HUD_CollapseAll"];
+        HudBlastRadiusText.Text = loc["HUD_BlastRadius"];
+        HudShowCallersText.Text = loc["HUD_ShowCallers"];
+        HudShowCalleesText.Text = loc["HUD_ShowCallees"];
+        HudClearHighlightText.Text = loc["HUD_ClearFilter"];
+
+        // Grid Toolbar
+        GridFilterLabel.Text = loc["Grid_FilterLabel"];
+        GridFilterTextBox.Watermark = loc["Grid_FilterWatermark"];
+        GridRiskLabel.Text = loc["Grid_RiskLabel"];
+        RiskItemAll.Content = loc["Grid_AllRisks"];
+        RefreshGridButtonText.Text = loc["Grid_Recalculate"];
+
+        // DataGrid Colonne
+        if (BlastRadiusDataGrid?.Columns.Count >= 9)
+        {
+            BlastRadiusDataGrid.Columns[0].Header = loc["Col_Routine"];
+            BlastRadiusDataGrid.Columns[1].Header = loc["Col_Module"];
+            BlastRadiusDataGrid.Columns[2].Header = loc["Col_DirectCallers"];
+            BlastRadiusDataGrid.Columns[3].Header = loc["Col_IndirectCallers"];
+            BlastRadiusDataGrid.Columns[4].Header = loc["Col_Depth"];
+            BlastRadiusDataGrid.Columns[5].Header = loc["Col_Risk"];
+            BlastRadiusDataGrid.Columns[6].Header = loc["Col_Forms"];
+            BlastRadiusDataGrid.Columns[7].Header = loc["Col_TotalImpact"];
+            BlastRadiusDataGrid.Columns[8].Header = loc["Col_Action"];
+        }
+
+        // Inspector
+        InspectorTitleText.Text = loc["Inspector_Title"];
+        InspectorEmptyTitle.Text = loc["Inspector_NoSelection"];
+        InspectorEmptyHint1.Text = loc["Inspector_Hint1"];
+        InspectorEmptyHint2.Text = loc["Inspector_Hint2"];
+        InspectorEmptyHint3.Text = loc["Inspector_Hint3"];
+        InspectorSecSymbol.Text = loc["Inspector_Sec_Symbol"];
+        InspectorSecKind.Text = loc["Inspector_Sec_Kind"];
+        InspectorSecVisibility.Text = loc["Inspector_Sec_Visibility"];
+        InspectorSecType.Text = loc["Inspector_Sec_Type"];
+        InspectorSecParams.Text = loc["Inspector_Sec_Params"];
+        InspectorSecFile.Text = loc["Inspector_Sec_File"];
+        InspectorSecBlast.Text = loc["Inspector_Sec_BlastRadius"];
+        InspectorLabelDirectCallers.Text = loc["Inspector_DirectCallersCount"];
+        InspectorLabelIndirectCallers.Text = loc["Inspector_IndirectCallersCount"];
+        InspectorLabelMaxDepth.Text = loc["Inspector_MaxDepth"];
+        InspectorSecForms.Text = loc["Inspector_Sec_Forms"];
+        InspectorSecClasses.Text = loc["Inspector_Sec_Classes"];
+        InspectorSecPaths.Text = loc["Inspector_Sec_Paths"];
+        InspectorSecCallers.Text = loc["Inspector_Sec_WhoCallsMe"];
+        InspectorSecCallees.Text = loc["Inspector_Sec_WhatDoICall"];
+        InspectorSecInstantiates.Text = loc["Inspector_Sec_Instantiates"];
+
+        // Refresh dynamic strings in Grid and Status
+        UpdateStatsBar();
+        ApplyGridFilters();
+        if (_selectedNode == null)
+        {
+            StatusText.Text = loc["Status_Ready"];
+        }
     }
 }
 

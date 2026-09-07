@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using VB6Analyzer.App.Models;
+using VB6Analyzer.App.Services;
 using VB6Analyzer.Semantic.Impact;
 using VB6Analyzer.Semantic.Model;
 
@@ -68,7 +69,8 @@ public sealed class GraphControl : Control
     public HighlightMode CurrentHighlightMode => _currentHighlightMode;
 
     // Pennelli e Stili
-    private static readonly IBrush BackgroundBrush = new SolidColorBrush(Color.Parse("#1A1A22"));
+    private IBrush _backgroundBrush = new SolidColorBrush(Color.Parse("#181822"));
+    private IBrush _defaultLabelBrush = Brushes.WhiteSmoke;
     private static readonly IPen EdgeContainsPen = new Pen(new SolidColorBrush(Color.Parse("#30303E")), 1);
     private static readonly IPen EdgeCallsPen = new Pen(new SolidColorBrush(Color.Parse("#4A78B8")), 1.5);
     private static readonly IPen EdgeInstantiatesPen = new Pen(new SolidColorBrush(Color.Parse("#D4883B")), 1.5, DashStyle.Dash);
@@ -101,7 +103,7 @@ public sealed class GraphControl : Control
 
     public override void Render(DrawingContext context)
     {
-        context.FillRectangle(BackgroundBrush, new Rect(Bounds.Size));
+        context.FillRectangle(_backgroundBrush, new Rect(Bounds.Size));
 
         var graph = Graph;
         if (graph is null || graph.Nodes.Count == 0)
@@ -227,16 +229,16 @@ public sealed class GraphControl : Control
                 else if (_currentHighlightMode == HighlightMode.Callers)
                 {
                     labelBrush = isCaller ? new SolidColorBrush(Color.Parse("#FF9933")) :
-                                 (_callerContainerIds.Contains(node.Id) ? Brushes.WhiteSmoke : new SolidColorBrush(Color.Parse("#555566")));
+                                 (_callerContainerIds.Contains(node.Id) ? _defaultLabelBrush : new SolidColorBrush(Color.Parse("#555566")));
                 }
                 else if (_currentHighlightMode == HighlightMode.BlastRadius)
                 {
                     labelBrush = blastDepth.HasValue ? Brushes.Gold :
-                                 (isAffectedContainer ? Brushes.WhiteSmoke : new SolidColorBrush(Color.Parse("#555566")));
+                                 (isAffectedContainer ? _defaultLabelBrush : new SolidColorBrush(Color.Parse("#555566")));
                 }
                 else
                 {
-                    labelBrush = Brushes.WhiteSmoke;
+                    labelBrush = _defaultLabelBrush;
                 }
 
                 var label = new FormattedText(
@@ -807,6 +809,18 @@ public sealed class GraphControl : Control
         ClearInternalHighlightState();
         _activeBlastRadiusReport = null;
         _currentHighlightMode = HighlightMode.Normal;
+        InvalidateVisual();
+    }
+
+    /// <summary>
+    /// Applica il tema al canvas del grafo (colore di sfondo ed etichette).
+    /// </summary>
+    public void ApplyTheme(ThemeDefinition theme)
+    {
+        if (Color.TryParse(theme.GraphBackground, out var bgCol))
+            _backgroundBrush = new SolidColorBrush(bgCol);
+
+        _defaultLabelBrush = theme.IsDark ? Brushes.WhiteSmoke : new SolidColorBrush(Color.Parse("#1A1A24"));
         InvalidateVisual();
     }
 }

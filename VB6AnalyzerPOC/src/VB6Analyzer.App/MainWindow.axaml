@@ -13,7 +13,7 @@
     <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="{Binding $parent[Window].OffScreenMargin}">
 
         <!-- Barra Superiore Stile IDE (Brand & Menu a Sinistra | Area Trascinamento al Centro | Controlli Finestra a Destra) -->
-        <Border Grid.Row="0" Background="#14141D" BorderBrush="#2D2D3E" BorderThickness="0,0,0,1" Padding="8,0,0,0" Height="36">
+        <Border x:Name="TopBarBorder" Grid.Row="0" Background="#14141D" BorderBrush="#2D2D3E" BorderThickness="0,0,0,1" Padding="8,0,0,0" Height="36">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <!-- Sinistra: Brand / Logo App + Menu a Discesa -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
@@ -23,7 +23,7 @@
                     </StackPanel>
 
                     <Menu Background="Transparent">
-                        <MenuItem Header="_File">
+                        <MenuItem x:Name="FileMenu" Header="_File">
                             <MenuItem x:Name="OpenFolderMenuItem" Header="Apri Cartella VB6..." InputGesture="Ctrl+O">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" />
@@ -40,13 +40,19 @@
                                 </MenuItem.Icon>
                             </MenuItem>
                             <Separator />
+                            <MenuItem x:Name="SettingsMenuItem" Header="Impostazioni..." InputGesture="Ctrl+,">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconSettings}" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator />
                             <MenuItem x:Name="ExitMenuItem" Header="Esci" InputGesture="Alt+F4">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconExit}" Width="14" Height="14" />
                                 </MenuItem.Icon>
                             </MenuItem>
                         </MenuItem>
-                        <MenuItem Header="_Visualizza">
+                        <MenuItem x:Name="ViewMenu" Header="_Visualizza">
                             <MenuItem x:Name="ResetViewMenuItem" Header="Reset Vista">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconTarget}" Width="14" Height="14" />
@@ -63,7 +69,7 @@
                                 </MenuItem.Icon>
                             </MenuItem>
                         </MenuItem>
-                        <MenuItem Header="_Analisi">
+                        <MenuItem x:Name="AnalysisMenu" Header="_Analisi">
                             <MenuItem x:Name="BlastRadiusMenuItem" Header="Calcola Blast Radius" InputGesture="F5">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconBlastRadius}" Width="14" Height="14" Foreground="#FF6633" />
@@ -94,7 +100,7 @@
                         PointerPressed="OnTitleBarPointerPressed"
                         DoubleTapped="OnTitleBarDoubleTapped" />
 
-                <!-- Destra: Pulsanti di Controllo Finestra (Riduci a icona, Ingrandisci, Chiudi) -->
+                <!-- Destra: Pulsanti di Controllo Finestra e Impostazioni -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch">
                     <StackPanel.Styles>
                         <Style Selector="Button.caption-btn">
@@ -118,6 +124,9 @@
                         </Style>
                     </StackPanel.Styles>
 
+                    <Button x:Name="SettingsButton" Classes="caption-btn" ToolTip.Tip="Impostazioni (Ctrl+,)">
+                        <PathIcon Data="{StaticResource IconSettings}" Width="12" Height="12" />
+                    </Button>
                     <Button x:Name="MinimizeButton" Classes="caption-btn" ToolTip.Tip="Riduci a icona">
                         <PathIcon Data="{StaticResource IconWindowMinimize}" Width="10" Height="10" />
                     </Button>
@@ -132,7 +141,7 @@
         </Border>
 
         <!-- Barra Secondaria: Casella di Ricerca Dedicata con Hint Ctrl + F -->
-        <Border Grid.Row="1" Background="#181822" BorderBrush="#2A2A38" BorderThickness="0,0,0,1" Padding="10,6">
+        <Border x:Name="SearchBarBorder" Grid.Row="1" Background="#181822" BorderBrush="#2A2A38" BorderThickness="0,0,0,1" Padding="10,6">
             <Panel HorizontalAlignment="Center">
                 <TextBox x:Name="SearchBox"
                          Width="440"
@@ -223,11 +232,11 @@
             </Grid.ColumnDefinitions>
 
             <!-- Pannello Sinistro: Project Explorer -->
-            <Border Grid.Column="0" Background="#1E1E28" BorderBrush="#353545" BorderThickness="0,0,1,0" Padding="8">
+            <Border x:Name="ExplorerBorder" Grid.Column="0" Background="#1E1E28" BorderBrush="#353545" BorderThickness="0,0,1,0" Padding="8">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="4,4,4,8">
                         <PathIcon Data="{StaticResource IconFolder}" Width="13" Height="13" Foreground="#FF6633" VerticalAlignment="Center" />
-                        <TextBlock Text="Project Explorer" FontWeight="Bold" FontSize="13" Foreground="#ECECF0" VerticalAlignment="Center" />
+                        <TextBlock x:Name="ExplorerTitleText" Text="Project Explorer" FontWeight="Bold" FontSize="13" Foreground="#ECECF0" VerticalAlignment="Center" />
                     </StackPanel>
                     <TreeView x:Name="ExplorerTree" SelectionChanged="OnExplorerSelectionChanged">
                         <TreeView.ItemTemplate>
@@ -269,7 +278,7 @@
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconGraph}" Width="13" Height="13" VerticalAlignment="Center" />
-                            <TextBlock Text="Vista Grafo" VerticalAlignment="Center" />
+                            <TextBlock x:Name="GraphTabHeader" Text="Vista Grafo" VerticalAlignment="Center" />
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -277,7 +286,8 @@
                         <controls:GraphControl x:Name="Graph" SelectionChanged="OnGraphSelectionChanged" />
 
                         <!-- Pannello Flottante Verticale Comandi Grafo (In alto a destra, Stile Solido Monocromatico) -->
-                        <Border HorizontalAlignment="Right" VerticalAlignment="Top"
+                        <Border x:Name="FloatingHudBorder"
+                                HorizontalAlignment="Right" VerticalAlignment="Top"
                                 Margin="14"
                                 Background="#1C1C26"
                                 BorderBrush="#2E2E3E"
@@ -314,19 +324,19 @@
                                 <Button x:Name="ResetViewButton" ToolTip.Tip="Ripristina zoom 100% e centra la visuale">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <PathIcon Data="{StaticResource IconTarget}" Width="13" Height="13" VerticalAlignment="Center" />
-                                        <TextBlock Text="Reset Vista" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="HudResetViewText" Text="Reset Vista" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                                 <Button x:Name="ExpandAllButton" ToolTip.Tip="Espande tutti i moduli mostrando metodi e proprietà">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <PathIcon Data="{StaticResource IconExpandAll}" Width="13" Height="13" VerticalAlignment="Center" />
-                                        <TextBlock Text="Espandi Tutto" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="HudExpandAllText" Text="Espandi Tutto" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                                 <Button x:Name="CollapseAllButton" ToolTip.Tip="Comprime tutti i moduli nascondendo i membri interni">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <PathIcon Data="{StaticResource IconCollapseAll}" Width="13" Height="13" VerticalAlignment="Center" />
-                                        <TextBlock Text="Comprimi Tutto" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="HudCollapseAllText" Text="Comprimi Tutto" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
 
@@ -337,25 +347,25 @@
                                 <Button x:Name="BlastRadiusButton" ToolTip.Tip="Calcola ed evidenzia l'impatto di modifica (chiamanti indiretti, form e classi impattate)">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <PathIcon Data="{StaticResource IconBlastRadius}" Width="13" Height="13" VerticalAlignment="Center" />
-                                        <TextBlock Text="Blast Radius" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="HudBlastRadiusText" Text="Blast Radius" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                                 <Button x:Name="ShowCallersButton" ToolTip.Tip="Evidenzia chi chiama la routine selezionata">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <PathIcon Data="{StaticResource IconCallers}" Width="13" Height="13" VerticalAlignment="Center" />
-                                        <TextBlock Text="Mostra Callers" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="HudShowCallersText" Text="Mostra Callers" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                                 <Button x:Name="ShowCalleesButton" ToolTip.Tip="Evidenzia cosa chiama la routine selezionata">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <PathIcon Data="{StaticResource IconCallees}" Width="13" Height="13" VerticalAlignment="Center" />
-                                        <TextBlock Text="Mostra Callees" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="HudShowCalleesText" Text="Mostra Callees" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                                 <Button x:Name="ClearHighlightButton" ToolTip.Tip="Rimuove le evidenziazioni attive">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <PathIcon Data="{StaticResource IconClearFilter}" Width="13" Height="13" VerticalAlignment="Center" />
-                                        <TextBlock Text="Pulisci Filtri" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="HudClearHighlightText" Text="Pulisci Filtri" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
@@ -368,16 +378,16 @@
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconTable}" Width="13" Height="13" VerticalAlignment="Center" />
-                            <TextBlock Text="Griglia Blast Radius" VerticalAlignment="Center" />
+                            <TextBlock x:Name="GridTabHeader" Text="Griglia Blast Radius" VerticalAlignment="Center" />
                         </StackPanel>
                     </TabItem.Header>
                     <Grid RowDefinitions="Auto,*">
                         <!-- Toolbar della Griglia: Filtri e Statistiche -->
-                        <Border Grid.Row="0" Background="#20202C" BorderBrush="#353545" BorderThickness="0,0,0,1" Padding="12,8">
+                        <Border x:Name="GridToolbarBorder" Grid.Row="0" Background="#20202C" BorderBrush="#353545" BorderThickness="0,0,0,1" Padding="12,8">
                             <Grid ColumnDefinitions="Auto,Auto,*,Auto">
                                 <!-- Filtro Testo nella Tabella -->
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <TextBlock Text="Filtra:" VerticalAlignment="Center" FontSize="11" Foreground="#8A8A9E" />
+                                    <TextBlock x:Name="GridFilterLabel" Text="Filtra:" VerticalAlignment="Center" FontSize="11" Foreground="#8A8A9E" />
                                     <TextBox x:Name="GridFilterTextBox"
                                              Width="180"
                                              Watermark="Nome routine o modulo..."
@@ -387,9 +397,9 @@
 
                                 <!-- Filtro Livello di Rischio -->
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="16,0,0,0">
-                                    <TextBlock Text="Rischio:" VerticalAlignment="Center" FontSize="11" Foreground="#8A8A9E" />
+                                    <TextBlock x:Name="GridRiskLabel" Text="Rischio:" VerticalAlignment="Center" FontSize="11" Foreground="#8A8A9E" />
                                     <ComboBox x:Name="RiskFilterComboBox" SelectedIndex="0" FontSize="11" Width="130" SelectionChanged="OnRiskFilterChanged">
-                                        <ComboBoxItem Content="Tutti i Livelli" />
+                                        <ComboBoxItem x:Name="RiskItemAll" Content="Tutti i Livelli" />
                                         <ComboBoxItem Content="Critical" />
                                         <ComboBoxItem Content="High" />
                                         <ComboBoxItem Content="Medium" />
@@ -413,7 +423,7 @@
                                         Click="OnRefreshGridClicked">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <PathIcon Data="{StaticResource IconRefresh}" Width="11" Height="11" Foreground="#4AE8D0" VerticalAlignment="Center" />
-                                        <TextBlock Text="Ricalcola Audit" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="RefreshGridButtonText" Text="Ricalcola Audit" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                             </Grid>
@@ -519,30 +529,30 @@
                           Cursor="SizeWestEast" />
 
             <!-- Pannello Destro: Symbol Inspector & Impact Analysis -->
-            <Border Grid.Column="3" Background="#1E1E28" BorderBrush="#353545" BorderThickness="1,0,0,0" Padding="12">
+            <Border x:Name="InspectorBorder" Grid.Column="3" Background="#1E1E28" BorderBrush="#353545" BorderThickness="1,0,0,0" Padding="12">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="10">
                         <!-- Intestazione Inspector -->
                         <Border Padding="8,6" Background="#262632" CornerRadius="4">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <PathIcon Data="{StaticResource IconInspect}" Width="13" Height="13" Foreground="#FF6633" VerticalAlignment="Center" />
-                                <TextBlock Text="Symbol Inspector &amp; Blast Radius" FontWeight="SemiBold" FontSize="13" Foreground="#ECECF0" VerticalAlignment="Center" />
+                                <TextBlock x:Name="InspectorTitleText" Text="Symbol Inspector &amp; Blast Radius" FontWeight="SemiBold" FontSize="13" Foreground="#ECECF0" VerticalAlignment="Center" />
                             </StackPanel>
                         </Border>
 
                         <!-- Messaggio Nodo Non Selezionato -->
                         <StackPanel x:Name="InspectorEmptyPanel" Spacing="6" Margin="4,8">
-                            <TextBlock Text="Nessun simbolo selezionato." Foreground="#9090A0" FontWeight="Medium" />
-                            <TextBlock Text="• Clicca su un nodo per visualizzare dettagli semantici, tipi, parametri e chiamate." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
-                            <TextBlock Text="• Clicca su 'Blast Radius' per calcolare il raggio di impatto e il rischio di regressione." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
-                            <TextBlock Text="• Doppio clic su una Classe, Form o Modulo per espandere/comprimere i membri." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
+                            <TextBlock x:Name="InspectorEmptyTitle" Text="Nessun simbolo selezionato." Foreground="#9090A0" FontWeight="Medium" />
+                            <TextBlock x:Name="InspectorEmptyHint1" Text="• Clicca su un nodo per visualizzare dettagli semantici, tipi, parametri e chiamate." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
+                            <TextBlock x:Name="InspectorEmptyHint2" Text="• Clicca su 'Blast Radius' per calcolare il raggio di impatto e il rischio di regressione." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
+                            <TextBlock x:Name="InspectorEmptyHint3" Text="• Doppio clic su una Classe, Form o Modulo per espandere/comprimere i membri." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
                         </StackPanel>
 
                         <!-- Dettagli Simbolo Selezionato -->
                         <StackPanel x:Name="InspectorDetailsPanel" Spacing="8" IsVisible="False">
                             <!-- Nome -->
                             <StackPanel Spacing="2">
-                                <TextBlock Text="SIMBOLO" Foreground="#707080" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorSecSymbol" Text="SIMBOLO" Foreground="#707080" FontSize="10" FontWeight="Bold" />
                                 <TextBlock x:Name="InspectorName" FontWeight="Bold" FontSize="15" Foreground="#FFD700" TextWrapping="Wrap" />
                                 <TextBlock x:Name="InspectorQualifiedName" Foreground="#A0A0B0" FontSize="11" TextWrapping="Wrap" />
                             </StackPanel>
@@ -550,30 +560,30 @@
                             <!-- Kind & Visibilità -->
                             <Grid ColumnDefinitions="*,*" Margin="0,4">
                                 <StackPanel Grid.Column="0" Spacing="2">
-                                    <TextBlock Text="CATEGORIA" Foreground="#707080" FontSize="10" FontWeight="Bold" />
+                                    <TextBlock x:Name="InspectorSecKind" Text="CATEGORIA" Foreground="#707080" FontSize="10" FontWeight="Bold" />
                                     <TextBlock x:Name="InspectorKind" FontWeight="SemiBold" Foreground="#FFFFFF" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Spacing="2">
-                                    <TextBlock Text="VISIBILITÀ" Foreground="#707080" FontSize="10" FontWeight="Bold" />
+                                    <TextBlock x:Name="InspectorSecVisibility" Text="VISIBILITÀ" Foreground="#707080" FontSize="10" FontWeight="Bold" />
                                     <TextBlock x:Name="InspectorAccessibility" FontWeight="SemiBold" Foreground="#FFFFFF" />
                                 </StackPanel>
                             </Grid>
 
                             <!-- Tipo Dichiarato & Risolto -->
                             <StackPanel x:Name="InspectorTypeSection" Spacing="2" Margin="0,2">
-                                <TextBlock Text="TIPO" Foreground="#707080" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorSecType" Text="TIPO" Foreground="#707080" FontSize="10" FontWeight="Bold" />
                                 <TextBlock x:Name="InspectorType" TextWrapping="Wrap" Foreground="#4AE8D0" FontSize="12" />
                             </StackPanel>
 
                             <!-- Parametri Routine -->
                             <StackPanel x:Name="InspectorParamsSection" Spacing="3" Margin="0,2">
-                                <TextBlock Text="PARAMETRI FORMALI" Foreground="#707080" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorSecParams" Text="PARAMETRI FORMALI" Foreground="#707080" FontSize="10" FontWeight="Bold" />
                                 <TextBlock x:Name="InspectorParams" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" FontFamily="Consolas, monospace" />
                             </StackPanel>
 
                             <!-- File e Righe -->
                             <StackPanel x:Name="InspectorFileSection" Spacing="2" Margin="0,2">
-                                <TextBlock Text="FILE &amp; RIGHE" Foreground="#707080" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorSecFile" Text="FILE &amp; RIGHE" Foreground="#707080" FontSize="10" FontWeight="Bold" />
                                 <TextBlock x:Name="InspectorFile" TextWrapping="Wrap" Foreground="#A0A0B0" FontSize="11" />
                             </StackPanel>
 
@@ -583,7 +593,7 @@
                             <Border Background="#242432" BorderBrush="#3D3D52" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,4">
                                 <StackPanel Spacing="6">
                                     <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock Text="BLAST RADIUS (IMPACT)" Foreground="#FF6633" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="InspectorSecBlast" Text="BLAST RADIUS (IMPACT)" Foreground="#FF6633" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" />
                                         <Border Grid.Column="1" x:Name="RiskBadge" CornerRadius="4" Padding="6,2" Background="#2E7D32">
                                             <TextBlock x:Name="RiskLevelText" Text="RISK: LOW" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" />
                                         </Border>
@@ -591,31 +601,31 @@
 
                                     <!-- Metriche di Impatto -->
                                     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" Margin="0,4">
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Chiamanti Diretti:" Foreground="#A0A0B0" FontSize="11" />
+                                        <TextBlock Grid.Row="0" Grid.Column="0" x:Name="InspectorLabelDirectCallers" Text="Chiamanti Diretti:" Foreground="#A0A0B0" FontSize="11" />
                                         <TextBlock Grid.Row="0" Grid.Column="1" x:Name="BlastDirectCallersCount" Text="0" Foreground="#FFFFFF" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right" />
 
-                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Chiamanti Indiretti:" Foreground="#A0A0B0" FontSize="11" />
+                                        <TextBlock Grid.Row="1" Grid.Column="0" x:Name="InspectorLabelIndirectCallers" Text="Chiamanti Indiretti:" Foreground="#A0A0B0" FontSize="11" />
                                         <TextBlock Grid.Row="1" Grid.Column="1" x:Name="BlastIndirectCallersCount" Text="0" Foreground="#FFFFFF" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right" />
 
-                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Profondità Max (Depth):" Foreground="#A0A0B0" FontSize="11" />
+                                        <TextBlock Grid.Row="2" Grid.Column="0" x:Name="InspectorLabelMaxDepth" Text="Profondità Max (Depth):" Foreground="#A0A0B0" FontSize="11" />
                                         <TextBlock Grid.Row="2" Grid.Column="1" x:Name="BlastMaxDepth" Text="0" Foreground="#FFCC00" FontSize="11" FontWeight="Bold" HorizontalAlignment="Right" />
                                     </Grid>
 
                                     <!-- Form UI Impattate -->
                                     <StackPanel x:Name="BlastFormsSection" Spacing="2" Margin="0,2">
-                                        <TextBlock Text="FORM UI IMPATTATE" Foreground="#00D0FF" FontSize="10" FontWeight="Bold" />
+                                        <TextBlock x:Name="InspectorSecForms" Text="FORM UI IMPATTATE" Foreground="#00D0FF" FontSize="10" FontWeight="Bold" />
                                         <TextBlock x:Name="BlastFormsList" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
                                     </StackPanel>
 
                                     <!-- Classi & Moduli Impattati -->
                                     <StackPanel x:Name="BlastClassesSection" Spacing="2" Margin="0,2">
-                                        <TextBlock Text="CLASSI &amp; MODULI TOCCATI" Foreground="#54C08C" FontSize="10" FontWeight="Bold" />
+                                        <TextBlock x:Name="InspectorSecClasses" Text="CLASSI &amp; MODULI TOCCATI" Foreground="#54C08C" FontSize="10" FontWeight="Bold" />
                                         <TextBlock x:Name="BlastClassesList" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
                                     </StackPanel>
 
                                     <!-- Percorsi di Esecuzione a Rischio -->
                                     <StackPanel x:Name="BlastPathsSection" Spacing="2" Margin="0,2">
-                                        <TextBlock Text="PERCORSI DI ESECUZIONE (CALL CHAINS)" Foreground="#FFCC00" FontSize="10" FontWeight="Bold" />
+                                        <TextBlock x:Name="InspectorSecPaths" Text="PERCORSI DI ESECUZIONE (CALL CHAINS)" Foreground="#FFCC00" FontSize="10" FontWeight="Bold" />
                                         <TextBlock x:Name="BlastPathsList" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="10" FontFamily="Consolas, monospace" />
                                     </StackPanel>
                                 </StackPanel>
@@ -625,19 +635,19 @@
 
                             <!-- Chiamanti Diretti (Callers) -->
                             <StackPanel Spacing="3">
-                                <TextBlock Text="CHIAMANTI DIRETTI (WHO CALLS ME?)" Foreground="#FF9933" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorSecCallers" Text="CHIAMANTI DIRETTI (WHO CALLS ME?)" Foreground="#FF9933" FontSize="10" FontWeight="Bold" />
                                 <TextBlock x:Name="InspectorCallers" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
                             </StackPanel>
 
                             <!-- Chiamati Diretti (Callees) -->
                             <StackPanel Spacing="3" Margin="0,4">
-                                <TextBlock Text="CHIAMATE EFFETTUATE (WHAT DO I CALL?)" Foreground="#33CCFF" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorSecCallees" Text="CHIAMATE EFFETTUATE (WHAT DO I CALL?)" Foreground="#33CCFF" FontSize="10" FontWeight="Bold" />
                                 <TextBlock x:Name="InspectorCallees" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
                             </StackPanel>
 
                             <!-- Istanziazioni -->
                             <StackPanel x:Name="InspectorInstantiatesSection" Spacing="3" Margin="0,4">
-                                <TextBlock Text="CLASSI ISTANZIATE (NEW)" Foreground="#E88C38" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorSecInstantiates" Text="CLASSI ISTANZIATE (NEW)" Foreground="#E88C38" FontSize="10" FontWeight="Bold" />
                                 <TextBlock x:Name="InspectorInstantiates" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
                             </StackPanel>
                         </StackPanel>
@@ -647,7 +657,7 @@
         </Grid>
 
         <!-- Barra di Stato Inferiore -->
-        <Border Grid.Row="3" Background="#16161D" Padding="12,6" BorderBrush="#353545" BorderThickness="0,1,0,0">
+        <Border x:Name="StatusBarBorder" Grid.Row="3" Background="#16161D" Padding="12,6" BorderBrush="#353545" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Grid.Column="0" x:Name="StatusText" Text="Pronto." Foreground="#808090" FontSize="11" />
                 <TextBlock Grid.Column="1" x:Name="StatusStats" Text="Nodi: 0 | Relazioni: 0" Foreground="#606070" FontSize="11" />
