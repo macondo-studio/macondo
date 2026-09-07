@@ -173,6 +173,11 @@ public partial class SettingsWindow : Window
         NavLanguageText.Text = loc["Settings_Tab_Language"];
         NavShortcutsText.Text = loc["Settings_Tab_Shortcuts"];
 
+        ToolTip.SetTip(CloseButton, loc["Tooltip_Close"]);
+        ToolTip.SetTip(NavThemeButton, loc["Settings_Tab_Appearance"]);
+        ToolTip.SetTip(NavLanguageButton, loc["Settings_Tab_Language"]);
+        ToolTip.SetTip(NavShortcutsButton, loc["Settings_Tab_Shortcuts"]);
+
         ThemeHeaderTitle.Text = loc["Settings_Appearance_Header"];
         ThemeHeaderSub.Text = loc["Settings_Appearance_Sub"];
 

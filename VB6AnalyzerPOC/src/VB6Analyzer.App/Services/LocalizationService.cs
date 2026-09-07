@@ -83,6 +83,22 @@ public sealed class LocalizationService
         ["Col_Action"] = "Azione",
         ["Btn_ShowInGraph"] = "Mostra Grafo",
 
+        // Tooltip Pulsanti e Azioni
+        ["Tooltip_Settings"] = "Impostazioni (Ctrl+,)",
+        ["Tooltip_Minimize"] = "Riduci a icona",
+        ["Tooltip_Maximize"] = "Ingrandisci / Ripristina",
+        ["Tooltip_Close"] = "Chiudi",
+        ["Tooltip_ResetView"] = "Ripristina zoom 100% e centra la visuale",
+        ["Tooltip_ExpandAll"] = "Espande tutti i moduli mostrando metodi e proprietà",
+        ["Tooltip_CollapseAll"] = "Comprime tutti i moduli nascondendo i membri interni",
+        ["Tooltip_RefreshProject"] = "Ricarica Progetto da disco e aggiorna cache (Ctrl+R)",
+        ["Tooltip_BlastRadius"] = "Calcola ed evidenzia l'impatto di modifica (chiamanti indiretti, form e classi impattate)",
+        ["Tooltip_ShowCallers"] = "Evidenzia chi chiama la routine selezionata (callers)",
+        ["Tooltip_ShowCallees"] = "Evidenzia cosa chiama la routine selezionata (callees)",
+        ["Tooltip_ClearHighlight"] = "Rimuove le evidenziazioni e i filtri attivi sul grafo",
+        ["Tooltip_RecalculateAudit"] = "Ricalcola la matrice di rischio e impatto per tutte le routine",
+        ["Tooltip_ShowInGraph"] = "Centra e seleziona questa routine nel canvas del grafo",
+
         // Inspector
         ["Inspector_Title"] = "Symbol Inspector & Blast Radius",
         ["Inspector_NoSelection"] = "Nessun simbolo selezionato.",
@@ -197,6 +213,22 @@ public sealed class LocalizationService
         ["Col_TotalImpact"] = "Total Impact",
         ["Col_Action"] = "Action",
         ["Btn_ShowInGraph"] = "Show Graph",
+
+        // Button and Action Tooltips
+        ["Tooltip_Settings"] = "Settings (Ctrl+,)",
+        ["Tooltip_Minimize"] = "Minimize",
+        ["Tooltip_Maximize"] = "Maximize / Restore",
+        ["Tooltip_Close"] = "Close",
+        ["Tooltip_ResetView"] = "Reset zoom to 100% and center view",
+        ["Tooltip_ExpandAll"] = "Expand all modules showing methods and properties",
+        ["Tooltip_CollapseAll"] = "Collapse all modules hiding internal members",
+        ["Tooltip_RefreshProject"] = "Reload project from disk and update cache (Ctrl+R)",
+        ["Tooltip_BlastRadius"] = "Calculate and highlight modification impact (indirect callers, forms and impacted classes)",
+        ["Tooltip_ShowCallers"] = "Highlight incoming callers for selected routine (callers)",
+        ["Tooltip_ShowCallees"] = "Highlight outgoing calls for selected routine (callees)",
+        ["Tooltip_ClearHighlight"] = "Clear all active highlights and filters on the graph",
+        ["Tooltip_RecalculateAudit"] = "Recalculate risk and impact matrix for all routines",
+        ["Tooltip_ShowInGraph"] = "Center and select this routine on the graph canvas",
 
         // Inspector
         ["Inspector_Title"] = "Symbol Inspector & Blast Radius",

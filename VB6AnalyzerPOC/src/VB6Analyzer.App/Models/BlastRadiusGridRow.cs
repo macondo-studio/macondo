@@ -63,5 +63,11 @@ public sealed class BlastRadiusGridRow
     /// <summary>Nomi delle form impattate separati da virgola.</summary>
     public required string AffectedFormsSummary { get; init; }
 
+    /// <summary>Testo localizzato per il pulsante d'azione rapida.</summary>
+    public string ActionButtonText => Services.LocalizationService.Instance["Btn_ShowInGraph"];
+
+    /// <summary>Tooltip localizzato per il pulsante d'azione rapida.</summary>
+    public string ActionButtonTooltip => Services.LocalizationService.Instance["Tooltip_ShowInGraph"];
+
     public override string ToString() => $"{QualifiedName} [{RiskLevel}]";
 }

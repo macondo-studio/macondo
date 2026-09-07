@@ -516,10 +516,11 @@
                                                     Padding="8,3"
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
+                                                    ToolTip.Tip="{Binding ActionButtonTooltip}"
                                                     Click="OnShowInGraphButtonClicked">
                                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                                     <PathIcon Data="{StaticResource IconTarget}" Width="10" Height="10" Foreground="#4AE8D0" VerticalAlignment="Center" />
-                                                    <TextBlock Text="Mostra Grafo" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding ActionButtonText}" VerticalAlignment="Center" />
                                                 </StackPanel>
                                             </Button>
                                         </DataTemplate>

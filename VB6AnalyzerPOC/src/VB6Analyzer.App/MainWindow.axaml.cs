@@ -190,6 +190,7 @@ public partial class MainWindow : Window
         LocalizationService.Instance.LanguageChanged += (_, lang) =>
         {
             UpdateLocalizedUI();
+            ApplyGridFilters();
             SettingsService.Instance.Update(s => s.Language = lang);
         };
 
@@ -1284,10 +1285,23 @@ public partial class MainWindow : Window
         ClearHighlightMenuItem.Header = loc["Menu_ClearHighlight"];
 
         // Caption Buttons Tooltips
-        ToolTip.SetTip(SettingsButton, loc["Settings_Title"] + " (Ctrl+,)");
-        ToolTip.SetTip(MinimizeButton, loc.CurrentLanguage == AppLanguage.English ? "Minimize" : "Riduci a icona");
-        ToolTip.SetTip(MaximizeButton, loc.CurrentLanguage == AppLanguage.English ? "Maximize / Restore" : "Ingrandisci / Ripristina");
-        ToolTip.SetTip(CloseButton, loc.CurrentLanguage == AppLanguage.English ? "Close" : "Chiudi");
+        ToolTip.SetTip(SettingsButton, loc["Tooltip_Settings"]);
+        ToolTip.SetTip(MinimizeButton, loc["Tooltip_Minimize"]);
+        ToolTip.SetTip(MaximizeButton, loc["Tooltip_Maximize"]);
+        ToolTip.SetTip(CloseButton, loc["Tooltip_Close"]);
+
+        // Floating HUD Tooltips
+        ToolTip.SetTip(ResetViewButton, loc["Tooltip_ResetView"]);
+        ToolTip.SetTip(ExpandAllButton, loc["Tooltip_ExpandAll"]);
+        ToolTip.SetTip(CollapseAllButton, loc["Tooltip_CollapseAll"]);
+        ToolTip.SetTip(RefreshProjectButton, loc["Tooltip_RefreshProject"]);
+        ToolTip.SetTip(BlastRadiusButton, loc["Tooltip_BlastRadius"]);
+        ToolTip.SetTip(ShowCallersButton, loc["Tooltip_ShowCallers"]);
+        ToolTip.SetTip(ShowCalleesButton, loc["Tooltip_ShowCallees"]);
+        ToolTip.SetTip(ClearHighlightButton, loc["Tooltip_ClearHighlight"]);
+
+        // Grid Toolbar Tooltips
+        ToolTip.SetTip(RefreshGridButton, loc["Tooltip_RecalculateAudit"]);
 
         // Ricerca
         SearchBox.Watermark = loc["Search_Watermark"];
