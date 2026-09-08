@@ -39,6 +39,10 @@ public partial class MainWindow : Window
         RefreshProjectMenuItem.Command = new ActionCommand(async () => await RefreshCurrentProjectAsync());
         LoadFixturesMenuItem.Command = new ActionCommand(() => LoadDefaultFixtures());
         GenerateFakeMenuItem.Command = new ActionCommand(() => LoadSyntheticGraph());
+        ExportMarkdownMenuItem.Command = new ActionCommand(async () => await ExportMarkdownAsync());
+        ExportJsonMenuItem.Command = new ActionCommand(async () => await ExportJsonAsync());
+        ImportJsonMenuItem.Command = new ActionCommand(async () => await ImportJsonAsync());
+        ExportSliceMenuItem.Command = new ActionCommand(async () => await ExportLlmSliceAsync());
         SettingsMenuItem.Command = new ActionCommand(OpenSettings);
         ExitMenuItem.Command = new ActionCommand(() => Close());
 
@@ -46,6 +50,10 @@ public partial class MainWindow : Window
         RefreshProjectMenuItem.Click += async (_, _) => await RefreshCurrentProjectAsync();
         LoadFixturesMenuItem.Click += (_, _) => LoadDefaultFixtures();
         GenerateFakeMenuItem.Click += (_, _) => LoadSyntheticGraph();
+        ExportMarkdownMenuItem.Click += async (_, _) => await ExportMarkdownAsync();
+        ExportJsonMenuItem.Click += async (_, _) => await ExportJsonAsync();
+        ImportJsonMenuItem.Click += async (_, _) => await ImportJsonAsync();
+        ExportSliceMenuItem.Click += async (_, _) => await ExportLlmSliceAsync();
         SettingsMenuItem.Click += (_, _) => OpenSettings();
         ExitMenuItem.Click += (_, _) => Close();
 
@@ -88,6 +96,15 @@ public partial class MainWindow : Window
             Graph.ClearHighlightMode();
             StatusText.Text = LocalizationService.Instance["Menu_ClearHighlight"];
         };
+
+        // Export & Import HUD buttons
+        ExportMarkdownButton.Click += async (_, _) => await ExportMarkdownAsync();
+        ExportJsonButton.Click += async (_, _) => await ExportJsonAsync();
+        ImportJsonButton.Click += async (_, _) => await ImportJsonAsync();
+
+        // Inspector AI Context Slice buttons
+        CopyLlmSliceButton.Click += async (_, _) => await CopyLlmSliceToClipboardAsync();
+        SaveLlmSliceButton.Click += async (_, _) => await ExportLlmSliceAsync();
 
         // Controlli Finestra Stile IDE (Impostazioni, Riduci a icona, Ingrandisci/Ripristina, Chiudi)
         SettingsButton.Click += (_, _) => OpenSettings();
@@ -1278,6 +1295,213 @@ public partial class MainWindow : Window
         Graph.ApplyTheme(theme);
     }
 
+    /// <summary>
+    /// Esporta l'intero grafo in formato Markdown compatto (Repo Map) per LLM tramite selettore di file.
+    /// </summary>
+    private async Task ExportMarkdownAsync()
+    {
+        var semGraph = _graph?.SemanticGraph;
+        if (semGraph == null)
+        {
+            StatusText.Text = LocalizationService.Instance["Status_NoSemanticGraph"];
+            return;
+        }
+
+        var defaultName = !string.IsNullOrEmpty(_currentFolderPath)
+            ? $"{Path.GetFileName(_currentFolderPath)}_codemap.md"
+            : "codegraph_map.md";
+
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = LocalizationService.Instance["Menu_ExportMarkdown"],
+            DefaultExtension = "md",
+            SuggestedFileName = defaultName,
+            FileTypeChoices = new[]
+            {
+                new FilePickerFileType("Markdown Repo Map (*.md)") { Patterns = new[] { "*.md" } }
+            }
+        });
+
+        if (file == null) return;
+
+        try
+        {
+            var markdown = semGraph.ToMarkdown();
+            await using var stream = await file.OpenWriteAsync();
+            await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
+            await writer.WriteAsync(markdown);
+
+            StatusText.Text = LocalizationService.Instance.Get("Status_ExportSuccess", file.Name);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Errore durante l'esportazione Markdown: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Esporta l'intero grafo in formato JSON strutturato tramite selettore di file.
+    /// </summary>
+    private async Task ExportJsonAsync()
+    {
+        var semGraph = _graph?.SemanticGraph;
+        if (semGraph == null)
+        {
+            StatusText.Text = LocalizationService.Instance["Status_NoSemanticGraph"];
+            return;
+        }
+
+        var defaultName = !string.IsNullOrEmpty(_currentFolderPath)
+            ? $"{Path.GetFileName(_currentFolderPath)}_codegraph.json"
+            : "codegraph.json";
+
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = LocalizationService.Instance["Menu_ExportJson"],
+            DefaultExtension = "json",
+            SuggestedFileName = defaultName,
+            FileTypeChoices = new[]
+            {
+                new FilePickerFileType("JSON CodeGraph (*.json)") { Patterns = new[] { "*.json" } }
+            }
+        });
+
+        if (file == null) return;
+
+        try
+        {
+            var json = semGraph.ToJson(indented: true);
+            await using var stream = await file.OpenWriteAsync();
+            await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
+            await writer.WriteAsync(json);
+
+            StatusText.Text = LocalizationService.Instance.Get("Status_ExportSuccess", file.Name);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Errore durante l'esportazione JSON: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Importa un CodeGraph da file JSON precedentemente salvato e lo visualizza istantaneamente.
+    /// </summary>
+    private async Task ImportJsonAsync()
+    {
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = LocalizationService.Instance["Menu_ImportJson"],
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("JSON CodeGraph (*.json)") { Patterns = new[] { "*.json" } }
+            }
+        });
+
+        if (files.Count == 0) return;
+
+        var file = files[0];
+        ShowLoading("Importazione del grafo...", $"Caricamento di {file.Name} in corso...");
+        await Task.Delay(16);
+
+        try
+        {
+            await using var stream = await file.OpenReadAsync();
+            using var reader = new StreamReader(stream, System.Text.Encoding.UTF8);
+            var json = await reader.ReadToEndAsync();
+
+            var importedGraph = await Task.Run(() => Macondo.Semantic.Model.CodeGraph.FromJson(json));
+            var projectName = Path.GetFileNameWithoutExtension(file.Name);
+            var visualGraph = await Task.Run(() => Layout.GraphVisualAdapter.FromSemanticGraph(importedGraph, projectName));
+
+            _currentFolderPath = null;
+            _graph = visualGraph;
+            ApplyGraphToUI();
+
+            StatusText.Text = LocalizationService.Instance.Get("Status_ImportSuccess", file.Name, importedGraph.Symbols.Count, importedGraph.Relationships.Count);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Errore durante l'importazione del JSON: {ex.Message}";
+        }
+        finally
+        {
+            HideLoading();
+        }
+    }
+
+    /// <summary>
+    /// Copia negli appunti di sistema il Context Slice semantico per il simbolo selezionato.
+    /// </summary>
+    private async Task CopyLlmSliceToClipboardAsync()
+    {
+        var semGraph = _graph?.SemanticGraph;
+        var symbol = _selectedNode?.SemanticSymbol;
+
+        if (semGraph == null || symbol == null)
+        {
+            StatusText.Text = LocalizationService.Instance["Status_NoSymbolSelected"];
+            return;
+        }
+
+        try
+        {
+            var slice = semGraph.ToMarkdownSlice(symbol);
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel?.Clipboard != null)
+            {
+                await topLevel.Clipboard.SetTextAsync(slice);
+                StatusText.Text = LocalizationService.Instance.Get("Status_CopiedLlmSlice", symbol.Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Errore durante la copia negli appunti: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Salva su file Markdown (.md) il Context Slice per il simbolo selezionato.
+    /// </summary>
+    private async Task ExportLlmSliceAsync()
+    {
+        var semGraph = _graph?.SemanticGraph;
+        var symbol = _selectedNode?.SemanticSymbol;
+
+        if (semGraph == null || symbol == null)
+        {
+            StatusText.Text = LocalizationService.Instance["Status_NoSymbolSelected"];
+            return;
+        }
+
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = LocalizationService.Instance["Menu_ExportSlice"],
+            DefaultExtension = "md",
+            SuggestedFileName = $"{symbol.QualifiedName}_slice.md",
+            FileTypeChoices = new[]
+            {
+                new FilePickerFileType("Markdown Context Slice (*.md)") { Patterns = new[] { "*.md" } }
+            }
+        });
+
+        if (file == null) return;
+
+        try
+        {
+            var slice = semGraph.ToMarkdownSlice(symbol);
+            await using var stream = await file.OpenWriteAsync();
+            await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
+            await writer.WriteAsync(slice);
+
+            StatusText.Text = LocalizationService.Instance.Get("Status_ExportSuccess", file.Name);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Errore durante il salvataggio dello slice: {ex.Message}";
+        }
+    }
+
     private void UpdateLocalizedUI()
     {
         var loc = LocalizationService.Instance;
@@ -1288,6 +1512,10 @@ public partial class MainWindow : Window
         RefreshProjectMenuItem.Header = loc["Menu_RefreshProject"];
         LoadFixturesMenuItem.Header = loc["Menu_LoadFixtures"];
         GenerateFakeMenuItem.Header = loc["Menu_GenerateFake"];
+        ExportMarkdownMenuItem.Header = loc["Menu_ExportMarkdown"];
+        ExportJsonMenuItem.Header = loc["Menu_ExportJson"];
+        ImportJsonMenuItem.Header = loc["Menu_ImportJson"];
+        ExportSliceMenuItem.Header = loc["Menu_ExportSlice"];
         SettingsMenuItem.Header = loc["Menu_Settings"];
         ExitMenuItem.Header = loc["Menu_Exit"];
 
@@ -1319,6 +1547,9 @@ public partial class MainWindow : Window
         ToolTip.SetTip(ShowCallersButton, loc["Tooltip_ShowCallers"]);
         ToolTip.SetTip(ShowCalleesButton, loc["Tooltip_ShowCallees"]);
         ToolTip.SetTip(ClearHighlightButton, loc["Tooltip_ClearHighlight"]);
+        ToolTip.SetTip(ExportMarkdownButton, loc["Tooltip_ExportMarkdown"]);
+        ToolTip.SetTip(ExportJsonButton, loc["Tooltip_ExportJson"]);
+        ToolTip.SetTip(ImportJsonButton, loc["Tooltip_ImportJson"]);
 
         // Grid Toolbar Tooltips
         ToolTip.SetTip(RefreshGridButton, loc["Tooltip_RecalculateAudit"]);
@@ -1342,6 +1573,9 @@ public partial class MainWindow : Window
         HudShowCallersText.Text = loc["HUD_ShowCallers"];
         HudShowCalleesText.Text = loc["HUD_ShowCallees"];
         HudClearHighlightText.Text = loc["HUD_ClearFilter"];
+        HudExportMarkdownText.Text = loc["HUD_ExportMarkdown"];
+        HudExportJsonText.Text = loc["HUD_ExportJson"];
+        HudImportJsonText.Text = loc["HUD_ImportJson"];
 
         // Grid Toolbar
         GridFilterLabel.Text = loc["Grid_FilterLabel"];
@@ -1376,6 +1610,11 @@ public partial class MainWindow : Window
         InspectorSecType.Text = loc["Inspector_Sec_Type"];
         InspectorSecParams.Text = loc["Inspector_Sec_Params"];
         InspectorSecFile.Text = loc["Inspector_Sec_File"];
+        InspectorSecAiContext.Text = loc["Inspector_Sec_AIContext"];
+        CopyLlmSliceButtonText.Text = loc["Inspector_CopyLlmSlice"];
+        SaveLlmSliceButtonText.Text = loc["Inspector_SaveLlmSlice"];
+        ToolTip.SetTip(CopyLlmSliceButton, loc["Tooltip_CopyLlmSlice"]);
+        ToolTip.SetTip(SaveLlmSliceButton, loc["Tooltip_SaveLlmSlice"]);
         InspectorSecBlast.Text = loc["Inspector_Sec_BlastRadius"];
         InspectorLabelDirectCallers.Text = loc["Inspector_DirectCallersCount"];
         InspectorLabelIndirectCallers.Text = loc["Inspector_IndirectCallersCount"];

@@ -48,4 +48,10 @@
     <StreamGeometry x:Key="IconKeyboard">M14 3H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM4 5h1v1H4V5zm2 0h1v1H6V5zm2 0h1v1H8V5zm2 0h1v1h-1V5zm2 0h1v1h-1V5zM4 7h1v1H4V7zm2 0h1v1H6V7zm2 0h1v1H8V7zm2 0h1v1h-1V7zm2 0h1v1h-1V7zm-7 2h4v1H5V9zm-1 0H3v1h1V9zm8 0h-1v1h1V9z</StreamGeometry>
     <StreamGeometry x:Key="IconCheck">M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z</StreamGeometry>
 
+    <!-- Esportazione, Importazione e AI / LLM -->
+    <StreamGeometry x:Key="IconExport">M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z</StreamGeometry>
+    <StreamGeometry x:Key="IconImport">M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z</StreamGeometry>
+    <StreamGeometry x:Key="IconMarkdown">M14 3H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM3 11V5h1.5l1.5 2 1.5-2H9v6H7.5V7.5L6 9.5 4.5 7.5V11H3zm9.5-2.5h-1.5V5h-1v3.5H8.5l2.25 2.5 2.25-2.5z</StreamGeometry>
+    <StreamGeometry x:Key="IconCopy">M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3z</StreamGeometry>
+
 </ResourceDictionary>

@@ -1,4 +1,4 @@
-﻿namespace Macondo.App.Services;
+namespace Macondo.App.Services;
 
 public enum AppLanguage
 {
@@ -136,6 +136,28 @@ public sealed class LocalizationService
         ["Settings_Shortcuts_Search"] = "Cerca scorciatoia...",
         ["Settings_Close"] = "Chiudi",
 
+        // Esportazione, Importazione & LLM
+        ["Menu_ExportMarkdown"] = "Esporta Repo Map (Markdown)...",
+        ["Menu_ExportJson"] = "Esporta Grafo (JSON)...",
+        ["Menu_ImportJson"] = "Importa Grafo (JSON)...",
+        ["Menu_ExportSlice"] = "Esporta Context Slice LLM (del simbolo)...",
+        ["HUD_ExportMarkdown"] = "Esporta MD",
+        ["HUD_ExportJson"] = "Esporta JSON",
+        ["HUD_ImportJson"] = "Importa JSON",
+        ["Inspector_Sec_AIContext"] = "AI CONTEXT / LLM SLICE",
+        ["Inspector_CopyLlmSlice"] = "Copia Slice LLM",
+        ["Inspector_SaveLlmSlice"] = "Salva Slice (.md)",
+        ["Tooltip_ExportMarkdown"] = "Esporta l'intero grafo in formato Markdown compatto gerarchico per modelli AI",
+        ["Tooltip_ExportJson"] = "Esporta l'intero grafo in formato JSON strutturato",
+        ["Tooltip_ImportJson"] = "Importa e visualizza un grafo CodeGraph da file JSON",
+        ["Tooltip_CopyLlmSlice"] = "Copia negli appunti il subgrafo semantico del simbolo selezionato (pronto per Antigravity/ChatGPT)",
+        ["Tooltip_SaveLlmSlice"] = "Salva su file .md il context slice del simbolo selezionato",
+        ["Status_ExportSuccess"] = "Grafo esportato con successo in '{0}'.",
+        ["Status_ImportSuccess"] = "Grafo importato da '{0}': {1} simboli, {2} relazioni.",
+        ["Status_CopiedLlmSlice"] = "Context Slice LLM per '{0}' copiato negli appunti!",
+        ["Status_NoSymbolSelected"] = "Nessun simbolo selezionato per l'esportazione dello slice.",
+        ["Status_NoSemanticGraph"] = "Nessun grafo semantico disponibile per l'esportazione.",
+
         // Barra di Stato
         ["Status_Ready"] = "Pronto.",
         ["Status_Selected"] = "Selezionato: [{0}] {1}",
@@ -266,6 +288,28 @@ public sealed class LocalizationService
         ["Settings_Shortcuts_Sub"] = "All key combinations for rapid navigation and analysis.",
         ["Settings_Shortcuts_Search"] = "Search shortcut...",
         ["Settings_Close"] = "Close",
+
+        // Export, Import & LLM
+        ["Menu_ExportMarkdown"] = "Export Repo Map (Markdown)...",
+        ["Menu_ExportJson"] = "Export Graph (JSON)...",
+        ["Menu_ImportJson"] = "Import Graph (JSON)...",
+        ["Menu_ExportSlice"] = "Export LLM Context Slice...",
+        ["HUD_ExportMarkdown"] = "Export MD",
+        ["HUD_ExportJson"] = "Export JSON",
+        ["HUD_ImportJson"] = "Import JSON",
+        ["Inspector_Sec_AIContext"] = "AI CONTEXT / LLM SLICE",
+        ["Inspector_CopyLlmSlice"] = "Copy LLM Slice",
+        ["Inspector_SaveLlmSlice"] = "Save Slice (.md)",
+        ["Tooltip_ExportMarkdown"] = "Export entire graph as token-efficient hierarchical Markdown for AI models",
+        ["Tooltip_ExportJson"] = "Export entire graph as structured JSON",
+        ["Tooltip_ImportJson"] = "Import and visualize a CodeGraph from JSON file",
+        ["Tooltip_CopyLlmSlice"] = "Copy semantic sub-graph of selected symbol to clipboard (ready for Antigravity/ChatGPT)",
+        ["Tooltip_SaveLlmSlice"] = "Save context slice of selected symbol as .md file",
+        ["Status_ExportSuccess"] = "Graph successfully exported to '{0}'.",
+        ["Status_ImportSuccess"] = "Graph imported from '{0}': {1} symbols, {2} relationships.",
+        ["Status_CopiedLlmSlice"] = "LLM Context Slice for '{0}' copied to clipboard!",
+        ["Status_NoSymbolSelected"] = "No symbol selected for slice export.",
+        ["Status_NoSemanticGraph"] = "No semantic graph available for export.",
 
         // Status Bar
         ["Status_Ready"] = "Ready.",
