@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -69,9 +69,11 @@ public sealed class GraphControl : Control
     public HighlightMode CurrentHighlightMode => _currentHighlightMode;
 
     // Pennelli e Stili
+    private bool _isDarkTheme = true;
     private IBrush _backgroundBrush = new SolidColorBrush(Color.Parse("#181822"));
     private IBrush _defaultLabelBrush = Brushes.WhiteSmoke;
-    private static readonly IPen EdgeContainsPen = new Pen(new SolidColorBrush(Color.Parse("#30303E")), 1);
+    private IBrush _dimmedLabelBrush = new SolidColorBrush(Color.Parse("#555566"));
+    private IPen _edgeContainsPen = new Pen(new SolidColorBrush(Color.Parse("#30303E")), 1);
     private static readonly IPen EdgeCallsPen = new Pen(new SolidColorBrush(Color.Parse("#4A78B8")), 1.5);
     private static readonly IPen EdgeInstantiatesPen = new Pen(new SolidColorBrush(Color.Parse("#D4883B")), 1.5, DashStyle.Dash);
     private static readonly IPen EdgeUsesTypePen = new Pen(new SolidColorBrush(Color.Parse("#3BAE8C")), 1, DashStyle.Dot);
@@ -79,7 +81,7 @@ public sealed class GraphControl : Control
     private static readonly IPen EdgeCallerPen = new Pen(new SolidColorBrush(Color.Parse("#FF9933")), 2.5);
     private static readonly IPen EdgeCalleePen = new Pen(new SolidColorBrush(Color.Parse("#33CCFF")), 2.5);
     private static readonly IPen EdgeBlastRadiusPen = new Pen(new SolidColorBrush(Color.Parse("#FF6600")), 2.5);
-    private static readonly IPen EdgeDimmedPen = new Pen(new SolidColorBrush(Color.Parse("#252532")), 0.8);
+    private IPen _edgeDimmedPen = new Pen(new SolidColorBrush(Color.Parse("#252532")), 0.8);
     private static readonly IPen SelectionOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#FFD700")), 3);
     private static readonly IPen TargetBlastOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#FF3344")), 3.5);
     private static readonly IPen FormBlastOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#00D0FF")), 2.5);
@@ -157,7 +159,7 @@ public sealed class GraphControl : Control
             }
             else if (_currentHighlightMode is HighlightMode.Callees or HighlightMode.Callers or HighlightMode.BlastRadius)
             {
-                pen = EdgeDimmedPen;
+                pen = _edgeDimmedPen;
             }
             else
             {
@@ -208,7 +210,9 @@ public sealed class GraphControl : Control
             // Indicatore visivo di container espanso/compresso
             if (node.IsContainer)
             {
-                var markerColor = node.IsExpanded ? Brushes.WhiteSmoke : Brushes.Orange;
+                IBrush markerColor = node.IsExpanded 
+                    ? (_isDarkTheme ? Brushes.WhiteSmoke : new SolidColorBrush(Color.Parse("#4A4A5E"))) 
+                    : Brushes.Orange;
                 context.DrawEllipse(markerColor, null, screenPos, 3, 3);
             }
 
@@ -219,22 +223,22 @@ public sealed class GraphControl : Control
                 IBrush labelBrush;
                 if (isSelected)
                 {
-                    labelBrush = Brushes.Gold;
+                    labelBrush = _isDarkTheme ? Brushes.Gold : new SolidColorBrush(Color.Parse("#B36200"));
                 }
                 else if (_currentHighlightMode == HighlightMode.Callees)
                 {
-                    labelBrush = isCallee ? new SolidColorBrush(Color.Parse("#00D0FF")) :
-                                 (_calleeContainerIds.Contains(node.Id) ? Brushes.WhiteSmoke : new SolidColorBrush(Color.Parse("#555566")));
+                    labelBrush = isCallee ? (_isDarkTheme ? new SolidColorBrush(Color.Parse("#00D0FF")) : new SolidColorBrush(Color.Parse("#0088CC"))) :
+                                 (_calleeContainerIds.Contains(node.Id) ? _defaultLabelBrush : _dimmedLabelBrush);
                 }
                 else if (_currentHighlightMode == HighlightMode.Callers)
                 {
-                    labelBrush = isCaller ? new SolidColorBrush(Color.Parse("#FF9933")) :
-                                 (_callerContainerIds.Contains(node.Id) ? _defaultLabelBrush : new SolidColorBrush(Color.Parse("#555566")));
+                    labelBrush = isCaller ? (_isDarkTheme ? new SolidColorBrush(Color.Parse("#FF9933")) : new SolidColorBrush(Color.Parse("#E65C00"))) :
+                                 (_callerContainerIds.Contains(node.Id) ? _defaultLabelBrush : _dimmedLabelBrush);
                 }
                 else if (_currentHighlightMode == HighlightMode.BlastRadius)
                 {
-                    labelBrush = blastDepth.HasValue ? Brushes.Gold :
-                                 (isAffectedContainer ? _defaultLabelBrush : new SolidColorBrush(Color.Parse("#555566")));
+                    labelBrush = blastDepth.HasValue ? (_isDarkTheme ? Brushes.Gold : new SolidColorBrush(Color.Parse("#C06000"))) :
+                                 (isAffectedContainer ? _defaultLabelBrush : _dimmedLabelBrush);
                 }
                 else
                 {
@@ -254,12 +258,12 @@ public sealed class GraphControl : Control
         }
     }
 
-    private static IPen GetPenForEdgeKind(RelationshipKind kind) => kind switch
+    private IPen GetPenForEdgeKind(RelationshipKind kind) => kind switch
     {
         RelationshipKind.Calls => EdgeCallsPen,
         RelationshipKind.Instantiates => EdgeInstantiatesPen,
         RelationshipKind.UsesType => EdgeUsesTypePen,
-        _ => EdgeContainsPen
+        _ => _edgeContainsPen
     };
 
     private static void DrawArrowHead(DrawingContext context, IBrush? brush, Point from, Point to, double targetRadius)
@@ -326,7 +330,9 @@ public sealed class GraphControl : Control
             }
 
             // Nodi non impattati: attenuati
-            return new SolidColorBrush(Color.Parse("#282834"));
+            return _isDarkTheme
+                ? new SolidColorBrush(Color.Parse("#282834"))
+                : new SolidColorBrush(Color.Parse("#E0E0EA"));
         }
 
         // Modalità Callees: evidenzia il chiamante sorgente, le routine chiamate (Cyan) e i loro container
@@ -344,15 +350,21 @@ public sealed class GraphControl : Control
 
             if (node.IsContainer && _calleeContainerIds.Contains(node.Id))
             {
-                return new SolidColorBrush(Color.Parse("#3A6073")); // Slate Cyan per il modulo destinazione
+                return _isDarkTheme
+                    ? new SolidColorBrush(Color.Parse("#3A6073")) // Slate Cyan per il modulo destinazione
+                    : new SolidColorBrush(Color.Parse("#90C2DE"));
             }
 
             if (_selectedNode?.ParentId == node.Id)
             {
-                return new SolidColorBrush(Color.Parse("#5C5535")); // Slate Gold per il container della routine selezionata
+                return _isDarkTheme
+                    ? new SolidColorBrush(Color.Parse("#5C5535")) // Slate Gold per il container della routine selezionata
+                    : new SolidColorBrush(Color.Parse("#D4C388"));
             }
 
-            return new SolidColorBrush(Color.Parse("#22222E")); // Attenuato
+            return _isDarkTheme
+                ? new SolidColorBrush(Color.Parse("#22222E")) // Attenuato
+                : new SolidColorBrush(Color.Parse("#E0E0EA"));
         }
 
         // Modalità Callers: evidenzia la routine target, i chiamanti (Amber/Orange) e i loro container
@@ -370,15 +382,21 @@ public sealed class GraphControl : Control
 
             if (node.IsContainer && _callerContainerIds.Contains(node.Id))
             {
-                return new SolidColorBrush(Color.Parse("#5C4335")); // Slate Amber per il modulo chiamante
+                return _isDarkTheme
+                    ? new SolidColorBrush(Color.Parse("#5C4335")) // Slate Amber per il modulo chiamante
+                    : new SolidColorBrush(Color.Parse("#DEB598"));
             }
 
             if (_selectedNode?.ParentId == node.Id)
             {
-                return new SolidColorBrush(Color.Parse("#5C5535")); // Slate Gold per il container della routine selezionata
+                return _isDarkTheme
+                    ? new SolidColorBrush(Color.Parse("#5C5535")) // Slate Gold per il container della routine selezionata
+                    : new SolidColorBrush(Color.Parse("#D4C388"));
             }
 
-            return new SolidColorBrush(Color.Parse("#22222E")); // Attenuato
+            return _isDarkTheme
+                ? new SolidColorBrush(Color.Parse("#22222E")) // Attenuato
+                : new SolidColorBrush(Color.Parse("#E0E0EA"));
         }
 
         // Modalità normale
@@ -817,10 +835,26 @@ public sealed class GraphControl : Control
     /// </summary>
     public void ApplyTheme(ThemeDefinition theme)
     {
+        _isDarkTheme = theme.IsDark;
+
         if (Color.TryParse(theme.GraphBackground, out var bgCol))
             _backgroundBrush = new SolidColorBrush(bgCol);
 
-        _defaultLabelBrush = theme.IsDark ? Brushes.WhiteSmoke : new SolidColorBrush(Color.Parse("#1A1A24"));
+        if (theme.IsDark)
+        {
+            _defaultLabelBrush = Brushes.WhiteSmoke;
+            _dimmedLabelBrush = new SolidColorBrush(Color.Parse("#555566"));
+            _edgeContainsPen = new Pen(new SolidColorBrush(Color.Parse("#30303E")), 1);
+            _edgeDimmedPen = new Pen(new SolidColorBrush(Color.Parse("#252532")), 0.8);
+        }
+        else
+        {
+            _defaultLabelBrush = new SolidColorBrush(Color.Parse("#1A1A24"));
+            _dimmedLabelBrush = new SolidColorBrush(Color.Parse("#9E9EB0"));
+            _edgeContainsPen = new Pen(new SolidColorBrush(Color.Parse("#D0D0DC")), 1);
+            _edgeDimmedPen = new Pen(new SolidColorBrush(Color.Parse("#E4E4EE")), 0.8);
+        }
+
         InvalidateVisual();
     }
 }

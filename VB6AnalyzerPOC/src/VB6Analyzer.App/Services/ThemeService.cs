@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Media;
 using Avalonia.Styling;
 
@@ -132,18 +132,18 @@ public sealed class ThemeService
                 BackgroundPrimary = "#F3F3F7",
                 BackgroundSecondary = "#E8E8EE",
                 BackgroundSurface = "#FFFFFF",
-                BackgroundElevated = "#F8F8FC",
-                BorderDefault = "#D2D2DE",
-                BorderSubtle = "#E4E4EE",
+                BackgroundElevated = "#EAEAF2",
+                BorderDefault = "#D0D0DC",
+                BorderSubtle = "#E2E2EC",
                 TextPrimary = "#1A1A24",
-                TextSecondary = "#525266",
-                TextMuted = "#7E7E94",
+                TextSecondary = "#4A4A5E",
+                TextMuted = "#707084",
                 AccentColor = "#0066B8",
                 AccentHover = "#1878CA",
                 GraphBackground = "#F7F7FA",
-                GraphEdgeCalls = "#B5B5C8",
+                GraphEdgeCalls = "#9E9EB0",
                 GraphNodeFill = "#FFFFFF",
-                GraphNodeStroke = "#C5C5D8"
+                GraphNodeStroke = "#B0B0C4"
             }
         };
     }
@@ -156,8 +156,28 @@ public sealed class ThemeService
         if (Application.Current != null)
         {
             Application.Current.RequestedThemeVariant = def.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
+
+            SetAppBrush("ThemeBackgroundPrimaryBrush", def.BackgroundPrimary);
+            SetAppBrush("ThemeBackgroundSecondaryBrush", def.BackgroundSecondary);
+            SetAppBrush("ThemeBackgroundSurfaceBrush", def.BackgroundSurface);
+            SetAppBrush("ThemeBackgroundElevatedBrush", def.BackgroundElevated);
+            SetAppBrush("ThemeBorderDefaultBrush", def.BorderDefault);
+            SetAppBrush("ThemeBorderSubtleBrush", def.BorderSubtle);
+            SetAppBrush("ThemeTextPrimaryBrush", def.TextPrimary);
+            SetAppBrush("ThemeTextSecondaryBrush", def.TextSecondary);
+            SetAppBrush("ThemeTextMutedBrush", def.TextMuted);
+            SetAppBrush("ThemeAccentBrush", def.AccentColor);
+            SetAppBrush("ThemeAccentHoverBrush", def.AccentHover);
         }
 
         ThemeChanged?.Invoke(this, def);
+    }
+
+    private static void SetAppBrush(string key, string colorHex)
+    {
+        if (Color.TryParse(colorHex, out var color))
+        {
+            Application.Current!.Resources[key] = new SolidColorBrush(color);
+        }
     }
 }

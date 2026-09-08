@@ -5,7 +5,7 @@
         x:Class="Macondo.App.MainWindow"
         Title="Macondo"
         Width="1400" Height="900"
-        Background="#181820"
+        Background="{DynamicResource ThemeBackgroundPrimaryBrush}"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="-1">
@@ -13,13 +13,17 @@
     <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="{Binding $parent[Window].OffScreenMargin}">
 
         <!-- Barra Superiore Stile IDE (Brand & Menu a Sinistra | Area Trascinamento al Centro | Controlli Finestra a Destra) -->
-        <Border x:Name="TopBarBorder" Grid.Row="0" Background="#14141D" BorderBrush="#2D2D3E" BorderThickness="0,0,0,1" Padding="8,0,0,0" Height="36">
+        <!-- Barra Superiore Stile IDE (Brand & Menu a Sinistra | Area Trascinamento al Centro | Controlli Finestra a Destra) -->
+        <Border x:Name="TopBarBorder" Grid.Row="0"
+                Background="{DynamicResource ThemeBackgroundSecondaryBrush}"
+                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                BorderThickness="0,0,0,1" Padding="8,0,0,0" Height="36">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <!-- Sinistra: Brand / Logo App + Menu a Discesa -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,16,0" Spacing="6">
-                        <PathIcon Data="{StaticResource IconAppLogo}" Width="12" Height="12" Foreground="#FF6633" VerticalAlignment="Center" />
-                        <TextBlock Text="Macondo" FontWeight="SemiBold" FontSize="12" Foreground="#ECECF0" VerticalAlignment="Center" />
+                        <PathIcon Data="{StaticResource IconAppLogo}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                        <TextBlock x:Name="BrandTitleText" Text="Macondo" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
                     </StackPanel>
 
                     <Menu Background="Transparent">
@@ -77,7 +81,7 @@
                         <MenuItem x:Name="AnalysisMenu" Header="_Analisi">
                             <MenuItem x:Name="BlastRadiusMenuItem" Header="Calcola Blast Radius" InputGesture="F5">
                                 <MenuItem.Icon>
-                                    <PathIcon Data="{StaticResource IconBlastRadius}" Width="14" Height="14" Foreground="#FF6633" />
+                                    <PathIcon Data="{StaticResource IconBlastRadius}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
                                 </MenuItem.Icon>
                             </MenuItem>
                             <MenuItem x:Name="ShowCallersMenuItem" Header="Mostra Callers">
@@ -117,11 +121,11 @@
                             <Setter Property="Padding" Value="0" />
                             <Setter Property="HorizontalContentAlignment" Value="Center" />
                             <Setter Property="VerticalContentAlignment" Value="Center" />
-                            <Setter Property="Foreground" Value="#A0A0B8" />
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
                         </Style>
                         <Style Selector="Button.caption-btn:pointerover">
-                            <Setter Property="Background" Value="#2D2D3E" />
-                            <Setter Property="Foreground" Value="#FFFFFF" />
+                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
                         </Style>
                         <Style Selector="Button.caption-close:pointerover">
                             <Setter Property="Background" Value="#E81123" />
@@ -146,7 +150,10 @@
         </Border>
 
         <!-- Barra Secondaria: Casella di Ricerca Dedicata con Hint Ctrl + F -->
-        <Border x:Name="SearchBarBorder" Grid.Row="1" Background="#181822" BorderBrush="#2A2A38" BorderThickness="0,0,0,1" Padding="10,6">
+        <Border x:Name="SearchBarBorder" Grid.Row="1"
+                Background="{DynamicResource ThemeBackgroundSecondaryBrush}"
+                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                BorderThickness="0,0,0,1" Padding="10,6">
             <Panel HorizontalAlignment="Center">
                 <TextBox x:Name="SearchBox"
                          Width="440"
@@ -154,11 +161,11 @@
                          TextChanged="OnSearchTextChanged"
                          KeyDown="OnSearchBoxKeyDown">
                     <TextBox.InnerLeftContent>
-                        <PathIcon Data="{StaticResource IconSearch}" Width="13" Height="13" VerticalAlignment="Center" Margin="8,0,4,0" Foreground="#7A7A90" />
+                        <PathIcon Data="{StaticResource IconSearch}" Width="13" Height="13" VerticalAlignment="Center" Margin="8,0,4,0" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
                     </TextBox.InnerLeftContent>
                     <TextBox.InnerRightContent>
-                        <Border Background="#252535"
-                                BorderBrush="#3D3D52"
+                        <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
                                 BorderThickness="1"
                                 CornerRadius="4"
                                 Padding="6,2"
@@ -167,7 +174,7 @@
                             <TextBlock Text="Ctrl + F"
                                        FontSize="10"
                                        FontWeight="SemiBold"
-                                       Foreground="#8A8AA0"
+                                       Foreground="{DynamicResource ThemeTextSecondaryBrush}"
                                        VerticalAlignment="Center" />
                         </Border>
                     </TextBox.InnerRightContent>
@@ -179,11 +186,11 @@
                        Placement="Bottom"
                        IsLightDismissEnabled="True"
                        VerticalOffset="4">
-                    <Border Background="#1E1E28"
-                            BorderBrush="#3D3D52"
+                    <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                            BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
                             BorderThickness="1"
                             CornerRadius="6"
-                            BoxShadow="0 8 24 0 #90000000"
+                            BoxShadow="0 8 24 0 #40000000"
                             MinWidth="360"
                             MaxWidth="500"
                             MaxHeight="320"
@@ -194,7 +201,7 @@
                                        Text="Risultati trovati:"
                                        FontSize="11"
                                        FontWeight="SemiBold"
-                                       Foreground="#9090A0"
+                                       Foreground="{DynamicResource ThemeTextSecondaryBrush}"
                                        Margin="6,4,6,6" />
                             <ListBox x:Name="SearchResultsList"
                                      Background="Transparent"
@@ -204,18 +211,18 @@
                                     <DataTemplate DataType="models:GraphNode">
                                         <Grid ColumnDefinitions="Auto,*" Margin="2">
                                             <Border Grid.Column="0"
-                                                    Background="#28283C"
-                                                    BorderBrush="#3D3D55"
+                                                    Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="3"
                                                     Padding="4,1"
                                                     Margin="0,0,8,0"
                                                     VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Kind}" FontSize="10" FontWeight="SemiBold" Foreground="#4AE8D0" />
+                                                <TextBlock Text="{Binding Kind}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource ThemeAccentBrush}" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="#ECECF0" />
-                                                <TextBlock Text="{Binding QualifiedName}" FontSize="10" Foreground="#8A8A9C" />
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="{Binding QualifiedName}" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                                             </StackPanel>
                                         </Grid>
                                     </DataTemplate>
@@ -237,11 +244,14 @@
             </Grid.ColumnDefinitions>
 
             <!-- Pannello Sinistro: Project Explorer -->
-            <Border x:Name="ExplorerBorder" Grid.Column="0" Background="#1E1E28" BorderBrush="#353545" BorderThickness="0,0,1,0" Padding="8">
+            <Border x:Name="ExplorerBorder" Grid.Column="0"
+                    Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                    BorderThickness="0,0,1,0" Padding="8">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="4,4,4,8">
-                        <PathIcon Data="{StaticResource IconFolder}" Width="13" Height="13" Foreground="#FF6633" VerticalAlignment="Center" />
-                        <TextBlock x:Name="ExplorerTitleText" Text="Project Explorer" FontWeight="Bold" FontSize="13" Foreground="#ECECF0" VerticalAlignment="Center" />
+                        <PathIcon Data="{StaticResource IconFolder}" Width="13" Height="13" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                        <TextBlock x:Name="ExplorerTitleText" Text="Project Explorer" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
                     </StackPanel>
                     <TreeView x:Name="ExplorerTree" SelectionChanged="OnExplorerSelectionChanged">
                         <TreeView.ItemTemplate>
@@ -256,7 +266,7 @@
                                                    FontWeight="Bold"
                                                    Foreground="{Binding BadgeForeground}" />
                                     </Border>
-                                    <TextBlock Text="{Binding DisplayText}" FontSize="12" Foreground="#ECECF0" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding DisplayText}" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
                                 </StackPanel>
                             </TreeDataTemplate>
                         </TreeView.ItemTemplate>
@@ -271,10 +281,10 @@
                         <Setter Property="FontSize" Value="12" />
                         <Setter Property="FontWeight" Value="SemiBold" />
                         <Setter Property="Padding" Value="16,8" />
-                        <Setter Property="Foreground" Value="#8A8A9E" />
+                        <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
                     </Style>
                     <Style Selector="TabItem:selected">
-                        <Setter Property="Foreground" Value="#FF6633" />
+                        <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
                     </Style>
                 </TabControl.Styles>
 
@@ -294,11 +304,11 @@
                         <Border x:Name="FloatingHudBorder"
                                 HorizontalAlignment="Right" VerticalAlignment="Top"
                                 Margin="14"
-                                Background="#1C1C26"
-                                BorderBrush="#2E2E3E"
+                                Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
                                 BorderThickness="1"
                                 CornerRadius="6"
-                                BoxShadow="0 4 16 0 #70000000"
+                                BoxShadow="0 4 16 0 #40000000"
                                 Padding="4">
                             <Border.Styles>
                                 <Style Selector="Button">
@@ -311,17 +321,17 @@
                                     <Setter Property="BorderBrush" Value="Transparent" />
                                     <Setter Property="BorderThickness" Value="0" />
                                     <Setter Property="CornerRadius" Value="4" />
-                                    <Setter Property="Foreground" Value="#9E9EB0" />
+                                    <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
                                 </Style>
                                 <Style Selector="Button:pointerover">
-                                    <Setter Property="Background" Value="#2A2A3A" />
-                                    <Setter Property="Foreground" Value="#FFFFFF" />
+                                    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
                                 </Style>
                                 <Style Selector="Button PathIcon">
-                                    <Setter Property="Foreground" Value="#9E9EB0" />
+                                    <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
                                 </Style>
                                 <Style Selector="Button:pointerover PathIcon">
-                                    <Setter Property="Foreground" Value="#FFFFFF" />
+                                    <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
                                 </Style>
                             </Border.Styles>
                             <StackPanel Width="130">
@@ -352,7 +362,7 @@
                                 </Button>
 
                                 <!-- Separatore Sottile -->
-                                <Rectangle Height="1" Fill="#2E2E3E" Margin="4,3" />
+                                <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="4,3" />
 
                                 <!-- Gruppo Ispezione e Blast Radius -->
                                 <Button x:Name="BlastRadiusButton" ToolTip.Tip="Calcola ed evidenzia l'impatto di modifica (chiamanti indiretti, form e classi impattate)">
@@ -394,11 +404,14 @@
                     </TabItem.Header>
                     <Grid RowDefinitions="Auto,*">
                         <!-- Toolbar della Griglia: Filtri e Statistiche -->
-                        <Border x:Name="GridToolbarBorder" Grid.Row="0" Background="#20202C" BorderBrush="#353545" BorderThickness="0,0,0,1" Padding="12,8">
+                        <Border x:Name="GridToolbarBorder" Grid.Row="0"
+                                Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                BorderThickness="0,0,0,1" Padding="12,8">
                             <Grid ColumnDefinitions="Auto,Auto,*,Auto">
                                 <!-- Filtro Testo nella Tabella -->
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <TextBlock x:Name="GridFilterLabel" Text="Filtra:" VerticalAlignment="Center" FontSize="11" Foreground="#8A8A9E" />
+                                    <TextBlock x:Name="GridFilterLabel" Text="Filtra:" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
                                     <TextBox x:Name="GridFilterTextBox"
                                              Width="180"
                                              Watermark="Nome routine o modulo..."
@@ -408,7 +421,7 @@
 
                                 <!-- Filtro Livello di Rischio -->
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="16,0,0,0">
-                                    <TextBlock x:Name="GridRiskLabel" Text="Rischio:" VerticalAlignment="Center" FontSize="11" Foreground="#8A8A9E" />
+                                    <TextBlock x:Name="GridRiskLabel" Text="Rischio:" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
                                     <ComboBox x:Name="RiskFilterComboBox" SelectedIndex="0" FontSize="11" Width="130" SelectionChanged="OnRiskFilterChanged">
                                         <ComboBoxItem x:Name="RiskItemAll" Content="Tutti i Livelli" />
                                         <ComboBoxItem Content="Critical" />
@@ -423,7 +436,7 @@
                                            VerticalAlignment="Center"
                                            HorizontalAlignment="Right"
                                            FontSize="11"
-                                           Foreground="#8A8A9E"
+                                           Foreground="{DynamicResource ThemeTextSecondaryBrush}"
                                            Margin="0,0,16,0" />
 
                                 <!-- Pulsante Aggiorna / Ricalcola Audit -->
@@ -449,8 +462,8 @@
                                   CanUserResizeColumns="True"
                                   GridLinesVisibility="Horizontal"
                                   BorderThickness="0"
-                                  Background="#161620"
-                                  RowBackground="#181824"
+                                  Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                  RowBackground="{DynamicResource ThemeBackgroundSurfaceBrush}"
                                   SelectionMode="Single"
                                   SelectionChanged="OnGridRowSelectionChanged"
                                   DoubleTapped="OnGridRowDoubleTapped">
@@ -535,77 +548,83 @@
             <!-- Splitter Ridimensionamento Pannello Destro -->
             <GridSplitter Grid.Column="2"
                           Width="4"
-                          Background="#2A2A38"
+                          Background="{DynamicResource ThemeBorderDefaultBrush}"
                           ResizeDirection="Columns"
                           ResizeBehavior="PreviousAndNext"
                           Cursor="SizeWestEast" />
 
             <!-- Pannello Destro: Symbol Inspector & Impact Analysis -->
-            <Border x:Name="InspectorBorder" Grid.Column="3" Background="#1E1E28" BorderBrush="#353545" BorderThickness="1,0,0,0" Padding="12">
+            <Border x:Name="InspectorBorder" Grid.Column="3"
+                    Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                    BorderThickness="1,0,0,0" Padding="12">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="10">
                         <!-- Intestazione Inspector -->
-                        <Border Padding="8,6" Background="#262632" CornerRadius="4">
+                        <Border x:Name="InspectorHeaderBorder" Padding="8,6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" CornerRadius="4">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconInspect}" Width="13" Height="13" Foreground="#FF6633" VerticalAlignment="Center" />
-                                <TextBlock x:Name="InspectorTitleText" Text="Symbol Inspector &amp; Blast Radius" FontWeight="SemiBold" FontSize="13" Foreground="#ECECF0" VerticalAlignment="Center" />
+                                <PathIcon Data="{StaticResource IconInspect}" Width="13" Height="13" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                                <TextBlock x:Name="InspectorTitleText" Text="Symbol Inspector &amp; Blast Radius" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
                             </StackPanel>
                         </Border>
 
                         <!-- Messaggio Nodo Non Selezionato -->
                         <StackPanel x:Name="InspectorEmptyPanel" Spacing="6" Margin="4,8">
-                            <TextBlock x:Name="InspectorEmptyTitle" Text="Nessun simbolo selezionato." Foreground="#9090A0" FontWeight="Medium" />
-                            <TextBlock x:Name="InspectorEmptyHint1" Text="• Clicca su un nodo per visualizzare dettagli semantici, tipi, parametri e chiamate." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
-                            <TextBlock x:Name="InspectorEmptyHint2" Text="• Clicca su 'Blast Radius' per calcolare il raggio di impatto e il rischio di regressione." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
-                            <TextBlock x:Name="InspectorEmptyHint3" Text="• Doppio clic su una Classe, Form o Modulo per espandere/comprimere i membri." Foreground="#707080" FontSize="11" TextWrapping="Wrap" />
+                            <TextBlock x:Name="InspectorEmptyTitle" Text="Nessun simbolo selezionato." Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontWeight="Medium" />
+                            <TextBlock x:Name="InspectorEmptyHint1" Text="• Clicca su un nodo per visualizzare dettagli semantici, tipi, parametri e chiamate." Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="11" TextWrapping="Wrap" />
+                            <TextBlock x:Name="InspectorEmptyHint2" Text="• Clicca su 'Blast Radius' per calcolare il raggio di impatto e il rischio di regressione." Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="11" TextWrapping="Wrap" />
+                            <TextBlock x:Name="InspectorEmptyHint3" Text="• Doppio clic su una Classe, Form o Modulo per espandere/comprimere i membri." Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="11" TextWrapping="Wrap" />
                         </StackPanel>
 
                         <!-- Dettagli Simbolo Selezionato -->
                         <StackPanel x:Name="InspectorDetailsPanel" Spacing="8" IsVisible="False">
                             <!-- Nome -->
                             <StackPanel Spacing="2">
-                                <TextBlock x:Name="InspectorSecSymbol" Text="SIMBOLO" Foreground="#707080" FontSize="10" FontWeight="Bold" />
-                                <TextBlock x:Name="InspectorName" FontWeight="Bold" FontSize="15" Foreground="#FFD700" TextWrapping="Wrap" />
-                                <TextBlock x:Name="InspectorQualifiedName" Foreground="#A0A0B0" FontSize="11" TextWrapping="Wrap" />
+                                <TextBlock x:Name="InspectorSecSymbol" Text="SIMBOLO" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorName" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource ThemeAccentBrush}" TextWrapping="Wrap" />
+                                <TextBlock x:Name="InspectorQualifiedName" Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" />
                             </StackPanel>
 
                             <!-- Kind & Visibilità -->
                             <Grid ColumnDefinitions="*,*" Margin="0,4">
                                 <StackPanel Grid.Column="0" Spacing="2">
-                                    <TextBlock x:Name="InspectorSecKind" Text="CATEGORIA" Foreground="#707080" FontSize="10" FontWeight="Bold" />
-                                    <TextBlock x:Name="InspectorKind" FontWeight="SemiBold" Foreground="#FFFFFF" />
+                                    <TextBlock x:Name="InspectorSecKind" Text="CATEGORIA" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="10" FontWeight="Bold" />
+                                    <TextBlock x:Name="InspectorKind" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Spacing="2">
-                                    <TextBlock x:Name="InspectorSecVisibility" Text="VISIBILITÀ" Foreground="#707080" FontSize="10" FontWeight="Bold" />
-                                    <TextBlock x:Name="InspectorAccessibility" FontWeight="SemiBold" Foreground="#FFFFFF" />
+                                    <TextBlock x:Name="InspectorSecVisibility" Text="VISIBILITÀ" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="10" FontWeight="Bold" />
+                                    <TextBlock x:Name="InspectorAccessibility" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 </StackPanel>
                             </Grid>
 
                             <!-- Tipo Dichiarato & Risolto -->
                             <StackPanel x:Name="InspectorTypeSection" Spacing="2" Margin="0,2">
-                                <TextBlock x:Name="InspectorSecType" Text="TIPO" Foreground="#707080" FontSize="10" FontWeight="Bold" />
-                                <TextBlock x:Name="InspectorType" TextWrapping="Wrap" Foreground="#4AE8D0" FontSize="12" />
+                                <TextBlock x:Name="InspectorSecType" Text="TIPO" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorType" TextWrapping="Wrap" Foreground="{DynamicResource ThemeAccentBrush}" FontSize="12" />
                             </StackPanel>
 
                             <!-- Parametri Routine -->
                             <StackPanel x:Name="InspectorParamsSection" Spacing="3" Margin="0,2">
-                                <TextBlock x:Name="InspectorSecParams" Text="PARAMETRI FORMALI" Foreground="#707080" FontSize="10" FontWeight="Bold" />
-                                <TextBlock x:Name="InspectorParams" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" FontFamily="Consolas, monospace" />
+                                <TextBlock x:Name="InspectorSecParams" Text="PARAMETRI FORMALI" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorParams" TextWrapping="Wrap" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="11" FontFamily="Consolas, monospace" />
                             </StackPanel>
 
                             <!-- File e Righe -->
                             <StackPanel x:Name="InspectorFileSection" Spacing="2" Margin="0,2">
-                                <TextBlock x:Name="InspectorSecFile" Text="FILE &amp; RIGHE" Foreground="#707080" FontSize="10" FontWeight="Bold" />
-                                <TextBlock x:Name="InspectorFile" TextWrapping="Wrap" Foreground="#A0A0B0" FontSize="11" />
+                                <TextBlock x:Name="InspectorSecFile" Text="FILE &amp; RIGHE" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorFile" TextWrapping="Wrap" Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="11" />
                             </StackPanel>
 
-                            <Rectangle Height="1" Fill="#353545" Margin="0,6" />
+                            <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,6" />
 
                             <!-- Sezione Impact Analysis & Blast Radius (M6) -->
-                            <Border Background="#242432" BorderBrush="#3D3D52" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,4">
+                            <Border x:Name="BlastRadiusCardBorder"
+                                    Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                    BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,4">
                                 <StackPanel Spacing="6">
                                     <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock x:Name="InspectorSecBlast" Text="BLAST RADIUS (IMPACT)" Foreground="#FF6633" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="InspectorSecBlast" Text="BLAST RADIUS (IMPACT)" Foreground="{DynamicResource ThemeAccentBrush}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" />
                                         <Border Grid.Column="1" x:Name="RiskBadge" CornerRadius="4" Padding="6,2" Background="#2E7D32">
                                             <TextBlock x:Name="RiskLevelText" Text="RISK: LOW" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" />
                                         </Border>
@@ -613,54 +632,54 @@
 
                                     <!-- Metriche di Impatto -->
                                     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" Margin="0,4">
-                                        <TextBlock Grid.Row="0" Grid.Column="0" x:Name="InspectorLabelDirectCallers" Text="Chiamanti Diretti:" Foreground="#A0A0B0" FontSize="11" />
-                                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="BlastDirectCallersCount" Text="0" Foreground="#FFFFFF" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                                        <TextBlock Grid.Row="0" Grid.Column="0" x:Name="InspectorLabelDirectCallers" Text="Chiamanti Diretti:" Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="11" />
+                                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="BlastDirectCallersCount" Text="0" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right" />
 
-                                        <TextBlock Grid.Row="1" Grid.Column="0" x:Name="InspectorLabelIndirectCallers" Text="Chiamanti Indiretti:" Foreground="#A0A0B0" FontSize="11" />
-                                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="BlastIndirectCallersCount" Text="0" Foreground="#FFFFFF" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                                        <TextBlock Grid.Row="1" Grid.Column="0" x:Name="InspectorLabelIndirectCallers" Text="Chiamanti Indiretti:" Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="11" />
+                                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="BlastIndirectCallersCount" Text="0" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right" />
 
-                                        <TextBlock Grid.Row="2" Grid.Column="0" x:Name="InspectorLabelMaxDepth" Text="Profondità Max (Depth):" Foreground="#A0A0B0" FontSize="11" />
-                                        <TextBlock Grid.Row="2" Grid.Column="1" x:Name="BlastMaxDepth" Text="0" Foreground="#FFCC00" FontSize="11" FontWeight="Bold" HorizontalAlignment="Right" />
+                                        <TextBlock Grid.Row="2" Grid.Column="0" x:Name="InspectorLabelMaxDepth" Text="Profondità Max (Depth):" Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="11" />
+                                        <TextBlock Grid.Row="2" Grid.Column="1" x:Name="BlastMaxDepth" Text="0" Foreground="{DynamicResource ThemeAccentBrush}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Right" />
                                     </Grid>
 
                                     <!-- Form UI Impattate -->
                                     <StackPanel x:Name="BlastFormsSection" Spacing="2" Margin="0,2">
-                                        <TextBlock x:Name="InspectorSecForms" Text="FORM UI IMPATTATE" Foreground="#00D0FF" FontSize="10" FontWeight="Bold" />
-                                        <TextBlock x:Name="BlastFormsList" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
+                                        <TextBlock x:Name="InspectorSecForms" Text="FORM UI IMPATTATE" Foreground="#0099C0" FontSize="10" FontWeight="Bold" />
+                                        <TextBlock x:Name="BlastFormsList" TextWrapping="Wrap" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="11" />
                                     </StackPanel>
 
                                     <!-- Classi & Moduli Impattati -->
                                     <StackPanel x:Name="BlastClassesSection" Spacing="2" Margin="0,2">
-                                        <TextBlock x:Name="InspectorSecClasses" Text="CLASSI &amp; MODULI TOCCATI" Foreground="#54C08C" FontSize="10" FontWeight="Bold" />
-                                        <TextBlock x:Name="BlastClassesList" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
+                                        <TextBlock x:Name="InspectorSecClasses" Text="CLASSI &amp; MODULI TOCCATI" Foreground="#2E7D32" FontSize="10" FontWeight="Bold" />
+                                        <TextBlock x:Name="BlastClassesList" TextWrapping="Wrap" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="11" />
                                     </StackPanel>
 
                                     <!-- Percorsi di Esecuzione a Rischio -->
                                     <StackPanel x:Name="BlastPathsSection" Spacing="2" Margin="0,2">
-                                        <TextBlock x:Name="InspectorSecPaths" Text="PERCORSI DI ESECUZIONE (CALL CHAINS)" Foreground="#FFCC00" FontSize="10" FontWeight="Bold" />
-                                        <TextBlock x:Name="BlastPathsList" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="10" FontFamily="Consolas, monospace" />
+                                        <TextBlock x:Name="InspectorSecPaths" Text="PERCORSI DI ESECUZIONE (CALL CHAINS)" Foreground="{DynamicResource ThemeAccentBrush}" FontSize="10" FontWeight="Bold" />
+                                        <TextBlock x:Name="BlastPathsList" TextWrapping="Wrap" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="10" FontFamily="Consolas, monospace" />
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
 
-                            <Rectangle Height="1" Fill="#353545" Margin="0,6" />
+                            <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,6" />
 
                             <!-- Chiamanti Diretti (Callers) -->
                             <StackPanel Spacing="3">
-                                <TextBlock x:Name="InspectorSecCallers" Text="CHIAMANTI DIRETTI (WHO CALLS ME?)" Foreground="#FF9933" FontSize="10" FontWeight="Bold" />
-                                <TextBlock x:Name="InspectorCallers" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
+                                <TextBlock x:Name="InspectorSecCallers" Text="CHIAMANTI DIRETTI (WHO CALLS ME?)" Foreground="{DynamicResource ThemeAccentBrush}" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorCallers" TextWrapping="Wrap" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="11" />
                             </StackPanel>
 
                             <!-- Chiamati Diretti (Callees) -->
                             <StackPanel Spacing="3" Margin="0,4">
-                                <TextBlock x:Name="InspectorSecCallees" Text="CHIAMATE EFFETTUATE (WHAT DO I CALL?)" Foreground="#33CCFF" FontSize="10" FontWeight="Bold" />
-                                <TextBlock x:Name="InspectorCallees" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
+                                <TextBlock x:Name="InspectorSecCallees" Text="CHIAMATE EFFETTUATE (WHAT DO I CALL?)" Foreground="#0099C0" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorCallees" TextWrapping="Wrap" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="11" />
                             </StackPanel>
 
                             <!-- Istanziazioni -->
                             <StackPanel x:Name="InspectorInstantiatesSection" Spacing="3" Margin="0,4">
-                                <TextBlock x:Name="InspectorSecInstantiates" Text="CLASSI ISTANZIATE (NEW)" Foreground="#E88C38" FontSize="10" FontWeight="Bold" />
-                                <TextBlock x:Name="InspectorInstantiates" TextWrapping="Wrap" Foreground="#ECECF0" FontSize="11" />
+                                <TextBlock x:Name="InspectorSecInstantiates" Text="CLASSI ISTANZIATE (NEW)" Foreground="{DynamicResource ThemeAccentBrush}" FontSize="10" FontWeight="Bold" />
+                                <TextBlock x:Name="InspectorInstantiates" TextWrapping="Wrap" Foreground="{DynamicResource ThemeTextPrimaryBrush}" FontSize="11" />
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
@@ -669,10 +688,10 @@
         </Grid>
 
         <!-- Barra di Stato Inferiore -->
-        <Border x:Name="StatusBarBorder" Grid.Row="3" Background="#16161D" Padding="12,6" BorderBrush="#353545" BorderThickness="0,1,0,0">
+        <Border x:Name="StatusBarBorder" Grid.Row="3" Background="{DynamicResource ThemeBackgroundSecondaryBrush}" Padding="12,6" BorderBrush="{DynamicResource ThemeBorderDefaultBrush}" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Grid.Column="0" x:Name="StatusText" Text="Pronto." Foreground="#808090" FontSize="11" />
-                <TextBlock Grid.Column="1" x:Name="StatusStats" Text="Nodi: 0 | Relazioni: 0" Foreground="#606070" FontSize="11" />
+                <TextBlock Grid.Column="0" x:Name="StatusText" Text="Pronto." Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="11" />
+                <TextBlock Grid.Column="1" x:Name="StatusStats" Text="Nodi: 0 | Relazioni: 0" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="11" />
             </Grid>
         </Border>
 
@@ -681,8 +700,8 @@
               Background="#75101018"
               IsVisible="False"
               ZIndex="999">
-            <Border Background="#22222E"
-                    BorderBrush="#3D3D52"
+            <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
                     BorderThickness="1"
                     CornerRadius="10"
                     Padding="32,24"
@@ -706,10 +725,10 @@
                 <StackPanel Spacing="14" HorizontalAlignment="Center" Width="280">
                     <!-- Icona Spinner Rotante -->
                     <Panel Width="44" Height="44" HorizontalAlignment="Center">
-                        <Ellipse Width="44" Height="44" Stroke="#353545" StrokeThickness="3.5" />
+                        <Ellipse Width="44" Height="44" Stroke="{DynamicResource ThemeBorderDefaultBrush}" StrokeThickness="3.5" />
                         <Path Classes="spinner"
                               Width="44" Height="44"
-                              Stroke="#FF6633" StrokeThickness="3.5"
+                              Stroke="{DynamicResource ThemeAccentBrush}" StrokeThickness="3.5"
                               StrokeLineCap="Round"
                               Data="M 22 4 A 18 18 0 0 1 40 22"
                               RenderTransformOrigin="50%,50%">
@@ -725,13 +744,13 @@
                                    Text="Calcolo Blast Radius in corso..."
                                    FontSize="14"
                                    FontWeight="SemiBold"
-                                   Foreground="#ECECF0"
+                                   Foreground="{DynamicResource ThemeTextPrimaryBrush}"
                                    HorizontalAlignment="Center"
                                    TextAlignment="Center" />
                         <TextBlock x:Name="LoadingSubtitle"
                                    Text="Esplorazione chiamanti e percorsi di chiamata..."
                                    FontSize="11"
-                                   Foreground="#A0A0B0"
+                                   Foreground="{DynamicResource ThemeTextSecondaryBrush}"
                                    HorizontalAlignment="Center"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap" />
@@ -740,8 +759,8 @@
                     <!-- Barra Indeterminata Fluida -->
                     <ProgressBar IsIndeterminate="True"
                                  Height="4"
-                                 Foreground="#FF6633"
-                                 Background="#353545"
+                                 Foreground="{DynamicResource ThemeAccentBrush}"
+                                 Background="{DynamicResource ThemeBorderDefaultBrush}"
                                  CornerRadius="2"
                                  Margin="0,4,0,0" />
                 </StackPanel>

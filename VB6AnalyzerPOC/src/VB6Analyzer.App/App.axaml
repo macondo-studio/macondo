@@ -8,6 +8,19 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://Macondo/Styles/Icons.axaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Dynamic Theme Brushes (valori iniziali predefiniti per Dark Modern) -->
+            <SolidColorBrush x:Key="ThemeBackgroundPrimaryBrush" Color="#181820" />
+            <SolidColorBrush x:Key="ThemeBackgroundSecondaryBrush" Color="#14141D" />
+            <SolidColorBrush x:Key="ThemeBackgroundSurfaceBrush" Color="#1E1E28" />
+            <SolidColorBrush x:Key="ThemeBackgroundElevatedBrush" Color="#22222E" />
+            <SolidColorBrush x:Key="ThemeBorderDefaultBrush" Color="#2D2D3E" />
+            <SolidColorBrush x:Key="ThemeBorderSubtleBrush" Color="#22222E" />
+            <SolidColorBrush x:Key="ThemeTextPrimaryBrush" Color="#ECECF0" />
+            <SolidColorBrush x:Key="ThemeTextSecondaryBrush" Color="#A0A0B8" />
+            <SolidColorBrush x:Key="ThemeTextMutedBrush" Color="#707084" />
+            <SolidColorBrush x:Key="ThemeAccentBrush" Color="#FF6633" />
+            <SolidColorBrush x:Key="ThemeAccentHoverBrush" Color="#FF8555" />
         </ResourceDictionary>
     </Application.Resources>
 

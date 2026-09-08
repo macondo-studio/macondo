@@ -1,6 +1,7 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using System.Collections.Generic;
 using System.Linq;
 using Macondo.App.Services;
@@ -18,6 +19,7 @@ public partial class SettingsWindow : Window
         _allShortcuts = KeyboardShortcutsCatalog.GetShortcuts(LocalizationService.Instance.CurrentLanguage).ToList();
         ShortcutsList.ItemsSource = _allShortcuts;
 
+        ApplyTheme(ThemeService.Instance.CurrentDefinition);
         UpdateThemeSelection(ThemeService.Instance.CurrentTheme);
         UpdateLanguageSelection(LocalizationService.Instance.CurrentLanguage);
         UpdateLocalizedTexts();
@@ -31,6 +33,7 @@ public partial class SettingsWindow : Window
 
         ThemeService.Instance.ThemeChanged += (_, theme) =>
         {
+            ApplyTheme(theme);
             UpdateThemeSelection(theme.Theme);
         };
     }
@@ -108,6 +111,53 @@ public partial class SettingsWindow : Window
         CheckVSDark.IsVisible = theme == AppTheme.VisualStudioDark;
         CheckOneDark.IsVisible = theme == AppTheme.OneDarkPro;
         CheckLightModern.IsVisible = theme == AppTheme.LightModern;
+    }
+
+    private void ApplyTheme(ThemeDefinition theme)
+    {
+        if (Color.TryParse(theme.BackgroundPrimary, out var bgPrimary))
+            Background = new SolidColorBrush(bgPrimary);
+
+        SolidColorBrush? secBrush = Color.TryParse(theme.BackgroundSecondary, out var bgSec) ? new SolidColorBrush(bgSec) : null;
+        SolidColorBrush? surfBrush = Color.TryParse(theme.BackgroundSurface, out var bgSurf) ? new SolidColorBrush(bgSurf) : null;
+        SolidColorBrush? borderBrush = Color.TryParse(theme.BorderDefault, out var bDef) ? new SolidColorBrush(bDef) : null;
+        SolidColorBrush? primaryBrush = Color.TryParse(theme.BackgroundPrimary, out var bgPrim) ? new SolidColorBrush(bgPrim) : null;
+
+        if (secBrush != null)
+        {
+            TopTitleBorder.Background = secBrush;
+            SidebarBorder.Background = secBrush;
+        }
+
+        if (primaryBrush != null)
+        {
+            ContentBorder.Background = primaryBrush;
+        }
+
+        if (borderBrush != null)
+        {
+            TopTitleBorder.BorderBrush = borderBrush;
+            SidebarBorder.BorderBrush = borderBrush;
+
+            CardDarkModern.BorderBrush = borderBrush;
+            CardVSDark.BorderBrush = borderBrush;
+            CardOneDark.BorderBrush = borderBrush;
+            CardLightModern.BorderBrush = borderBrush;
+
+            CardLangItalian.BorderBrush = borderBrush;
+            CardLangEnglish.BorderBrush = borderBrush;
+        }
+
+        if (surfBrush != null)
+        {
+            CardDarkModern.Background = surfBrush;
+            CardVSDark.Background = surfBrush;
+            CardOneDark.Background = surfBrush;
+            CardLightModern.Background = surfBrush;
+
+            CardLangItalian.Background = surfBrush;
+            CardLangEnglish.Background = surfBrush;
+        }
     }
 
     // =========================================================================
