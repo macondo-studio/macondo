@@ -29,6 +29,7 @@ public partial class MainWindow : Window
     private List<BlastRadiusGridRow> _allBlastRadiusRows = new();
     private bool _isSyncingSelection;
     private string? _currentFolderPath;
+    private Layout.GraphLayoutMode _currentLayoutMode = Layout.GraphLayoutMode.StandardRadial;
 
     public MainWindow()
     {
@@ -61,6 +62,10 @@ public partial class MainWindow : Window
         ResetViewMenuItem.Command = new ActionCommand(() => Graph.ResetView());
         ExpandAllMenuItem.Command = new ActionCommand(() => SetAllExpanded(true));
         CollapseAllMenuItem.Command = new ActionCommand(() => SetAllExpanded(false));
+        LayoutStandardMenuItem.Command = new ActionCommand(() => SetLayoutMode(Layout.GraphLayoutMode.StandardRadial));
+        LayoutAffinityMenuItem.Command = new ActionCommand(() => SetLayoutMode(Layout.GraphLayoutMode.AffinityRadial));
+        LayoutIslandsMenuItem.Command = new ActionCommand(() => SetLayoutMode(Layout.GraphLayoutMode.ClusteredIslands));
+        LayoutForceMenuItem.Command = new ActionCommand(() => SetLayoutMode(Layout.GraphLayoutMode.ForceDirected));
         BlastRadiusMenuItem.Command = new ActionCommand(() => OnBlastRadiusClicked());
         ShowCallersMenuItem.Command = new ActionCommand(() => OnShowCallersClicked());
         ShowCalleesMenuItem.Command = new ActionCommand(() => OnShowCalleesClicked());
@@ -73,6 +78,10 @@ public partial class MainWindow : Window
         ResetViewMenuItem.Click += (_, _) => Graph.ResetView();
         ExpandAllMenuItem.Click += (_, _) => SetAllExpanded(true);
         CollapseAllMenuItem.Click += (_, _) => SetAllExpanded(false);
+        LayoutStandardMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.StandardRadial);
+        LayoutAffinityMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.AffinityRadial);
+        LayoutIslandsMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.ClusteredIslands);
+        LayoutForceMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.ForceDirected);
         BlastRadiusMenuItem.Click += (_, _) => OnBlastRadiusClicked();
         ShowCallersMenuItem.Click += (_, _) => OnShowCallersClicked();
         ShowCalleesMenuItem.Click += (_, _) => OnShowCalleesClicked();
@@ -96,6 +105,9 @@ public partial class MainWindow : Window
             Graph.ClearHighlightMode();
             StatusText.Text = LocalizationService.Instance["Menu_ClearHighlight"];
         };
+
+        // Layout ComboBox Selection
+        LayoutComboBox.SelectionChanged += OnLayoutComboBoxSelectionChanged;
 
         // Export & Import HUD buttons
         ExportMarkdownButton.Click += async (_, _) => await ExportMarkdownAsync();
@@ -196,6 +208,10 @@ public partial class MainWindow : Window
         {
             CentralGrid.ColumnDefinitions[4].Width = new GridLength(settings.InspectorWidth);
         }
+
+        // Ripristino Modalità Layout Preferita
+        _currentLayoutMode = settings.PreferredLayout;
+        LayoutComboBox.SelectedIndex = (int)_currentLayoutMode;
 
         // Salvataggio Geometria Finestra e Larghezza Pannelli alla chiusura
         Closing += (_, _) =>
@@ -457,6 +473,7 @@ public partial class MainWindow : Window
     {
         if (_graph is null) return;
 
+        Layout.GraphLayoutManager.ApplyLayout(_graph, _currentLayoutMode);
         Graph.Graph = _graph;
         Graph.ResetView();
         Graph.SelectNode(null);
@@ -1502,6 +1519,52 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Imposta la modalità di layout attiva, ricalcola le coordinate di tutti i nodi e aggiorna il canvas del grafo.
+    /// </summary>
+    private void SetLayoutMode(Layout.GraphLayoutMode mode, bool resetView = true)
+    {
+        _currentLayoutMode = mode;
+        var targetIndex = (int)mode;
+
+        if (LayoutComboBox.SelectedIndex != targetIndex)
+        {
+            LayoutComboBox.SelectedIndex = targetIndex;
+        }
+
+        if (_graph != null)
+        {
+            Layout.GraphLayoutManager.ApplyLayout(_graph, mode);
+            Graph.InvalidateVisual();
+            if (resetView)
+            {
+                Graph.ResetView();
+            }
+        }
+
+        SettingsService.Instance.Update(s => s.PreferredLayout = mode);
+        StatusText.Text = LocalizationService.Instance.Get("Status_LayoutApplied", GetLocalizedLayoutName(mode));
+    }
+
+    private string GetLocalizedLayoutName(Layout.GraphLayoutMode mode) => mode switch
+    {
+        Layout.GraphLayoutMode.StandardRadial => LocalizationService.Instance["Layout_StandardRadial"],
+        Layout.GraphLayoutMode.AffinityRadial => LocalizationService.Instance["Layout_AffinityRadial"],
+        Layout.GraphLayoutMode.ClusteredIslands => LocalizationService.Instance["Layout_ClusteredIslands"],
+        Layout.GraphLayoutMode.ForceDirected => LocalizationService.Instance["Layout_ForceDirected"],
+        _ => mode.ToString()
+    };
+
+    private void OnLayoutComboBoxSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (LayoutComboBox.SelectedIndex < 0) return;
+        var mode = (Layout.GraphLayoutMode)LayoutComboBox.SelectedIndex;
+        if (mode != _currentLayoutMode)
+        {
+            SetLayoutMode(mode, resetView: true);
+        }
+    }
+
     private void UpdateLocalizedUI()
     {
         var loc = LocalizationService.Instance;
@@ -1524,6 +1587,11 @@ public partial class MainWindow : Window
         ResetViewMenuItem.Header = loc["Menu_ResetView"];
         ExpandAllMenuItem.Header = loc["Menu_ExpandAll"];
         CollapseAllMenuItem.Header = loc["Menu_CollapseAll"];
+        GraphLayoutMenuItem.Header = loc["Menu_GraphLayout"];
+        LayoutStandardMenuItem.Header = loc["Layout_StandardRadial"];
+        LayoutAffinityMenuItem.Header = loc["Layout_AffinityRadial"];
+        LayoutIslandsMenuItem.Header = loc["Layout_ClusteredIslands"];
+        LayoutForceMenuItem.Header = loc["Layout_ForceDirected"];
 
         // Menu Analisi
         AnalysisMenu.Header = loc["Menu_Analysis"];
@@ -1565,6 +1633,11 @@ public partial class MainWindow : Window
         GridTabHeader.Text = loc["Tab_BlastRadiusGrid"];
 
         // Floating HUD
+        HudLayoutLabel.Text = loc["HUD_LayoutLabel"];
+        LayoutItemStandard.Content = loc["Layout_StandardRadial"];
+        LayoutItemAffinity.Content = loc["Layout_AffinityRadial"];
+        LayoutItemIslands.Content = loc["Layout_ClusteredIslands"];
+        LayoutItemForce.Content = loc["Layout_ForceDirected"];
         HudResetViewText.Text = loc["HUD_ResetView"];
         HudExpandAllText.Text = loc["HUD_ExpandAll"];
         HudCollapseAllText.Text = loc["HUD_CollapseAll"];

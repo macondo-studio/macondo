@@ -31,6 +31,13 @@ public sealed class LocalizationService
         ["Menu_ResetView"] = "Reset Vista",
         ["Menu_ExpandAll"] = "Espandi Tutto",
         ["Menu_CollapseAll"] = "Comprimi Tutto",
+        ["Menu_GraphLayout"] = "Disposizione Grafo",
+        ["Layout_StandardRadial"] = "Radiale Standard",
+        ["Layout_AffinityRadial"] = "Radiale per Affinità",
+        ["Layout_ClusteredIslands"] = "Cluster a Isole (Sottosistemi)",
+        ["Layout_ForceDirected"] = "Force-Directed (Fisica a Molle)",
+        ["HUD_LayoutLabel"] = "Layout:",
+        ["Status_LayoutApplied"] = "Applicato layout '{0}' al grafo.",
 
         // Menu Analisi
         ["Menu_Analysis"] = "_Analisi",
@@ -184,6 +191,13 @@ public sealed class LocalizationService
         ["Menu_ResetView"] = "Reset View",
         ["Menu_ExpandAll"] = "Expand All",
         ["Menu_CollapseAll"] = "Collapse All",
+        ["Menu_GraphLayout"] = "Graph Layout",
+        ["Layout_StandardRadial"] = "Standard Radial",
+        ["Layout_AffinityRadial"] = "Affinity Radial",
+        ["Layout_ClusteredIslands"] = "Clustered Islands (Subsystems)",
+        ["Layout_ForceDirected"] = "Force-Directed (Physics)",
+        ["HUD_LayoutLabel"] = "Layout:",
+        ["Status_LayoutApplied"] = "Applied '{0}' layout to graph.",
 
         // Menu Analysis
         ["Menu_Analysis"] = "_Analysis",

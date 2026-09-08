@@ -98,6 +98,16 @@
                                     <PathIcon Data="{StaticResource IconCollapseAll}" Width="14" Height="14" />
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <Separator />
+                            <MenuItem x:Name="GraphLayoutMenuItem" Header="Disposizione Grafo">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconGraph}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                                <MenuItem x:Name="LayoutStandardMenuItem" Header="Radiale Standard" />
+                                <MenuItem x:Name="LayoutAffinityMenuItem" Header="Radiale per Affinità" />
+                                <MenuItem x:Name="LayoutIslandsMenuItem" Header="Cluster a Isole (Sottosistemi)" />
+                                <MenuItem x:Name="LayoutForceMenuItem" Header="Force-Directed (Fisica a Molle)" />
+                            </MenuItem>
                         </MenuItem>
                         <MenuItem x:Name="AnalysisMenu" Header="_Analisi">
                             <MenuItem x:Name="BlastRadiusMenuItem" Header="Calcola Blast Radius" InputGesture="F5">
@@ -364,6 +374,19 @@
                                 </Style>
                             </Border.Styles>
                             <StackPanel Width="130">
+                                <!-- Selettore Modalità Layout -->
+                                <StackPanel Spacing="3" Margin="0,2,0,4">
+                                    <TextBlock x:Name="HudLayoutLabel" Text="Layout:" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                    <ComboBox x:Name="LayoutComboBox" SelectedIndex="0" FontSize="11" HorizontalAlignment="Stretch">
+                                        <ComboBoxItem x:Name="LayoutItemStandard" Content="Radiale Standard" />
+                                        <ComboBoxItem x:Name="LayoutItemAffinity" Content="Radiale Affinità" />
+                                        <ComboBoxItem x:Name="LayoutItemIslands" Content="Cluster Isole" />
+                                        <ComboBoxItem x:Name="LayoutItemForce" Content="Force-Directed" />
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="4,3" />
+
                                 <!-- Gruppo Vista e Navigazione -->
                                 <Button x:Name="ResetViewButton" ToolTip.Tip="Ripristina zoom 100% e centra la visuale">
                                     <StackPanel Orientation="Horizontal" Spacing="8">

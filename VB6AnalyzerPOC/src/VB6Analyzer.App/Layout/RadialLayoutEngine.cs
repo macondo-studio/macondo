@@ -1,19 +1,23 @@
-﻿using Macondo.App.Models;
+using Macondo.App.Models;
 using Macondo.Semantic.Model;
 
 namespace Macondo.App.Layout;
 
 /// <summary>
-/// Motore di layout radiale/gerarchico per il CodeGraph visuale (sezioni 21 e 23 del charter).
+/// Motore di layout radiale/gerarchico standard per il CodeGraph visuale (sezioni 21 e 23 del charter).
 /// Posiziona:
 /// - Il nodo Progetto al centro (0, 0).
 /// - I moduli, classi, form, UDT ed enum su un anello principale concentrico.
 /// - I metodi, proprietà, campi e costanti su orbite satelliti attorno a ciascun modulo di appartenenza.
 /// </summary>
-public static class RadialLayoutEngine
+public sealed class RadialLayoutEngine : IGraphLayoutEngine
 {
+    public static readonly RadialLayoutEngine Instance = new();
+
+    void IGraphLayoutEngine.Apply(VisualCodeGraph graph) => Apply(graph);
+
     /// <summary>
-    /// Calcola e applica le coordinate (X, Y) a tutti i nodi del grafo visuale.
+    /// Calcola e applica le coordinate (X, Y) a tutti i nodi del grafo visuale in modalità radiale concentrica standard.
     /// </summary>
     public static void Apply(VisualCodeGraph graph)
     {

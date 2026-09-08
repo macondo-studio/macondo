@@ -18,6 +18,9 @@ public sealed class AppSettings
     /// <summary>Indice del filtro di rischio predefinito per la griglia Blast Radius (0: Tutti, 1: Critical, 2: High, 3: Medium, 4: Low).</summary>
     public int DefaultRiskFilterIndex { get; set; } = 0;
 
+    /// <summary>Modalità di layout preferita per il canvas del grafo.</summary>
+    public Layout.GraphLayoutMode PreferredLayout { get; set; } = Layout.GraphLayoutMode.StandardRadial;
+
     /// <summary>Larghezza della finestra memorizzata alla chiusura.</summary>
     public double WindowWidth { get; set; } = 1400;
 
