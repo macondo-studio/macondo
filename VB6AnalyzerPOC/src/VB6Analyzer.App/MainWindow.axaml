@@ -235,9 +235,10 @@
         </Border>
 
         <!-- Area Centrale: Explorer | Graph + Floating Actions | Inspector -->
-        <Grid Grid.Row="2">
+        <Grid x:Name="CentralGrid" Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="280" />
+                <ColumnDefinition Width="280" MinWidth="180" MaxWidth="600" />
+                <ColumnDefinition Width="4" />
                 <ColumnDefinition Width="*" MinWidth="300" />
                 <ColumnDefinition Width="4" />
                 <ColumnDefinition Width="360" MinWidth="240" MaxWidth="800" />
@@ -246,8 +247,7 @@
             <!-- Pannello Sinistro: Project Explorer -->
             <Border x:Name="ExplorerBorder" Grid.Column="0"
                     Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
-                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                    BorderThickness="0,0,1,0" Padding="8">
+                    BorderThickness="0" Padding="8">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="4,4,4,8">
                         <PathIcon Data="{StaticResource IconFolder}" Width="13" Height="13" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
@@ -274,8 +274,16 @@
                 </DockPanel>
             </Border>
 
+            <!-- Splitter Ridimensionamento Pannello Sinistro (Project Explorer) -->
+            <GridSplitter x:Name="LeftGridSplitter" Grid.Column="1"
+                          Width="4"
+                          Background="{DynamicResource ThemeBorderDefaultBrush}"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"
+                          Cursor="SizeWestEast" />
+
             <!-- Pannello Centrale con Tab (Vista Grafo / Griglia Blast Radius) -->
-            <TabControl Grid.Column="1" x:Name="CentralTabControl" SelectedIndex="0" Padding="0">
+            <TabControl Grid.Column="2" x:Name="CentralTabControl" SelectedIndex="0" Padding="0">
                 <TabControl.Styles>
                     <Style Selector="TabItem">
                         <Setter Property="FontSize" Value="12" />
@@ -546,7 +554,7 @@
             </TabControl>
 
             <!-- Splitter Ridimensionamento Pannello Destro -->
-            <GridSplitter Grid.Column="2"
+            <GridSplitter x:Name="RightGridSplitter" Grid.Column="3"
                           Width="4"
                           Background="{DynamicResource ThemeBorderDefaultBrush}"
                           ResizeDirection="Columns"
@@ -554,10 +562,9 @@
                           Cursor="SizeWestEast" />
 
             <!-- Pannello Destro: Symbol Inspector & Impact Analysis -->
-            <Border x:Name="InspectorBorder" Grid.Column="3"
+            <Border x:Name="InspectorBorder" Grid.Column="4"
                     Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
-                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                    BorderThickness="1,0,0,0" Padding="12">
+                    BorderThickness="0" Padding="12">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="10">
                         <!-- Intestazione Inspector -->

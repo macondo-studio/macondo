@@ -1,4 +1,4 @@
-﻿namespace Macondo.App.Services;
+namespace Macondo.App.Services;
 
 /// <summary>
 /// Modello serializzabile per la memorizzazione delle impostazioni e preferenze utente.
@@ -32,4 +32,10 @@ public sealed class AppSettings
 
     /// <summary>Indica se la finestra era massimizzata all'ultima chiusura.</summary>
     public bool IsMaximized { get; set; } = false;
+
+    /// <summary>Larghezza del pannello Project Explorer (pannello sinistro).</summary>
+    public double ExplorerWidth { get; set; } = 280;
+
+    /// <summary>Larghezza del pannello Symbol Inspector (pannello destro).</summary>
+    public double InspectorWidth { get; set; } = 360;
 }

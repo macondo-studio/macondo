@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -153,7 +153,7 @@ public partial class MainWindow : Window
         // Inizializzazione Impostazioni e Preferenze Utente (%APPDATA%\Macondo\settings.json)
         var settings = SettingsService.Instance.Settings;
 
-        // Ripristino Geometria Finestra
+        // Ripristino Geometria Finestra e Larghezza Pannelli
         if (settings.WindowWidth >= 600 && settings.WindowHeight >= 400)
         {
             Width = settings.WindowWidth;
@@ -170,7 +170,17 @@ public partial class MainWindow : Window
             WindowState = WindowState.Maximized;
         }
 
-        // Salvataggio Geometria Finestra alla chiusura
+        if (settings.ExplorerWidth >= 160 && settings.ExplorerWidth <= 700)
+        {
+            CentralGrid.ColumnDefinitions[0].Width = new GridLength(settings.ExplorerWidth);
+        }
+
+        if (settings.InspectorWidth >= 200 && settings.InspectorWidth <= 800)
+        {
+            CentralGrid.ColumnDefinitions[4].Width = new GridLength(settings.InspectorWidth);
+        }
+
+        // Salvataggio Geometria Finestra e Larghezza Pannelli alla chiusura
         Closing += (_, _) =>
         {
             SettingsService.Instance.Update(s =>
@@ -182,6 +192,14 @@ public partial class MainWindow : Window
                     s.WindowHeight = Height;
                     s.WindowX = Position.X;
                     s.WindowY = Position.Y;
+                }
+                if (ExplorerBorder.Bounds.Width >= 160)
+                {
+                    s.ExplorerWidth = ExplorerBorder.Bounds.Width;
+                }
+                if (InspectorBorder.Bounds.Width >= 200)
+                {
+                    s.InspectorWidth = InspectorBorder.Bounds.Width;
                 }
             });
         };
@@ -1253,6 +1271,8 @@ public partial class MainWindow : Window
             ExplorerBorder.BorderBrush = borderBrush;
             GridToolbarBorder.BorderBrush = borderBrush;
             InspectorBorder.BorderBrush = borderBrush;
+            LeftGridSplitter.Background = borderBrush;
+            RightGridSplitter.Background = borderBrush;
         }
 
         Graph.ApplyTheme(theme);
