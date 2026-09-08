@@ -1,4 +1,4 @@
-﻿using Macondo.Semantic.Extraction;
+using Macondo.Semantic.Extraction;
 using Macondo.Semantic.Graph;
 using Macondo.Semantic.Model;
 using Macondo.Semantic.Resolution;
@@ -235,7 +235,43 @@ internal static class Program
         }
 
         // ---------------------------------------------------------------------
-        // PASSO 8: Riepilogo Finale M4 + M6
+        // PASSO 8: Esportazione CodeGraph per LLM & Tooling (Markdown & JSON)
+        // ---------------------------------------------------------------------
+        Console.WriteLine("--------------------------------------------------------------------------------");
+        Console.WriteLine("5. ESPORTAZIONE CODEGRAPH PER LLM & TOOLING (Markdown & JSON)");
+        Console.WriteLine("--------------------------------------------------------------------------------");
+
+        var mdExport = graph.ToMarkdown();
+        var mdPath = Path.Combine(AppContext.BaseDirectory, "codegraph_export.md");
+        File.WriteAllText(mdPath, mdExport);
+        Console.WriteLine($"[ESPORTAZIONE MARKDOWN] Generato: {mdPath} ({mdExport.Length} caratteri)");
+
+        var jsonExport = graph.ToJson(indented: true);
+        var jsonPath = Path.Combine(AppContext.BaseDirectory, "codegraph_export.json");
+        File.WriteAllText(jsonPath, jsonExport);
+        Console.WriteLine($"[ESPORTAZIONE JSON]     Generato: {jsonPath} ({jsonExport.Length} caratteri)");
+
+        // Test Roundtrip JSON
+        var reloadedGraph = CodeGraph.FromJson(jsonExport);
+        Console.WriteLine($"[ROUNDTRIP JSON TEST]   Simboli originali: {graph.Symbols.Count} -> Ricaricati: {reloadedGraph.Symbols.Count}");
+        Console.WriteLine($"                        Relazioni originali: {graph.Relationships.Count} -> Ricaricate: {reloadedGraph.Relationships.Count}");
+        bool roundtripOk = graph.Symbols.Count == reloadedGraph.Symbols.Count && graph.Relationships.Count == reloadedGraph.Relationships.Count;
+        Console.WriteLine($"                        Esito Roundtrip: {(roundtripOk ? "[SUCCESSO]" : "[FALLITO]")}");
+        Console.WriteLine();
+
+        // Esempio di Context Slice mirato per un LLM (OrderService.ProcessOrder)
+        if (orderServiceProcess != null)
+        {
+            Console.WriteLine($"[LLM CONTEXT SLICE PREVIEW] per '{orderServiceProcess.QualifiedName}':");
+            Console.WriteLine("--------------------------------------------------------------------------------");
+            var slice = graph.ToMarkdownSlice(orderServiceProcess);
+            Console.WriteLine(slice);
+            Console.WriteLine("--------------------------------------------------------------------------------");
+            Console.WriteLine();
+        }
+
+        // ---------------------------------------------------------------------
+        // PASSO 9: Riepilogo Finale M4 + M6 + Export
         // ---------------------------------------------------------------------
         Console.WriteLine("================================================================================");
         Console.WriteLine("                  RIEPILOGO FINALE MILESTONE M4 & M6                            ");
@@ -249,13 +285,15 @@ internal static class Program
         Console.WriteLine($"  - USES_TYPE                  : {graph.Relationships.Count(r => r.Kind == RelationshipKind.UsesType)}");
         Console.WriteLine();
 
-        Console.WriteLine("Verifica dei punti chiave del Charter per M6:");
+        Console.WriteLine("Verifica dei punti chiave del Charter per M6 & Export:");
         Console.WriteLine("  [OK] Direct & Indirect callers calculation with Depth levels");
         Console.WriteLine("  [OK] Affected Forms, Classes, and Modules identification");
         Console.WriteLine("  [OK] Affected Execution Paths (Call Chains) discovery");
         Console.WriteLine("  [OK] Max dependency depth metric");
         Console.WriteLine("  [OK] Type-level Blast Radius (INSTANTIATES + USES_TYPE + member calls)");
         Console.WriteLine("  [OK] Risk Level estimation (Low, Medium, High, Critical)");
+        Console.WriteLine("  [OK] Token-efficient Markdown Repo Map & LLM Context Slice Exporter");
+        Console.WriteLine("  [OK] Full JSON Serialization / Deserialization Roundtrip");
         Console.WriteLine("================================================================================");
     }
 }

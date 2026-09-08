@@ -1,4 +1,4 @@
-﻿namespace Macondo.Semantic.Model;
+namespace Macondo.Semantic.Model;
 
 /// <summary>
 /// Grafo del codice semantico in memoria (CodeGraph, sezioni 3 e 18 del charter).
@@ -107,4 +107,28 @@ public sealed class CodeGraph
     /// </summary>
     public Symbol? FindSymbolById(Guid id) =>
         Symbols.FirstOrDefault(s => s.Id == id);
+
+    /// <summary>
+    /// Esporta l'intero grafo in formato Markdown gerarchico compatto (Repo Map) ottimizzato per LLM.
+    /// </summary>
+    public string ToMarkdown(Macondo.Semantic.Export.MarkdownExportOptions? options = null) =>
+        Macondo.Semantic.Export.CodeGraphMarkdownExporter.Export(this, options);
+
+    /// <summary>
+    /// Esporta un subgrafo focalizzato su un singolo simbolo (Impact Slice / Inbound & Outbound dependencies).
+    /// </summary>
+    public string ToMarkdownSlice(Symbol rootSymbol, int maxDepth = 2) =>
+        Macondo.Semantic.Export.CodeGraphMarkdownExporter.ExportSlice(this, rootSymbol, maxDepth);
+
+    /// <summary>
+    /// Serializza l'intero grafo in formato JSON strutturato.
+    /// </summary>
+    public string ToJson(bool indented = true) =>
+        Macondo.Semantic.Export.CodeGraphJsonExporter.ExportToJson(this, indented);
+
+    /// <summary>
+    /// Ricostruisce un'istanza di <see cref="CodeGraph"/> a partire da una stringa JSON serializzata.
+    /// </summary>
+    public static CodeGraph FromJson(string json) =>
+        Macondo.Semantic.Export.CodeGraphJsonExporter.ImportFromJson(json);
 }
