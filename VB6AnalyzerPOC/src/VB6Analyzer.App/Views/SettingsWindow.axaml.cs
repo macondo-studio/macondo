@@ -214,6 +214,20 @@ public partial class SettingsWindow : Window
         }
     }
 
+    // =========================================================================
+    // Ripristino Impostazioni Predefinite
+    // =========================================================================
+
+    private void OnResetSettingsClicked(object? sender, RoutedEventArgs e)
+    {
+        var defaultSettings = SettingsService.Instance.Reset();
+        ThemeService.Instance.ApplyTheme(defaultSettings.Theme);
+        LocalizationService.Instance.SetLanguage(defaultSettings.Language);
+        UpdateThemeSelection(defaultSettings.Theme);
+        UpdateLanguageSelection(defaultSettings.Language);
+        UpdateLocalizedTexts();
+    }
+
     private void UpdateLocalizedTexts()
     {
         var loc = LocalizationService.Instance;
@@ -222,6 +236,9 @@ public partial class SettingsWindow : Window
         NavThemeText.Text = loc["Settings_Tab_Appearance"];
         NavLanguageText.Text = loc["Settings_Tab_Language"];
         NavShortcutsText.Text = loc["Settings_Tab_Shortcuts"];
+
+        ResetSettingsButtonText.Text = loc["Settings_Reset"];
+        ToolTip.SetTip(ResetSettingsButton, loc["Tooltip_ResetSettings"]);
 
         ToolTip.SetTip(CloseButton, loc["Tooltip_Close"]);
         ToolTip.SetTip(NavThemeButton, loc["Settings_Tab_Appearance"]);

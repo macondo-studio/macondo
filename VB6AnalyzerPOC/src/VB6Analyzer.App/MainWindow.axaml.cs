@@ -55,6 +55,8 @@ public partial class MainWindow : Window
         ExportSliceMenuItem.Command = new ActionCommand(async () => await ExportLlmSliceAsync());
         SettingsMenuItem.Command = new ActionCommand(OpenSettings);
         CheckUpdatesMenuItem.Command = new ActionCommand(async () => await CheckForUpdatesManualAsync());
+        ResetSettingsMenuItem.Command = new ActionCommand(ResetSettingsToDefaults);
+        ClearCacheMenuItem.Command = new ActionCommand(ClearProjectCache);
         ExitMenuItem.Command = new ActionCommand(() => Close());
 
         OpenFolderMenuItem.Click += async (_, _) => await OpenFolderAsync();
@@ -67,6 +69,8 @@ public partial class MainWindow : Window
         ExportSliceMenuItem.Click += async (_, _) => await ExportLlmSliceAsync();
         SettingsMenuItem.Click += (_, _) => OpenSettings();
         CheckUpdatesMenuItem.Click += async (_, _) => await CheckForUpdatesManualAsync();
+        ResetSettingsMenuItem.Click += (_, _) => ResetSettingsToDefaults();
+        ClearCacheMenuItem.Click += (_, _) => ClearProjectCache();
         ExitMenuItem.Click += (_, _) => Close();
 
         // Menu Bar Superiore - Visualizza & Analisi
@@ -1822,6 +1826,25 @@ public partial class MainWindow : Window
         UpdateService.Instance.OpenDownloadPage(_availableUpdate?.DownloadUrl);
     }
 
+    /// <summary>
+    /// Svuota completamente la cache locale dei progetti (%APPDATA%\Macondo\cache\) e invalida le query in memoria.
+    /// </summary>
+    private void ResetSettingsToDefaults()
+    {
+        var defaultSettings = SettingsService.Instance.Reset();
+        ThemeService.Instance.ApplyTheme(defaultSettings.Theme);
+        LocalizationService.Instance.SetLanguage(defaultSettings.Language);
+        SetLayoutMode(defaultSettings.PreferredLayout);
+        StatusText.Text = LocalizationService.Instance["Status_SettingsReset"];
+    }
+
+    private void ClearProjectCache()
+    {
+        var count = ProjectCacheService.Instance.ClearAllCache();
+        _graph?.Queries?.ClearCache();
+        StatusText.Text = LocalizationService.Instance.Get("Status_CacheCleared", count);
+    }
+
     private void UpdateLocalizedUI()
     {
         var loc = LocalizationService.Instance;
@@ -1860,6 +1883,10 @@ public partial class MainWindow : Window
         // Menu Aiuto
         HelpMenu.Header = loc["Menu_Help"];
         CheckUpdatesMenuItem.Header = loc["Menu_CheckUpdates"];
+        ResetSettingsMenuItem.Header = loc["Menu_ResetSettings"];
+        ToolTip.SetTip(ResetSettingsMenuItem, loc["Tooltip_ResetSettings"]);
+        ClearCacheMenuItem.Header = loc["Menu_ClearCache"];
+        ToolTip.SetTip(ClearCacheMenuItem, loc["Tooltip_ClearCache"]);
 
         // Caption Buttons Tooltips
         ToolTip.SetTip(SettingsButton, loc["Tooltip_Settings"]);

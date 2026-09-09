@@ -164,6 +164,7 @@ public sealed class LocalizationService
         ["Settings_Shortcuts_Header"] = "Catalogo Scorciatoie da Tastiera",
         ["Settings_Shortcuts_Sub"] = "Tutte le combinazioni di tasti per navigare rapidamente nel codice e nel grafo.",
         ["Settings_Shortcuts_Search"] = "Cerca scorciatoia...",
+        ["Settings_Reset"] = "Ripristina Predefiniti",
         ["Settings_Close"] = "Chiudi",
 
         // Esportazione, Importazione & LLM
@@ -203,9 +204,13 @@ public sealed class LocalizationService
         ["Svn_SwitchSuccess"] = "Switch completato con successo a '{0}'.",
         ["Svn_SwitchError"] = "Errore durante svn switch: {0}",
 
-        // Aggiornamenti Software (Update Service)
+        // Aggiornamenti Software & Cache (Menu Aiuto)
         ["Menu_Help"] = "_Aiuto",
         ["Menu_CheckUpdates"] = "Verifica Aggiornamenti...",
+        ["Menu_ResetSettings"] = "Ripristina Impostazioni Predefinite...",
+        ["Menu_ClearCache"] = "Pulisci Cache Progetti...",
+        ["Tooltip_ResetSettings"] = "Ripristina tutte le preferenze e impostazioni ai valori predefiniti",
+        ["Tooltip_ClearCache"] = "Elimina tutti gli snapshot di cache persistenti da disco (%APPDATA%\\Macondo\\cache\\)",
         ["Update_AvailableTitle"] = "Nuovo Aggiornamento Disponibile!",
         ["Update_AvailableSubtitle"] = "Versione {0} disponibile (versione attuale: {1})",
         ["Update_NotesLabel"] = "Novità e Note di Rilascio:",
@@ -221,7 +226,9 @@ public sealed class LocalizationService
         ["Status_LoadedFromCache"] = "Progetto '{0}' caricato dalla cache locale ({1}). Premi 'Ricarica' (Ctrl+R) per rianalizzare.",
         ["Status_CacheStale"] = "Progetto '{0}' caricato da cache. Modifiche rilevate su disco: premi 'Ricarica' (Ctrl+R) per aggiornare.",
         ["Status_Refreshed"] = "Progetto '{0}' ricaricato da disco ({1} file analizzati).",
-        ["Status_CacheSaved"] = "Cache locale aggiornata per '{0}'."
+        ["Status_CacheSaved"] = "Cache locale aggiornata per '{0}'.",
+        ["Status_CacheCleared"] = "Cache locale dei progetti svuotata ({0} file eliminati).",
+        ["Status_SettingsReset"] = "Impostazioni e preferenze ripristinate ai valori predefiniti."
     };
 
     private readonly Dictionary<string, string> _enStrings = new()
@@ -373,6 +380,7 @@ public sealed class LocalizationService
         ["Settings_Shortcuts_Header"] = "Keyboard Shortcuts Catalog",
         ["Settings_Shortcuts_Sub"] = "All key combinations for rapid navigation and analysis.",
         ["Settings_Shortcuts_Search"] = "Search shortcut...",
+        ["Settings_Reset"] = "Restore Defaults",
         ["Settings_Close"] = "Close",
 
         // Export, Import & LLM
@@ -412,9 +420,13 @@ public sealed class LocalizationService
         ["Svn_SwitchSuccess"] = "Successfully switched to '{0}'.",
         ["Svn_SwitchError"] = "Error during svn switch: {0}",
 
-        // Software Updates (Update Service)
+        // Software Updates & Cache (Help Menu)
         ["Menu_Help"] = "_Help",
         ["Menu_CheckUpdates"] = "Check for Updates...",
+        ["Menu_ResetSettings"] = "Restore Default Settings...",
+        ["Menu_ClearCache"] = "Clear Project Cache...",
+        ["Tooltip_ResetSettings"] = "Restore all preferences and settings to factory default values",
+        ["Tooltip_ClearCache"] = "Deletes all persistent project cache snapshots from disk (%APPDATA%\\Macondo\\cache\\)",
         ["Update_AvailableTitle"] = "New Update Available!",
         ["Update_AvailableSubtitle"] = "Version {0} is available (current version: {1})",
         ["Update_NotesLabel"] = "Release Notes & Changelog:",
@@ -430,7 +442,9 @@ public sealed class LocalizationService
         ["Status_LoadedFromCache"] = "Project '{0}' loaded from local cache ({1}). Press 'Reload' (Ctrl+R) to reanalyze.",
         ["Status_CacheStale"] = "Project '{0}' loaded from cache. Modified files detected on disk: press 'Reload' (Ctrl+R) to update.",
         ["Status_Refreshed"] = "Project '{0}' reloaded from disk ({1} files analyzed).",
-        ["Status_CacheSaved"] = "Local cache updated for '{0}'."
+        ["Status_CacheSaved"] = "Local cache updated for '{0}'.",
+        ["Status_CacheCleared"] = "Local project cache cleared ({0} files deleted).",
+        ["Status_SettingsReset"] = "Settings and preferences restored to default values."
     };
 
     private LocalizationService() { }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -234,6 +234,36 @@ public sealed class ProjectCacheService
         catch
         {
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Elimina tutti i file snapshot di cache persistenti presenti nella directory di cache (%APPDATA%\Macondo\cache\).
+    /// Restituisce il numero di file di cache eliminati.
+    /// </summary>
+    public int ClearAllCache()
+    {
+        try
+        {
+            if (!Directory.Exists(_cacheDirectory))
+                return 0;
+
+            var files = Directory.GetFiles(_cacheDirectory, "*.json");
+            int deleted = 0;
+            foreach (var file in files)
+            {
+                try
+                {
+                    File.Delete(file);
+                    deleted++;
+                }
+                catch { }
+            }
+            return deleted;
+        }
+        catch
+        {
+            return 0;
         }
     }
 

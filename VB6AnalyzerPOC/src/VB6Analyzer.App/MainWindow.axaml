@@ -138,6 +138,17 @@
                                     <PathIcon Data="{StaticResource IconUpdate}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <Separator />
+                            <MenuItem x:Name="ResetSettingsMenuItem" Header="Ripristina Impostazioni Predefinite...">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconRefresh}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="ClearCacheMenuItem" Header="Pulisci Cache Progetti...">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconTrash}" Width="14" Height="14" Foreground="#FF5555" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                         </MenuItem>
                     </Menu>
                 </StackPanel>
@@ -149,14 +160,36 @@
                             PointerPressed="OnTitleBarPointerPressed"
                             DoubleTapped="OnTitleBarDoubleTapped" />
 
-                    <!-- Casella di Ricerca Dedicata Centrata -->
+                    <!-- Casella di Ricerca Dedicata Centrata Senza Contorno -->
                     <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Panel.Styles>
+                            <Style Selector="TextBox#SearchBox">
+                                <Setter Property="BorderThickness" Value="0" />
+                                <Setter Property="BorderBrush" Value="Transparent" />
+                                <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+                                <Setter Property="CornerRadius" Value="4" />
+                            </Style>
+                            <Style Selector="TextBox#SearchBox:pointerover /template/ Border#PART_BorderElement">
+                                <Setter Property="BorderThickness" Value="0" />
+                                <Setter Property="BorderBrush" Value="Transparent" />
+                                <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                            </Style>
+                            <Style Selector="TextBox#SearchBox:focus /template/ Border#PART_BorderElement">
+                                <Setter Property="BorderThickness" Value="0" />
+                                <Setter Property="BorderBrush" Value="Transparent" />
+                                <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                            </Style>
+                        </Panel.Styles>
                         <TextBox x:Name="SearchBox"
                                  Width="420"
                                  Height="26"
                                  MinHeight="26"
                                  FontSize="11"
                                  Padding="6,1"
+                                 BorderThickness="0"
+                                 BorderBrush="Transparent"
+                                 Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                 CornerRadius="4"
                                  VerticalContentAlignment="Center"
                                  Watermark="Cerca simbolo nel grafo..."
                                  TextChanged="OnSearchTextChanged"
@@ -166,8 +199,8 @@
                             </TextBox.InnerLeftContent>
                             <TextBox.InnerRightContent>
                                 <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
-                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                                        BorderThickness="1"
+                                        BorderBrush="Transparent"
+                                        BorderThickness="0"
                                         CornerRadius="3"
                                         Padding="5,1"
                                         Margin="0,0,4,0"

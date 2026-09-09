@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -98,6 +98,19 @@ public sealed class SettingsService
         {
             updateAction(Settings);
             Save();
+        }
+    }
+
+    /// <summary>
+    /// Ripristina tutte le preferenze utente ai valori predefiniti di fabbrica e salva il file su disco.
+    /// </summary>
+    public AppSettings Reset()
+    {
+        lock (_lock)
+        {
+            Settings = new AppSettings();
+            Save();
+            return Settings;
         }
     }
 }

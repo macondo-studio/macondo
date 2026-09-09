@@ -55,58 +55,86 @@
         <!-- Corpo Principale Impostazioni (Sidebar + Contenuto) -->
         <Grid Grid.Row="1" ColumnDefinitions="210,*">
 
-            <!-- Sidebar Sinistra: Schede Navigazione -->
+            <!-- Sidebar Sinistra: Schede Navigazione & Reset -->
             <Border x:Name="SidebarBorder" Grid.Column="0"
                     Background="{DynamicResource ThemeBackgroundSecondaryBrush}"
                     BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
                     BorderThickness="0,0,1,0" Padding="8,12">
-                <StackPanel Spacing="4">
-                    <StackPanel.Styles>
-                        <Style Selector="Button.nav-btn">
-                            <Setter Property="HorizontalAlignment" Value="Stretch" />
-                            <Setter Property="HorizontalContentAlignment" Value="Left" />
-                            <Setter Property="Padding" Value="10,8" />
-                            <Setter Property="FontSize" Value="12" />
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="BorderThickness" Value="0" />
-                            <Setter Property="CornerRadius" Value="6" />
-                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
-                        </Style>
-                        <Style Selector="Button.nav-btn:pointerover">
-                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                        </Style>
-                        <Style Selector="Button.nav-btn.selected">
-                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
-                            <Setter Property="FontWeight" Value="SemiBold" />
-                        </Style>
-                    </StackPanel.Styles>
+                <DockPanel LastChildFill="False">
+                    <!-- Gruppo Schede Navigazione (In Alto) -->
+                    <StackPanel DockPanel.Dock="Top" Spacing="4">
+                        <StackPanel.Styles>
+                            <Style Selector="Button.nav-btn">
+                                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                <Setter Property="Padding" Value="10,8" />
+                                <Setter Property="FontSize" Value="12" />
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="BorderThickness" Value="0" />
+                                <Setter Property="CornerRadius" Value="6" />
+                                <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+                            </Style>
+                            <Style Selector="Button.nav-btn:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+                            </Style>
+                            <Style Selector="Button.nav-btn.selected">
+                                <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </Style>
+                        </StackPanel.Styles>
 
-                    <!-- Tab 1: Aspetto & Temi -->
-                    <Button x:Name="NavThemeButton" Classes="nav-btn selected" Click="OnNavThemeClicked">
+                        <!-- Tab 1: Aspetto & Temi -->
+                        <Button x:Name="NavThemeButton" Classes="nav-btn selected" Click="OnNavThemeClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconTheme}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavThemeText" Text="Aspetto &amp; Temi" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 2: Lingua -->
+                        <Button x:Name="NavLanguageButton" Classes="nav-btn" Click="OnNavLanguageClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconLanguage}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavLanguageText" Text="Lingua" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 3: Scorciatoie -->
+                        <Button x:Name="NavShortcutsButton" Classes="nav-btn" Click="OnNavShortcutsClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconKeyboard}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavShortcutsText" Text="Scorciatoie" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Pulsante Ripristina Impostazioni Predefinite (In Basso) -->
+                    <Button DockPanel.Dock="Bottom" x:Name="ResetSettingsButton"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Padding="10,8"
+                            FontSize="11"
+                            Background="Transparent"
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                            CornerRadius="6"
+                            Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                            Click="OnResetSettingsClicked">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
+                            </Style>
+                        </Button.Styles>
                         <StackPanel Orientation="Horizontal" Spacing="10">
-                            <PathIcon Data="{StaticResource IconTheme}" Width="14" Height="14" VerticalAlignment="Center" />
-                            <TextBlock x:Name="NavThemeText" Text="Aspetto &amp; Temi" VerticalAlignment="Center" />
+                            <PathIcon Data="{StaticResource IconRefresh}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="ResetSettingsButtonText" Text="Ripristina Predefiniti" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
-
-                    <!-- Tab 2: Lingua -->
-                    <Button x:Name="NavLanguageButton" Classes="nav-btn" Click="OnNavLanguageClicked">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <PathIcon Data="{StaticResource IconLanguage}" Width="14" Height="14" VerticalAlignment="Center" />
-                            <TextBlock x:Name="NavLanguageText" Text="Lingua" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-
-                    <!-- Tab 3: Scorciatoie -->
-                    <Button x:Name="NavShortcutsButton" Classes="nav-btn" Click="OnNavShortcutsClicked">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <PathIcon Data="{StaticResource IconKeyboard}" Width="14" Height="14" VerticalAlignment="Center" />
-                            <TextBlock x:Name="NavShortcutsText" Text="Scorciatoie" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
+                </DockPanel>
             </Border>
 
             <!-- Area Contenuti Destra -->
