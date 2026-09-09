@@ -472,12 +472,26 @@
                                 <Style Selector="Button:pointerover PathIcon">
                                     <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
                                 </Style>
+                                <Style Selector="ComboBox">
+                                    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderSubtleBrush}" />
+                                    <Setter Property="BorderThickness" Value="1" />
+                                    <Setter Property="CornerRadius" Value="4" />
+                                </Style>
+                                <Style Selector="ComboBox:pointerover">
+                                    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDefaultBrush}" />
+                                </Style>
                             </Border.Styles>
                             <StackPanel Width="130">
                                 <!-- Selettore Modalità Layout -->
                                 <StackPanel Spacing="3" Margin="0,2,0,4">
                                     <TextBlock x:Name="HudLayoutLabel" Text="Layout:" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource ThemeTextMutedBrush}" />
-                                    <ComboBox x:Name="LayoutComboBox" SelectedIndex="0" FontSize="11" HorizontalAlignment="Stretch">
+                                    <ComboBox x:Name="LayoutComboBox" SelectedIndex="0" FontSize="11" HorizontalAlignment="Stretch"
+                                              Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                              BorderBrush="{DynamicResource ThemeBorderSubtleBrush}"
+                                              BorderThickness="1"
+                                              CornerRadius="4">
                                         <ComboBoxItem x:Name="LayoutItemStandard" Content="Radiale Standard" />
                                         <ComboBoxItem x:Name="LayoutItemAffinity" Content="Radiale Affinità" />
                                         <ComboBoxItem x:Name="LayoutItemIslands" Content="Cluster Isole" />
@@ -734,15 +748,13 @@
                     BorderThickness="0" Padding="12">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="10">
-                        <!-- Intestazione Inspector con Pulsante Nascondi -->
-                        <Border x:Name="InspectorHeaderBorder" Padding="8,4" Background="{DynamicResource ThemeBackgroundElevatedBrush}" CornerRadius="4">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <PathIcon Data="{StaticResource IconInspect}" Width="13" Height="13" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
-                                    <TextBlock x:Name="InspectorTitleText" Text="Symbol Inspector &amp; Blast Radius" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
-                                </StackPanel>                                
-                            </Grid>
-                        </Border>
+                        <!-- Intestazione Inspector -->
+                        <Grid Margin="4,4,4,8">
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <PathIcon Data="{StaticResource IconInspect}" Width="13" Height="13" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                                <TextBlock x:Name="InspectorTitleText" Text="Symbol Inspector &amp; Blast Radius" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
+                            </StackPanel>                                
+                        </Grid>
 
                         <!-- Messaggio Nodo Non Selezionato -->
                         <StackPanel x:Name="InspectorEmptyPanel" Spacing="6" Margin="4,8">
