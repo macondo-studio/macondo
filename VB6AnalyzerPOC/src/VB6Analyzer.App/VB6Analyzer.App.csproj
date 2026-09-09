@@ -8,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Macondo.App</RootNamespace>
     <AssemblyName>Macondo</AssemblyName>
+    <ApplicationIcon>Assets\Icons\macondo_option3.ico</ApplicationIcon>
 
     <!--
       NOTA IMPORTANTE: SelfContained / PublishSingleFile / RuntimeIdentifier NON sono
@@ -19,6 +20,10 @@
 
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.1.3" />

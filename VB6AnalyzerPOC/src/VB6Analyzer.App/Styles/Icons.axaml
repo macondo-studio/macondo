@@ -6,8 +6,12 @@
     <!-- Geometrie StreamGeometry native ad altissima risoluzione per PathIcon  -->
     <!-- ===================================================================== -->
 
-    <!-- Brand e Logo Applicazione -->
-    <StreamGeometry x:Key="IconAppLogo">M8.5 1.5L2 9.5h5L5.5 15.5 14 7.5H9z</StreamGeometry>
+    <!-- Brand e Logo Applicazione (Opzioni Bussola / Rosa dei Venti Macondo) -->
+    <StreamGeometry x:Key="IconAppLogo">M12.5 3.5L6.5 6.5 3.5 12.5 6.5 9.5 9.5 6.5z M8 1a7 7 0 0 0-4.95 11.95l.7-.7A6 6 0 1 1 13.95 8h1A7 7 0 0 0 8 1z</StreamGeometry>
+    <StreamGeometry x:Key="IconMacondoOption1">M8 1L9.5 6.5 15 8l-5.5 1.5L8 15l-1.5-5.5L1 8l5.5-1.5L8 1zm0 4.2L7 7l-1.8 1L7 9l1 1.8 1-1 1.8-1-1.8-1L8 5.2z</StreamGeometry>
+    <StreamGeometry x:Key="IconMacondoOption2">M8 1.5L9.5 6.5 14.5 8l-5 1.5L8 14.5l-1.5-5L1.5 8l5-1.5L8 1.5zm0 2.8L6.8 7.2 2.8 8l4 0.8L8 11.7l1.2-2.9 4-0.8-4-0.8L8 4.3z</StreamGeometry>
+    <StreamGeometry x:Key="IconMacondoOption3">M12.5 3.5L6.5 6.5 3.5 12.5 6.5 9.5 9.5 6.5z M8 1a7 7 0 0 0-4.95 11.95l.7-.7A6 6 0 1 1 13.95 8h1A7 7 0 0 0 8 1z</StreamGeometry>
+    <StreamGeometry x:Key="IconMacondoOption4">M8 1.5l2.2 4-2.2 1.3-2.2-1.3L8 1.5zm0 13l-2.2-4 2.2-1.3 2.2 1.3L8 14.5zm6.5-6.5l-4 2.2-1.3-2.2 1.3-2.2 4 2.2zm-13 0l4-2.2 1.3 2.2-1.3 2.2-4-2.2z</StreamGeometry>
     <StreamGeometry x:Key="IconZap">M8.5 1.5L2 9.5h5L5.5 15.5 14 7.5H9z</StreamGeometry>
 
     <!-- File e Cartelle -->

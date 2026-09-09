@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <rect width="128" height="128" rx="28" fill="#12161C"/>
+  <!-- Main 4 Points -->
+  <polygon points="64,16 64,64 54,64" fill="#10B981"/>
+  <polygon points="64,16 64,64 74,64" fill="#3B82F6"/>
+  <polygon points="64,112 64,64 54,64" fill="#047857"/>
+  <polygon points="64,112 64,64 74,64" fill="#1D4ED8"/>
+  <polygon points="112,64 64,64 64,54" fill="#3B82F6"/>
+  <polygon points="112,64 64,64 64,74" fill="#1D4ED8"/>
+  <polygon points="16,64 64,64 64,54" fill="#10B981"/>
+  <polygon points="16,64 64,64 64,74" fill="#047857"/>
+  <!-- Secondary 4 Points -->
+  <polygon points="98,30 64,64 74,54" fill="#60A5FA"/>
+  <polygon points="98,30 64,64 64,54" fill="#2563EB"/>
+  <polygon points="30,30 64,64 54,64" fill="#34D399"/>
+  <polygon points="30,30 64,64 54,54" fill="#059669"/>
+  <polygon points="98,98 64,64 74,64" fill="#1D4ED8"/>
+  <polygon points="98,98 64,64 64,74" fill="#3B82F6"/>
+  <polygon points="30,98 64,64 64,74" fill="#047857"/>
+  <polygon points="30,98 64,64 54,64" fill="#10B981"/>
+</svg>

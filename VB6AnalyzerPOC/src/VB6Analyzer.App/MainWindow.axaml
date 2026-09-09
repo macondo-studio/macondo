@@ -5,6 +5,7 @@
         xmlns:services="using:Macondo.App.Services"
         x:Class="Macondo.App.MainWindow"
         Title="Macondo"
+        Icon="avares://Macondo/Assets/Icons/macondo_option3.ico"
         Width="1400" Height="900"
         Background="{DynamicResource ThemeBackgroundPrimaryBrush}"
         ExtendClientAreaToDecorationsHint="True"
@@ -22,7 +23,7 @@
                 <!-- Sinistra: Brand / Logo App + Menu a Discesa -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,16,0" Spacing="6">
-                        <PathIcon Data="{StaticResource IconAppLogo}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                        <Image Source="avares://Macondo/Assets/Icons/macondo_option3_512.png" Width="16" Height="16" VerticalAlignment="Center" RenderOptions.BitmapInterpolationMode="HighQuality" />
                         <TextBlock x:Name="BrandTitleText" Text="Macondo" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
                     </StackPanel>
 
