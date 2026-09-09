@@ -11,13 +11,13 @@
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="-1">
 
-    <Grid RowDefinitions="Auto,*,Auto" Margin="{Binding $parent[Window].OffScreenMargin}">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="{Binding $parent[Window].OffScreenMargin}">
 
-        <!-- Barra Superiore Stile IDE (Brand & Menu a Sinistra | Ricerca & Area Trascinamento al Centro | Controlli Finestra a Destra) -->
+        <!-- Barra Superiore Stile IDE (Brand & Menu a Sinistra | Area Trascinamento al Centro | Controlli Finestra a Destra) -->
         <Border x:Name="TopBarBorder" Grid.Row="0"
                 Background="{DynamicResource ThemeBackgroundSecondaryBrush}"
                 BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                BorderThickness="0,0,0,1" Padding="8,0,0,0" Height="38">
+                BorderThickness="0,0,0,1" Padding="8,0,0,0" Height="34">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <!-- Sinistra: Brand / Logo App + Menu a Discesa -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
@@ -164,122 +164,12 @@
                     </Menu>
                 </StackPanel>
 
-                <!-- Centro: Area di Trascinamento Finestra con Casella di Ricerca Dedicata Stile VS Code / JetBrains -->
-                <Grid Grid.Column="1" Margin="8,0">
-                    <!-- Sfondo di trascinamento finestra per tutta l'area centrale -->
-                    <Border Background="Transparent"
-                            PointerPressed="OnTitleBarPointerPressed"
-                            DoubleTapped="OnTitleBarDoubleTapped" />
+                <!-- Centro: Area di Trascinamento Finestra -->
+                <Border Grid.Column="1" Background="Transparent"
+                        PointerPressed="OnTitleBarPointerPressed"
+                        DoubleTapped="OnTitleBarDoubleTapped" />
 
-                    <!-- Casella di Ricerca Dedicata Centrata Senza Contorno -->
-                    <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Panel.Styles>
-                            <Style Selector="TextBox#SearchBox">
-                                <Setter Property="BorderThickness" Value="0" />
-                                <Setter Property="BorderBrush" Value="Transparent" />
-                                <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
-                                <Setter Property="CornerRadius" Value="4" />
-                            </Style>
-                            <Style Selector="TextBox#SearchBox:pointerover /template/ Border#PART_BorderElement">
-                                <Setter Property="BorderThickness" Value="0" />
-                                <Setter Property="BorderBrush" Value="Transparent" />
-                                <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                            </Style>
-                            <Style Selector="TextBox#SearchBox:focus /template/ Border#PART_BorderElement">
-                                <Setter Property="BorderThickness" Value="0" />
-                                <Setter Property="BorderBrush" Value="Transparent" />
-                                <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                            </Style>
-                        </Panel.Styles>
-                        <TextBox x:Name="SearchBox"
-                                 Width="420"
-                                 Height="26"
-                                 MinHeight="26"
-                                 FontSize="11"
-                                 Padding="6,1"
-                                 BorderThickness="0"
-                                 BorderBrush="Transparent"
-                                 Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
-                                 CornerRadius="4"
-                                 VerticalContentAlignment="Center"
-                                 Watermark="Cerca simbolo nel grafo..."
-                                 TextChanged="OnSearchTextChanged"
-                                 KeyDown="OnSearchBoxKeyDown">
-                            <TextBox.InnerLeftContent>
-                                <PathIcon Data="{StaticResource IconSearch}" Width="12" Height="12" VerticalAlignment="Center" Margin="6,0,4,0" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
-                            </TextBox.InnerLeftContent>
-                            <TextBox.InnerRightContent>
-                                <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
-                                        BorderBrush="Transparent"
-                                        BorderThickness="0"
-                                        CornerRadius="3"
-                                        Padding="5,1"
-                                        Margin="0,0,4,0"
-                                        VerticalAlignment="Center">
-                                    <TextBlock Text="Ctrl + F"
-                                               FontSize="9"
-                                               FontWeight="SemiBold"
-                                               Foreground="{DynamicResource ThemeTextSecondaryBrush}"
-                                               VerticalAlignment="Center" />
-                                </Border>
-                            </TextBox.InnerRightContent>
-                        </TextBox>
-
-                        <!-- Dropdown Risultati Multipli -->
-                        <Popup x:Name="SearchResultsPopup"
-                               PlacementTarget="{Binding ElementName=SearchBox}"
-                               Placement="Bottom"
-                               IsLightDismissEnabled="True"
-                               VerticalOffset="4">
-                            <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
-                                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="6"
-                                    BoxShadow="0 8 24 0 #40000000"
-                                    MinWidth="360"
-                                    MaxWidth="500"
-                                    MaxHeight="320"
-                                    Padding="6">
-                                <DockPanel>
-                                    <TextBlock x:Name="SearchResultsHeader"
-                                               DockPanel.Dock="Top"
-                                               Text="Risultati trovati:"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="{DynamicResource ThemeTextSecondaryBrush}"
-                                               Margin="6,4,6,6" />
-                                    <ListBox x:Name="SearchResultsList"
-                                             Background="Transparent"
-                                             SelectionChanged="OnSearchResultSelected"
-                                             KeyDown="OnSearchResultsListKeyDown">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate DataType="models:GraphNode">
-                                                <Grid ColumnDefinitions="Auto,*" Margin="2">
-                                                    <Border Grid.Column="0"
-                                                            Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
-                                                            BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                                                            BorderThickness="1"
-                                                            CornerRadius="3"
-                                                            Padding="4,1"
-                                                            Margin="0,0,8,0"
-                                                            VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding Kind}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource ThemeAccentBrush}" />
-                                                    </Border>
-                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                                        <TextBlock Text="{Binding QualifiedName}" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
-                                                    </StackPanel>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
-                                </DockPanel>
-                            </Border>
-                        </Popup>
-                    </Panel>
-                </Grid>
-
-                <!-- Destra: Pulsanti di Controllo Finestra e Layout Pannelli -->
+                <!-- Destra: Pulsanti di Controllo Finestra e Impostazioni -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch">
                     <StackPanel.Styles>
                         <Style Selector="Button.caption-btn">
@@ -303,15 +193,6 @@
                         </Style>
                     </StackPanel.Styles>
 
-                    <!-- Toggle Pannelli Sinistra e Destra Stile VS Code -->
-                    <Button x:Name="ToggleExplorerTopButton" Classes="caption-btn" ToolTip.Tip="Mostra/Nascondi Project Explorer (Ctrl+B)">
-                        <PathIcon x:Name="ToggleExplorerTopIcon" Data="{StaticResource IconPanelLeft}" Width="13" Height="13" Foreground="{DynamicResource ThemeAccentBrush}" />
-                    </Button>
-                    <Button x:Name="ToggleInspectorTopButton" Classes="caption-btn" ToolTip.Tip="Mostra/Nascondi Symbol Inspector (Ctrl+I)">
-                        <PathIcon x:Name="ToggleInspectorTopIcon" Data="{StaticResource IconPanelRight}" Width="13" Height="13" Foreground="{DynamicResource ThemeAccentBrush}" />
-                    </Button>
-                    <Rectangle Width="1" Height="16" Fill="{DynamicResource ThemeBorderDefaultBrush}" VerticalAlignment="Center" Margin="2,0" />
-
                     <Button x:Name="SettingsButton" Classes="caption-btn" ToolTip.Tip="Impostazioni (Ctrl+,)">
                         <PathIcon Data="{StaticResource IconSettings}" Width="12" Height="12" />
                     </Button>
@@ -328,8 +209,161 @@
             </Grid>
         </Border>
 
+        <!-- Nuova Riga Toolbar Dedicata: Toggle Explorer (Sinistra) | Barra Ricerca (Centro) | Toggle Inspector (Destra) -->
+        <Border x:Name="SearchRowBorder" Grid.Row="1"
+                Background="{DynamicResource ThemeBackgroundSecondaryBrush}"
+                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                BorderThickness="0,0,0,1" Height="36" Padding="8,0">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Sinistra: Pulsante Mostra/Nascondi Project Explorer -->
+                <Button Grid.Column="0" x:Name="ToggleExplorerTopButton"
+                        Width="30" Height="26"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="4"
+                        Padding="0"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        VerticalAlignment="Center"
+                        ToolTip.Tip="Mostra/Nascondi Project Explorer (Ctrl+B)">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                        </Style>
+                    </Button.Styles>
+                    <PathIcon x:Name="ToggleExplorerTopIcon" Data="{StaticResource IconPanelLeft}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
+                </Button>
+
+                <!-- Centro: Casella di Ricerca Dedicata Centrata -->
+                <Panel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Panel.Styles>
+                        <Style Selector="TextBox#SearchBox">
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="BorderBrush" Value="Transparent" />
+                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+                            <Setter Property="CornerRadius" Value="4" />
+                        </Style>
+                        <Style Selector="TextBox#SearchBox:pointerover /template/ Border#PART_BorderElement">
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="BorderBrush" Value="Transparent" />
+                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                        </Style>
+                        <Style Selector="TextBox#SearchBox:focus /template/ Border#PART_BorderElement">
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="BorderBrush" Value="Transparent" />
+                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                        </Style>
+                    </Panel.Styles>
+                    <TextBox x:Name="SearchBox"
+                             Width="460"
+                             Height="26"
+                             MinHeight="26"
+                             FontSize="11"
+                             Padding="6,1"
+                             BorderThickness="0"
+                             BorderBrush="Transparent"
+                             Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                             CornerRadius="4"
+                             VerticalContentAlignment="Center"
+                             Watermark="Cerca simbolo nel grafo..."
+                             TextChanged="OnSearchTextChanged"
+                             KeyDown="OnSearchBoxKeyDown">
+                        <TextBox.InnerLeftContent>
+                            <PathIcon Data="{StaticResource IconSearch}" Width="12" Height="12" VerticalAlignment="Center" Margin="6,0,4,0" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                        </TextBox.InnerLeftContent>
+                        <TextBox.InnerRightContent>
+                            <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                                    BorderBrush="Transparent"
+                                    BorderThickness="0"
+                                    CornerRadius="3"
+                                    Padding="5,1"
+                                    Margin="0,0,4,0"
+                                    VerticalAlignment="Center">
+                                <TextBlock Text="Ctrl + F"
+                                           FontSize="9"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                        </TextBox.InnerRightContent>
+                    </TextBox>
+
+                    <!-- Dropdown Risultati Multipli -->
+                    <Popup x:Name="SearchResultsPopup"
+                           PlacementTarget="{Binding ElementName=SearchBox}"
+                           Placement="Bottom"
+                           IsLightDismissEnabled="True"
+                           VerticalOffset="4">
+                        <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                BoxShadow="0 8 24 0 #40000000"
+                                MinWidth="380"
+                                MaxWidth="520"
+                                MaxHeight="320"
+                                Padding="6">
+                            <DockPanel>
+                                <TextBlock x:Name="SearchResultsHeader"
+                                           DockPanel.Dock="Top"
+                                           Text="Risultati trovati:"
+                                           FontSize="11"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                                           Margin="6,4,6,6" />
+                                <ListBox x:Name="SearchResultsList"
+                                         Background="Transparent"
+                                         SelectionChanged="OnSearchResultSelected"
+                                         KeyDown="OnSearchResultsListKeyDown">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate DataType="models:GraphNode">
+                                            <Grid ColumnDefinitions="Auto,*" Margin="2">
+                                                <Border Grid.Column="0"
+                                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="3"
+                                                        Padding="4,1"
+                                                        Margin="0,0,8,0"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Kind}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                                </Border>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                    <TextBlock Text="{Binding QualifiedName}" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+                        </Border>
+                    </Popup>
+                </Panel>
+
+                <!-- Destra: Pulsante Mostra/Nascondi Symbol Inspector -->
+                <Button Grid.Column="2" x:Name="ToggleInspectorTopButton"
+                        Width="30" Height="26"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="4"
+                        Padding="0"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        VerticalAlignment="Center"
+                        ToolTip.Tip="Mostra/Nascondi Symbol Inspector (Ctrl+I)">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                        </Style>
+                    </Button.Styles>
+                    <PathIcon x:Name="ToggleInspectorTopIcon" Data="{StaticResource IconPanelRight}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
+                </Button>
+            </Grid>
+        </Border>
+
         <!-- Area Centrale: Explorer | Graph + Floating Actions | Inspector -->
-        <Grid x:Name="CentralGrid" Grid.Row="1">
+        <Grid x:Name="CentralGrid" Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="280" MinWidth="180" MaxWidth="600" />
                 <ColumnDefinition Width="4" />
@@ -348,27 +382,7 @@
                         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconFolder}" Width="13" Height="13" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
                             <TextBlock x:Name="ExplorerTitleText" Text="Project Explorer" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
-                        </StackPanel>
-                        <!-- Pulsante Nascondi Pannello Sinistro -->
-                        <Button Grid.Column="1" x:Name="HideExplorerButton"
-                                Width="24" Height="24"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                CornerRadius="4"
-                                Padding="0"
-                                HorizontalContentAlignment="Center"
-                                VerticalContentAlignment="Center"
-                                ToolTip.Tip="Nascondi Project Explorer (Ctrl+B)">
-                            <Button.Styles>
-                                <Style Selector="Button:pointerover">
-                                    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                                </Style>
-                                <Style Selector="Button:pointerover PathIcon">
-                                    <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
-                                </Style>
-                            </Button.Styles>
-                            <PathIcon Data="{StaticResource IconChevronLeft}" Width="12" Height="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
-                        </Button>
+                        </StackPanel>                        
                     </Grid>
                     <TreeView x:Name="ExplorerTree" SelectionChanged="OnExplorerSelectionChanged">
                         <TreeView.ItemTemplate>
@@ -726,27 +740,7 @@
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                     <PathIcon Data="{StaticResource IconInspect}" Width="13" Height="13" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
                                     <TextBlock x:Name="InspectorTitleText" Text="Symbol Inspector &amp; Blast Radius" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
-                                </StackPanel>
-                                <!-- Pulsante Nascondi Pannello Destro -->
-                                <Button Grid.Column="1" x:Name="HideInspectorButton"
-                                        Width="24" Height="24"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        CornerRadius="4"
-                                        Padding="0"
-                                        HorizontalContentAlignment="Center"
-                                        VerticalContentAlignment="Center"
-                                        ToolTip.Tip="Nascondi Symbol Inspector (Ctrl+I)">
-                                    <Button.Styles>
-                                        <Style Selector="Button:pointerover">
-                                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
-                                        </Style>
-                                        <Style Selector="Button:pointerover PathIcon">
-                                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
-                                        </Style>
-                                    </Button.Styles>
-                                    <PathIcon Data="{StaticResource IconChevronRight}" Width="12" Height="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
-                                </Button>
+                                </StackPanel>                                
                             </Grid>
                         </Border>
 
@@ -906,7 +900,7 @@
         </Grid>
 
         <!-- Barra di Stato Inferiore -->
-        <Border x:Name="StatusBarBorder" Grid.Row="2" Background="{DynamicResource ThemeBackgroundSecondaryBrush}" Padding="12,5" BorderBrush="{DynamicResource ThemeBorderDefaultBrush}" BorderThickness="0,1,0,0">
+        <Border x:Name="StatusBarBorder" Grid.Row="3" Background="{DynamicResource ThemeBackgroundSecondaryBrush}" Padding="12,5" BorderBrush="{DynamicResource ThemeBorderDefaultBrush}" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="*,Auto,Auto">
                 <TextBlock Grid.Column="0" x:Name="StatusText" Text="Pronto." Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 
@@ -919,12 +913,14 @@
                             BorderThickness="1"
                             CornerRadius="4"
                             FontSize="11"
-                            ToolTip.Tip="Branch / Revisione VCS corrente. Clicca per cambiare.">
+                            ToolTip.Tip="Branch VCS corrente. Clicca per cambiare branch.">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon x:Name="GitBranchIcon" Data="{StaticResource IconGitBranch}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
-                            <TextBlock x:Name="GitBranchText" Text="main" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
+                            <TextBlock x:Name="GitBranchText" Text="master" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
+
+                    <!-- Popup Selezione e Switch Branch VCS (Git / SVN) -->
                     <Popup x:Name="GitBranchPopup"
                            PlacementTarget="{Binding ElementName=GitBranchButton}"
                            Placement="Top"
@@ -977,7 +973,7 @@
         </Border>
 
         <!-- Overlay di Caricamento Centrato a Schermo (Blast Radius & Analisi Asincrona) -->
-        <Grid x:Name="LoadingOverlay" Grid.Row="0" Grid.RowSpan="3"
+        <Grid x:Name="LoadingOverlay" Grid.Row="0" Grid.RowSpan="4"
               Background="#75101018"
               IsVisible="False"
               ZIndex="999">
@@ -1049,7 +1045,7 @@
         </Grid>
 
         <!-- Overlay Modale Aggiornamento Disponibile -->
-        <Grid x:Name="UpdateOverlay" Grid.Row="0" Grid.RowSpan="3"
+        <Grid x:Name="UpdateOverlay" Grid.Row="0" Grid.RowSpan="4"
               Background="#75101018"
               IsVisible="False"
               ZIndex="998">

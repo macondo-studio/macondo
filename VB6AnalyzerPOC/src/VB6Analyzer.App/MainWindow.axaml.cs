@@ -41,9 +41,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // Pulsanti Mostra/Nascondi Pannelli Sinistra e Destra
-        HideExplorerButton.Click += (_, _) => ToggleExplorer(false);
-        HideInspectorButton.Click += (_, _) => ToggleInspector(false);
         ToggleExplorerTopButton.Click += (_, _) => ToggleExplorer();
         ToggleInspectorTopButton.Click += (_, _) => ToggleInspector();
         ToggleExplorerMenuItem.Command = new ActionCommand(() => ToggleExplorer());
@@ -2039,8 +2036,6 @@ public partial class MainWindow : Window
         // Caption Buttons Tooltips
         ToolTip.SetTip(ToggleExplorerTopButton, loc["Tooltip_ToggleExplorer"]);
         ToolTip.SetTip(ToggleInspectorTopButton, loc["Tooltip_ToggleInspector"]);
-        ToolTip.SetTip(HideExplorerButton, loc["Tooltip_HideExplorer"]);
-        ToolTip.SetTip(HideInspectorButton, loc["Tooltip_HideInspector"]);
         ToolTip.SetTip(SettingsButton, loc["Tooltip_Settings"]);
         ToolTip.SetTip(MinimizeButton, loc["Tooltip_Minimize"]);
         ToolTip.SetTip(MaximizeButton, loc["Tooltip_Maximize"]);
