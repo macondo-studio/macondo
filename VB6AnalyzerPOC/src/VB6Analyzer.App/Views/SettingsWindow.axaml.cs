@@ -100,6 +100,11 @@ public partial class SettingsWindow : Window
         ThemeService.Instance.ApplyTheme(AppTheme.OneDarkPro);
     }
 
+    private void OnSelectDarkGreen(object? sender, PointerPressedEventArgs e)
+    {
+        ThemeService.Instance.ApplyTheme(AppTheme.DarkGreen);
+    }
+
     private void OnSelectLightModern(object? sender, PointerPressedEventArgs e)
     {
         ThemeService.Instance.ApplyTheme(AppTheme.LightModern);
@@ -110,6 +115,7 @@ public partial class SettingsWindow : Window
         CheckDarkModern.IsVisible = theme == AppTheme.DarkModern;
         CheckVSDark.IsVisible = theme == AppTheme.VisualStudioDark;
         CheckOneDark.IsVisible = theme == AppTheme.OneDarkPro;
+        CheckDarkGreen.IsVisible = theme == AppTheme.DarkGreen;
         CheckLightModern.IsVisible = theme == AppTheme.LightModern;
     }
 
@@ -142,6 +148,7 @@ public partial class SettingsWindow : Window
             CardDarkModern.BorderBrush = borderBrush;
             CardVSDark.BorderBrush = borderBrush;
             CardOneDark.BorderBrush = borderBrush;
+            CardDarkGreen.BorderBrush = borderBrush;
             CardLightModern.BorderBrush = borderBrush;
 
             CardLangItalian.BorderBrush = borderBrush;
@@ -153,6 +160,7 @@ public partial class SettingsWindow : Window
             CardDarkModern.Background = surfBrush;
             CardVSDark.Background = surfBrush;
             CardOneDark.Background = surfBrush;
+            CardDarkGreen.Background = surfBrush;
             CardLightModern.Background = surfBrush;
 
             CardLangItalian.Background = surfBrush;

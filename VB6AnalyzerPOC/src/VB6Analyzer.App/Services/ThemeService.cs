@@ -9,6 +9,7 @@ public enum AppTheme
     DarkModern,
     VisualStudioDark,
     OneDarkPro,
+    DarkGreen,
     LightModern
 }
 
@@ -122,6 +123,28 @@ public sealed class ThemeService
                 GraphEdgeCalls = "#3E4451",
                 GraphNodeFill = "#282C34",
                 GraphNodeStroke = "#4B5263"
+            },
+            [AppTheme.DarkGreen] = new ThemeDefinition
+            {
+                Theme = AppTheme.DarkGreen,
+                DisplayName = "Forest Dark (Verde Scuro)",
+                Description = "Atmosfera scura foresta con toni smeraldo e verde salvia.",
+                IsDark = true,
+                BackgroundPrimary = "#101814",
+                BackgroundSecondary = "#0C130F",
+                BackgroundSurface = "#16231D",
+                BackgroundElevated = "#1D2E26",
+                BorderDefault = "#2A4236",
+                BorderSubtle = "#1C2E25",
+                TextPrimary = "#E4EFE8",
+                TextSecondary = "#98B5A4",
+                TextMuted = "#638070",
+                AccentColor = "#10B981",
+                AccentHover = "#34D399",
+                GraphBackground = "#0E1511",
+                GraphEdgeCalls = "#2E4E3E",
+                GraphNodeFill = "#16261E",
+                GraphNodeStroke = "#2E5640"
             },
             [AppTheme.LightModern] = new ThemeDefinition
             {

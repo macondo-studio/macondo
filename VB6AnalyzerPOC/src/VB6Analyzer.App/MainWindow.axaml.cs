@@ -251,6 +251,8 @@ public partial class MainWindow : Window
             SetInspectorVisibility(false, updateSettings: false);
         }
 
+        UpdatePanelToggleVisuals();
+
         // Ripristino Modalità Layout Preferita
         _currentLayoutMode = settings.PreferredLayout;
         LayoutComboBox.SelectedIndex = (int)_currentLayoutMode;
@@ -1349,6 +1351,7 @@ public partial class MainWindow : Window
         {
             var secondaryBrush = new SolidColorBrush(bgSecondary);
             TopBarBorder.Background = secondaryBrush;
+            SearchRowBorder.Background = secondaryBrush;
             StatusBarBorder.Background = secondaryBrush;
             FloatingHudBorder.Background = secondaryBrush;
         }
@@ -1367,6 +1370,7 @@ public partial class MainWindow : Window
         {
             var borderBrush = new SolidColorBrush(borderCol);
             TopBarBorder.BorderBrush = borderBrush;
+            SearchRowBorder.BorderBrush = borderBrush;
             StatusBarBorder.BorderBrush = borderBrush;
             FloatingHudBorder.BorderBrush = borderBrush;
             ExplorerBorder.BorderBrush = borderBrush;
@@ -1963,8 +1967,8 @@ public partial class MainWindow : Window
 
     private void UpdatePanelToggleVisuals()
     {
-        ToggleExplorerTopIcon.Opacity = _isExplorerVisible ? 1.0 : 0.35;
-        ToggleInspectorTopIcon.Opacity = _isInspectorVisible ? 1.0 : 0.35;
+        ToggleExplorerTopButton.Classes.Set("active", _isExplorerVisible);
+        ToggleInspectorTopButton.Classes.Set("active", _isInspectorVisible);
     }
 
     /// <summary>

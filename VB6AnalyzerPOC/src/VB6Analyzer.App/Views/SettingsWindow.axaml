@@ -219,7 +219,29 @@
                                     </Grid>
                                 </Border>
 
-                                <!-- Card 4: Light Modern -->
+                                <!-- Card 4: Dark Green (Verde Scuro) -->
+                                <Border x:Name="CardDarkGreen"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnSelectDarkGreen">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center" Margin="0,0,14,0">
+                                            <Border Width="16" Height="32" Background="#101814" CornerRadius="3,0,0,3" BorderBrush="#2A4236" BorderThickness="1" />
+                                            <Border Width="16" Height="32" Background="#16231D" BorderBrush="#2A4236" BorderThickness="1,1,0,1" />
+                                            <Border Width="16" Height="32" Background="#10B981" BorderBrush="#2A4236" BorderThickness="1,1,0,1" />
+                                            <Border Width="16" Height="32" Background="#E4EFE8" CornerRadius="0,3,3,0" BorderBrush="#2A4236" BorderThickness="1" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Forest Dark (Verde Scuro)" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock Text="Atmosfera scura foresta con toni smeraldo e verde salvia." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckDarkGreen" Width="22" Height="22" CornerRadius="11" Background="#10B981" IsVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card 5: Light Modern -->
                                 <Border x:Name="CardLightModern"
                                         Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
                                         BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
