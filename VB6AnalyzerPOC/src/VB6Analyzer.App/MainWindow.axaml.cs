@@ -31,6 +31,7 @@ public partial class MainWindow : Window
     private string? _currentFolderPath;
     private Layout.GraphLayoutMode _currentLayoutMode = Layout.GraphLayoutMode.StandardRadial;
     private List<VcsBranchInfo> _allVcsBranches = new();
+    private AppUpdateInfo? _availableUpdate;
 
     public MainWindow()
     {
@@ -38,6 +39,10 @@ public partial class MainWindow : Window
 
         // VCS (Git & SVN) Branch Button
         GitBranchButton.Click += (_, _) => OpenGitBranchPopup();
+
+        // Pulsanti Dialog Aggiornamento Software
+        UpdateLaterButton.Click += (_, _) => DismissUpdateModal();
+        UpdateNowButton.Click += (_, _) => ApplyUpdateAndOpenDownload();
 
         // Menu Bar Superiore - File (Command + Click per massima affidabilità)
         OpenFolderMenuItem.Command = new ActionCommand(async () => await OpenFolderAsync());
@@ -49,6 +54,7 @@ public partial class MainWindow : Window
         ImportJsonMenuItem.Command = new ActionCommand(async () => await ImportJsonAsync());
         ExportSliceMenuItem.Command = new ActionCommand(async () => await ExportLlmSliceAsync());
         SettingsMenuItem.Command = new ActionCommand(OpenSettings);
+        CheckUpdatesMenuItem.Command = new ActionCommand(async () => await CheckForUpdatesManualAsync());
         ExitMenuItem.Command = new ActionCommand(() => Close());
 
         OpenFolderMenuItem.Click += async (_, _) => await OpenFolderAsync();
@@ -60,6 +66,7 @@ public partial class MainWindow : Window
         ImportJsonMenuItem.Click += async (_, _) => await ImportJsonAsync();
         ExportSliceMenuItem.Click += async (_, _) => await ExportLlmSliceAsync();
         SettingsMenuItem.Click += (_, _) => OpenSettings();
+        CheckUpdatesMenuItem.Click += async (_, _) => await CheckForUpdatesManualAsync();
         ExitMenuItem.Click += (_, _) => Close();
 
         // Menu Bar Superiore - Visualizza & Analisi
@@ -272,6 +279,9 @@ public partial class MainWindow : Window
         {
             LoadDefaultFixtures();
         }
+
+        // Controllo automatico aggiornamenti in background all'avvio
+        _ = CheckForUpdatesOnStartupAsync();
     }
 
     /// <summary>
@@ -1702,6 +1712,93 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Esegue il controllo automatico degli aggiornamenti software in background all'avvio dell'applicazione.
+    /// </summary>
+    private async Task CheckForUpdatesOnStartupAsync()
+    {
+        // Ritardo iniziale per consentire il completamento del rendering e del caricamento del progetto
+        await Task.Delay(2500);
+
+        try
+        {
+            var update = await UpdateService.Instance.CheckForUpdatesAsync();
+            if (update != null)
+            {
+                ShowUpdateModal(update);
+            }
+        }
+        catch
+        {
+            // Silenzioso all'avvio in caso di errori di rete o endpoint assente
+        }
+    }
+
+    /// <summary>
+    /// Esegue il controllo manuale degli aggiornamenti (da menu Aiuto -> Verifica Aggiornamenti).
+    /// </summary>
+    private async Task CheckForUpdatesManualAsync()
+    {
+        var loc = LocalizationService.Instance;
+        StatusText.Text = loc["Update_Checking"];
+
+        try
+        {
+            var update = await UpdateService.Instance.CheckForUpdatesAsync(forceCheck: true);
+            if (update != null)
+            {
+                ShowUpdateModal(update);
+            }
+            else
+            {
+                StatusText.Text = loc.Get("Update_NoUpdates", UpdateService.CurrentVersionString);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Errore controllo aggiornamenti: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Mostra l'overlay modale di notifica aggiornamento con le opzioni "Scarica dopo" e "Aggiorna ora".
+    /// </summary>
+    private void ShowUpdateModal(AppUpdateInfo update)
+    {
+        _availableUpdate = update;
+        var loc = LocalizationService.Instance;
+
+        UpdateModalTitle.Text = loc["Update_AvailableTitle"];
+        UpdateModalSubtitle.Text = loc.Get("Update_AvailableSubtitle", update.VersionString, UpdateService.CurrentVersionString);
+        UpdateModalNotesLabel.Text = loc["Update_NotesLabel"];
+        UpdateModalNotes.Text = string.IsNullOrWhiteSpace(update.ReleaseNotes)
+            ? "Miglioramenti generali delle prestazioni e correzioni di bug."
+            : update.ReleaseNotes;
+        UpdateLaterButton.Content = loc["Update_ButtonLater"];
+        UpdateNowButton.Content = loc["Update_ButtonNow"];
+
+        UpdateOverlay.IsVisible = true;
+    }
+
+    /// <summary>
+    /// Chiude il modal di aggiornamento su richiesta dell'utente ("Scarica dopo").
+    /// </summary>
+    private void DismissUpdateModal()
+    {
+        UpdateOverlay.IsVisible = false;
+    }
+
+    /// <summary>
+    /// Gestisce il click sul pulsante "Aggiorna ora", aprendo la pagina di download nel browser.
+    /// </summary>
+    private void ApplyUpdateAndOpenDownload()
+    {
+        var loc = LocalizationService.Instance;
+        StatusText.Text = loc["Update_OpeningDownload"];
+        UpdateOverlay.IsVisible = false;
+        UpdateService.Instance.OpenDownloadPage(_availableUpdate?.DownloadUrl);
+    }
+
     private void UpdateLocalizedUI()
     {
         var loc = LocalizationService.Instance;
@@ -1736,6 +1833,10 @@ public partial class MainWindow : Window
         ShowCallersMenuItem.Header = loc["Menu_ShowCallers"];
         ShowCalleesMenuItem.Header = loc["Menu_ShowCallees"];
         ClearHighlightMenuItem.Header = loc["Menu_ClearHighlight"];
+
+        // Menu Aiuto
+        HelpMenu.Header = loc["Menu_Help"];
+        CheckUpdatesMenuItem.Header = loc["Menu_CheckUpdates"];
 
         // Caption Buttons Tooltips
         ToolTip.SetTip(SettingsButton, loc["Tooltip_Settings"]);
@@ -1848,6 +1949,16 @@ public partial class MainWindow : Window
         InspectorSecCallers.Text = loc["Inspector_Sec_WhoCallsMe"];
         InspectorSecCallees.Text = loc["Inspector_Sec_WhatDoICall"];
         InspectorSecInstantiates.Text = loc["Inspector_Sec_Instantiates"];
+
+        // Modal Notifica Aggiornamento (se visibile)
+        if (UpdateOverlay.IsVisible && _availableUpdate != null)
+        {
+            UpdateModalTitle.Text = loc["Update_AvailableTitle"];
+            UpdateModalSubtitle.Text = loc.Get("Update_AvailableSubtitle", _availableUpdate.VersionString, UpdateService.CurrentVersionString);
+            UpdateModalNotesLabel.Text = loc["Update_NotesLabel"];
+            UpdateLaterButton.Content = loc["Update_ButtonLater"];
+            UpdateNowButton.Content = loc["Update_ButtonNow"];
+        }
 
         // Refresh dynamic strings in Grid and Status
         UpdateStatsBar();

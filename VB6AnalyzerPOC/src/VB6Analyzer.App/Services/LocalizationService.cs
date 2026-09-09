@@ -180,6 +180,17 @@ public sealed class LocalizationService
         ["Svn_SwitchSuccess"] = "Switch completato con successo a '{0}'.",
         ["Svn_SwitchError"] = "Errore durante svn switch: {0}",
 
+        // Aggiornamenti Software (Update Service)
+        ["Menu_Help"] = "_Aiuto",
+        ["Menu_CheckUpdates"] = "Verifica Aggiornamenti...",
+        ["Update_AvailableTitle"] = "Nuovo Aggiornamento Disponibile!",
+        ["Update_AvailableSubtitle"] = "Versione {0} disponibile (versione attuale: {1})",
+        ["Update_NotesLabel"] = "Novità e Note di Rilascio:",
+        ["Update_ButtonLater"] = "Scarica dopo",
+        ["Update_ButtonNow"] = "Aggiorna ora",
+        ["Update_Checking"] = "Controllo aggiornamenti in corso...",
+        ["Update_NoUpdates"] = "L'applicazione è aggiornata all'ultima versione ({0}).",
+
         // Barra di Stato
         ["Status_Ready"] = "Pronto.",
         ["Status_Selected"] = "Selezionato: [{0}] {1}",
@@ -354,6 +365,17 @@ public sealed class LocalizationService
         ["Svn_SwitchingBranch"] = "Switching to '{0}' in progress (svn switch)...",
         ["Svn_SwitchSuccess"] = "Successfully switched to '{0}'.",
         ["Svn_SwitchError"] = "Error during svn switch: {0}",
+
+        // Software Updates (Update Service)
+        ["Menu_Help"] = "_Help",
+        ["Menu_CheckUpdates"] = "Check for Updates...",
+        ["Update_AvailableTitle"] = "New Update Available!",
+        ["Update_AvailableSubtitle"] = "Version {0} is available (current version: {1})",
+        ["Update_NotesLabel"] = "Release Notes & Changelog:",
+        ["Update_ButtonLater"] = "Download later",
+        ["Update_ButtonNow"] = "Update now",
+        ["Update_Checking"] = "Checking for updates...",
+        ["Update_NoUpdates"] = "You are using the latest version ({0}).",
 
         // Status Bar
         ["Status_Ready"] = "Ready.",

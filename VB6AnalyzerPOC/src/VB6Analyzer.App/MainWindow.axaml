@@ -133,6 +133,13 @@
                                 </MenuItem.Icon>
                             </MenuItem>
                         </MenuItem>
+                        <MenuItem x:Name="HelpMenu" Header="_Aiuto">
+                            <MenuItem x:Name="CheckUpdatesMenuItem" Header="Verifica Aggiornamenti...">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconUpdate}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </MenuItem>
                     </Menu>
                 </StackPanel>
 
@@ -937,6 +944,79 @@
                                  Background="{DynamicResource ThemeBorderDefaultBrush}"
                                  CornerRadius="2"
                                  Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Overlay Modale Aggiornamento Disponibile -->
+        <Grid x:Name="UpdateOverlay" Grid.Row="0" Grid.RowSpan="4"
+              Background="#75101018"
+              IsVisible="False"
+              ZIndex="998">
+            <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="28,24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    MaxWidth="480"
+                    MinWidth="380"
+                    BoxShadow="0 12 36 0 #80000000">
+                <StackPanel Spacing="16">
+                    <!-- Header con Icona e Titoli -->
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Grid.Column="0" Width="42" Height="42" CornerRadius="8" Background="{DynamicResource ThemeAccentBrush}" Opacity="0.15" VerticalAlignment="Center" Margin="0,0,14,0" />
+                        <PathIcon Grid.Column="0" Data="{StaticResource IconUpdate}" Width="20" Height="20" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" Margin="0,0,14,0" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock x:Name="UpdateModalTitle" Text="Nuovo Aggiornamento Disponibile!" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                            <TextBlock x:Name="UpdateModalSubtitle" Text="Versione 1.1.0 disponibile (attuale: 1.0.0)" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Release Notes / Descrizione Novità -->
+                    <StackPanel Spacing="6">
+                        <TextBlock x:Name="UpdateModalNotesLabel" Text="Novità e Note di Rilascio:" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                        <Border Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="12"
+                                MaxHeight="140">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <TextBlock x:Name="UpdateModalNotes"
+                                           Text="Miglioramenti di stabilità e nuove funzionalità..."
+                                           FontSize="12"
+                                           Foreground="{DynamicResource ThemeTextPrimaryBrush}"
+                                           TextWrapping="Wrap" />
+                            </ScrollViewer>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Pulsanti di Azione: Scarica dopo / Aggiorna -->
+                    <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,4,0,0">
+                        <Button x:Name="UpdateLaterButton"
+                                Grid.Column="1"
+                                Content="Scarica dopo"
+                                Padding="16,8"
+                                Background="Transparent"
+                                Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                FontSize="12"
+                                Margin="0,0,8,0" />
+                        <Button x:Name="UpdateNowButton"
+                                Grid.Column="2"
+                                Content="Aggiorna ora"
+                                Padding="18,8"
+                                Background="{DynamicResource ThemeAccentBrush}"
+                                Foreground="#FFFFFF"
+                                FontWeight="SemiBold"
+                                BorderThickness="0"
+                                CornerRadius="4"
+                                FontSize="12" />
+                    </Grid>
                 </StackPanel>
             </Border>
         </Grid>
