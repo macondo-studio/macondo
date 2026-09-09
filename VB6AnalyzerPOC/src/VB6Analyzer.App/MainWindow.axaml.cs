@@ -30,10 +30,14 @@ public partial class MainWindow : Window
     private bool _isSyncingSelection;
     private string? _currentFolderPath;
     private Layout.GraphLayoutMode _currentLayoutMode = Layout.GraphLayoutMode.StandardRadial;
+    private List<VcsBranchInfo> _allVcsBranches = new();
 
     public MainWindow()
     {
         InitializeComponent();
+
+        // VCS (Git & SVN) Branch Button
+        GitBranchButton.Click += (_, _) => OpenGitBranchPopup();
 
         // Menu Bar Superiore - File (Command + Click per massima affidabilità)
         OpenFolderMenuItem.Command = new ActionCommand(async () => await OpenFolderAsync());
@@ -323,6 +327,7 @@ public partial class MainWindow : Window
         try
         {
             _currentFolderPath = null;
+            UpdateVcsBranchStatus(null);
             StatusText.Text = "Generazione del grafo sintetico (~500 nodi)...";
             _graph = await Task.Run(() => Generation.FakeGraphGenerator.Generate(seed: Environment.TickCount));
             ApplyGraphToUI();
@@ -349,6 +354,7 @@ public partial class MainWindow : Window
         try
         {
             _currentFolderPath = null;
+            UpdateVcsBranchStatus(null);
             StatusText.Text = "Analisi semantica delle fixture in corso...";
             _graph = await Task.Run(() => ProjectAnalysisService.LoadDefaultFixtures());
             ApplyGraphToUI();
@@ -419,6 +425,7 @@ public partial class MainWindow : Window
                 var (cachedGraph, cachedRows) = ProjectCacheService.Instance.RestoreGraphAndRows(cachedSnapshot);
                 _graph = cachedGraph;
                 _currentFolderPath = folderPath;
+                UpdateVcsBranchStatus(folderPath);
                 ApplyGraphToUI(cachedRows);
 
                 // Salva l'ultima cartella aperta nelle impostazioni
@@ -447,6 +454,7 @@ public partial class MainWindow : Window
             StatusText.Text = $"Analisi cartella '{folderPath}' in corso...";
             _graph = await Task.Run(() => ProjectAnalysisService.AnalyzeFolder(folderPath));
             _currentFolderPath = folderPath;
+            UpdateVcsBranchStatus(folderPath);
             ApplyGraphToUI(); // Avvierà PopulateBlastRadiusGridAsync che poi salverà la cache aggiornata
 
             var projectName = Path.GetFileName(folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
@@ -1565,6 +1573,135 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Aggiorna la visibilità, icona e testo dell'indicatore del branch VCS (Git o SVN) nella barra di stato.
+    /// </summary>
+    private void UpdateVcsBranchStatus(string? folderPath)
+    {
+        if (!string.IsNullOrEmpty(folderPath))
+        {
+            var branch = VcsService.Instance.GetCurrentBranch(folderPath, out var vcsType);
+            if (vcsType != VcsType.None && !string.IsNullOrEmpty(branch))
+            {
+                GitBranchText.Text = branch;
+                GitBranchPanel.IsVisible = true;
+
+                // Aggiorna l'icona vettoriale in base al provider VCS
+                var iconKey = vcsType == VcsType.Svn ? "IconSvn" : "IconGitBranch";
+                if (this.TryFindResource(iconKey, out var res) && res is Geometry geo)
+                {
+                    GitBranchIcon.Data = geo;
+                }
+
+                var tooltipKey = vcsType == VcsType.Svn ? "Svn_BranchTooltip" : "Git_BranchTooltip";
+                ToolTip.SetTip(GitBranchButton, LocalizationService.Instance.Get(tooltipKey, branch));
+                return;
+            }
+        }
+
+        GitBranchPanel.IsVisible = false;
+    }
+
+    /// <summary>
+    /// Apre il popup di selezione e cambio branch per il repository Git o SVN attivo.
+    /// </summary>
+    private void OpenGitBranchPopup()
+    {
+        if (string.IsNullOrEmpty(_currentFolderPath) || !VcsService.Instance.IsVcsRepository(_currentFolderPath))
+        {
+            GitBranchPopup.IsOpen = false;
+            return;
+        }
+
+        var vcsType = VcsService.Instance.DetectVcsType(_currentFolderPath);
+        var loc = LocalizationService.Instance;
+
+        GitBranchPopupTitle.Text = vcsType == VcsType.Svn
+            ? loc["Svn_SwitchBranchTitle"]
+            : loc["Git_SwitchBranchTitle"];
+
+        GitBranchSearchBox.Watermark = vcsType == VcsType.Svn
+            ? loc["Svn_SearchBranchWatermark"]
+            : loc["Git_SearchBranchWatermark"];
+
+        _allVcsBranches = VcsService.Instance.GetBranches(_currentFolderPath);
+        GitBranchSearchBox.Text = string.Empty;
+        GitBranchListBox.ItemsSource = _allVcsBranches;
+        GitBranchPopup.IsOpen = true;
+        GitBranchSearchBox.Focus();
+    }
+
+    /// <summary>
+    /// Filtra i branch visualizzati nel popup in base al testo digitato nella casella di ricerca.
+    /// </summary>
+    private void OnGitBranchSearchTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        var query = GitBranchSearchBox.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(query))
+        {
+            GitBranchListBox.ItemsSource = _allVcsBranches;
+        }
+        else
+        {
+            GitBranchListBox.ItemsSource = _allVcsBranches
+                .Where(b => b.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                            b.Target.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+    }
+
+    /// <summary>
+    /// Gestisce il cambio di branch selezionato dall'utente (Git checkout o SVN switch),
+    /// invocando l'operazione in background e re-analizzando l'intero progetto.
+    /// </summary>
+    private async void OnGitBranchSelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (GitBranchListBox.SelectedItem is not VcsBranchInfo selectedBranch) return;
+
+        // Reset della selezione per evitare trigger multipli
+        GitBranchListBox.SelectedItem = null;
+        GitBranchPopup.IsOpen = false;
+
+        var current = VcsService.Instance.GetCurrentBranch(_currentFolderPath, out var vcsType);
+        if (string.Equals(current, selectedBranch.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (string.IsNullOrEmpty(_currentFolderPath)) return;
+
+        var loc = LocalizationService.Instance;
+        var switchingMessageKey = selectedBranch.VcsType == VcsType.Svn ? "Svn_SwitchingBranch" : "Git_SwitchingBranch";
+        var successMessageKey = selectedBranch.VcsType == VcsType.Svn ? "Svn_SwitchSuccess" : "Git_SwitchSuccess";
+        var errorMessageKey = selectedBranch.VcsType == VcsType.Svn ? "Svn_SwitchError" : "Git_SwitchError";
+
+        ShowLoading(loc.Get(switchingMessageKey, selectedBranch.Name), loc["Status_Ready"]);
+        await Task.Delay(16);
+
+        try
+        {
+            var (success, error) = await VcsService.Instance.SwitchBranchAsync(_currentFolderPath, selectedBranch);
+            if (success)
+            {
+                UpdateVcsBranchStatus(_currentFolderPath);
+                await AnalyzeAndLoadFolderAsync(_currentFolderPath, forceReanalyze: true);
+                StatusText.Text = loc.Get(successMessageKey, selectedBranch.Name);
+            }
+            else
+            {
+                StatusText.Text = loc.Get(errorMessageKey, error ?? "Unknown error");
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = loc.Get(errorMessageKey, ex.Message);
+        }
+        finally
+        {
+            HideLoading();
+        }
+    }
+
     private void UpdateLocalizedUI()
     {
         var loc = LocalizationService.Instance;
@@ -1656,6 +1793,19 @@ public partial class MainWindow : Window
         GridRiskLabel.Text = loc["Grid_RiskLabel"];
         RiskItemAll.Content = loc["Grid_AllRisks"];
         RefreshGridButtonText.Text = loc["Grid_Recalculate"];
+
+        // VCS (Git & SVN) Popup & Tooltip
+        if (!string.IsNullOrEmpty(_currentFolderPath))
+        {
+            var currentBranch = VcsService.Instance.GetCurrentBranch(_currentFolderPath, out var vcsType);
+            if (vcsType != VcsType.None && !string.IsNullOrEmpty(currentBranch))
+            {
+                var tooltipKey = vcsType == VcsType.Svn ? "Svn_BranchTooltip" : "Git_BranchTooltip";
+                ToolTip.SetTip(GitBranchButton, loc.Get(tooltipKey, currentBranch));
+                GitBranchPopupTitle.Text = vcsType == VcsType.Svn ? loc["Svn_SwitchBranchTitle"] : loc["Git_SwitchBranchTitle"];
+                GitBranchSearchBox.Watermark = vcsType == VcsType.Svn ? loc["Svn_SearchBranchWatermark"] : loc["Git_SearchBranchWatermark"];
+            }
+        }
 
         // DataGrid Colonne
         if (BlastRadiusDataGrid?.Columns.Count >= 9)

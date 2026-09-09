@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:Macondo.App.Controls"
         xmlns:models="using:Macondo.App.Models"
+        xmlns:services="using:Macondo.App.Services"
         x:Class="Macondo.App.MainWindow"
         Title="Macondo"
         Width="1400" Height="900"
@@ -798,10 +799,73 @@
         </Grid>
 
         <!-- Barra di Stato Inferiore -->
-        <Border x:Name="StatusBarBorder" Grid.Row="3" Background="{DynamicResource ThemeBackgroundSecondaryBrush}" Padding="12,6" BorderBrush="{DynamicResource ThemeBorderDefaultBrush}" BorderThickness="0,1,0,0">
-            <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Grid.Column="0" x:Name="StatusText" Text="Pronto." Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="11" />
-                <TextBlock Grid.Column="1" x:Name="StatusStats" Text="Nodi: 0 | Relazioni: 0" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="11" />
+        <Border x:Name="StatusBarBorder" Grid.Row="3" Background="{DynamicResource ThemeBackgroundSecondaryBrush}" Padding="12,5" BorderBrush="{DynamicResource ThemeBorderDefaultBrush}" BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBlock Grid.Column="0" x:Name="StatusText" Text="Pronto." Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                
+                <!-- VCS (Git & SVN) Branch Button & Popup -->
+                <Panel Grid.Column="1" x:Name="GitBranchPanel" Margin="0,0,16,0" IsVisible="False" VerticalAlignment="Center">
+                    <Button x:Name="GitBranchButton"
+                            Padding="8,3"
+                            Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                            BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            FontSize="11"
+                            ToolTip.Tip="Branch / Revisione VCS corrente. Clicca per cambiare.">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon x:Name="GitBranchIcon" Data="{StaticResource IconGitBranch}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                            <TextBlock x:Name="GitBranchText" Text="main" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Popup x:Name="GitBranchPopup"
+                           PlacementTarget="{Binding ElementName=GitBranchButton}"
+                           Placement="Top"
+                           IsLightDismissEnabled="True"
+                           VerticalOffset="-4">
+                        <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                BoxShadow="0 8 24 0 #40000000"
+                                MinWidth="260"
+                                MaxWidth="360"
+                                MaxHeight="320"
+                                Padding="8">
+                            <DockPanel>
+                                <TextBlock x:Name="GitBranchPopupTitle"
+                                           DockPanel.Dock="Top"
+                                           Text="Cambia Branch"
+                                           FontSize="11"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                                           Margin="4,2,4,6" />
+                                <TextBox x:Name="GitBranchSearchBox"
+                                         DockPanel.Dock="Top"
+                                         Watermark="Cerca branch..."
+                                         FontSize="11"
+                                         Margin="0,0,0,6"
+                                         TextChanged="OnGitBranchSearchTextChanged" />
+                                <ListBox x:Name="GitBranchListBox"
+                                         Background="Transparent"
+                                         SelectionMode="Single"
+                                         SelectionChanged="OnGitBranchSelected">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate DataType="services:VcsBranchInfo">
+                                            <Grid ColumnDefinitions="Auto,*,Auto" Margin="2">
+                                                <PathIcon Grid.Column="0" Data="{StaticResource IconVcsBranch}" Width="11" Height="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
+                                                <PathIcon Grid.Column="2" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" IsVisible="{Binding IsCurrent}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+                        </Border>
+                    </Popup>
+                </Panel>
+
+                <TextBlock Grid.Column="2" x:Name="StatusStats" Text="Nodi: 0 | Relazioni: 0" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="11" VerticalAlignment="Center" />
             </Grid>
         </Border>
 

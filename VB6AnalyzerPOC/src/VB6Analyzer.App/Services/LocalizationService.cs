@@ -165,6 +165,21 @@ public sealed class LocalizationService
         ["Status_NoSymbolSelected"] = "Nessun simbolo selezionato per l'esportazione dello slice.",
         ["Status_NoSemanticGraph"] = "Nessun grafo semantico disponibile per l'esportazione.",
 
+        // Git & SVN (VCS) Integration
+        ["Git_BranchTooltip"] = "Branch Git corrente: {0}. Clicca per cambiare branch.",
+        ["Git_SwitchBranchTitle"] = "Cambia Branch Git",
+        ["Git_SearchBranchWatermark"] = "Cerca branch...",
+        ["Git_NoBranches"] = "Nessun branch trovato",
+        ["Git_SwitchingBranch"] = "Checkout del branch '{0}' in corso...",
+        ["Git_SwitchSuccess"] = "Branch '{0}' attivato con successo.",
+        ["Git_SwitchError"] = "Errore durante il cambio branch: {0}",
+        ["Svn_BranchTooltip"] = "Branch/URL SVN corrente: {0}. Clicca per cambiare (svn switch).",
+        ["Svn_SwitchBranchTitle"] = "Cambia Branch/Trunk SVN (svn switch)",
+        ["Svn_SearchBranchWatermark"] = "Cerca branch o percorso SVN...",
+        ["Svn_SwitchingBranch"] = "Switch a '{0}' in corso (svn switch)...",
+        ["Svn_SwitchSuccess"] = "Switch completato con successo a '{0}'.",
+        ["Svn_SwitchError"] = "Errore durante svn switch: {0}",
+
         // Barra di Stato
         ["Status_Ready"] = "Pronto.",
         ["Status_Selected"] = "Selezionato: [{0}] {1}",
@@ -324,6 +339,21 @@ public sealed class LocalizationService
         ["Status_CopiedLlmSlice"] = "LLM Context Slice for '{0}' copied to clipboard!",
         ["Status_NoSymbolSelected"] = "No symbol selected for slice export.",
         ["Status_NoSemanticGraph"] = "No semantic graph available for export.",
+
+        // Git & SVN (VCS) Integration
+        ["Git_BranchTooltip"] = "Current Git branch: {0}. Click to switch branch.",
+        ["Git_SwitchBranchTitle"] = "Switch Git Branch",
+        ["Git_SearchBranchWatermark"] = "Search branches...",
+        ["Git_NoBranches"] = "No branches found",
+        ["Git_SwitchingBranch"] = "Checking out branch '{0}'...",
+        ["Git_SwitchSuccess"] = "Successfully checked out branch '{0}'.",
+        ["Git_SwitchError"] = "Error switching branch: {0}",
+        ["Svn_BranchTooltip"] = "Current SVN branch/URL: {0}. Click to switch (svn switch).",
+        ["Svn_SwitchBranchTitle"] = "Switch SVN Branch/Trunk (svn switch)",
+        ["Svn_SearchBranchWatermark"] = "Search SVN branch or path...",
+        ["Svn_SwitchingBranch"] = "Switching to '{0}' in progress (svn switch)...",
+        ["Svn_SwitchSuccess"] = "Successfully switched to '{0}'.",
+        ["Svn_SwitchError"] = "Error during svn switch: {0}",
 
         // Status Bar
         ["Status_Ready"] = "Ready.",
