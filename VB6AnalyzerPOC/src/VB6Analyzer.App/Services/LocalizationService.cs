@@ -106,8 +106,8 @@ public sealed class LocalizationService
         ["Tooltip_RecalculateAudit"] = "Ricalcola la matrice di rischio e impatto per tutte le routine",
         ["Tooltip_ShowInGraph"] = "Centra e seleziona questa routine nel canvas del grafo",
 
-        // Inspector
-        ["Inspector_Title"] = "Symbol Inspector & Blast Radius",
+        // Inspector & Blast Radius
+        ["Inspector_Title"] = "Ispettore Simboli & Raggio d'Impatto",
         ["Inspector_NoSelection"] = "Nessun simbolo selezionato.",
         ["Inspector_Hint1"] = "• Clicca su un nodo per visualizzare dettagli semantici, tipi, parametri e chiamate.",
         ["Inspector_Hint2"] = "• Clicca su 'Blast Radius' per calcolare il raggio di impatto e il rischio di regressione.",
@@ -118,7 +118,7 @@ public sealed class LocalizationService
         ["Inspector_Sec_Type"] = "TIPO",
         ["Inspector_Sec_Params"] = "PARAMETRI FORMALI",
         ["Inspector_Sec_File"] = "FILE & RIGHE",
-        ["Inspector_Sec_BlastRadius"] = "BLAST RADIUS (IMPACT)",
+        ["Inspector_Sec_BlastRadius"] = "RAGGIO D'IMPATTO (BLAST RADIUS)",
         ["Inspector_DirectCallersCount"] = "Chiamanti Diretti:",
         ["Inspector_IndirectCallersCount"] = "Chiamanti Indiretti:",
         ["Inspector_MaxDepth"] = "Profondità Max (Depth):",
@@ -128,6 +128,29 @@ public sealed class LocalizationService
         ["Inspector_Sec_WhoCallsMe"] = "CHIAMANTI DIRETTI (WHO CALLS ME?)",
         ["Inspector_Sec_WhatDoICall"] = "CHIAMATE EFFETTUATE (WHAT DO I CALL?)",
         ["Inspector_Sec_Instantiates"] = "CLASSI ISTANZIATE (NEW)",
+        ["Inspector_AiContextDesc"] = "Estrae il subgrafo semantico di questo simbolo ottimizzato per prompt AI.",
+        ["Inspector_Calculating"] = "CALCOLO...",
+        ["Inspector_CalculatingCallers"] = "Calcolo chiamanti in corso...",
+        ["Inspector_CalculatingCallees"] = "Calcolo chiamate in corso...",
+        ["Inspector_NoCallers"] = "(nessun chiamante diretto)",
+        ["Inspector_NoCallees"] = "(nessuna chiamata effettuata)",
+        ["Inspector_NoItems"] = "(nessuno)",
+        ["Risk_Low"] = "BASSO",
+        ["Risk_Medium"] = "MEDIO",
+        ["Risk_High"] = "ALTO",
+        ["Risk_Critical"] = "CRITICO",
+        ["Risk_Format"] = "RISCHIO: {0}",
+        ["Status_SelectSymbolForBlast"] = "Seleziona prima un simbolo per calcolare il Blast Radius.",
+        ["Status_BlastReportFormat"] = "Blast Radius per '{0}': {1} diretti, {2} indiretti, {3} form, Rischio: {4}",
+        ["Status_BlastError"] = "Errore nel calcolo del Blast Radius: {0}",
+        ["Status_SelectSymbolForCallers"] = "Seleziona prima una routine o un modulo per visualizzare i chiamanti (callers).",
+        ["Status_SelectSymbolForCallees"] = "Seleziona prima una routine o un modulo per visualizzare le chiamate uscenti (callees).",
+        ["Status_SelectedFromGrid"] = "Selezionato dalla griglia: [{0}] {1}",
+        ["Status_NodeAnalysisError"] = "Errore nell'analisi del simbolo: {0}",
+        ["Loading_BlastRadiusTitle"] = "Calcolo Blast Radius in corso...",
+        ["Loading_BlastRadiusSub"] = "Analisi d'impatto e percorsi di chiamata per '{0}'",
+        ["Loading_NodeAnalysisTitle"] = "Analisi del nodo in corso...",
+        ["Loading_NodeAnalysisSub"] = "Esplorazione chiamanti e dipendenze per '{0}'",
 
         // Finestra Impostazioni
         ["Settings_Title"] = "Impostazioni",
@@ -157,7 +180,7 @@ public sealed class LocalizationService
         ["Tooltip_ExportMarkdown"] = "Esporta l'intero grafo in formato Markdown compatto gerarchico per modelli AI",
         ["Tooltip_ExportJson"] = "Esporta l'intero grafo in formato JSON strutturato",
         ["Tooltip_ImportJson"] = "Importa e visualizza un grafo CodeGraph da file JSON",
-        ["Tooltip_CopyLlmSlice"] = "Copia negli appunti il subgrafo semantico del simbolo selezionato (pronto per Antigravity/ChatGPT)",
+        ["Tooltip_CopyLlmSlice"] = "Copia negli appunti il subgrafo semantico del simbolo selezionato",
         ["Tooltip_SaveLlmSlice"] = "Salva su file .md il context slice del simbolo selezionato",
         ["Status_ExportSuccess"] = "Grafo esportato con successo in '{0}'.",
         ["Status_ImportSuccess"] = "Grafo importato da '{0}': {1} simboli, {2} relazioni.",
@@ -292,7 +315,7 @@ public sealed class LocalizationService
         ["Tooltip_RecalculateAudit"] = "Recalculate risk and impact matrix for all routines",
         ["Tooltip_ShowInGraph"] = "Center and select this routine on the graph canvas",
 
-        // Inspector
+        // Inspector & Blast Radius
         ["Inspector_Title"] = "Symbol Inspector & Blast Radius",
         ["Inspector_NoSelection"] = "No symbol selected.",
         ["Inspector_Hint1"] = "• Click on a node to view semantic details, types, parameters and calls.",
@@ -314,6 +337,29 @@ public sealed class LocalizationService
         ["Inspector_Sec_WhoCallsMe"] = "DIRECT CALLERS (WHO CALLS ME?)",
         ["Inspector_Sec_WhatDoICall"] = "OUTGOING CALLS (WHAT DO I CALL?)",
         ["Inspector_Sec_Instantiates"] = "INSTANTIATED CLASSES (NEW)",
+        ["Inspector_AiContextDesc"] = "Extracts the semantic subgraph of this symbol optimized for AI prompts.",
+        ["Inspector_Calculating"] = "CALCULATING...",
+        ["Inspector_CalculatingCallers"] = "Calculating callers in progress...",
+        ["Inspector_CalculatingCallees"] = "Calculating outgoing calls in progress...",
+        ["Inspector_NoCallers"] = "(no direct callers)",
+        ["Inspector_NoCallees"] = "(no outgoing calls)",
+        ["Inspector_NoItems"] = "(none)",
+        ["Risk_Low"] = "LOW",
+        ["Risk_Medium"] = "MEDIUM",
+        ["Risk_High"] = "HIGH",
+        ["Risk_Critical"] = "CRITICAL",
+        ["Risk_Format"] = "RISK: {0}",
+        ["Status_SelectSymbolForBlast"] = "Select a symbol first to compute Blast Radius.",
+        ["Status_BlastReportFormat"] = "Blast Radius for '{0}': {1} direct, {2} indirect, {3} forms, Risk: {4}",
+        ["Status_BlastError"] = "Error computing Blast Radius: {0}",
+        ["Status_SelectSymbolForCallers"] = "Select a routine or module first to show incoming callers.",
+        ["Status_SelectSymbolForCallees"] = "Select a routine or module first to show outgoing calls.",
+        ["Status_SelectedFromGrid"] = "Selected from grid: [{0}] {1}",
+        ["Status_NodeAnalysisError"] = "Error analyzing symbol: {0}",
+        ["Loading_BlastRadiusTitle"] = "Calculating Blast Radius in progress...",
+        ["Loading_BlastRadiusSub"] = "Impact analysis and call paths for '{0}'",
+        ["Loading_NodeAnalysisTitle"] = "Analyzing node in progress...",
+        ["Loading_NodeAnalysisSub"] = "Exploring callers and dependencies for '{0}'",
 
         // Settings Window
         ["Settings_Title"] = "Settings",
@@ -343,7 +389,7 @@ public sealed class LocalizationService
         ["Tooltip_ExportMarkdown"] = "Export entire graph as token-efficient hierarchical Markdown for AI models",
         ["Tooltip_ExportJson"] = "Export entire graph as structured JSON",
         ["Tooltip_ImportJson"] = "Import and visualize a CodeGraph from JSON file",
-        ["Tooltip_CopyLlmSlice"] = "Copy semantic sub-graph of selected symbol to clipboard (ready for Antigravity/ChatGPT)",
+        ["Tooltip_CopyLlmSlice"] = "Copy semantic sub-graph of selected symbol to clipboard",
         ["Tooltip_SaveLlmSlice"] = "Save context slice of selected symbol as .md file",
         ["Status_ExportSuccess"] = "Graph successfully exported to '{0}'.",
         ["Status_ImportSuccess"] = "Graph imported from '{0}': {1} symbols, {2} relationships.",
@@ -407,6 +453,15 @@ public sealed class LocalizationService
 
         return args.Length > 0 ? string.Format(template, args) : template;
     }
+
+    public string GetRiskLevel(Macondo.Semantic.Model.ImpactRiskLevel risk) => risk switch
+    {
+        Macondo.Semantic.Model.ImpactRiskLevel.Low => Get("Risk_Low"),
+        Macondo.Semantic.Model.ImpactRiskLevel.Medium => Get("Risk_Medium"),
+        Macondo.Semantic.Model.ImpactRiskLevel.High => Get("Risk_High"),
+        Macondo.Semantic.Model.ImpactRiskLevel.Critical => Get("Risk_Critical"),
+        _ => risk.ToString().ToUpperInvariant()
+    };
 
     public string this[string key] => Get(key);
 }

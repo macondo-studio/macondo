@@ -129,6 +129,9 @@ public partial class MainWindow : Window
         CopyLlmSliceButton.Click += async (_, _) => await CopyLlmSliceToClipboardAsync();
         SaveLlmSliceButton.Click += async (_, _) => await ExportLlmSliceAsync();
 
+        // Pulsante Ricalcola Audit nella Grid Toolbar
+        RefreshGridButton.Click += async (_, _) => await PopulateBlastRadiusGridAsync();
+
         // Controlli Finestra Stile IDE (Impostazioni, Riduci a icona, Ingrandisci/Ripristina, Chiudi)
         SettingsButton.Click += (_, _) => OpenSettings();
         MinimizeButton.Click += (_, _) => WindowState = WindowState.Minimized;
@@ -508,6 +511,8 @@ public partial class MainWindow : Window
         }
         else
         {
+            _allBlastRadiusRows = new();
+            ApplyGridFilters();
             _ = PopulateBlastRadiusGridAsync();
         }
     }
@@ -528,9 +533,10 @@ public partial class MainWindow : Window
     /// </summary>
     private async void OnBlastRadiusClicked()
     {
+        var loc = LocalizationService.Instance;
         if (_selectedNode?.SemanticSymbol is null || _graph?.Queries is null)
         {
-            StatusText.Text = "Seleziona prima un simbolo per calcolare il Blast Radius.";
+            StatusText.Text = loc["Status_SelectSymbolForBlast"];
             return;
         }
 
@@ -542,11 +548,11 @@ public partial class MainWindow : Window
         {
             Graph.HighlightBlastRadius(cachedReport);
             UpdateInspectorImpactSection(cachedReport);
-            StatusText.Text = $"Blast Radius per '{node.QualifiedName}': {cachedReport.DirectCallers.Count} diretti, {cachedReport.IndirectCallers.Count} indiretti, {cachedReport.AffectedForms.Count} form, Rischio: {cachedReport.RiskLevel}";
+            StatusText.Text = loc.Get("Status_BlastReportFormat", node.QualifiedName, cachedReport.DirectCallers.Count, cachedReport.IndirectCallers.Count, cachedReport.AffectedForms.Count, loc.GetRiskLevel(cachedReport.RiskLevel));
             return;
         }
 
-        ShowLoading("Calcolo Blast Radius in corso...", $"Analisi d'impatto e percorsi di chiamata per '{node.Name}'");
+        ShowLoading(loc["Loading_BlastRadiusTitle"], loc.Get("Loading_BlastRadiusSub", node.Name));
         await Task.Delay(16);
 
         try
@@ -557,12 +563,12 @@ public partial class MainWindow : Window
             {
                 Graph.HighlightBlastRadius(report);
                 UpdateInspectorImpactSection(report);
-                StatusText.Text = $"Blast Radius per '{node.QualifiedName}': {report.DirectCallers.Count} diretti, {report.IndirectCallers.Count} indiretti, {report.AffectedForms.Count} form, Rischio: {report.RiskLevel}";
+                StatusText.Text = loc.Get("Status_BlastReportFormat", node.QualifiedName, report.DirectCallers.Count, report.IndirectCallers.Count, report.AffectedForms.Count, loc.GetRiskLevel(report.RiskLevel));
             }
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore nel calcolo del Blast Radius: {ex.Message}";
+            StatusText.Text = loc.Get("Status_BlastError", ex.Message);
         }
         finally
         {
@@ -575,9 +581,10 @@ public partial class MainWindow : Window
     /// </summary>
     private void OnShowCalleesClicked()
     {
+        var loc = LocalizationService.Instance;
         if (_selectedNode is null)
         {
-            StatusText.Text = "Seleziona prima una routine o un modulo per visualizzare le chiamate uscenti (callees).";
+            StatusText.Text = loc["Status_SelectSymbolForCallees"];
             return;
         }
 
@@ -599,9 +606,10 @@ public partial class MainWindow : Window
     /// </summary>
     private void OnShowCallersClicked()
     {
+        var loc = LocalizationService.Instance;
         if (_selectedNode is null)
         {
-            StatusText.Text = "Seleziona prima una routine o un modulo per visualizzare i chiamanti (callers).";
+            StatusText.Text = loc["Status_SelectSymbolForCallers"];
             return;
         }
 
@@ -877,13 +885,14 @@ public partial class MainWindow : Window
         }
 
         // 2. Imposta lo stato di caricamento nell'Inspector per Blast Radius e chiamanti
-        RiskLevelText.Text = "CALCOLO...";
+        var loc = LocalizationService.Instance;
+        RiskLevelText.Text = loc["Inspector_Calculating"];
         RiskBadge.Background = new SolidColorBrush(Color.Parse("#FF6633"));
         BlastDirectCallersCount.Text = "...";
         BlastIndirectCallersCount.Text = "...";
         BlastMaxDepth.Text = "...";
-        InspectorCallers.Text = "Calcolo chiamanti in corso...";
-        InspectorCallees.Text = "Calcolo chiamate in corso...";
+        InspectorCallers.Text = loc["Inspector_CalculatingCallers"];
+        InspectorCallees.Text = loc["Inspector_CalculatingCallees"];
         BlastFormsSection.IsVisible = false;
         BlastClassesSection.IsVisible = false;
         BlastPathsSection.IsVisible = false;
@@ -902,7 +911,7 @@ public partial class MainWindow : Window
                 {
                     if (!ct.IsCancellationRequested && !isCompleted && _selectedNode?.Id == targetId)
                     {
-                        ShowLoading("Analisi del nodo in corso...", $"Esplorazione chiamanti e dipendenze per '{node.Name}'");
+                        ShowLoading(loc["Loading_NodeAnalysisTitle"], loc.Get("Loading_NodeAnalysisSub", node.Name));
                     }
                 });
             }
@@ -929,7 +938,7 @@ public partial class MainWindow : Window
         {
             if (!ct.IsCancellationRequested && _selectedNode?.Id == targetId)
             {
-                StatusText.Text = $"Errore nell'analisi del simbolo: {ex.Message}";
+                StatusText.Text = loc.Get("Status_NodeAnalysisError", ex.Message);
             }
         }
         finally
@@ -944,8 +953,9 @@ public partial class MainWindow : Window
 
     private void ClearDynamicInspectorSections()
     {
-        InspectorCallers.Text = "(nessuno)";
-        InspectorCallees.Text = "(nessuno)";
+        var loc = LocalizationService.Instance;
+        InspectorCallers.Text = loc["Inspector_NoItems"];
+        InspectorCallees.Text = loc["Inspector_NoItems"];
         InspectorInstantiatesSection.IsVisible = false;
         BlastFormsSection.IsVisible = false;
         BlastClassesSection.IsVisible = false;
@@ -954,8 +964,10 @@ public partial class MainWindow : Window
 
     private void UpdateInspectorImpactSection(ImpactReport impact)
     {
+        var loc = LocalizationService.Instance;
+
         // Risk Badge
-        RiskLevelText.Text = $"RISK: {impact.RiskLevel.ToString().ToUpperInvariant()}";
+        RiskLevelText.Text = loc.Get("Risk_Format", loc.GetRiskLevel(impact.RiskLevel));
         RiskBadge.Background = impact.RiskLevel switch
         {
             ImpactRiskLevel.Low => new SolidColorBrush(Color.Parse("#2E7D32")),
@@ -1009,15 +1021,17 @@ public partial class MainWindow : Window
     {
         UpdateInspectorImpactSection(impact);
 
+        var loc = LocalizationService.Instance;
+
         // Callers diretti standard
         InspectorCallers.Text = impact.DirectCallers.Count > 0
             ? string.Join("\n", impact.DirectCallers.Select(c => $"• {c.QualifiedName}"))
-            : "(nessun chiamante diretto)";
+            : loc["Inspector_NoCallers"];
 
         // Callees diretti
         InspectorCallees.Text = callees.Count > 0
             ? string.Join("\n", callees.Select(c => $"• {c.QualifiedName}"))
-            : "(nessuna chiamata effettuata)";
+            : loc["Inspector_NoCallees"];
 
         // Classi istanziate
         if (instantiations.Count > 0)
@@ -1079,56 +1093,63 @@ public partial class MainWindow : Window
         if (GridStatsTextBlock != null)
             GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_Calculating", routineNodes.Count);
 
-        var rows = await Task.Run(() =>
+        try
         {
-            var result = new List<BlastRadiusGridRow>(routineNodes.Count);
-            foreach (var node in routineNodes)
+            var rows = await Task.Run(() =>
             {
-                var sym = node.SemanticSymbol!;
-                var report = queries.GetImpactReport(sym);
-                string containerName = "(globale)";
-                if (node.ParentId.HasValue && graph.GetNode(node.ParentId.Value) is { } parentNode)
+                var result = new List<BlastRadiusGridRow>(routineNodes.Count);
+                foreach (var node in routineNodes)
                 {
-                    containerName = parentNode.Name;
-                }
-                else if (!string.IsNullOrEmpty(sym.FilePath))
-                {
-                    containerName = Path.GetFileName(sym.FilePath);
-                }
-                var affectedForms = report.AffectedForms.Select(f => f.Name).ToList();
+                    var sym = node.SemanticSymbol!;
+                    var report = queries.GetImpactReport(sym);
+                    string containerName = "(globale)";
+                    if (node.ParentId.HasValue && graph.GetNode(node.ParentId.Value) is { } parentNode)
+                    {
+                        containerName = parentNode.Name;
+                    }
+                    else if (!string.IsNullOrEmpty(sym.FilePath))
+                    {
+                        containerName = Path.GetFileName(sym.FilePath);
+                    }
+                    var affectedForms = report.AffectedForms.Select(f => f.Name).ToList();
 
-                result.Add(new BlastRadiusGridRow
-                {
-                    TargetSymbol = sym,
-                    NodeId = node.Id,
-                    Name = sym.Name,
-                    QualifiedName = sym.QualifiedName,
-                    ContainerName = containerName,
-                    Kind = sym.Kind.ToString(),
-                    DirectCallersCount = report.DirectCallers.Count,
-                    IndirectCallersCount = report.IndirectCallers.Count,
-                    MaxDepth = report.MaxDependencyDepth,
-                    RiskLevel = report.RiskLevel,
-                    AffectedFormsCount = report.AffectedForms.Count,
-                    AffectedFormsSummary = affectedForms.Count > 0 ? string.Join(", ", affectedForms) : "-",
-                    TotalImpactedCount = report.DirectCallers.Count + report.IndirectCallers.Count + report.AffectedForms.Count + report.AffectedClasses.Count + report.AffectedModules.Count
-                });
+                    result.Add(new BlastRadiusGridRow
+                    {
+                        TargetSymbol = sym,
+                        NodeId = node.Id,
+                        Name = sym.Name,
+                        QualifiedName = sym.QualifiedName,
+                        ContainerName = containerName,
+                        Kind = sym.Kind.ToString(),
+                        DirectCallersCount = report.DirectCallers.Count,
+                        IndirectCallersCount = report.IndirectCallers.Count,
+                        MaxDepth = report.MaxDependencyDepth,
+                        RiskLevel = report.RiskLevel,
+                        AffectedFormsCount = report.AffectedForms.Count,
+                        AffectedFormsSummary = affectedForms.Count > 0 ? string.Join(", ", affectedForms) : "-",
+                        TotalImpactedCount = report.DirectCallers.Count + report.IndirectCallers.Count + report.AffectedForms.Count + report.AffectedClasses.Count + report.AffectedModules.Count
+                    });
+                }
+
+                // Ordinamento predefinito: Rischio decrescente (Critical -> High -> Medium -> Low), poi Impatto Totale decrescente
+                return result
+                    .OrderByDescending(r => r.RiskLevel)
+                    .ThenByDescending(r => r.TotalImpactedCount)
+                    .ToList();
+            });
+
+            _allBlastRadiusRows = rows;
+            ApplyGridFilters();
+
+            // Salva in background nella cache persistente se stiamo analizzando una cartella su disco
+            if (!string.IsNullOrEmpty(_currentFolderPath) && _graph != null)
+            {
+                _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _graph, _allBlastRadiusRows);
             }
-
-            // Ordinamento predefinito: Rischio decrescente (Critical -> High -> Medium -> Low), poi Impatto Totale decrescente
-            return result
-                .OrderByDescending(r => r.RiskLevel)
-                .ThenByDescending(r => r.TotalImpactedCount)
-                .ToList();
-        });
-
-        _allBlastRadiusRows = rows;
-        ApplyGridFilters();
-
-        // Salva in background nella cache persistente se stiamo analizzando una cartella su disco
-        if (!string.IsNullOrEmpty(_currentFolderPath) && _graph != null)
+        }
+        catch (Exception ex)
         {
-            _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _graph, _allBlastRadiusRows);
+            StatusText.Text = $"Errore durante il calcolo della griglia Blast Radius: {ex.Message}";
         }
     }
 
@@ -1230,7 +1251,7 @@ public partial class MainWindow : Window
                 }
                 Graph.SelectNode(node);
                 SelectAndInspectNodeAsync(node);
-                StatusText.Text = $"Selezionato dalla griglia: [{node.Kind}] {node.QualifiedName}";
+                StatusText.Text = LocalizationService.Instance.Get("Status_SelectedFromGrid", node.Kind, node.QualifiedName);
             }
             finally
             {
@@ -1298,7 +1319,6 @@ public partial class MainWindow : Window
         {
             var secondaryBrush = new SolidColorBrush(bgSecondary);
             TopBarBorder.Background = secondaryBrush;
-            SearchBarBorder.Background = secondaryBrush;
             StatusBarBorder.Background = secondaryBrush;
             FloatingHudBorder.Background = secondaryBrush;
         }
@@ -1317,7 +1337,6 @@ public partial class MainWindow : Window
         {
             var borderBrush = new SolidColorBrush(borderCol);
             TopBarBorder.BorderBrush = borderBrush;
-            SearchBarBorder.BorderBrush = borderBrush;
             StatusBarBorder.BorderBrush = borderBrush;
             FloatingHudBorder.BorderBrush = borderBrush;
             ExplorerBorder.BorderBrush = borderBrush;
@@ -1450,8 +1469,12 @@ public partial class MainWindow : Window
             var visualGraph = await Task.Run(() => Layout.GraphVisualAdapter.FromSemanticGraph(importedGraph, projectName));
 
             _currentFolderPath = null;
+            UpdateVcsBranchStatus(null);
             _graph = visualGraph;
             ApplyGraphToUI();
+
+            // Calcola ed esporta istantaneamente la griglia di Blast Radius per il grafo importato
+            await PopulateBlastRadiusGridAsync();
 
             StatusText.Text = LocalizationService.Instance.Get("Status_ImportSuccess", file.Name, importedGraph.Symbols.Count, importedGraph.Relationships.Count);
         }
@@ -1893,6 +1916,10 @@ public partial class MainWindow : Window
         GridFilterTextBox.Watermark = loc["Grid_FilterWatermark"];
         GridRiskLabel.Text = loc["Grid_RiskLabel"];
         RiskItemAll.Content = loc["Grid_AllRisks"];
+        RiskItemCritical.Content = loc["Risk_Critical"];
+        RiskItemHigh.Content = loc["Risk_High"];
+        RiskItemMedium.Content = loc["Risk_Medium"];
+        RiskItemLow.Content = loc["Risk_Low"];
         RefreshGridButtonText.Text = loc["Grid_Recalculate"];
 
         // VCS (Git & SVN) Popup & Tooltip
@@ -1935,6 +1962,7 @@ public partial class MainWindow : Window
         InspectorSecParams.Text = loc["Inspector_Sec_Params"];
         InspectorSecFile.Text = loc["Inspector_Sec_File"];
         InspectorSecAiContext.Text = loc["Inspector_Sec_AIContext"];
+        InspectorAiContextDesc.Text = loc["Inspector_AiContextDesc"];
         CopyLlmSliceButtonText.Text = loc["Inspector_CopyLlmSlice"];
         SaveLlmSliceButtonText.Text = loc["Inspector_SaveLlmSlice"];
         ToolTip.SetTip(CopyLlmSliceButton, loc["Tooltip_CopyLlmSlice"]);
@@ -1966,6 +1994,14 @@ public partial class MainWindow : Window
         if (_selectedNode == null)
         {
             StatusText.Text = loc["Status_Ready"];
+        }
+        else
+        {
+            StatusText.Text = loc.Get("Status_Selected", _selectedNode.Kind, _selectedNode.QualifiedName);
+            if (_selectedNode.SemanticSymbol is { } sym && _graph?.Queries is { } q && q.TryGetCachedImpactReport(sym, 10, out var cachedReport) && cachedReport != null)
+            {
+                UpdateInspectorImpactDetails(cachedReport, q.GetDirectCallees(sym), q.GetInstantiatedClasses(sym));
+            }
         }
     }
 }

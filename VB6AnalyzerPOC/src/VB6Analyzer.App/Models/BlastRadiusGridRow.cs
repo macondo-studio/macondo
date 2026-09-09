@@ -1,4 +1,4 @@
-﻿using Macondo.Semantic.Impact;
+using Macondo.Semantic.Impact;
 using Macondo.Semantic.Model;
 
 namespace Macondo.App.Models;
@@ -39,8 +39,8 @@ public sealed class BlastRadiusGridRow
     /// <summary>Livello di rischio di regressione calcolato dall'Impact Analyzer.</summary>
     public required ImpactRiskLevel RiskLevel { get; init; }
 
-    /// <summary>Testo visualizzato per il rischio (Low, Medium, High, Critical).</summary>
-    public string RiskText => RiskLevel.ToString().ToUpperInvariant();
+    /// <summary>Testo visualizzato per il rischio (Basso, Medio, Alto, Critico / Low, Medium, High, Critical).</summary>
+    public string RiskText => Services.LocalizationService.Instance.GetRiskLevel(RiskLevel);
 
     /// <summary>Colore di sfondo per il badge del rischio.</summary>
     public string RiskBadgeBackground => RiskLevel switch

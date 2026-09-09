@@ -11,14 +11,13 @@
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="-1">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="{Binding $parent[Window].OffScreenMargin}">
+    <Grid RowDefinitions="Auto,*,Auto" Margin="{Binding $parent[Window].OffScreenMargin}">
 
-        <!-- Barra Superiore Stile IDE (Brand & Menu a Sinistra | Area Trascinamento al Centro | Controlli Finestra a Destra) -->
-        <!-- Barra Superiore Stile IDE (Brand & Menu a Sinistra | Area Trascinamento al Centro | Controlli Finestra a Destra) -->
+        <!-- Barra Superiore Stile IDE (Brand & Menu a Sinistra | Ricerca & Area Trascinamento al Centro | Controlli Finestra a Destra) -->
         <Border x:Name="TopBarBorder" Grid.Row="0"
                 Background="{DynamicResource ThemeBackgroundSecondaryBrush}"
                 BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                BorderThickness="0,0,0,1" Padding="8,0,0,0" Height="36">
+                BorderThickness="0,0,0,1" Padding="8,0,0,0" Height="38">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <!-- Sinistra: Brand / Logo App + Menu a Discesa -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
@@ -143,10 +142,98 @@
                     </Menu>
                 </StackPanel>
 
-                <!-- Centro: Area di Trascinamento Finestra e Doppio Click per Massimizzare -->
-                <Border Grid.Column="1" Background="Transparent"
-                        PointerPressed="OnTitleBarPointerPressed"
-                        DoubleTapped="OnTitleBarDoubleTapped" />
+                <!-- Centro: Area di Trascinamento Finestra con Casella di Ricerca Dedicata Stile VS Code / JetBrains -->
+                <Grid Grid.Column="1" Margin="8,0">
+                    <!-- Sfondo di trascinamento finestra per tutta l'area centrale -->
+                    <Border Background="Transparent"
+                            PointerPressed="OnTitleBarPointerPressed"
+                            DoubleTapped="OnTitleBarDoubleTapped" />
+
+                    <!-- Casella di Ricerca Dedicata Centrata -->
+                    <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBox x:Name="SearchBox"
+                                 Width="420"
+                                 Height="26"
+                                 MinHeight="26"
+                                 FontSize="11"
+                                 Padding="6,1"
+                                 VerticalContentAlignment="Center"
+                                 Watermark="Cerca simbolo nel grafo..."
+                                 TextChanged="OnSearchTextChanged"
+                                 KeyDown="OnSearchBoxKeyDown">
+                            <TextBox.InnerLeftContent>
+                                <PathIcon Data="{StaticResource IconSearch}" Width="12" Height="12" VerticalAlignment="Center" Margin="6,0,4,0" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                            </TextBox.InnerLeftContent>
+                            <TextBox.InnerRightContent>
+                                <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="3"
+                                        Padding="5,1"
+                                        Margin="0,0,4,0"
+                                        VerticalAlignment="Center">
+                                    <TextBlock Text="Ctrl + F"
+                                               FontSize="9"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                                               VerticalAlignment="Center" />
+                                </Border>
+                            </TextBox.InnerRightContent>
+                        </TextBox>
+
+                        <!-- Dropdown Risultati Multipli -->
+                        <Popup x:Name="SearchResultsPopup"
+                               PlacementTarget="{Binding ElementName=SearchBox}"
+                               Placement="Bottom"
+                               IsLightDismissEnabled="True"
+                               VerticalOffset="4">
+                            <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    BoxShadow="0 8 24 0 #40000000"
+                                    MinWidth="360"
+                                    MaxWidth="500"
+                                    MaxHeight="320"
+                                    Padding="6">
+                                <DockPanel>
+                                    <TextBlock x:Name="SearchResultsHeader"
+                                               DockPanel.Dock="Top"
+                                               Text="Risultati trovati:"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                                               Margin="6,4,6,6" />
+                                    <ListBox x:Name="SearchResultsList"
+                                             Background="Transparent"
+                                             SelectionChanged="OnSearchResultSelected"
+                                             KeyDown="OnSearchResultsListKeyDown">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate DataType="models:GraphNode">
+                                                <Grid ColumnDefinitions="Auto,*" Margin="2">
+                                                    <Border Grid.Column="0"
+                                                            Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                                            BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="3"
+                                                            Padding="4,1"
+                                                            Margin="0,0,8,0"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Kind}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                        <TextBlock Text="{Binding QualifiedName}" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </DockPanel>
+                            </Border>
+                        </Popup>
+                    </Panel>
+                </Grid>
 
                 <!-- Destra: Pulsanti di Controllo Finestra e Impostazioni -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch">
@@ -188,93 +275,8 @@
             </Grid>
         </Border>
 
-        <!-- Barra Secondaria: Casella di Ricerca Dedicata con Hint Ctrl + F -->
-        <Border x:Name="SearchBarBorder" Grid.Row="1"
-                Background="{DynamicResource ThemeBackgroundSecondaryBrush}"
-                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                BorderThickness="0,0,0,1" Padding="10,6">
-            <Panel HorizontalAlignment="Center">
-                <TextBox x:Name="SearchBox"
-                         Width="440"
-                         Watermark="Cerca simbolo nel grafo..."
-                         TextChanged="OnSearchTextChanged"
-                         KeyDown="OnSearchBoxKeyDown">
-                    <TextBox.InnerLeftContent>
-                        <PathIcon Data="{StaticResource IconSearch}" Width="13" Height="13" VerticalAlignment="Center" Margin="8,0,4,0" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
-                    </TextBox.InnerLeftContent>
-                    <TextBox.InnerRightContent>
-                        <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
-                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                                BorderThickness="1"
-                                CornerRadius="4"
-                                Padding="6,2"
-                                Margin="0,0,6,0"
-                                VerticalAlignment="Center">
-                            <TextBlock Text="Ctrl + F"
-                                       FontSize="10"
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource ThemeTextSecondaryBrush}"
-                                       VerticalAlignment="Center" />
-                        </Border>
-                    </TextBox.InnerRightContent>
-                </TextBox>
-
-                <!-- Dropdown Risultati Multipli -->
-                <Popup x:Name="SearchResultsPopup"
-                       PlacementTarget="{Binding ElementName=SearchBox}"
-                       Placement="Bottom"
-                       IsLightDismissEnabled="True"
-                       VerticalOffset="4">
-                    <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
-                            BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="6"
-                            BoxShadow="0 8 24 0 #40000000"
-                            MinWidth="360"
-                            MaxWidth="500"
-                            MaxHeight="320"
-                            Padding="6">
-                        <DockPanel>
-                            <TextBlock x:Name="SearchResultsHeader"
-                                       DockPanel.Dock="Top"
-                                       Text="Risultati trovati:"
-                                       FontSize="11"
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource ThemeTextSecondaryBrush}"
-                                       Margin="6,4,6,6" />
-                            <ListBox x:Name="SearchResultsList"
-                                     Background="Transparent"
-                                     SelectionChanged="OnSearchResultSelected"
-                                     KeyDown="OnSearchResultsListKeyDown">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate DataType="models:GraphNode">
-                                        <Grid ColumnDefinitions="Auto,*" Margin="2">
-                                            <Border Grid.Column="0"
-                                                    Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
-                                                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                                                    BorderThickness="1"
-                                                    CornerRadius="3"
-                                                    Padding="4,1"
-                                                    Margin="0,0,8,0"
-                                                    VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Kind}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource ThemeAccentBrush}" />
-                                            </Border>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                                <TextBlock Text="{Binding QualifiedName}" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
-                                            </StackPanel>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </DockPanel>
-                    </Border>
-                </Popup>
-            </Panel>
-        </Border>
-
         <!-- Area Centrale: Explorer | Graph + Floating Actions | Inspector -->
-        <Grid x:Name="CentralGrid" Grid.Row="2">
+        <Grid x:Name="CentralGrid" Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="280" MinWidth="180" MaxWidth="600" />
                 <ColumnDefinition Width="4" />
@@ -507,10 +509,10 @@
                                     <TextBlock x:Name="GridRiskLabel" Text="Rischio:" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
                                     <ComboBox x:Name="RiskFilterComboBox" SelectedIndex="0" FontSize="11" Width="130" SelectionChanged="OnRiskFilterChanged">
                                         <ComboBoxItem x:Name="RiskItemAll" Content="Tutti i Livelli" />
-                                        <ComboBoxItem Content="Critical" />
-                                        <ComboBoxItem Content="High" />
-                                        <ComboBoxItem Content="Medium" />
-                                        <ComboBoxItem Content="Low" />
+                                        <ComboBoxItem x:Name="RiskItemCritical" Content="Critico" />
+                                        <ComboBoxItem x:Name="RiskItemHigh" Content="Alto" />
+                                        <ComboBoxItem x:Name="RiskItemMedium" Content="Medio" />
+                                        <ComboBoxItem x:Name="RiskItemLow" Content="Basso" />
                                     </ComboBox>
                                 </StackPanel>
 
@@ -806,7 +808,7 @@
         </Grid>
 
         <!-- Barra di Stato Inferiore -->
-        <Border x:Name="StatusBarBorder" Grid.Row="3" Background="{DynamicResource ThemeBackgroundSecondaryBrush}" Padding="12,5" BorderBrush="{DynamicResource ThemeBorderDefaultBrush}" BorderThickness="0,1,0,0">
+        <Border x:Name="StatusBarBorder" Grid.Row="2" Background="{DynamicResource ThemeBackgroundSecondaryBrush}" Padding="12,5" BorderBrush="{DynamicResource ThemeBorderDefaultBrush}" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="*,Auto,Auto">
                 <TextBlock Grid.Column="0" x:Name="StatusText" Text="Pronto." Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 
@@ -877,7 +879,7 @@
         </Border>
 
         <!-- Overlay di Caricamento Centrato a Schermo (Blast Radius & Analisi Asincrona) -->
-        <Grid x:Name="LoadingOverlay" Grid.Row="0" Grid.RowSpan="4"
+        <Grid x:Name="LoadingOverlay" Grid.Row="0" Grid.RowSpan="3"
               Background="#75101018"
               IsVisible="False"
               ZIndex="999">
@@ -949,7 +951,7 @@
         </Grid>
 
         <!-- Overlay Modale Aggiornamento Disponibile -->
-        <Grid x:Name="UpdateOverlay" Grid.Row="0" Grid.RowSpan="4"
+        <Grid x:Name="UpdateOverlay" Grid.Row="0" Grid.RowSpan="3"
               Background="#75101018"
               IsVisible="False"
               ZIndex="998">
