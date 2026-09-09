@@ -263,12 +263,42 @@ internal static class Program
         if (orderServiceProcess != null)
         {
             Console.WriteLine($"[LLM CONTEXT SLICE PREVIEW] per '{orderServiceProcess.QualifiedName}':");
-            Console.WriteLine("--------------------------------------------------------------------------------");
             var slice = graph.ToMarkdownSlice(orderServiceProcess);
             Console.WriteLine(slice);
-            Console.WriteLine("--------------------------------------------------------------------------------");
             Console.WriteLine();
         }
+        // ---------------------------------------------------------------------
+        // PASSO 8.5: Test e Verifica Suite Grafici & Visualizzazioni Analitiche
+        // ---------------------------------------------------------------------
+        Console.WriteLine("================================================================================");
+        Console.WriteLine("               VERIFICA SUITE GRAFICI & ANALISI AGNOSTICA                       ");
+        Console.WriteLine("================================================================================");
+
+        // 1. DSM (Dependency Structure Matrix)
+        var dsm = Macondo.Semantic.Analytics.Dsm.DsmMatrixBuilder.Build(graph);
+        Console.WriteLine($"[1. DSM MATRIX]         Dimensioni: {dsm.Size}x{dsm.Size} moduli | Dipendenze: {dsm.TotalDependencies} | Dipendenze Cicliche: {dsm.TotalCyclicDependencies} (SCC: {dsm.StronglyConnectedComponents.Count})");
+
+        // 2. Treemap Metriche (Squarified Treemap)
+        var treemap = Macondo.Semantic.Analytics.Treemap.TreemapModelBuilder.Build(graph);
+        Macondo.Semantic.Analytics.Treemap.TreemapLayoutEngine.Layout(treemap, new Macondo.Semantic.Analytics.Treemap.TreemapRect(0, 0, 1000, 600));
+        Console.WriteLine($"[2. TREEMAP METRICS]    Container radice: {treemap.Children.Count} | Valore totale LOC: {treemap.Value:F0} | Complessità media: {treemap.MetricScore:F1}");
+
+        // 3. Hotspot Matrix
+        var hotspots = Macondo.Semantic.Analytics.Hotspots.HotspotAnalyzer.Analyze(graph);
+        Console.WriteLine($"[3. HOTSPOT MATRIX]     Elementi analizzati: {hotspots.Items.Count} | Hotspot Danger Zone: {hotspots.DangerZoneCount} | Soglia X (Churn): {hotspots.ThresholdX:F1} | Soglia Y (CC): {hotspots.ThresholdY:F1}");
+
+        // 4. Screen Flow Graph
+        var screenFlow = Macondo.Semantic.Analytics.ScreenFlow.ScreenFlowBuilder.Build(graph);
+        Console.WriteLine($"[4. SCREEN FLOW]        Schermate UI individuate: {screenFlow.Screens.Count} | Transizioni tra form: {screenFlow.Transitions.Count}");
+
+        // 5. Control Flow Graph (CFG)
+        var sampleRoutine = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Method);
+        if (sampleRoutine != null)
+        {
+            var cfg = Macondo.Semantic.Analytics.ControlFlow.ControlFlowBuilder.BuildForSymbol(sampleRoutine, graph);
+            Console.WriteLine($"[5. CONTROL FLOW (CFG)] Routine '{cfg.ProcedureName}': {cfg.Blocks.Count} blocchi base, {cfg.Edges.Count} rami, CC: {cfg.CyclomaticComplexity}");
+        }
+        Console.WriteLine();
 
         // ---------------------------------------------------------------------
         // PASSO 9: Riepilogo Finale M4 + M6 + Export

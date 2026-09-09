@@ -11,6 +11,11 @@ using System.Threading.Tasks;
 using Macondo.App.Models;
 using Macondo.App.Services;
 using Macondo.App.Views;
+using Macondo.Semantic.Analytics.ControlFlow;
+using Macondo.Semantic.Analytics.Dsm;
+using Macondo.Semantic.Analytics.Hotspots;
+using Macondo.Semantic.Analytics.ScreenFlow;
+using Macondo.Semantic.Analytics.Treemap;
 using Macondo.Semantic.Impact;
 using Macondo.Semantic.Model;
 
@@ -207,8 +212,63 @@ public partial class MainWindow : Window
             }
         }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
 
-        // Sincronizzazione selezione tra Tab Grafo e Tab Griglia Blast Radius
+        // Sincronizzazione selezione tra Tab Grafo e Tab Griglia Blast Radius / Analytics
         CentralTabControl.SelectionChanged += OnCentralTabSelectionChanged;
+
+        // Eventi di selezione e sincronizzazione per le nuove visualizzazioni analitiche
+        Dsm.ItemSelected += (_, item) =>
+        {
+            if (item != null && _graph != null)
+            {
+                var targetNode = _graph.GetNode(item.Id);
+                if (targetNode != null) SelectAndFocusGraphNode(targetNode);
+            }
+        };
+
+        Dsm.CellSelected += (_, cell) =>
+        {
+            if (cell != null && _graph != null && cell.HasDependency)
+            {
+                var rowNode = _graph.GetNode(cell.RowContainerId);
+                if (rowNode != null) SelectAndFocusGraphNode(rowNode);
+                StatusText.Text = $"DSM: Dipendenza [{cell.Weight} collegamenti] tra container.";
+            }
+        };
+
+        Treemap.ItemSelected += (_, item) =>
+        {
+            if (item != null && _graph != null)
+            {
+                var targetNode = _graph.GetNode(item.Id);
+                if (targetNode != null) SelectAndFocusGraphNode(targetNode);
+            }
+        };
+
+        Hotspot.ItemSelected += (_, item) =>
+        {
+            if (item != null && _graph != null)
+            {
+                var targetNode = _graph.GetNode(item.Id);
+                if (targetNode != null) SelectAndFocusGraphNode(targetNode);
+            }
+        };
+
+        ScreenFlow.ScreenSelected += (_, screen) =>
+        {
+            if (screen != null && _graph != null)
+            {
+                var targetNode = _graph.GetNode(screen.Id);
+                if (targetNode != null) SelectAndFocusGraphNode(targetNode);
+            }
+        };
+
+        ControlFlow.BlockSelected += (_, block) =>
+        {
+            if (block != null)
+            {
+                StatusText.Text = $"CFG Blocco: [{block.BlockKind}] {block.Title}";
+            }
+        };
 
         // Inizializzazione Impostazioni e Preferenze Utente (%APPDATA%\Macondo\settings.json)
         var settings = SettingsService.Instance.Settings;
@@ -536,6 +596,15 @@ public partial class MainWindow : Window
         ShowEmptyInspector();
         UpdateStatsBar();
 
+        if (_graph.SemanticGraph != null)
+        {
+            var semGraph = _graph.SemanticGraph;
+            Dsm.Matrix = DsmMatrixBuilder.Build(semGraph);
+            Treemap.RootItem = TreemapModelBuilder.Build(semGraph);
+            Hotspot.Dataset = HotspotAnalyzer.Analyze(semGraph);
+            ScreenFlow.Graph = ScreenFlowBuilder.Build(semGraph);
+        }
+
         if (precalculatedRows != null && precalculatedRows.Count > 0)
         {
             _allBlastRadiusRows = precalculatedRows;
@@ -853,6 +922,12 @@ public partial class MainWindow : Window
         InspectorKind.Text = node.Kind.ToString();
 
         var sym = node.SemanticSymbol;
+
+        // Costruisci il Control Flow Graph (CFG) se è una routine
+        if (sym != null && _graph?.SemanticGraph != null && (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property))
+        {
+            ControlFlow.Graph = ControlFlowBuilder.BuildForSymbol(sym, _graph.SemanticGraph);
+        }
 
         // Visibilità
         InspectorAccessibility.Text = sym != null ? sym.Accessibility.ToString() : "N/A";

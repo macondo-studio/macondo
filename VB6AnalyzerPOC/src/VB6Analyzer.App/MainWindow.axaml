@@ -637,7 +637,72 @@
                     </Grid>
                 </TabItem>
 
-                <!-- TAB 2: Griglia Risultati Blast Radius & Matrice di Rischio -->
+                <!-- TAB 2: Matrice di Dipendenza (DSM) -->
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconMatrix}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="DsmTabHeader" Text="Matrice DSM" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:DsmControl x:Name="Dsm" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 3: Treemap Gerarchica delle Metriche -->
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconTreemap}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="TreemapTabHeader" Text="Treemap Metriche" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:TreemapControl x:Name="Treemap" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 4: Matrice Hotspot di Rischio (Complexity vs Churn) -->
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconHotspot}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="HotspotTabHeader" Text="Hotspot di Rischio" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:HotspotControl x:Name="Hotspot" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 5: Flusso Navigazione Form & UI -->
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconScreenFlow}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="ScreenFlowTabHeader" Text="Flusso Schermate" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:ScreenFlowControl x:Name="ScreenFlow" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 6: Control Flow Graph (CFG) a livello di Routine -->
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconControlFlow}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="ControlFlowTabHeader" Text="Control Flow (CFG)" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:ControlFlowControl x:Name="ControlFlow" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 7: Griglia Risultati Blast Radius & Matrice di Rischio -->
                 <TabItem>
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
