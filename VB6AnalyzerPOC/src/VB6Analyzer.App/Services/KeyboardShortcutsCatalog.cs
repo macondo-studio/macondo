@@ -1,4 +1,4 @@
-﻿namespace Macondo.App.Services;
+namespace Macondo.App.Services;
 
 public sealed class ShortcutItem
 {
@@ -27,6 +27,24 @@ public static class KeyboardShortcutsCatalog
                 Description = isEn
                     ? "Places focus directly in the search bar and selects existing text."
                     : "Sposta il cursore direttamente nella barra di ricerca selezionando tutto il testo."
+            },
+            new()
+            {
+                KeyBadges = new[] { "Ctrl", "B" },
+                ActionName = isEn ? "Toggle Project Explorer" : "Mostra/Nascondi Explorer",
+                Category = isEn ? "Navigation" : "Navigazione",
+                Description = isEn
+                    ? "Toggles visibility of the left Project Explorer panel."
+                    : "Mostra o nasconde il pannello sinistro Project Explorer."
+            },
+            new()
+            {
+                KeyBadges = new[] { "Ctrl", "I" },
+                ActionName = isEn ? "Toggle Symbol Inspector" : "Mostra/Nascondi Inspector",
+                Category = isEn ? "Navigation" : "Navigazione",
+                Description = isEn
+                    ? "Toggles visibility of the right Symbol Inspector and Blast Radius panel."
+                    : "Mostra o nasconde il pannello destro Symbol Inspector e Blast Radius."
             },
             new()
             {

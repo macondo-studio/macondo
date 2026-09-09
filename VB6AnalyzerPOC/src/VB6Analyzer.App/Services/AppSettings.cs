@@ -41,4 +41,10 @@ public sealed class AppSettings
 
     /// <summary>Larghezza del pannello Symbol Inspector (pannello destro).</summary>
     public double InspectorWidth { get; set; } = 360;
+
+    /// <summary>Indica se il pannello Project Explorer (sinistro) è visibile.</summary>
+    public bool IsExplorerVisible { get; set; } = true;
+
+    /// <summary>Indica se il pannello Symbol Inspector (destro) è visibile.</summary>
+    public bool IsInspectorVisible { get; set; } = true;
 }

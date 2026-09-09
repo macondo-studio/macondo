@@ -19,6 +19,10 @@
     <StreamGeometry x:Key="IconTarget">M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM2.5 8a5.5 5.5 0 1 1 11 0 5.5 5.5 0 0 1-11 0zm5.5-2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm-1.5 2.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z</StreamGeometry>
     <StreamGeometry x:Key="IconExpandAll">M1.5 3.5a2 2 0 0 1 2-2h2v1h-2a1 1 0 0 0-1 1v2h-1v-2zm13 0a2 2 0 0 0-2-2h-2v1h2a1 1 0 0 1 1 1v2h1v-2zm-13 9a2 2 0 0 0 2 2h2v-1h-2a1 1 0 0 1-1-1v-2h-1v2zm13 0a2 2 0 0 1-2 2h-2v-1h2a1 1 0 0 0 1-1v-2h1v2zM7.5 4.5h1v7h-1v-7zm-3 3.5h7v1h-7v-1z</StreamGeometry>
     <StreamGeometry x:Key="IconCollapseAll">M4.5 6.5h-3v-1h3v-3h1v4h-1zm7 0h3v-1h-3v-3h-1v4h1zm-7 3h-3v1h3v3h1v-4h-1zm7 0h3v1h-3v3h-1v-4h1z</StreamGeometry>
+    <StreamGeometry x:Key="IconChevronLeft">M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z</StreamGeometry>
+    <StreamGeometry x:Key="IconChevronRight">M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z</StreamGeometry>
+    <StreamGeometry x:Key="IconPanelLeft">M2 3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 12.5v-9zm4 1v7h6.5a.5.5 0 0 0 .5-.5v-6a.5.5 0 0 0-.5-.5H6zm-1 0H3.5a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5H5v-7z</StreamGeometry>
+    <StreamGeometry x:Key="IconPanelRight">M2 3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 12.5v-9zm8 1v7H3.5a.5.5 0 0 1-.5-.5v-6a.5.5 0 0 1 .5-.5H10zm1 0h1.5a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-.5.5H11v-7z</StreamGeometry>
 
     <!-- Analisi, Callers, Callees e Blast Radius -->
     <StreamGeometry x:Key="IconBlastRadius">M8 1a3.5 3.5 0 0 0-3.5 3.5c0 1.3.7 2.4 1.7 3-.8.4-1.5 1-2 1.8A5 5 0 1 0 13 8.3a4.4 4.4 0 0 0-1.7-2.8A3.5 3.5 0 0 0 8 1zm0 1c1.4 0 2.5 1.1 2.5 2.5 0 .6-.2 1.2-.6 1.7-.5-.4-1.1-.7-1.9-.7s-1.4.3-1.9.7c-.4-.5-.6-1.1-.6-1.7C5.5 3.1 6.6 2 8 2zm0 6c1.7 0 3 1.3 3 3s-1.3 3-3 3-3-1.3-3-3 1.3-3 3-3z</StreamGeometry>

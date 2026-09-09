@@ -32,10 +32,26 @@ public partial class MainWindow : Window
     private Layout.GraphLayoutMode _currentLayoutMode = Layout.GraphLayoutMode.StandardRadial;
     private List<VcsBranchInfo> _allVcsBranches = new();
     private AppUpdateInfo? _availableUpdate;
+    private double _savedExplorerWidth = 280;
+    private double _savedInspectorWidth = 360;
+    private bool _isExplorerVisible = true;
+    private bool _isInspectorVisible = true;
 
     public MainWindow()
     {
         InitializeComponent();
+
+        // Pulsanti Mostra/Nascondi Pannelli Sinistra e Destra
+        HideExplorerButton.Click += (_, _) => ToggleExplorer(false);
+        HideInspectorButton.Click += (_, _) => ToggleInspector(false);
+        ToggleExplorerTopButton.Click += (_, _) => ToggleExplorer();
+        ToggleInspectorTopButton.Click += (_, _) => ToggleInspector();
+        ToggleExplorerMenuItem.Command = new ActionCommand(() => ToggleExplorer());
+        ToggleInspectorMenuItem.Command = new ActionCommand(() => ToggleInspector());
+        ToggleExplorerMenuItem.Click += (_, _) => ToggleExplorer();
+        ToggleInspectorMenuItem.Click += (_, _) => ToggleInspector();
+
+        KeyDown += OnMainWindowKeyDown;
 
         // VCS (Git & SVN) Branch Button
         GitBranchButton.Click += (_, _) => OpenGitBranchPopup();
@@ -217,21 +233,32 @@ public partial class MainWindow : Window
             WindowState = WindowState.Maximized;
         }
 
-        if (settings.ExplorerWidth >= 160 && settings.ExplorerWidth <= 700)
+        _savedExplorerWidth = (settings.ExplorerWidth >= 160 && settings.ExplorerWidth <= 700) ? settings.ExplorerWidth : 280;
+        _savedInspectorWidth = (settings.InspectorWidth >= 200 && settings.InspectorWidth <= 800) ? settings.InspectorWidth : 360;
+
+        if (settings.IsExplorerVisible)
         {
-            CentralGrid.ColumnDefinitions[0].Width = new GridLength(settings.ExplorerWidth);
+            CentralGrid.ColumnDefinitions[0].Width = new GridLength(_savedExplorerWidth);
+        }
+        else
+        {
+            SetExplorerVisibility(false, updateSettings: false);
         }
 
-        if (settings.InspectorWidth >= 200 && settings.InspectorWidth <= 800)
+        if (settings.IsInspectorVisible)
         {
-            CentralGrid.ColumnDefinitions[4].Width = new GridLength(settings.InspectorWidth);
+            CentralGrid.ColumnDefinitions[4].Width = new GridLength(_savedInspectorWidth);
+        }
+        else
+        {
+            SetInspectorVisibility(false, updateSettings: false);
         }
 
         // Ripristino Modalità Layout Preferita
         _currentLayoutMode = settings.PreferredLayout;
         LayoutComboBox.SelectedIndex = (int)_currentLayoutMode;
 
-        // Salvataggio Geometria Finestra e Larghezza Pannelli alla chiusura
+        // Salvataggio Geometria Finestra, Larghezza e Visibilità Pannelli alla chiusura
         Closing += (_, _) =>
         {
             SettingsService.Instance.Update(s =>
@@ -244,11 +271,13 @@ public partial class MainWindow : Window
                     s.WindowX = Position.X;
                     s.WindowY = Position.Y;
                 }
-                if (ExplorerBorder.Bounds.Width >= 160)
+                s.IsExplorerVisible = _isExplorerVisible;
+                s.IsInspectorVisible = _isInspectorVisible;
+                if (_isExplorerVisible && ExplorerBorder.Bounds.Width >= 160)
                 {
                     s.ExplorerWidth = ExplorerBorder.Bounds.Width;
                 }
-                if (InspectorBorder.Bounds.Width >= 200)
+                if (_isInspectorVisible && InspectorBorder.Bounds.Width >= 200)
                 {
                     s.InspectorWidth = InspectorBorder.Bounds.Width;
                 }
@@ -1826,6 +1855,121 @@ public partial class MainWindow : Window
         UpdateService.Instance.OpenDownloadPage(_availableUpdate?.DownloadUrl);
     }
 
+    // =========================================================================
+    // Gestione Visibilità Pannelli Sinistro (Explorer) e Destro (Inspector)
+    // =========================================================================
+
+    private void OnMainWindowKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        {
+            if (e.Key == Key.B)
+            {
+                ToggleExplorer();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.I)
+            {
+                ToggleInspector();
+                e.Handled = true;
+            }
+        }
+    }
+
+    public void ToggleExplorer(bool? forceState = null)
+    {
+        SetExplorerVisibility(forceState ?? !_isExplorerVisible);
+    }
+
+    public void SetExplorerVisibility(bool isVisible, bool updateSettings = true)
+    {
+        _isExplorerVisible = isVisible;
+        if (isVisible)
+        {
+            var w = _savedExplorerWidth >= 160 ? _savedExplorerWidth : 280;
+            CentralGrid.ColumnDefinitions[0].MinWidth = 180;
+            CentralGrid.ColumnDefinitions[0].MaxWidth = 600;
+            CentralGrid.ColumnDefinitions[0].Width = new GridLength(w, GridUnitType.Pixel);
+            CentralGrid.ColumnDefinitions[1].Width = new GridLength(4, GridUnitType.Pixel);
+            ExplorerBorder.IsVisible = true;
+            LeftGridSplitter.IsVisible = true;
+        }
+        else
+        {
+            if (ExplorerBorder.Bounds.Width >= 160)
+            {
+                _savedExplorerWidth = ExplorerBorder.Bounds.Width;
+            }
+            CentralGrid.ColumnDefinitions[0].MinWidth = 0;
+            CentralGrid.ColumnDefinitions[0].MaxWidth = 0;
+            CentralGrid.ColumnDefinitions[0].Width = new GridLength(0, GridUnitType.Pixel);
+            CentralGrid.ColumnDefinitions[1].Width = new GridLength(0, GridUnitType.Pixel);
+            ExplorerBorder.IsVisible = false;
+            LeftGridSplitter.IsVisible = false;
+        }
+
+        if (updateSettings)
+        {
+            SettingsService.Instance.Update(s =>
+            {
+                s.IsExplorerVisible = _isExplorerVisible;
+                if (_isExplorerVisible) s.ExplorerWidth = _savedExplorerWidth;
+            });
+        }
+
+        UpdatePanelToggleVisuals();
+    }
+
+    public void ToggleInspector(bool? forceState = null)
+    {
+        SetInspectorVisibility(forceState ?? !_isInspectorVisible);
+    }
+
+    public void SetInspectorVisibility(bool isVisible, bool updateSettings = true)
+    {
+        _isInspectorVisible = isVisible;
+        if (isVisible)
+        {
+            var w = _savedInspectorWidth >= 200 ? _savedInspectorWidth : 360;
+            CentralGrid.ColumnDefinitions[4].MinWidth = 240;
+            CentralGrid.ColumnDefinitions[4].MaxWidth = 800;
+            CentralGrid.ColumnDefinitions[4].Width = new GridLength(w, GridUnitType.Pixel);
+            CentralGrid.ColumnDefinitions[3].Width = new GridLength(4, GridUnitType.Pixel);
+            InspectorBorder.IsVisible = true;
+            RightGridSplitter.IsVisible = true;
+        }
+        else
+        {
+            if (InspectorBorder.Bounds.Width >= 200)
+            {
+                _savedInspectorWidth = InspectorBorder.Bounds.Width;
+            }
+            CentralGrid.ColumnDefinitions[4].MinWidth = 0;
+            CentralGrid.ColumnDefinitions[4].MaxWidth = 0;
+            CentralGrid.ColumnDefinitions[4].Width = new GridLength(0, GridUnitType.Pixel);
+            CentralGrid.ColumnDefinitions[3].Width = new GridLength(0, GridUnitType.Pixel);
+            InspectorBorder.IsVisible = false;
+            RightGridSplitter.IsVisible = false;
+        }
+
+        if (updateSettings)
+        {
+            SettingsService.Instance.Update(s =>
+            {
+                s.IsInspectorVisible = _isInspectorVisible;
+                if (_isInspectorVisible) s.InspectorWidth = _savedInspectorWidth;
+            });
+        }
+
+        UpdatePanelToggleVisuals();
+    }
+
+    private void UpdatePanelToggleVisuals()
+    {
+        ToggleExplorerTopIcon.Opacity = _isExplorerVisible ? 1.0 : 0.35;
+        ToggleInspectorTopIcon.Opacity = _isInspectorVisible ? 1.0 : 0.35;
+    }
+
     /// <summary>
     /// Svuota completamente la cache locale dei progetti (%APPDATA%\Macondo\cache\) e invalida le query in memoria.
     /// </summary>
@@ -1835,6 +1979,8 @@ public partial class MainWindow : Window
         ThemeService.Instance.ApplyTheme(defaultSettings.Theme);
         LocalizationService.Instance.SetLanguage(defaultSettings.Language);
         SetLayoutMode(defaultSettings.PreferredLayout);
+        SetExplorerVisibility(true);
+        SetInspectorVisibility(true);
         StatusText.Text = LocalizationService.Instance["Status_SettingsReset"];
     }
 
@@ -1864,6 +2010,8 @@ public partial class MainWindow : Window
 
         // Menu Visualizza
         ViewMenu.Header = loc["Menu_View"];
+        ToggleExplorerMenuItem.Header = loc["Menu_ToggleExplorer"];
+        ToggleInspectorMenuItem.Header = loc["Menu_ToggleInspector"];
         ResetViewMenuItem.Header = loc["Menu_ResetView"];
         ExpandAllMenuItem.Header = loc["Menu_ExpandAll"];
         CollapseAllMenuItem.Header = loc["Menu_CollapseAll"];
@@ -1889,6 +2037,10 @@ public partial class MainWindow : Window
         ToolTip.SetTip(ClearCacheMenuItem, loc["Tooltip_ClearCache"]);
 
         // Caption Buttons Tooltips
+        ToolTip.SetTip(ToggleExplorerTopButton, loc["Tooltip_ToggleExplorer"]);
+        ToolTip.SetTip(ToggleInspectorTopButton, loc["Tooltip_ToggleInspector"]);
+        ToolTip.SetTip(HideExplorerButton, loc["Tooltip_HideExplorer"]);
+        ToolTip.SetTip(HideInspectorButton, loc["Tooltip_HideInspector"]);
         ToolTip.SetTip(SettingsButton, loc["Tooltip_Settings"]);
         ToolTip.SetTip(MinimizeButton, loc["Tooltip_Minimize"]);
         ToolTip.SetTip(MaximizeButton, loc["Tooltip_Maximize"]);
@@ -1913,8 +2065,9 @@ public partial class MainWindow : Window
         // Ricerca
         SearchBox.Watermark = loc["Search_Watermark"];
 
-        // Explorer
+        // Explorer & Inspector
         ExplorerTitleText.Text = loc["Explorer_Title"];
+        InspectorTitleText.Text = loc["Inspector_Title"];
 
         // Tab Centrali
         GraphTabHeader.Text = loc["Tab_GraphView"];

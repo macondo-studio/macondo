@@ -28,6 +28,8 @@ public sealed class LocalizationService
 
         // Menu Visualizza
         ["Menu_View"] = "_Visualizza",
+        ["Menu_ToggleExplorer"] = "Mostra/Nascondi Project Explorer",
+        ["Menu_ToggleInspector"] = "Mostra/Nascondi Symbol Inspector",
         ["Menu_ResetView"] = "Reset Vista",
         ["Menu_ExpandAll"] = "Espandi Tutto",
         ["Menu_CollapseAll"] = "Comprimi Tutto",
@@ -54,6 +56,13 @@ public sealed class LocalizationService
 
         // Explorer
         ["Explorer_Title"] = "Project Explorer",
+        ["Tooltip_HideExplorer"] = "Nascondi Project Explorer (Ctrl+B)",
+        ["Tooltip_ToggleExplorer"] = "Mostra/Nascondi Project Explorer (Ctrl+B)",
+
+        // Inspector & Blast Radius
+        ["Inspector_Title"] = "Symbol Inspector & Blast Radius",
+        ["Tooltip_HideInspector"] = "Nascondi Symbol Inspector (Ctrl+I)",
+        ["Tooltip_ToggleInspector"] = "Mostra/Nascondi Symbol Inspector (Ctrl+I)",
 
         // Tab Centrali
         ["Tab_GraphView"] = "Vista Grafo",
@@ -244,6 +253,8 @@ public sealed class LocalizationService
 
         // Menu View
         ["Menu_View"] = "_View",
+        ["Menu_ToggleExplorer"] = "Toggle Project Explorer",
+        ["Menu_ToggleInspector"] = "Toggle Symbol Inspector",
         ["Menu_ResetView"] = "Reset View",
         ["Menu_ExpandAll"] = "Expand All",
         ["Menu_CollapseAll"] = "Collapse All",
@@ -270,6 +281,13 @@ public sealed class LocalizationService
 
         // Explorer
         ["Explorer_Title"] = "Project Explorer",
+        ["Tooltip_HideExplorer"] = "Hide Project Explorer (Ctrl+B)",
+        ["Tooltip_ToggleExplorer"] = "Toggle Project Explorer (Ctrl+B)",
+
+        // Inspector & Blast Radius
+        ["Inspector_Title"] = "Symbol Inspector & Blast Radius",
+        ["Tooltip_HideInspector"] = "Hide Symbol Inspector (Ctrl+I)",
+        ["Tooltip_ToggleInspector"] = "Toggle Symbol Inspector (Ctrl+I)",
 
         // Center Tabs
         ["Tab_GraphView"] = "Graph View",
