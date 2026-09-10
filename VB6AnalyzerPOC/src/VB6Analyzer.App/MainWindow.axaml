@@ -932,7 +932,7 @@
                                 <StackPanel Spacing="6">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBlock x:Name="InspectorSecAiContext" Text="AI CONTEXT / LLM SLICE" Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" />
-                                        <PathIcon Data="{StaticResource IconZap}" Width="12" Height="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                       
                                     </Grid>
                                     <TextBlock x:Name="InspectorAiContextDesc" Text="Estrae il subgrafo di questo simbolo ottimizzato per prompt AI." Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="10" TextWrapping="Wrap" />
                                     <Grid ColumnDefinitions="*,*" Margin="0,4">
