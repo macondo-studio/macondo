@@ -404,21 +404,88 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Mostra l'overlay modale di caricamento centrato a tutto schermo.
+    /// Mostra l'overlay modale di caricamento centrato a tutto schermo con opzioni per la barra di avanzamento e statistiche.
     /// </summary>
-    private void ShowLoading(string title, string subtitle)
+    private void ShowLoading(string title, string subtitle, bool isIndeterminate = true, double progressValue = 0, double progressMax = 100, string? countText = null, string? statsText = null)
     {
         LoadingTitle.Text = title;
         LoadingSubtitle.Text = subtitle;
+        LoadingProgressBar.IsIndeterminate = isIndeterminate;
+        LoadingProgressBar.Minimum = 0;
+        LoadingProgressBar.Maximum = progressMax > 0 ? progressMax : 100;
+        LoadingProgressBar.Value = progressValue;
+
+        if (!string.IsNullOrEmpty(countText))
+        {
+            LoadingProgressCount.Text = countText;
+            LoadingProgressCount.IsVisible = true;
+        }
+        else
+        {
+            LoadingProgressCount.Text = string.Empty;
+            LoadingProgressCount.IsVisible = false;
+        }
+
+        if (!string.IsNullOrEmpty(statsText))
+        {
+            LoadingProgressStats.Text = statsText;
+            LoadingProgressStats.IsVisible = true;
+        }
+        else
+        {
+            LoadingProgressStats.Text = string.Empty;
+            LoadingProgressStats.IsVisible = false;
+        }
+
         LoadingOverlay.IsVisible = true;
     }
 
     /// <summary>
-    /// Nasconde l'overlay di caricamento.
+    /// Aggiorna l'avanzamento dettagliato e lo stato testuale dell'overlay di caricamento.
+    /// </summary>
+    private void UpdateLoadingProgress(double current, double total, string? subtitle = null, string? countText = null, string? statsText = null)
+    {
+        LoadingProgressBar.IsIndeterminate = false;
+        LoadingProgressBar.Minimum = 0;
+        LoadingProgressBar.Maximum = total > 0 ? total : 100;
+        LoadingProgressBar.Value = current;
+
+        if (subtitle != null)
+        {
+            LoadingSubtitle.Text = subtitle;
+        }
+
+        if (!string.IsNullOrEmpty(countText))
+        {
+            LoadingProgressCount.Text = countText;
+            LoadingProgressCount.IsVisible = true;
+        }
+        else
+        {
+            LoadingProgressCount.IsVisible = false;
+        }
+
+        if (!string.IsNullOrEmpty(statsText))
+        {
+            LoadingProgressStats.Text = statsText;
+            LoadingProgressStats.IsVisible = true;
+        }
+        else
+        {
+            LoadingProgressStats.IsVisible = false;
+        }
+    }
+
+    /// <summary>
+    /// Nasconde l'overlay di caricamento e reimposta lo stato della barra di avanzamento.
     /// </summary>
     private void HideLoading()
     {
         LoadingOverlay.IsVisible = false;
+        LoadingProgressBar.IsIndeterminate = true;
+        LoadingProgressBar.Value = 0;
+        LoadingProgressCount.IsVisible = false;
+        LoadingProgressStats.IsVisible = false;
     }
 
     /// <summary>
@@ -449,19 +516,27 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Carica e analizza la suite di fixture VB6 reali integrate nel progetto.
+    /// Carica e analizza la suite di fixture VB6 reali integrate nel progetto con aggiornamento del progresso in tempo reale.
     /// </summary>
     private async void LoadDefaultFixtures()
     {
-        ShowLoading("Caricamento fixture VB6...", "Analisi semantica dei 16 moduli reali in corso...");
+        var loc = LocalizationService.Instance;
+        ShowLoading(loc["Loading_FixturesTitle"], loc["Loading_FixturesSub"], isIndeterminate: false, progressValue: 0, progressMax: 100);
         await Task.Delay(16);
+
+        var progress = new Progress<ProjectAnalysisProgress>(p =>
+        {
+            var countStr = loc.Get("Loading_FilesProgressFormat", p.CurrentFileIndex, p.TotalFiles, (int)p.Percentage);
+            var statsStr = loc.Get("Loading_NodesExtractedFormat", p.ExtractedNodesCount);
+            UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr);
+        });
 
         try
         {
             _currentFolderPath = null;
             UpdateVcsBranchStatus(null);
-            StatusText.Text = "Analisi semantica delle fixture in corso...";
-            _graph = await Task.Run(() => ProjectAnalysisService.LoadDefaultFixtures());
+            StatusText.Text = loc["Loading_FixturesSub"];
+            _graph = await Task.Run(() => ProjectAnalysisService.LoadDefaultFixtures(progress));
             ApplyGraphToUI();
             StatusText.Text = "Suite di fixture VB6 analizzata con successo in memoria.";
         }
@@ -515,7 +590,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Esegue o ripristina da cache l'analisi dei file VB6 di una cartella.
+    /// Esegue o ripristina da cache l'analisi dei file VB6 di una cartella con tracciamento del progresso in tempo reale.
     /// </summary>
     private async Task AnalyzeAndLoadFolderAsync(string folderPath, bool forceReanalyze = false)
     {
@@ -550,20 +625,29 @@ public partial class MainWindow : Window
             }
         }
 
-        // 2. Analisi completa da sorgenti su disco con overlay di caricamento
-        ShowLoading("Analisi del progetto VB6...", $"Scansione ed estrazione da '{Path.GetFileName(folderPath)}'...");
+        var loc = LocalizationService.Instance;
+        var folderName = Path.GetFileName(folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+        // 2. Analisi completa da sorgenti su disco con overlay di caricamento e barra di avanzamento determinata
+        ShowLoading(loc["Loading_AnalyzeProjectTitle"], loc.Get("Loading_AnalyzeProjectSub", folderName), isIndeterminate: false, progressValue: 0, progressMax: 100);
         await Task.Delay(16);
+
+        var progress = new Progress<ProjectAnalysisProgress>(p =>
+        {
+            var countStr = loc.Get("Loading_FilesProgressFormat", p.CurrentFileIndex, p.TotalFiles, (int)p.Percentage);
+            var statsStr = loc.Get("Loading_NodesExtractedFormat", p.ExtractedNodesCount);
+            UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr);
+        });
 
         try
         {
             StatusText.Text = $"Analisi cartella '{folderPath}' in corso...";
-            _graph = await Task.Run(() => ProjectAnalysisService.AnalyzeFolder(folderPath));
+            _graph = await Task.Run(() => ProjectAnalysisService.AnalyzeFolder(folderPath, progress));
             _currentFolderPath = folderPath;
             UpdateVcsBranchStatus(folderPath);
             ApplyGraphToUI(); // Avvierà PopulateBlastRadiusGridAsync che poi salverà la cache aggiornata
 
-            var projectName = Path.GetFileName(folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-            StatusText.Text = LocalizationService.Instance.Get("Status_Refreshed", projectName, _graph.Nodes.Count);
+            StatusText.Text = loc.Get("Status_Refreshed", folderName, _graph.Nodes.Count);
 
             // Salva l'ultima cartella aperta nelle impostazioni
             SettingsService.Instance.Update(s => s.LastOpenedFolder = folderPath);

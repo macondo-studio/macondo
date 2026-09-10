@@ -167,6 +167,16 @@ public sealed class LocalizationService
         ["Loading_BlastRadiusSub"] = "Analisi d'impatto e percorsi di chiamata per '{0}'",
         ["Loading_NodeAnalysisTitle"] = "Analisi del nodo in corso...",
         ["Loading_NodeAnalysisSub"] = "Esplorazione chiamanti e dipendenze per '{0}'",
+        ["Loading_AnalyzeProjectTitle"] = "Analisi del progetto VB6...",
+        ["Loading_AnalyzeProjectSub"] = "Scansione ed estrazione da '{0}'...",
+        ["Loading_FixturesTitle"] = "Caricamento fixture VB6...",
+        ["Loading_FixturesSub"] = "Analisi semantica dei moduli fixture in corso...",
+        ["Loading_ParsingFile"] = "Analisi ed estrazione: {0}",
+        ["Loading_ResolvingTypes"] = "Risoluzione globale dei tipi in corso...",
+        ["Loading_BuildingCallGraph"] = "Costruzione Call Graph e relazioni...",
+        ["Loading_GeneratingVisualGraph"] = "Generazione grafo visuale e layout...",
+        ["Loading_FilesProgressFormat"] = "{0} / {1} file ({2}%)",
+        ["Loading_NodesExtractedFormat"] = "{0} nodi rilevati",
 
         // Finestra Impostazioni
         ["Settings_Title"] = "Impostazioni",
@@ -399,6 +409,16 @@ public sealed class LocalizationService
         ["Loading_BlastRadiusSub"] = "Impact analysis and call paths for '{0}'",
         ["Loading_NodeAnalysisTitle"] = "Analyzing node in progress...",
         ["Loading_NodeAnalysisSub"] = "Exploring callers and dependencies for '{0}'",
+        ["Loading_AnalyzeProjectTitle"] = "Analyzing VB6 Project...",
+        ["Loading_AnalyzeProjectSub"] = "Scanning and extracting from '{0}'...",
+        ["Loading_FixturesTitle"] = "Loading VB6 Fixtures...",
+        ["Loading_FixturesSub"] = "Semantic analysis of fixture modules in progress...",
+        ["Loading_ParsingFile"] = "Parsing & extracting: {0}",
+        ["Loading_ResolvingTypes"] = "Resolving global types...",
+        ["Loading_BuildingCallGraph"] = "Building Call Graph and relationships...",
+        ["Loading_GeneratingVisualGraph"] = "Generating visual graph and layout...",
+        ["Loading_FilesProgressFormat"] = "{0} / {1} files ({2}%)",
+        ["Loading_NodesExtractedFormat"] = "{0} nodes detected",
 
         // Settings Window
         ["Settings_Title"] = "Settings",
