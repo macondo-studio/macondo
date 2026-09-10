@@ -213,10 +213,6 @@ public sealed class HotspotControl : Control
 
     private void DrawHoverCard(DrawingContext context, HotspotItem item)
     {
-        var cardRect = new Rect(80, Bounds.Height - 65, 360, 54);
-        context.FillRectangle(_cardBgBrush, cardRect);
-        context.DrawRectangle(new Pen(_axisPenBrush, 1), cardRect);
-
         var titleFmt = new FormattedText(
             $"{item.Kind}: {item.QualifiedName}",
             CultureInfo.InvariantCulture,
@@ -224,7 +220,6 @@ public sealed class HotspotControl : Control
             TitleTypeface,
             12,
             _textWhiteBrush);
-        context.DrawText(titleFmt, new Point(cardRect.X + 10, cardRect.Y + 8));
 
         var subFmt = new FormattedText(
             $"Rischio: {item.RiskScore:F0}% ({item.RiskLevel}) | CC: {item.Complexity:F1} | Churn: {item.ChurnOrFanIn:F0} | Callers: {item.DirectCallersCount}",
@@ -233,7 +228,30 @@ public sealed class HotspotControl : Control
             LabelTypeface,
             11,
             _cardAccentTextBrush);
-        context.DrawText(subFmt, new Point(cardRect.X + 10, cardRect.Y + 28));
+
+        const double paddingH = 12;
+        const double paddingV = 8;
+        const double lineSpacing = 4;
+
+        double maxTextWidth = Math.Max(titleFmt.Width, subFmt.Width);
+        double maxWidthAvailable = Math.Max(100, Bounds.Width - 96);
+        double cardWidth = Math.Min(Math.Max(360, maxTextWidth + (paddingH * 2)), maxWidthAvailable);
+
+        double contentWidth = Math.Max(10, cardWidth - (paddingH * 2));
+        titleFmt.MaxTextWidth = contentWidth;
+        titleFmt.Trimming = TextTrimming.CharacterEllipsis;
+
+        subFmt.MaxTextWidth = contentWidth;
+        subFmt.Trimming = TextTrimming.CharacterEllipsis;
+
+        double cardHeight = Math.Max(54, paddingV + titleFmt.Height + lineSpacing + subFmt.Height + paddingV);
+        var cardRect = new Rect(80, Bounds.Height - cardHeight - 12, cardWidth, cardHeight);
+
+        context.FillRectangle(_cardBgBrush, cardRect);
+        context.DrawRectangle(new Pen(_axisPenBrush, 1), cardRect);
+
+        context.DrawText(titleFmt, new Point(cardRect.X + paddingH, cardRect.Y + paddingV));
+        context.DrawText(subFmt, new Point(cardRect.X + paddingH, cardRect.Y + paddingV + titleFmt.Height + lineSpacing));
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)

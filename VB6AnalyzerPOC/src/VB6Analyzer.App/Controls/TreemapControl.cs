@@ -263,10 +263,6 @@ public sealed class TreemapControl : Control
 
     private void DrawHoverCard(DrawingContext context, TreemapItem item)
     {
-        var cardRect = new Rect(16, Bounds.Height - 65, 320, 52);
-        context.FillRectangle(_hoverCardBgBrush, cardRect);
-        context.DrawRectangle(new Pen(_containerBorderBrush, 1), cardRect);
-
         var titleFmt = new FormattedText(
             $"{item.Kind}: {item.QualifiedName}",
             CultureInfo.InvariantCulture,
@@ -274,7 +270,6 @@ public sealed class TreemapControl : Control
             HeaderTypeface,
             12,
             _textWhiteBrush);
-        context.DrawText(titleFmt, new Point(cardRect.X + 10, cardRect.Y + 8));
 
         var subFmt = new FormattedText(
             $"Complessità Ciclomatica: {item.MetricScore:F1} | Dimensione: {item.Value:F0} LOC",
@@ -283,7 +278,30 @@ public sealed class TreemapControl : Control
             LabelTypeface,
             11,
             _accentTextBrush);
-        context.DrawText(subFmt, new Point(cardRect.X + 10, cardRect.Y + 28));
+
+        const double paddingH = 12;
+        const double paddingV = 8;
+        const double lineSpacing = 4;
+
+        double maxTextWidth = Math.Max(titleFmt.Width, subFmt.Width);
+        double maxWidthAvailable = Math.Max(100, Bounds.Width - 32);
+        double cardWidth = Math.Min(Math.Max(320, maxTextWidth + (paddingH * 2)), maxWidthAvailable);
+
+        double contentWidth = Math.Max(10, cardWidth - (paddingH * 2));
+        titleFmt.MaxTextWidth = contentWidth;
+        titleFmt.Trimming = TextTrimming.CharacterEllipsis;
+
+        subFmt.MaxTextWidth = contentWidth;
+        subFmt.Trimming = TextTrimming.CharacterEllipsis;
+
+        double cardHeight = Math.Max(52, paddingV + titleFmt.Height + lineSpacing + subFmt.Height + paddingV);
+        var cardRect = new Rect(16, Bounds.Height - cardHeight - 12, cardWidth, cardHeight);
+
+        context.FillRectangle(_hoverCardBgBrush, cardRect);
+        context.DrawRectangle(new Pen(_containerBorderBrush, 1), cardRect);
+
+        context.DrawText(titleFmt, new Point(cardRect.X + paddingH, cardRect.Y + paddingV));
+        context.DrawText(subFmt, new Point(cardRect.X + paddingH, cardRect.Y + paddingV + titleFmt.Height + lineSpacing));
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
