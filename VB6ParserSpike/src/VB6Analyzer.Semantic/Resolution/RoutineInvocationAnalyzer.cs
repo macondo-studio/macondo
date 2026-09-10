@@ -1,4 +1,4 @@
-﻿using Antlr4.Runtime.Tree;
+using Antlr4.Runtime.Tree;
 using Macondo.Parser.Grammar;
 using Macondo.Semantic.Model;
 
@@ -349,6 +349,72 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     // =========================================================================
+    // CHIAMATE IN ESPRESSIONI, ASSEGNAZIONI ED EVENTI
+    // =========================================================================
+
+    /// <summary>
+    /// Visita chiamate e accessi a membri all'interno di espressioni generiche ('vsICS' in 'valueStmt').
+    /// Esempi: 'If IsValid() Then', 'x = CalculateTotal(a, b)', 'For i = 1 To GetMax()', argomenti di funzioni.
+    /// </summary>
+    public override object? VisitVsICS(VisualBasic6Parser.VsICSContext context)
+    {
+        if (context.implicitCallStmt_InStmt() != null && _currentRoutineName != null)
+        {
+            var result = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
+            if (result.TargetSymbol != null && result.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
+            {
+                RecordCallSite(context.GetText().Trim(), context.Start.Line, result);
+            }
+        }
+        return base.VisitVsICS(context);
+    }
+
+    /// <summary>
+    /// Visita istruzioni di assegnazione 'Let' (o implicite 'a = b').
+    /// Rileva eventuali chiamate a Property Let sul lato sinistro (LHS).
+    /// </summary>
+    public override object? VisitLetStmt(VisualBasic6Parser.LetStmtContext context)
+    {
+        if (context.implicitCallStmt_InStmt() != null && _currentRoutineName != null)
+        {
+            var targetResult = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
+            if (targetResult.TargetSymbol != null && targetResult.TargetSymbol.Kind is SymbolKind.Property or SymbolKind.Method)
+            {
+                RecordCallSite(context.implicitCallStmt_InStmt().GetText().Trim(), context.Start.Line, targetResult);
+            }
+        }
+        return base.VisitLetStmt(context);
+    }
+
+    /// <summary>
+    /// Visita istruzioni di assegnazione 'Set obj = expr'.
+    /// Rileva eventuali chiamate a Property Set sul lato sinistro (LHS).
+    /// </summary>
+    public override object? VisitSetStmt(VisualBasic6Parser.SetStmtContext context)
+    {
+        if (context.implicitCallStmt_InStmt() != null && _currentRoutineName != null)
+        {
+            var targetResult = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
+            if (targetResult.TargetSymbol != null && targetResult.TargetSymbol.Kind is SymbolKind.Property or SymbolKind.Method)
+            {
+                RecordCallSite(context.implicitCallStmt_InStmt().GetText().Trim(), context.Start.Line, targetResult);
+            }
+        }
+        return base.VisitSetStmt(context);
+    }
+
+    /// <summary>
+    /// Visita istruzioni 'RaiseEvent NomeEvento(args)' per registrare le chiamate a eventi.
+    /// </summary>
+    public override object? VisitRaiseEventStmt(VisualBasic6Parser.RaiseEventStmtContext context)
+    {
+        var eventName = context.ambiguousIdentifier().GetText();
+        var result = CurrentScope.Resolve(eventName);
+        RecordCallSite(context.GetText().Trim(), context.Start.Line, result);
+        return base.VisitRaiseEventStmt(context);
+    }
+
+    // =========================================================================
     // METODI HELPER PRIVATI
     // =========================================================================
 
@@ -396,6 +462,11 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
                 currentResult = CurrentScope.Resolve(".");
             }
 
+            if (currentResult.TargetSymbol != null && currentResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
+            {
+                RecordCallSite(currentResult.TargetSymbol.Name, context.Start.Line, currentResult);
+            }
+
             // Risolve ogni segmento successivo della catena
             foreach (var memberCall in membersCall.iCS_S_MemberCall())
             {
@@ -406,6 +477,10 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
                 if (!string.IsNullOrEmpty(memberName))
                 {
                     currentResult = _symbolResolver.ResolveMemberOnTarget(currentResult, memberName);
+                    if (currentResult.TargetSymbol != null && currentResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
+                    {
+                        RecordCallSite(memberName, context.Start.Line, currentResult);
+                    }
                 }
             }
 
@@ -429,10 +504,20 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Registra un call-site nella lista dei risultati.
+    /// Registra un call-site nella lista dei risultati evitando duplicazioni identiche.
     /// </summary>
     private void RecordCallSite(string callText, int line, ResolutionResult result)
     {
+        if (result.TargetSymbol != null)
+        {
+            if (_callSites.Any(c => c.Line == line &&
+                                   c.EnclosingRoutineName == _currentRoutineName &&
+                                   c.Result.TargetSymbol?.Id == result.TargetSymbol.Id))
+            {
+                return;
+            }
+        }
+
         _callSites.Add(new ResolvedCallSite
         {
             CallText = callText,

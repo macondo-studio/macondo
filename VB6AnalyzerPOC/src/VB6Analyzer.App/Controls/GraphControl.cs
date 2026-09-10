@@ -177,6 +177,7 @@ public sealed class GraphControl : Control
     private IBrush _dimmedLabelBrush = new SolidColorBrush(Color.Parse("#555566"));
     private IPen _edgeContainsPen = new Pen(new SolidColorBrush(Color.Parse("#30303E")), 1);
     private static readonly IPen EdgeCallsPen = new Pen(new SolidColorBrush(Color.Parse("#4A78B8")), 1.5);
+    private static readonly IPen EdgeHandlesEventPen = new Pen(new SolidColorBrush(Color.Parse("#F08C4A")), 1.5, DashStyle.Dash);
     private static readonly IPen EdgeInstantiatesPen = new Pen(new SolidColorBrush(Color.Parse("#D4883B")), 1.5, DashStyle.Dash);
     private static readonly IPen EdgeUsesTypePen = new Pen(new SolidColorBrush(Color.Parse("#3BAE8C")), 1, DashStyle.Dot);
     private static readonly IPen EdgeHighlightPen = new Pen(new SolidColorBrush(Color.Parse("#FFD700")), 2.5);
@@ -273,8 +274,8 @@ public sealed class GraphControl : Control
 
             context.DrawLine(pen, p1, p2);
 
-            // Disegna freccia direzionale su chiamate e istanziazioni o archi attivi
-            if ((isCalleeEdge || isCallerEdge || edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates) && _scale > 0.25)
+            // Disegna freccia direzionale su chiamate, eventi e istanziazioni o archi attivi
+            if ((isCalleeEdge || isCallerEdge || edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.HandlesEvent) && _scale > 0.25)
             {
                 DrawArrowHead(context, pen.Brush, p1, p2, target.Radius * Math.Clamp(_scale, 0.2, 2.5));
             }
@@ -364,6 +365,7 @@ public sealed class GraphControl : Control
     private IPen GetPenForEdgeKind(RelationshipKind kind) => kind switch
     {
         RelationshipKind.Calls => EdgeCallsPen,
+        RelationshipKind.HandlesEvent => EdgeHandlesEventPen,
         RelationshipKind.Instantiates => EdgeInstantiatesPen,
         RelationshipKind.UsesType => EdgeUsesTypePen,
         _ => _edgeContainsPen

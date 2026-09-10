@@ -72,6 +72,28 @@ public sealed class CodeGraph
     }
 
     /// <summary>
+    /// Aggiunge una relazione di gestione evento (HANDLES_EVENT) tra la sorgente dell'evento (Form, Controllo o Oggetto) e la routine gestore.
+    /// </summary>
+    /// <param name="source">La Form, Controllo o Oggetto che genera l'evento.</param>
+    /// <param name="eventHandler">La procedura Sub che gestisce l'evento.</param>
+    /// <param name="line">Numero di riga nel sorgente.</param>
+    /// <param name="confidence">Grado di certezza della risoluzione.</param>
+    public void AddHandlesEvent(Symbol source, Symbol eventHandler, int? line = null, ResolutionConfidence confidence = ResolutionConfidence.Exact)
+    {
+        if (Relationships.Any(r => r.Kind == RelationshipKind.HandlesEvent && r.SourceId == source.Id && r.TargetId == eventHandler.Id))
+            return;
+
+        Relationships.Add(new Relationship
+        {
+            SourceId = source.Id,
+            TargetId = eventHandler.Id,
+            Kind = RelationshipKind.HandlesEvent,
+            Line = line,
+            Confidence = confidence
+        });
+    }
+
+    /// <summary>
     /// Aggiunge una relazione di dipendenza di tipo (USES_TYPE) da un simbolo verso il tipo utilizzato.
     /// </summary>
     /// <param name="source">Il simbolo che dichiara o usa il tipo (variabile, routine, modulo).</param>

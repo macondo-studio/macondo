@@ -1,4 +1,4 @@
-﻿using Macondo.Semantic.Graph;
+using Macondo.Semantic.Graph;
 using Macondo.Semantic.Model;
 
 namespace Macondo.Semantic.Impact;
@@ -152,6 +152,13 @@ public sealed class ImpactAnalyzer
             .Select(c => c!)
             .DistinctBy(c => c.Id)
             .ToList();
+
+        // Se la routine stessa risiede in una Form o UserControl, include il suo container tra i componenti impattati
+        var routineContainer = FindEnclosingContainer(routine);
+        if (routineContainer != null && routineContainer.Kind is SymbolKind.Form or SymbolKind.UserControl && !affectedContainers.Any(c => c.Id == routineContainer.Id))
+        {
+            affectedContainers.Add(routineContainer);
+        }
 
         var affectedForms = affectedContainers.Where(c => c.Kind == SymbolKind.Form).ToList();
         var affectedClasses = affectedContainers.Where(c => c.Kind == SymbolKind.Class).ToList();

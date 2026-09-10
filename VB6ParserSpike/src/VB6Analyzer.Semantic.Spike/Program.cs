@@ -234,6 +234,23 @@ internal static class Program
             Console.WriteLine();
         }
 
+        // D. Blast Radius di un Event Handler UI: MainForm.cmdClick_Click
+        var cmdClickRoutine = graph.Symbols.FirstOrDefault(s => s.QualifiedName.Equals("MainForm.cmdClick_Click", StringComparison.OrdinalIgnoreCase));
+        if (cmdClickRoutine != null)
+        {
+            var eventImpact = impactAnalyzer.AnalyzeRoutineImpact(cmdClickRoutine);
+            Console.WriteLine($"[BLAST RADIUS & EVENTI UI] Gestore Evento '{cmdClickRoutine.QualifiedName}':");
+            Console.WriteLine($"  - Chiamanti/Attivatori : {eventImpact.DirectCallers.Count} ({string.Join(", ", eventImpact.DirectCallers.Select(c => c.QualifiedName))})");
+            Console.WriteLine($"  - Form Impattate (UI)  : {eventImpact.AffectedForms.Count} ({string.Join(", ", eventImpact.AffectedForms.Select(f => f.Name))})");
+            Console.WriteLine($"  - Livello di Rischio   : {eventImpact.RiskLevel}");
+
+            var callees = queries.GetDirectCallees(cmdClickRoutine);
+            Console.WriteLine($"  - Routine Chiamate da cmdClick (anche in espressioni): {callees.Count}");
+            foreach (var callee in callees)
+                Console.WriteLine($"      -> {callee.QualifiedName}");
+            Console.WriteLine();
+        }
+
         // ---------------------------------------------------------------------
         // PASSO 8: Esportazione CodeGraph per LLM & Tooling (Markdown & JSON)
         // ---------------------------------------------------------------------

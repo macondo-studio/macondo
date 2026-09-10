@@ -1,4 +1,4 @@
-﻿using Antlr4.Runtime;
+using Antlr4.Runtime;
 using Macondo.Parser.Grammar;
 using Macondo.Semantic.Model;
 
@@ -33,11 +33,16 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
     /// Nomi di eventi VB6 standard più comuni per l'euristica degli event handler.
     /// In VB6, una Sub con nome "NomeControllo_NomeEvento" (es. Command1_Click) è convenzionalmente un event handler.
     /// </summary>
-    private static readonly string[] CommonEventNames =
+    private static readonly HashSet<string> CommonEventNames = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Click", "DblClick", "Change", "Load", "Unload", "Activate", "Deactivate",
-        "KeyPress", "KeyDown", "KeyUp", "GotFocus", "LostFocus", "Timer",
-        "MouseDown", "MouseUp", "MouseMove", "Resize", "Paint"
+        "Click", "DblClick", "Change", "Load", "Unload", "QueryUnload", "Activate", "Deactivate",
+        "Initialize", "Terminate", "Resize", "Paint", "KeyPress", "KeyDown", "KeyUp",
+        "GotFocus", "LostFocus", "Timer", "MouseDown", "MouseUp", "MouseMove",
+        "DragDrop", "DragOver", "Scroll", "Validate", "RowColChange", "SelChange",
+        "ItemCheck", "NodeClick", "Collapse", "Expand", "BeforeUpdate", "AfterUpdate",
+        "Error", "DataArrival", "Connect", "Close", "SendComplete", "SendProgress",
+        "Show", "Hide", "ReadProperties", "WriteProperties", "DropDown", "OLEStartDrag",
+        "OLEDragDrop", "OLEDragOver", "OLESetData", "OLECompleteDrag", "LinkOpen", "LinkClose", "LinkError", "LinkExecute"
     };
 
     /// <summary>Grafo semantico condiviso in cui vengono inseriti simboli e relazioni CONTAINS.</summary>
@@ -77,8 +82,6 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
 
     /// <summary>
     /// Elenco delle Sub identificate dall'euristica sintattica come probabili event handler (es. "Button1_Click").
-    /// NOTA: Come da Sezione 11 del charter, questa è solo diagnostica e non crea una relazione HANDLES_EVENT
-    /// fittizia nel grafo prima che i controlli della form siano stati estratti.
     /// </summary>
     public List<string> LikelyEventHandlerNames { get; } = new();
 
@@ -98,6 +101,48 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
 
     /// <summary>Restituisce il simbolo contenitore attualmente in cima allo stack.</summary>
     private Symbol CurrentContainer => _containerStack.Peek();
+
+    // =========================================================================
+    // ESTRAZIONE CONTROLLI UI (Form .frm e UserControl .ctl)
+    // =========================================================================
+
+    /// <summary>
+    /// Visita la regola ANTLR 'controlProperties' per estrarre i controlli visivi definiti nei form (.frm) e UserControl (.ctl).
+    /// Esempio: 'Begin VB.CommandButton cmdClick' -> genera simbolo Field 'cmdClick' con tipo 'VB.CommandButton'.
+    /// </summary>
+    public override object? VisitControlProperties(VisualBasic6Parser.ControlPropertiesContext context)
+    {
+        var controlName = context.cp_ControlIdentifier()?.GetText()?.Trim();
+        var controlType = context.cp_ControlType()?.GetText()?.Trim() ?? "Control";
+
+        if (!string.IsNullOrEmpty(controlName) &&
+            !string.Equals(controlName, _moduleSymbol.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            var existingControl = _graph.GetChildren(_moduleSymbol.Id)
+                .FirstOrDefault(s => string.Equals(s.Name, controlName, StringComparison.OrdinalIgnoreCase));
+
+            if (existingControl == null)
+            {
+                var controlSymbol = new Symbol
+                {
+                    Id = Guid.NewGuid(),
+                    Kind = SymbolKind.Field,
+                    Name = controlName,
+                    QualifiedName = $"{_moduleSymbol.Name}.{controlName}",
+                    DeclaredTypeName = controlType,
+                    Accessibility = Accessibility.Private,
+                    FilePath = _filePath,
+                    LineStart = context.Start.Line,
+                    LineEnd = context.Stop?.Line ?? context.Start.Line
+                };
+
+                _graph.Symbols.Add(controlSymbol);
+                _graph.AddContains(_moduleSymbol, controlSymbol, context.Start.Line);
+            }
+        }
+
+        return base.VisitControlProperties(context);
+    }
 
     // =========================================================================
     // ESTRAZIONE ROUTINE (Sub e Function)
@@ -129,8 +174,17 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         var underscoreIndex = name.LastIndexOf('_');
         if (underscoreIndex > 0 && underscoreIndex < name.Length - 1)
         {
+            var prefix = name[..underscoreIndex];
             var eventPart = name[(underscoreIndex + 1)..];
-            if (CommonEventNames.Contains(eventPart, StringComparer.OrdinalIgnoreCase))
+
+            bool isEventHandler = CommonEventNames.Contains(eventPart) ||
+                                  _moduleSymbol.Kind is SymbolKind.Form or SymbolKind.UserControl ||
+                                  string.Equals(prefix, "Form", StringComparison.OrdinalIgnoreCase) ||
+                                  string.Equals(prefix, "UserControl", StringComparison.OrdinalIgnoreCase) ||
+                                  string.Equals(prefix, "Class", StringComparison.OrdinalIgnoreCase) ||
+                                  string.Equals(prefix, _moduleSymbol.Name, StringComparison.OrdinalIgnoreCase);
+
+            if (isEventHandler)
             {
                 LikelyEventHandlerNames.Add(name);
             }

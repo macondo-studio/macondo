@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Threading;
 using Macondo.Semantic.Model;
 
@@ -56,7 +56,7 @@ public sealed class CallGraphQueries
     {
         return _directCallersCache.GetOrAdd(callee.Id, _ =>
             _graph.Relationships
-                .Where(r => r.Kind == RelationshipKind.Calls && r.TargetId == callee.Id)
+                .Where(r => (r.Kind == RelationshipKind.Calls || r.Kind == RelationshipKind.HandlesEvent) && r.TargetId == callee.Id)
                 .Select(r => _graph.FindSymbolById(r.SourceId))
                 .Where(s => s != null)
                 .Select(s => s!)
@@ -73,7 +73,7 @@ public sealed class CallGraphQueries
     {
         return _directCalleesCache.GetOrAdd(caller.Id, _ =>
             _graph.Relationships
-                .Where(r => r.Kind == RelationshipKind.Calls && r.SourceId == caller.Id)
+                .Where(r => (r.Kind == RelationshipKind.Calls || r.Kind == RelationshipKind.HandlesEvent) && r.SourceId == caller.Id)
                 .Select(r => _graph.FindSymbolById(r.TargetId))
                 .Where(s => s != null)
                 .Select(s => s!)

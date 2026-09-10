@@ -1,4 +1,4 @@
-﻿using Macondo.Semantic.Extraction;
+using Macondo.Semantic.Extraction;
 using Macondo.Semantic.Model;
 using Macondo.Semantic.Resolution;
 
@@ -118,6 +118,35 @@ public sealed class CallGraphBuilder
                     {
                         _graph.AddUsesType(symbol, paramType, param.Line);
                     }
+                }
+            }
+        }
+
+        // 4. Genera relazioni HANDLES_EVENT per tutti i gestori di eventi UI e di classe
+        foreach (var extraction in extractionResults)
+        {
+            var moduleChildren = _graph.GetChildren(extraction.ModuleSymbol.Id).ToList();
+
+            foreach (var eventHandlerName in extraction.LikelyEventHandlerNames)
+            {
+                var routine = moduleChildren.FirstOrDefault(s => s.Kind is SymbolKind.Method or SymbolKind.Property &&
+                                                                string.Equals(s.Name, eventHandlerName, StringComparison.OrdinalIgnoreCase));
+                if (routine != null)
+                {
+                    var underscoreIndex = eventHandlerName.LastIndexOf('_');
+                    if (underscoreIndex > 0)
+                    {
+                        var prefix = eventHandlerName[..underscoreIndex];
+                        var controlSymbol = moduleChildren.FirstOrDefault(s => s.Kind == SymbolKind.Field &&
+                                                                               string.Equals(s.Name, prefix, StringComparison.OrdinalIgnoreCase));
+                        if (controlSymbol != null)
+                        {
+                            _graph.AddHandlesEvent(controlSymbol, routine, routine.LineStart);
+                        }
+                    }
+
+                    // Collega sempre il container (Form, UserControl o Class) come generatore dell'evento
+                    _graph.AddHandlesEvent(extraction.ModuleSymbol, routine, routine.LineStart);
                 }
             }
         }
