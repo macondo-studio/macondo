@@ -184,7 +184,7 @@ public sealed class GraphControl : Control
             if (!visibleIds.Contains(node.Id)) continue;
 
             var screenPos = GraphToScreen(node.X, node.Y);
-            var radius = node.Radius * Math.Clamp(_scale, 0.2, 2.5);
+            var radius = Math.Max(node.Radius * Math.Min(_scale, 2.5), 1.0);
 
             // Viewport culling per performance
             if (screenPos.X < -radius - 50 || screenPos.Y < -radius - 50 ||
@@ -208,12 +208,13 @@ public sealed class GraphControl : Control
             context.DrawEllipse(fill, outlinePen, screenPos, radius, radius);
 
             // Indicatore visivo di container espanso/compresso
-            if (node.IsContainer)
+            if (node.IsContainer && radius >= 4)
             {
                 IBrush markerColor = node.IsExpanded 
                     ? (_isDarkTheme ? Brushes.WhiteSmoke : new SolidColorBrush(Color.Parse("#4A4A5E"))) 
                     : Brushes.Orange;
-                context.DrawEllipse(markerColor, null, screenPos, 3, 3);
+                var markerRadius = Math.Min(3.0, radius * 0.4);
+                context.DrawEllipse(markerColor, null, screenPos, markerRadius, markerRadius);
             }
 
             // Etichetta del nodo (mostrata quando la dimensione a schermo è sufficiente)
@@ -554,7 +555,7 @@ public sealed class GraphControl : Control
         var graphPointUnderPointer = ScreenToGraph(pointerScreenPos);
 
         var zoomFactor = e.Delta.Y > 0 ? 1.15 : 1 / 1.15;
-        var newScale = Math.Clamp(_scale * zoomFactor, 0.05, 6.0);
+        var newScale = Math.Clamp(_scale * zoomFactor, 0.002, 8.0);
 
         _offsetX = pointerScreenPos.X - Bounds.Width / 2 - graphPointUnderPointer.X * newScale;
         _offsetY = pointerScreenPos.Y - Bounds.Height / 2 - graphPointUnderPointer.Y * newScale;
@@ -580,7 +581,7 @@ public sealed class GraphControl : Control
             var dx = node.X - graphPoint.X;
             var dy = node.Y - graphPoint.Y;
             var distSq = dx * dx + dy * dy;
-            var hitRadius = node.Radius / Math.Max(_scale, 0.01) + 6.0;
+            var hitRadius = node.Radius / Math.Max(_scale, 0.002) + 6.0;
 
             if (distSq <= hitRadius * hitRadius && distSq < bestDistSq)
             {
