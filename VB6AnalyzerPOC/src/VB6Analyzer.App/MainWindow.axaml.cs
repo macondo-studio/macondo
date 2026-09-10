@@ -596,51 +596,52 @@ public partial class MainWindow : Window
     {
         if (!Directory.Exists(folderPath)) return;
 
-        // 1. Tenta il ripristino ultra-rapido dalla cache locale (%APPDATA%\Macondo\cache\) se non forzato
-        if (!forceReanalyze)
-        {
-            var cachedSnapshot = await ProjectCacheService.Instance.TryLoadSnapshotAsync(folderPath);
-            if (cachedSnapshot != null)
-            {
-                var (cachedGraph, cachedRows) = ProjectCacheService.Instance.RestoreGraphAndRows(cachedSnapshot);
-                _graph = cachedGraph;
-                _currentFolderPath = folderPath;
-                UpdateVcsBranchStatus(folderPath);
-                ApplyGraphToUI(cachedRows);
-
-                // Salva l'ultima cartella aperta nelle impostazioni
-                SettingsService.Instance.Update(s => s.LastOpenedFolder = folderPath);
-
-                // Rileva eventuali modifiche ai sorgenti intervenute dopo il salvataggio della cache
-                var isStale = ProjectCacheService.Instance.CheckStaleness(cachedSnapshot, folderPath);
-                if (isStale)
-                {
-                    StatusText.Text = LocalizationService.Instance.Get("Status_CacheStale", cachedSnapshot.ProjectName);
-                }
-                else
-                {
-                    StatusText.Text = LocalizationService.Instance.Get("Status_LoadedFromCache", cachedSnapshot.ProjectName, cachedSnapshot.AnalyzedAtUtc.ToLocalTime().ToString("g"));
-                }
-                return;
-            }
-        }
-
         var loc = LocalizationService.Instance;
         var folderName = Path.GetFileName(folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
-        // 2. Analisi completa da sorgenti su disco con overlay di caricamento e barra di avanzamento determinata
-        ShowLoading(loc["Loading_AnalyzeProjectTitle"], loc.Get("Loading_AnalyzeProjectSub", folderName), isIndeterminate: false, progressValue: 0, progressMax: 100);
+        // Mostra subito l'overlay di caricamento per dare feedback immediato all'utente
+        ShowLoading(loc["Loading_AnalyzeProjectTitle"], loc.Get("Loading_AnalyzeProjectSub", folderName));
         await Task.Delay(16);
-
-        var progress = new Progress<ProjectAnalysisProgress>(p =>
-        {
-            var countStr = loc.Get("Loading_FilesProgressFormat", p.CurrentFileIndex, p.TotalFiles, (int)p.Percentage);
-            var statsStr = loc.Get("Loading_NodesExtractedFormat", p.ExtractedNodesCount);
-            UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr);
-        });
 
         try
         {
+            // 1. Tenta il ripristino ultra-rapido dalla cache locale (%APPDATA%\Macondo\cache\) se non forzato
+            if (!forceReanalyze)
+            {
+                var cachedSnapshot = await ProjectCacheService.Instance.TryLoadSnapshotAsync(folderPath);
+                if (cachedSnapshot != null)
+                {
+                    var (cachedGraph, cachedRows) = await Task.Run(() => ProjectCacheService.Instance.RestoreGraphAndRows(cachedSnapshot));
+                    _graph = cachedGraph;
+                    _currentFolderPath = folderPath;
+                    UpdateVcsBranchStatus(folderPath);
+                    ApplyGraphToUI(cachedRows);
+
+                    // Salva l'ultima cartella aperta nelle impostazioni
+                    SettingsService.Instance.Update(s => s.LastOpenedFolder = folderPath);
+
+                    // Rileva eventuali modifiche ai sorgenti intervenute dopo il salvataggio della cache
+                    var isStale = ProjectCacheService.Instance.CheckStaleness(cachedSnapshot, folderPath);
+                    if (isStale)
+                    {
+                        StatusText.Text = LocalizationService.Instance.Get("Status_CacheStale", cachedSnapshot.ProjectName);
+                    }
+                    else
+                    {
+                        StatusText.Text = LocalizationService.Instance.Get("Status_LoadedFromCache", cachedSnapshot.ProjectName, cachedSnapshot.AnalyzedAtUtc.ToLocalTime().ToString("g"));
+                    }
+                    return;
+                }
+            }
+
+            // 2. Analisi completa da sorgenti su disco con barra di avanzamento determinata
+            var progress = new Progress<ProjectAnalysisProgress>(p =>
+            {
+                var countStr = loc.Get("Loading_FilesProgressFormat", p.CurrentFileIndex, p.TotalFiles, (int)p.Percentage);
+                var statsStr = loc.Get("Loading_NodesExtractedFormat", p.ExtractedNodesCount);
+                UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr);
+            });
+
             StatusText.Text = $"Analisi cartella '{folderPath}' in corso...";
             _graph = await Task.Run(() => ProjectAnalysisService.AnalyzeFolder(folderPath, progress));
             _currentFolderPath = folderPath;
