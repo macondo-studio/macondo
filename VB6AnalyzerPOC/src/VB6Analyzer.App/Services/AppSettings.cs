@@ -47,4 +47,19 @@ public sealed class AppSettings
 
     /// <summary>Indica se il pannello Symbol Inspector (destro) è visibile.</summary>
     public bool IsInspectorVisible { get; set; } = true;
+
+    /// <summary>Indica se mostrare i metodi/procedure (Sub, Function) nel grafo.</summary>
+    public bool ShowMethods { get; set; } = true;
+
+    /// <summary>Indica se mostrare le proprietà (Property Get/Let/Set) nel grafo.</summary>
+    public bool ShowProperties { get; set; } = true;
+
+    /// <summary>Indica se mostrare le variabili e campi nel grafo.</summary>
+    public bool ShowFields { get; set; } = true;
+
+    /// <summary>Indica se mostrare le costanti nel grafo.</summary>
+    public bool ShowConstants { get; set; } = true;
+
+    /// <summary>Indica se mostrare i tipi definiti dall'utente ed enumerazioni nel grafo.</summary>
+    public bool ShowTypesAndEnums { get; set; } = true;
 }

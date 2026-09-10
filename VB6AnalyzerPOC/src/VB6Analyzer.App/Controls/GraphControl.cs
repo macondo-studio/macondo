@@ -37,6 +37,108 @@ public sealed class GraphControl : Control
     /// <summary>Sollevato quando cambia la selezione del nodo.</summary>
     public event EventHandler<GraphNode?>? SelectionChanged;
 
+    /// <summary>Sollevato quando cambiano i filtri di visibilità dei simboli.</summary>
+    public event EventHandler? FilterChanged;
+
+    private bool _showMethods = true;
+    public bool ShowMethods
+    {
+        get => _showMethods;
+        set
+        {
+            if (_showMethods != value)
+            {
+                _showMethods = value;
+                InvalidateVisual();
+                FilterChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+    }
+
+    private bool _showProperties = true;
+    public bool ShowProperties
+    {
+        get => _showProperties;
+        set
+        {
+            if (_showProperties != value)
+            {
+                _showProperties = value;
+                InvalidateVisual();
+                FilterChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+    }
+
+    private bool _showFields = true;
+    public bool ShowFields
+    {
+        get => _showFields;
+        set
+        {
+            if (_showFields != value)
+            {
+                _showFields = value;
+                InvalidateVisual();
+                FilterChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+    }
+
+    private bool _showConstants = true;
+    public bool ShowConstants
+    {
+        get => _showConstants;
+        set
+        {
+            if (_showConstants != value)
+            {
+                _showConstants = value;
+                InvalidateVisual();
+                FilterChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+    }
+
+    private bool _showTypesAndEnums = true;
+    public bool ShowTypesAndEnums
+    {
+        get => _showTypesAndEnums;
+        set
+        {
+            if (_showTypesAndEnums != value)
+            {
+                _showTypesAndEnums = value;
+                InvalidateVisual();
+                FilterChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Imposta simultaneamente tutti i filtri di visibilità per tipologia di simbolo.
+    /// </summary>
+    public void SetFilters(bool methods, bool properties, bool fields, bool constants, bool typesAndEnums)
+    {
+        _showMethods = methods;
+        _showProperties = properties;
+        _showFields = fields;
+        _showConstants = constants;
+        _showTypesAndEnums = typesAndEnums;
+        InvalidateVisual();
+        FilterChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Calcola il numero di nodi visibili e totali nel grafo corrente.
+    /// </summary>
+    public (int visibleNodes, int totalNodes) GetNodeCounts()
+    {
+        if (Graph is not { } graph) return (0, 0);
+        var visible = ComputeVisibleNodeIds(graph);
+        return (visible.Count, graph.Nodes.Count);
+    }
+
     // Trasformazioni di vista (Zoom & Pan)
     private double _scale = 1.0;
     private double _offsetX;
@@ -422,26 +524,48 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Progressive disclosure: I membri figli sono visibili solo se il relativo container è espanso.
-    /// In modalità Blast Radius o Callees/Callers, i container e nodi impattati vengono forzati visibili.
+    /// Progressive disclosure e filtraggio per livelli/categorie:
+    /// - I container principali (Project, Form, Class, Module, UserControl) sono sempre presenti nello scheletro architetturale.
+    /// - I membri figli e le tipologie sono visibili solo se il relativo container è espanso E la rispettiva categoria è abilitata nel filtro.
+    /// - In modalità Blast Radius o Callees/Callers, i nodi impattati e il percorso di chiamata vengono forzati visibili.
     /// </summary>
     private HashSet<Guid> ComputeVisibleNodeIds(VisualCodeGraph graph)
     {
         var visible = new HashSet<Guid>();
         foreach (var node in graph.Nodes)
         {
-            if (node.Kind is SymbolKind.Project or SymbolKind.Class or SymbolKind.Form
-                            or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum)
+            var isPrimaryContainer = node.Kind is SymbolKind.Project or SymbolKind.Class or SymbolKind.Form
+                                              or SymbolKind.Module or SymbolKind.UserControl;
+
+            if (isPrimaryContainer)
             {
                 visible.Add(node.Id);
                 continue;
             }
 
+            var isForcedVisible = _blastRadiusDepths.ContainsKey(node.Id) ||
+                                  _calleeNodeIds.Contains(node.Id) ||
+                                  _callerNodeIds.Contains(node.Id) ||
+                                  _selectedNode?.Id == node.Id;
+
+            // Verifica se la categoria del simbolo è abilitata nel filtro attivo
+            var isCategoryEnabled = node.Kind switch
+            {
+                SymbolKind.Method => ShowMethods,
+                SymbolKind.Property => ShowProperties,
+                SymbolKind.Field => ShowFields,
+                SymbolKind.Constant => ShowConstants,
+                SymbolKind.Type or SymbolKind.Enum or SymbolKind.Event => ShowTypesAndEnums,
+                _ => true
+            };
+
+            if (!isCategoryEnabled && !isForcedVisible)
+            {
+                continue;
+            }
+
             var parent = node.ParentId.HasValue ? graph.GetNode(node.ParentId.Value) : null;
-            if (parent is { IsExpanded: true } ||
-                _blastRadiusDepths.ContainsKey(node.Id) ||
-                _calleeNodeIds.Contains(node.Id) ||
-                _callerNodeIds.Contains(node.Id))
+            if (parent is { IsExpanded: true } || isForcedVisible || !node.ParentId.HasValue)
             {
                 visible.Add(node.Id);
             }

@@ -44,6 +44,7 @@ public partial class MainWindow : Window
     private double _savedInspectorWidth = 360;
     private bool _isExplorerVisible = true;
     private bool _isInspectorVisible = true;
+    private bool _isSyncingFilterUi;
 
     public MainWindow()
     {
@@ -344,6 +345,9 @@ public partial class MainWindow : Window
         _currentLayoutMode = settings.PreferredLayout;
         LayoutComboBox.SelectedIndex = (int)_currentLayoutMode;
 
+        // Inizializzazione Filtri per Livello e Categoria di Simbolo
+        InitFilterControls();
+
         // Salvataggio Geometria Finestra, Larghezza e Visibilità Pannelli alla chiusura
         Closing += (_, _) =>
         {
@@ -367,6 +371,11 @@ public partial class MainWindow : Window
                 {
                     s.InspectorWidth = InspectorBorder.Bounds.Width;
                 }
+                s.ShowMethods = Graph.ShowMethods;
+                s.ShowProperties = Graph.ShowProperties;
+                s.ShowFields = Graph.ShowFields;
+                s.ShowConstants = Graph.ShowConstants;
+                s.ShowTypesAndEnums = Graph.ShowTypesAndEnums;
             });
         };
 
@@ -707,6 +716,7 @@ public partial class MainWindow : Window
 
         ShowEmptyInspector();
         UpdateStatsBar();
+        SyncFilterUiState();
 
         if (_graph.SemanticGraph != null)
         {
@@ -738,7 +748,177 @@ public partial class MainWindow : Window
             node.IsExpanded = expanded;
         }
         Graph.InvalidateVisual();
+        SyncFilterUiState();
     }
+
+    #region Gestione Filtri Livelli e Categorie Simboli
+
+    private void InitFilterControls()
+    {
+        var settings = SettingsService.Instance.Settings;
+        Graph.ShowMethods = settings.ShowMethods;
+        Graph.ShowProperties = settings.ShowProperties;
+        Graph.ShowFields = settings.ShowFields;
+        Graph.ShowConstants = settings.ShowConstants;
+        Graph.ShowTypesAndEnums = settings.ShowTypesAndEnums;
+
+        Graph.FilterChanged += (_, _) => SyncFilterUiState();
+
+        DetailLevelComboBox.SelectionChanged += OnDetailLevelComboBoxSelectionChanged;
+
+        FilterMethodsCheckBox.IsCheckedChanged += (_, _) => OnFilterCheckBoxChanged();
+        FilterPropertiesCheckBox.IsCheckedChanged += (_, _) => OnFilterCheckBoxChanged();
+        FilterFieldsCheckBox.IsCheckedChanged += (_, _) => OnFilterCheckBoxChanged();
+        FilterConstantsCheckBox.IsCheckedChanged += (_, _) => OnFilterCheckBoxChanged();
+        FilterTypesCheckBox.IsCheckedChanged += (_, _) => OnFilterCheckBoxChanged();
+
+        LegendMethodButton.Click += (_, _) => ToggleFilterCategory(SymbolKind.Method);
+        LegendPropertyButton.Click += (_, _) => ToggleFilterCategory(SymbolKind.Property);
+        LegendFieldButton.Click += (_, _) => ToggleFilterCategory(SymbolKind.Field);
+        LegendTypeButton.Click += (_, _) => ToggleFilterCategory(SymbolKind.Type);
+
+        FilterAllMenuItem.Click += (_, _) => SetDetailPreset(0);
+        FilterMethodsPropsMenuItem.Click += (_, _) => SetDetailPreset(1);
+        FilterContainersOnlyMenuItem.Click += (_, _) => SetDetailPreset(2);
+
+        FilterMethodsMenuItem.Click += (_, _) => ToggleFilterCategory(SymbolKind.Method);
+        FilterPropertiesMenuItem.Click += (_, _) => ToggleFilterCategory(SymbolKind.Property);
+        FilterFieldsMenuItem.Click += (_, _) => ToggleFilterCategory(SymbolKind.Field);
+        FilterConstantsMenuItem.Click += (_, _) => ToggleFilterCategory(SymbolKind.Constant);
+        FilterTypesMenuItem.Click += (_, _) => ToggleFilterCategory(SymbolKind.Type);
+
+        SyncFilterUiState();
+    }
+
+    private void SetDetailPreset(int index)
+    {
+        if (index == 0) // Completo: tutti i membri visibili
+        {
+            Graph.SetFilters(true, true, true, true, true);
+        }
+        else if (index == 1) // Metodi & Proprietà: nasconde variabili, costanti e tipi
+        {
+            Graph.SetFilters(true, true, false, false, false);
+        }
+        else if (index == 2) // Solo Moduli: nasconde tutti i membri interni
+        {
+            Graph.SetFilters(false, false, false, false, false);
+        }
+        SaveFilterSettings();
+    }
+
+    private void OnDetailLevelComboBoxSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_isSyncingFilterUi) return;
+        SetDetailPreset(DetailLevelComboBox.SelectedIndex);
+    }
+
+    private void OnFilterCheckBoxChanged()
+    {
+        if (_isSyncingFilterUi) return;
+        Graph.ShowMethods = FilterMethodsCheckBox.IsChecked == true;
+        Graph.ShowProperties = FilterPropertiesCheckBox.IsChecked == true;
+        Graph.ShowFields = FilterFieldsCheckBox.IsChecked == true;
+        Graph.ShowConstants = FilterConstantsCheckBox.IsChecked == true;
+        Graph.ShowTypesAndEnums = FilterTypesCheckBox.IsChecked == true;
+        SaveFilterSettings();
+    }
+
+    private void ToggleFilterCategory(SymbolKind kind)
+    {
+        switch (kind)
+        {
+            case SymbolKind.Method:
+                Graph.ShowMethods = !Graph.ShowMethods;
+                break;
+            case SymbolKind.Property:
+                Graph.ShowProperties = !Graph.ShowProperties;
+                break;
+            case SymbolKind.Field:
+                Graph.ShowFields = !Graph.ShowFields;
+                break;
+            case SymbolKind.Constant:
+                Graph.ShowConstants = !Graph.ShowConstants;
+                break;
+            case SymbolKind.Type or SymbolKind.Enum:
+                Graph.ShowTypesAndEnums = !Graph.ShowTypesAndEnums;
+                break;
+        }
+        SaveFilterSettings();
+    }
+
+    private void SaveFilterSettings()
+    {
+        SettingsService.Instance.Update(s =>
+        {
+            s.ShowMethods = Graph.ShowMethods;
+            s.ShowProperties = Graph.ShowProperties;
+            s.ShowFields = Graph.ShowFields;
+            s.ShowConstants = Graph.ShowConstants;
+            s.ShowTypesAndEnums = Graph.ShowTypesAndEnums;
+        });
+    }
+
+    private void SyncFilterUiState()
+    {
+        _isSyncingFilterUi = true;
+        try
+        {
+            FilterMethodsCheckBox.IsChecked = Graph.ShowMethods;
+            FilterPropertiesCheckBox.IsChecked = Graph.ShowProperties;
+            FilterFieldsCheckBox.IsChecked = Graph.ShowFields;
+            FilterConstantsCheckBox.IsChecked = Graph.ShowConstants;
+            FilterTypesCheckBox.IsChecked = Graph.ShowTypesAndEnums;
+
+            LegendMethodPanel.Opacity = Graph.ShowMethods ? 1.0 : 0.35;
+            LegendPropertyPanel.Opacity = Graph.ShowProperties ? 1.0 : 0.35;
+            LegendFieldPanel.Opacity = Graph.ShowFields ? 1.0 : 0.35;
+            LegendTypePanel.Opacity = Graph.ShowTypesAndEnums ? 1.0 : 0.35;
+
+            // Aggiorna indicatori di spunta nelle voci del menu Visualizza
+            if (Application.Current != null && Application.Current.TryFindResource("IconCheck", out var res) && res is StreamGeometry checkGeo)
+            {
+                FilterMethodsMenuItem.Icon = Graph.ShowMethods ? new PathIcon { Data = checkGeo, Width = 12, Height = 12 } : null;
+                FilterPropertiesMenuItem.Icon = Graph.ShowProperties ? new PathIcon { Data = checkGeo, Width = 12, Height = 12 } : null;
+                FilterFieldsMenuItem.Icon = Graph.ShowFields ? new PathIcon { Data = checkGeo, Width = 12, Height = 12 } : null;
+                FilterConstantsMenuItem.Icon = Graph.ShowConstants ? new PathIcon { Data = checkGeo, Width = 12, Height = 12 } : null;
+                FilterTypesMenuItem.Icon = Graph.ShowTypesAndEnums ? new PathIcon { Data = checkGeo, Width = 12, Height = 12 } : null;
+            }
+
+            // Allinea indice ComboBox Preset
+            if (Graph.ShowMethods && Graph.ShowProperties && Graph.ShowFields && Graph.ShowConstants && Graph.ShowTypesAndEnums)
+            {
+                DetailLevelComboBox.SelectedIndex = 0; // Completo
+            }
+            else if (Graph.ShowMethods && Graph.ShowProperties && !Graph.ShowFields && !Graph.ShowConstants && !Graph.ShowTypesAndEnums)
+            {
+                DetailLevelComboBox.SelectedIndex = 1; // Metodi & Proprietà
+            }
+            else if (!Graph.ShowMethods && !Graph.ShowProperties && !Graph.ShowFields && !Graph.ShowConstants && !Graph.ShowTypesAndEnums)
+            {
+                DetailLevelComboBox.SelectedIndex = 2; // Solo Moduli
+            }
+            else
+            {
+                DetailLevelComboBox.SelectedIndex = 3; // Personalizzato
+            }
+
+            if (_graph is not null)
+            {
+                var (vis, total) = Graph.GetNodeCounts();
+                if (Graph.CurrentHighlightMode == HighlightMode.Normal && total > 0)
+                {
+                    StatusText.Text = $"Nodi visualizzati: {vis} di {total}";
+                }
+            }
+        }
+        finally
+        {
+            _isSyncingFilterUi = false;
+        }
+    }
+
+    #endregion
 
     /// <summary>
     /// Calcola ed evidenzia il Blast Radius per il nodo selezionato in modo asincrono con loading overlay.
@@ -2472,6 +2652,15 @@ public partial class MainWindow : Window
         ResetViewMenuItem.Header = loc["Menu_ResetView"];
         ExpandAllMenuItem.Header = loc["Menu_ExpandAll"];
         CollapseAllMenuItem.Header = loc["Menu_CollapseAll"];
+        FilterDetailLevelMenuItem.Header = loc["Menu_FilterDetailLevel"];
+        FilterAllMenuItem.Header = loc["Filter_AllMembers"];
+        FilterMethodsPropsMenuItem.Header = loc["Filter_MethodsAndProperties"];
+        FilterContainersOnlyMenuItem.Header = loc["Filter_ContainersOnly"];
+        FilterMethodsMenuItem.Header = loc["Filter_ShowMethods"];
+        FilterPropertiesMenuItem.Header = loc["Filter_ShowProperties"];
+        FilterFieldsMenuItem.Header = loc["Filter_ShowFields"];
+        FilterConstantsMenuItem.Header = loc["Filter_ShowConstants"];
+        FilterTypesMenuItem.Header = loc["Filter_ShowTypesEnums"];
         GraphLayoutMenuItem.Header = loc["Menu_GraphLayout"];
         LayoutStandardMenuItem.Header = loc["Layout_StandardRadial"];
         LayoutAffinityMenuItem.Header = loc["Layout_AffinityRadial"];
@@ -2544,6 +2733,22 @@ public partial class MainWindow : Window
         LayoutItemAffinity.Content = loc["Layout_AffinityRadial"];
         LayoutItemIslands.Content = loc["Layout_ClusteredIslands"];
         LayoutItemForce.Content = loc["Layout_ForceDirected"];
+        HudFilterLabel.Text = loc["HUD_FilterLabel"];
+        HudFilterButtonText.Text = loc["HUD_FilterButton"];
+        DetailItemAll.Content = loc["Filter_AllMembers"];
+        DetailItemMethodsProps.Content = loc["Filter_MethodsAndProperties"];
+        DetailItemContainers.Content = loc["Filter_ContainersOnly"];
+        DetailItemCustom.Content = loc["Filter_Custom"];
+        FilterMethodsCheckBox.Content = loc["Filter_ShowMethods"];
+        FilterPropertiesCheckBox.Content = loc["Filter_ShowProperties"];
+        FilterFieldsCheckBox.Content = loc["Filter_ShowFields"];
+        FilterConstantsCheckBox.Content = loc["Filter_ShowConstants"];
+        FilterTypesCheckBox.Content = loc["Filter_ShowTypesEnums"];
+        ToolTip.SetTip(FilterOptionsButton, loc["Tooltip_FilterMethods"]);
+        ToolTip.SetTip(LegendMethodButton, loc["Tooltip_LegendToggle"]);
+        ToolTip.SetTip(LegendPropertyButton, loc["Tooltip_LegendToggle"]);
+        ToolTip.SetTip(LegendFieldButton, loc["Tooltip_LegendToggle"]);
+        ToolTip.SetTip(LegendTypeButton, loc["Tooltip_LegendToggle"]);
 
         // Legenda Grafo
         LegendTitleText.Text = loc["Legend_Title"];

@@ -110,6 +110,20 @@
                                     <PathIcon Data="{StaticResource IconCollapseAll}" Width="14" Height="14" />
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem x:Name="FilterDetailLevelMenuItem" Header="Filtro Livelli Simboli">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconFilter}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                                <MenuItem x:Name="FilterAllMenuItem" Header="Completo (Tutti i Membri)" />
+                                <MenuItem x:Name="FilterMethodsPropsMenuItem" Header="Metodi &amp; Proprietà" />
+                                <MenuItem x:Name="FilterContainersOnlyMenuItem" Header="Solo Contenitori (Moduli)" />
+                                <Separator />
+                                <MenuItem x:Name="FilterMethodsMenuItem" Header="Mostra Metodi (Sub / Function)" />
+                                <MenuItem x:Name="FilterPropertiesMenuItem" Header="Mostra Proprietà" />
+                                <MenuItem x:Name="FilterFieldsMenuItem" Header="Mostra Campi e Variabili" />
+                                <MenuItem x:Name="FilterConstantsMenuItem" Header="Mostra Costanti" />
+                                <MenuItem x:Name="FilterTypesMenuItem" Header="Mostra Tipi ed Enumerazioni" />
+                            </MenuItem>
                             <Separator />
                             <MenuItem x:Name="GraphLayoutMenuItem" Header="Disposizione Grafo">
                                 <MenuItem.Icon>
@@ -660,6 +674,46 @@
                                     </ComboBox>
                                 </StackPanel>
 
+                                <!-- Selettore Livello Dettaglio / Filtri Simboli -->
+                                <StackPanel Spacing="3" Margin="0,2,0,4">
+                                    <TextBlock x:Name="HudFilterLabel" Text="Dettaglio:" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                    <ComboBox x:Name="DetailLevelComboBox" SelectedIndex="0" FontSize="11" HorizontalAlignment="Stretch"
+                                              Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                              BorderBrush="{DynamicResource ThemeBorderSubtleBrush}"
+                                              BorderThickness="1"
+                                              CornerRadius="4">
+                                        <ComboBoxItem x:Name="DetailItemAll" Content="Completo (Tutti)" />
+                                        <ComboBoxItem x:Name="DetailItemMethodsProps" Content="Metodi &amp; Prop" />
+                                        <ComboBoxItem x:Name="DetailItemContainers" Content="Solo Moduli" />
+                                        <ComboBoxItem x:Name="DetailItemCustom" Content="Personalizzato" />
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <!-- Pulsante Flyout Filtri Granulari Categorie -->
+                                <Button x:Name="FilterOptionsButton" ToolTip.Tip="Filtra singole categorie di simboli nel grafo">
+                                    <Button.Flyout>
+                                        <Flyout Placement="LeftEdgeAlignedTop">
+                                            <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}" 
+                                                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}" 
+                                                    BorderThickness="1" CornerRadius="6" Padding="10,8" Width="200">
+                                                <StackPanel Spacing="6">
+                                                    <TextBlock Text="Filtro Categorie Simboli" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                    <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,2" />
+                                                    <CheckBox x:Name="FilterMethodsCheckBox" IsChecked="True" FontSize="11" Content="Metodi (Sub/Function)" />
+                                                    <CheckBox x:Name="FilterPropertiesCheckBox" IsChecked="True" FontSize="11" Content="Proprietà (Property)" />
+                                                    <CheckBox x:Name="FilterFieldsCheckBox" IsChecked="True" FontSize="11" Content="Variabili &amp; Campi" />
+                                                    <CheckBox x:Name="FilterConstantsCheckBox" IsChecked="True" FontSize="11" Content="Costanti (Const)" />
+                                                    <CheckBox x:Name="FilterTypesCheckBox" IsChecked="True" FontSize="11" Content="Tipi &amp; Enumerazioni" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Data="{StaticResource IconFilter}" Width="13" Height="13" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="HudFilterButtonText" Text="Filtra Membri" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+
                                 <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="4,3" />
 
                                 <!-- Gruppo Vista e Navigazione -->
@@ -803,31 +857,39 @@
 
                                     <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,1" />
 
-                                    <!-- Membri & Routine Interne -->
+                                    <!-- Membri & Routine Interne (Cliccabili per Filtrare) -->
                                     <UniformGrid Columns="2" Margin="0,2">
                                         <!-- Metodo / Sub / Function -->
-                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
-                                            <Ellipse Width="8" Height="8" Fill="#7D7D8E" VerticalAlignment="Center" />
-                                            <TextBlock x:Name="LegendMethodText" Text="Sub / Function" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
-                                        </StackPanel>
+                                        <Button x:Name="LegendMethodButton" Background="Transparent" BorderThickness="0" Padding="2" HorizontalAlignment="Stretch" Cursor="Hand" ToolTip.Tip="Clicca per mostrare/nascondere Metodi (Sub/Function)">
+                                            <StackPanel x:Name="LegendMethodPanel" Orientation="Horizontal" Spacing="6">
+                                                <Ellipse Width="8" Height="8" Fill="#7D7D8E" VerticalAlignment="Center" />
+                                                <TextBlock x:Name="LegendMethodText" Text="Sub / Function" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
 
                                         <!-- Proprietà -->
-                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
-                                            <Ellipse Width="8" Height="8" Fill="#E8B838" VerticalAlignment="Center" />
-                                            <TextBlock x:Name="LegendPropertyText" Text="Property" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
-                                        </StackPanel>
+                                        <Button x:Name="LegendPropertyButton" Background="Transparent" BorderThickness="0" Padding="2" HorizontalAlignment="Stretch" Cursor="Hand" ToolTip.Tip="Clicca per mostrare/nascondere Proprietà">
+                                            <StackPanel x:Name="LegendPropertyPanel" Orientation="Horizontal" Spacing="6">
+                                                <Ellipse Width="8" Height="8" Fill="#E8B838" VerticalAlignment="Center" />
+                                                <TextBlock x:Name="LegendPropertyText" Text="Property" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
 
                                         <!-- Campo / Variabile -->
-                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
-                                            <Ellipse Width="7" Height="7" Fill="#60A5FA" VerticalAlignment="Center" />
-                                            <TextBlock x:Name="LegendFieldText" Text="Field / Var" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
-                                        </StackPanel>
+                                        <Button x:Name="LegendFieldButton" Background="Transparent" BorderThickness="0" Padding="2" HorizontalAlignment="Stretch" Cursor="Hand" ToolTip.Tip="Clicca per mostrare/nascondere Variabili e Campi">
+                                            <StackPanel x:Name="LegendFieldPanel" Orientation="Horizontal" Spacing="6">
+                                                <Ellipse Width="7" Height="7" Fill="#60A5FA" VerticalAlignment="Center" />
+                                                <TextBlock x:Name="LegendFieldText" Text="Field / Var" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
 
                                         <!-- Tipo / Enum -->
-                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
-                                            <Ellipse Width="7" Height="7" Fill="#34D399" VerticalAlignment="Center" />
-                                            <TextBlock x:Name="LegendTypeText" Text="Type / Enum" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
-                                        </StackPanel>
+                                        <Button x:Name="LegendTypeButton" Background="Transparent" BorderThickness="0" Padding="2" HorizontalAlignment="Stretch" Cursor="Hand" ToolTip.Tip="Clicca per mostrare/nascondere Tipi ed Enumerazioni">
+                                            <StackPanel x:Name="LegendTypePanel" Orientation="Horizontal" Spacing="6">
+                                                <Ellipse Width="7" Height="7" Fill="#34D399" VerticalAlignment="Center" />
+                                                <TextBlock x:Name="LegendTypeText" Text="Type / Enum" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
                                     </UniformGrid>
 
                                     <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,1" />
