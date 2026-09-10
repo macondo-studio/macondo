@@ -54,29 +54,32 @@ public partial class InfoWindow : Window
 
     private void OnNavOverviewClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(0);
     private void OnNavLayoutsClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(1);
-    private void OnNavTreemapClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(2);
-    private void OnNavFlowsClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(3);
-    private void OnNavDsmHotspotsClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(4);
-    private void OnNavBlastRadiusClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(5);
-    private void OnNavAiExportClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(6);
+    private void OnNavLegendClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(2);
+    private void OnNavTreemapClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(3);
+    private void OnNavFlowsClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(4);
+    private void OnNavDsmHotspotsClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(5);
+    private void OnNavBlastRadiusClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(6);
+    private void OnNavAiExportClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(7);
 
     private void SetSelectedNav(int index)
     {
         NavOverviewButton.Classes.Set("selected", index == 0);
         NavLayoutsButton.Classes.Set("selected", index == 1);
-        NavTreemapButton.Classes.Set("selected", index == 2);
-        NavFlowsButton.Classes.Set("selected", index == 3);
-        NavDsmHotspotsButton.Classes.Set("selected", index == 4);
-        NavBlastRadiusButton.Classes.Set("selected", index == 5);
-        NavAiExportButton.Classes.Set("selected", index == 6);
+        NavLegendButton.Classes.Set("selected", index == 2);
+        NavTreemapButton.Classes.Set("selected", index == 3);
+        NavFlowsButton.Classes.Set("selected", index == 4);
+        NavDsmHotspotsButton.Classes.Set("selected", index == 5);
+        NavBlastRadiusButton.Classes.Set("selected", index == 6);
+        NavAiExportButton.Classes.Set("selected", index == 7);
 
         OverviewSection.IsVisible = index == 0;
         LayoutsSection.IsVisible = index == 1;
-        TreemapSection.IsVisible = index == 2;
-        FlowsSection.IsVisible = index == 3;
-        DsmHotspotsSection.IsVisible = index == 4;
-        BlastRadiusSection.IsVisible = index == 5;
-        AiExportSection.IsVisible = index == 6;
+        LegendSection.IsVisible = index == 2;
+        TreemapSection.IsVisible = index == 3;
+        FlowsSection.IsVisible = index == 4;
+        DsmHotspotsSection.IsVisible = index == 5;
+        BlastRadiusSection.IsVisible = index == 6;
+        AiExportSection.IsVisible = index == 7;
     }
 
     private void UpdateLocalizedTexts()
@@ -89,6 +92,7 @@ public partial class InfoWindow : Window
 
         NavOverviewText.Text = isEn ? "Overview & Architecture" : "Panoramica & Architettura";
         NavLayoutsText.Text = isEn ? "Graph Layouts" : "Disposizioni del Grafo";
+        NavLegendText.Text = isEn ? "Node & Color Legend" : "Legenda Nodi & Colori";
         NavTreemapText.Text = isEn ? "Treemap (Code Map)" : "Treemap (Mappa ad Albero)";
         NavFlowsText.Text = isEn ? "Screen & Control Flow" : "Screen & Control Flow";
         NavDsmHotspotsText.Text = isEn ? "DSM & Hotspots" : "DSM & Hotspots";

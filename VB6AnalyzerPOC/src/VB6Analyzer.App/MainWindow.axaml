@@ -640,6 +640,111 @@
                                 </Button>
                             </StackPanel>
                         </Border>
+
+                        <!-- Legenda Flottante Colori Nodi & Relazioni (In basso a sinistra, Stile Solido HUD) -->
+                        <Border x:Name="GraphLegendBorder"
+                                HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                Margin="14"
+                                Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                BoxShadow="0 4 16 0 #40000000"
+                                Padding="10,8">
+                            <StackPanel Spacing="6" MaxWidth="320">
+                                <!-- Intestazione Legenda con Pulsante Comprimi/Espandi -->
+                                <DockPanel LastChildFill="True">
+                                    <Button x:Name="ToggleLegendButton"
+                                            DockPanel.Dock="Right"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Padding="4,2"
+                                            CornerRadius="4"
+                                            ToolTip.Tip="Espandi / Comprimi legenda">
+                                        <PathIcon x:Name="LegendToggleIcon" Data="{StaticResource IconChevronLeft}" Width="10" Height="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                                    </Button>
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <PathIcon Data="{StaticResource IconInfo}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="LegendTitleText" Text="Legenda Nodi &amp; Colori" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <!-- Contenuto Dettagliato Legenda -->
+                                <StackPanel x:Name="LegendContentPanel" Spacing="6" IsVisible="True">
+                                    <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,1" />
+
+                                    <!-- Moduli e File VB6 (Contenitori) -->
+                                    <UniformGrid Columns="2" Margin="0,2">
+                                        <!-- Form -->
+                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                            <Ellipse Width="10" Height="10" Fill="#4FA8E8" VerticalAlignment="Center" />
+                                            <TextBlock x:Name="LegendFormText" Text="Form (.frm)" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+
+                                        <!-- Modulo Standard -->
+                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                            <Ellipse Width="10" Height="10" Fill="#C084F0" VerticalAlignment="Center" />
+                                            <TextBlock x:Name="LegendModuleText" Text="Modulo (.bas)" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+
+                                        <!-- Classe -->
+                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                            <Ellipse Width="10" Height="10" Fill="#54C08C" VerticalAlignment="Center" />
+                                            <TextBlock x:Name="LegendClassText" Text="Classe (.cls)" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+
+                                        <!-- Controllo Utente -->
+                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                            <Ellipse Width="10" Height="10" Fill="#F08C4A" VerticalAlignment="Center" />
+                                            <TextBlock x:Name="LegendControlText" Text="Control (.ctl)" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </UniformGrid>
+
+                                    <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,1" />
+
+                                    <!-- Membri & Routine Interne -->
+                                    <UniformGrid Columns="2" Margin="0,2">
+                                        <!-- Metodo / Sub / Function -->
+                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                            <Ellipse Width="8" Height="8" Fill="#7D7D8E" VerticalAlignment="Center" />
+                                            <TextBlock x:Name="LegendMethodText" Text="Sub / Function" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+
+                                        <!-- Proprietà -->
+                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                            <Ellipse Width="8" Height="8" Fill="#E8B838" VerticalAlignment="Center" />
+                                            <TextBlock x:Name="LegendPropertyText" Text="Property" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+
+                                        <!-- Campo / Variabile -->
+                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                            <Ellipse Width="7" Height="7" Fill="#60A5FA" VerticalAlignment="Center" />
+                                            <TextBlock x:Name="LegendFieldText" Text="Field / Var" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+
+                                        <!-- Tipo / Enum -->
+                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                            <Ellipse Width="7" Height="7" Fill="#34D399" VerticalAlignment="Center" />
+                                            <TextBlock x:Name="LegendTypeText" Text="Type / Enum" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </UniformGrid>
+
+                                    <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,1" />
+
+                                    <!-- Relazioni e Archi -->
+                                    <UniformGrid Columns="2" Margin="0,2">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                            <Rectangle Width="14" Height="2.5" Fill="#4AE8D0" VerticalAlignment="Center" RadiusX="1" RadiusY="1" />
+                                            <TextBlock x:Name="LegendCallsText" Text="Calls" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                            <Rectangle Width="14" Height="2.5" Fill="#FFA040" VerticalAlignment="Center" RadiusX="1" RadiusY="1" />
+                                            <TextBlock x:Name="LegendInstantiatesText" Text="Instantiates (New)" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
                     </Grid>
                 </TabItem>
 

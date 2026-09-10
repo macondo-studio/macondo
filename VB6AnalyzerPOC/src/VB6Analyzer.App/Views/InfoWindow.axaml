@@ -101,7 +101,15 @@
                             </StackPanel>
                         </Button>
 
-                        <!-- Tab 2: Treemap -->
+                        <!-- Tab 2: Legenda Colori -->
+                        <Button x:Name="NavLegendButton" Classes="nav-btn" Click="OnNavLegendClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconInfo}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavLegendText" Text="Legenda Nodi &amp; Colori" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 3: Treemap -->
                         <Button x:Name="NavTreemapButton" Classes="nav-btn" Click="OnNavTreemapClicked">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <PathIcon Data="{StaticResource IconTreemap}" Width="14" Height="14" VerticalAlignment="Center" />
@@ -264,7 +272,183 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- SEZIONE 2: TREEMAP (MAPPA AD ALBERO) -->
+                    <!-- SEZIONE LEGENDA NODI & COLORI -->
+                    <ScrollViewer x:Name="LegendSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Legenda dei Nodi, Colori e Relazioni" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Significato visivo di tutti i simboli, diametri, colori e relazioni disegnati nel grafo 2D." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <!-- Card: Contenitori & Moduli -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Classes="card-title" Text="1. Moduli e Contenitori (File VB6)" />
+                                    <TextBlock Classes="card-body" Text="Rappresentati come cerchi più grandi (raggio 20px) con punto centrale che indica lo stato espanso o compresso:" />
+                                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" Margin="0,4">
+                                        <!-- Form -->
+                                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="14" Height="14" Fill="#4FA8E8" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Form (.frm)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Finestre grafiche e dialoghi utente" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <!-- Modulo -->
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="14" Height="14" Fill="#C084F0" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Modulo (.bas)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Librerie globali e codice procedurale" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <!-- Classe -->
+                                        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="14" Height="14" Fill="#54C08C" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Classe (.cls)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Classi di business logic e dati" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <!-- Controllo -->
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="14" Height="14" Fill="#F08C4A" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Controllo Utente (.ctl)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Componenti grafici e controlli ActiveX" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Membri Interni -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Classes="card-title" Text="2. Membri e Routine Interne" />
+                                    <TextBlock Classes="card-body" Text="Disegnati attorno al container quando è espanso:" />
+                                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" Margin="0,4">
+                                        <!-- Metodi -->
+                                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="12" Height="12" Fill="#7D7D8E" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Sub / Function" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Procedure eseguibili e metodi" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <!-- Proprietà -->
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="12" Height="12" Fill="#E8B838" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Property (Get / Let / Set)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Accessori di proprietà incapsulate" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <!-- Campi -->
+                                        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="10" Height="10" Fill="#60A5FA" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Field / Variabile" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Campi e variabili di modulo" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <!-- Costanti -->
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="10" Height="10" Fill="#F87171" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Costanti (Const)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Valori costanti dichiarati" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <!-- Tipi ed Enum -->
+                                        <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="10" Height="10" Fill="#34D399" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Type / Enum" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Strutture Type ed enumerazioni Enum" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Archi e Relazioni -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Classes="card-title" Text="3. Archi e Connessioni (Relazioni)" />
+                                    <StackPanel Spacing="8">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Rectangle Width="24" Height="4" Fill="#4AE8D0" RadiusX="2" RadiusY="2" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="CALLS (Chiamata)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Freccia che parte dalla routine chiamante e punta alla routine invocata" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Rectangle Width="24" Height="4" Fill="#FFA040" RadiusX="2" RadiusY="2" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="INSTANTIATES (Nuova Istanza)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Istanziazione di un modulo di classe ('Set obj = New Customer' o 'Dim As New')" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Rectangle Width="24" Height="4" Fill="#A070E0" RadiusX="2" RadiusY="2" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="USES_TYPE (Dipendenza di Tipo)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Variabili, parametri o valori di ritorno tipizzati con tipi utente" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Evidenziazioni Dinamiche -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Classes="card-title" Text="4. Evidenziazioni Dinamiche durante l'Analisi" />
+                                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" Margin="0,4">
+                                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="14" Height="14" Fill="#FF3344" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Target Modifica" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Procedura target selezionata per Blast Radius" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="14" Height="14" Fill="#FF8800" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Chiamante Diretto (1° Livello)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Chi chiama direttamente la routine" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="14" Height="14" Fill="#FFBB00" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Chiamante Indiretto (2°+ Livello)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Chiamanti a cascata / transitivi" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="14" Height="14" Fill="#00D0FF" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Chiamate Uscenti (Callees)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Funzioni invocate dal nodo selezionato" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="14" Height="14" Fill="#FFD700" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Nodo Selezionato" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Simbolo attivo nell'Inspector" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- SEZIONE 3: TREEMAP (MAPPA AD ALBERO) -->
                     <ScrollViewer x:Name="TreemapSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
                         <StackPanel Spacing="16">
                             <StackPanel Spacing="4">
@@ -290,9 +474,35 @@
 
                             <!-- Card: Colori e Significato del Rischio -->
                             <Border Classes="info-card">
-                                <StackPanel Spacing="8">
+                                <StackPanel Spacing="10">
                                     <TextBlock Classes="card-title" Text="Colori: Livello di Rischio (Blast Radius)" />
-                                    <TextBlock Classes="card-body" Text="La palette cromatica rispecchia il potenziale impatto di regressione:&#x0a;• Verde (Basso): Routine isolate o con impatto minimo.&#x0a;• Giallo (Medio): Routine con chiamanti locali circoscritti.&#x0a;• Arancione (Alto): Routine condivise tra più moduli.&#x0a;• Rosso (Critico): 'God Object' o routine cardine da cui dipendono Form e flussi primari." />
+                                    <TextBlock Classes="card-body" Text="La palette cromatica rispecchia il potenziale impatto di regressione:" />
+                                    <StackPanel Spacing="8">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Border Background="#54C08C" CornerRadius="4" Padding="8,3" MinWidth="75">
+                                                <TextBlock Text="BASSO" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Classes="card-body" Text="Routine isolate o con impatto minimo locale." VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Border Background="#E8B838" CornerRadius="4" Padding="8,3" MinWidth="75">
+                                                <TextBlock Text="MEDIO" FontSize="10" FontWeight="Bold" Foreground="#1E1E2E" HorizontalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Classes="card-body" Text="Routine con chiamanti locali circoscritti." VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Border Background="#FF8800" CornerRadius="4" Padding="8,3" MinWidth="75">
+                                                <TextBlock Text="ALTO" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Classes="card-body" Text="Routine condivise tra più moduli della logica di business." VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Border Background="#FF3344" CornerRadius="4" Padding="8,3" MinWidth="75">
+                                                <TextBlock Text="CRITICO" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Classes="card-body" Text="'God Object' o routine cardine da cui dipendono Form e flussi primari." VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </StackPanel>
                                 </StackPanel>
                             </Border>
 
@@ -384,9 +594,34 @@
 
                             <!-- Card: Livelli di Rischio -->
                             <Border Classes="info-card">
-                                <StackPanel Spacing="8">
+                                <StackPanel Spacing="10">
                                     <TextBlock Classes="card-title" Text="Scala dei Livelli di Rischio" />
-                                    <TextBlock Classes="card-body" Text="• CRITICO: impatta molteplici Form UI e catene profonde di chiamanti. Massima attenzione richiesta.&#x0a;• ALTO: impatto esteso su più moduli della logica di business.&#x0a;• MEDIO: impatto limitato a un sotto-sistema circoscritto.&#x0a;• BASSO: funzione foglia o utilizzata esclusivamente in ambito locale." />
+                                    <StackPanel Spacing="8">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Border Background="#FF3344" CornerRadius="4" Padding="8,3" MinWidth="75">
+                                                <TextBlock Text="CRITICO" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Classes="card-body" Text="Impatta molteplici Form UI e catene profonde di chiamanti. Massima attenzione richiesta." VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Border Background="#FF8800" CornerRadius="4" Padding="8,3" MinWidth="75">
+                                                <TextBlock Text="ALTO" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Classes="card-body" Text="Impatto esteso su più moduli della logica di business." VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Border Background="#E8B838" CornerRadius="4" Padding="8,3" MinWidth="75">
+                                                <TextBlock Text="MEDIO" FontSize="10" FontWeight="Bold" Foreground="#1E1E2E" HorizontalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Classes="card-body" Text="Impatto limitato a un sotto-sistema circoscritto." VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Border Background="#54C08C" CornerRadius="4" Padding="8,3" MinWidth="75">
+                                                <TextBlock Text="BASSO" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Classes="card-body" Text="Funzione foglia o utilizzata esclusivamente in ambito locale." VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </StackPanel>
                                 </StackPanel>
                             </Border>
                         </StackPanel>

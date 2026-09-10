@@ -155,6 +155,20 @@ public partial class MainWindow : Window
         // Pulsante Ricalcola Audit nella Grid Toolbar
         RefreshGridButton.Click += async (_, _) => await PopulateBlastRadiusGridAsync();
 
+        // Pulsante Mostra/Nascondi Contenuto Legenda Grafo
+        ToggleLegendButton.Click += (_, _) =>
+        {
+            LegendContentPanel.IsVisible = !LegendContentPanel.IsVisible;
+            if (Application.Current != null)
+            {
+                var iconKey = LegendContentPanel.IsVisible ? "IconChevronLeft" : "IconChevronRight";
+                if (Application.Current.TryFindResource(iconKey, out var res) && res is StreamGeometry geo)
+                {
+                    LegendToggleIcon.Data = geo;
+                }
+            }
+        };
+
         // Controlli Finestra Stile IDE (Impostazioni, Riduci a icona, Ingrandisci/Ripristina, Chiudi)
         SettingsButton.Click += (_, _) => OpenSettings();
         MinimizeButton.Click += (_, _) => WindowState = WindowState.Minimized;
@@ -1526,6 +1540,7 @@ public partial class MainWindow : Window
             SearchRowBorder.Background = secondaryBrush;
             StatusBarBorder.Background = secondaryBrush;
             FloatingHudBorder.Background = secondaryBrush;
+            GraphLegendBorder.Background = secondaryBrush;
         }
 
         if (Color.TryParse(theme.BackgroundSurface, out var bgSurface))
@@ -2260,6 +2275,19 @@ public partial class MainWindow : Window
         LayoutItemAffinity.Content = loc["Layout_AffinityRadial"];
         LayoutItemIslands.Content = loc["Layout_ClusteredIslands"];
         LayoutItemForce.Content = loc["Layout_ForceDirected"];
+
+        // Legenda Grafo
+        LegendTitleText.Text = loc["Legend_Title"];
+        LegendFormText.Text = loc["Legend_Forms"];
+        LegendModuleText.Text = loc["Legend_Modules"];
+        LegendClassText.Text = loc["Legend_Classes"];
+        LegendControlText.Text = loc["Legend_Controls"];
+        LegendMethodText.Text = loc["Legend_Methods"];
+        LegendPropertyText.Text = loc["Legend_Properties"];
+        LegendFieldText.Text = loc["Legend_Fields"];
+        LegendTypeText.Text = loc["Legend_Types"];
+        LegendCallsText.Text = loc["Legend_Calls"];
+        LegendInstantiatesText.Text = loc["Legend_Instantiates"];
         HudResetViewText.Text = loc["HUD_ResetView"];
         HudExpandAllText.Text = loc["HUD_ExpandAll"];
         HudCollapseAllText.Text = loc["HUD_CollapseAll"];

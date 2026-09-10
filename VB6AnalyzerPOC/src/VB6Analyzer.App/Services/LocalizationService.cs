@@ -246,6 +246,19 @@ public sealed class LocalizationService
         ["Update_Checking"] = "Controllo aggiornamenti in corso...",
         ["Update_NoUpdates"] = "L'applicazione è aggiornata all'ultima versione ({0}).",
 
+        // Legenda Grafo
+        ["Legend_Title"] = "Legenda Nodi & Colori",
+        ["Legend_Forms"] = "Form (.frm)",
+        ["Legend_Modules"] = "Modulo (.bas)",
+        ["Legend_Classes"] = "Classe (.cls)",
+        ["Legend_Controls"] = "Controllo (.ctl)",
+        ["Legend_Methods"] = "Sub / Function",
+        ["Legend_Properties"] = "Proprietà",
+        ["Legend_Fields"] = "Campo / Var",
+        ["Legend_Types"] = "Tipo / Enum",
+        ["Legend_Calls"] = "Calls (Chiamata)",
+        ["Legend_Instantiates"] = "Instantiates (New)",
+
         // Barra di Stato
         ["Status_Ready"] = "Pronto.",
         ["Status_Selected"] = "Selezionato: [{0}] {1}",
@@ -488,6 +501,19 @@ public sealed class LocalizationService
         ["Update_ButtonNow"] = "Update now",
         ["Update_Checking"] = "Checking for updates...",
         ["Update_NoUpdates"] = "You are using the latest version ({0}).",
+
+        // Graph Legend
+        ["Legend_Title"] = "Node & Color Legend",
+        ["Legend_Forms"] = "Form (.frm)",
+        ["Legend_Modules"] = "Module (.bas)",
+        ["Legend_Classes"] = "Class (.cls)",
+        ["Legend_Controls"] = "User Control (.ctl)",
+        ["Legend_Methods"] = "Sub / Function",
+        ["Legend_Properties"] = "Property",
+        ["Legend_Fields"] = "Field / Var",
+        ["Legend_Types"] = "Type / Enum",
+        ["Legend_Calls"] = "Calls",
+        ["Legend_Instantiates"] = "Instantiates (New)",
 
         // Status Bar
         ["Status_Ready"] = "Ready.",
