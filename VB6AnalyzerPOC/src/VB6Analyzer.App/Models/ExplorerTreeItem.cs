@@ -95,7 +95,7 @@ public sealed class ExplorerTreeItem
                 BadgeBackground = bg,
                 BadgeForeground = fg,
                 IsGroup = true,
-                FilePath = projectFolderPath
+                FilePath = null
             };
 
             foreach (var childNode in groupItems)

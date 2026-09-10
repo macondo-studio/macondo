@@ -5,6 +5,8 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -58,6 +60,10 @@ public partial class MainWindow : Window
 
         // VCS (Git & SVN) Branch Button
         GitBranchButton.Click += (_, _) => OpenGitBranchPopup();
+
+        // Project Explorer: selezione automatica su clic destro e gestione menu contestuale sui file
+        ExplorerTree.AddHandler(InputElement.PointerPressedEvent, OnExplorerTreePointerPressed, RoutingStrategies.Tunnel);
+        ExplorerTree.AddHandler(Control.ContextRequestedEvent, OnExplorerTreeContextRequested, RoutingStrategies.Tunnel);
 
         // Pulsanti Dialog Aggiornamento Software
         UpdateLaterButton.Click += (_, _) => DismissUpdateModal();
@@ -928,10 +934,47 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnExplorerTreePointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        var point = e.GetCurrentPoint(ExplorerTree);
+        if (point.Properties.IsRightButtonPressed)
+        {
+            var visual = e.Source as Visual;
+            var tvi = visual?.FindAncestorOfType<TreeViewItem>();
+            if (tvi?.DataContext is ExplorerTreeItem item)
+            {
+                ExplorerTree.SelectedItem = item;
+            }
+        }
+    }
+
+    private void OnExplorerTreeContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        var visual = e.Source as Visual;
+        var tvi = visual?.FindAncestorOfType<TreeViewItem>();
+        var item = tvi?.DataContext as ExplorerTreeItem ?? ExplorerTree.SelectedItem as ExplorerTreeItem;
+
+        // Se è un gruppo o non ha un file associato, impedisci categoricamente l'apertura del menu
+        if (item == null || item.IsGroup || !item.HasFile)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        // È un file valido: apri il menu contestuale dedicato sui file
+        if (ExplorerBorder.Resources.TryGetResource("ExplorerFileContextMenu", null, out var res) && res is ContextMenu menu)
+        {
+            menu.DataContext = item;
+            menu.PlacementTarget = tvi ?? (Control)e.Source!;
+            menu.Open(tvi ?? (Control)e.Source!);
+            e.Handled = true;
+        }
+    }
+
     private void OnExplorerContextMenuOpenFile(object? sender, RoutedEventArgs e)
     {
         var item = GetExplorerItemFromSender(sender);
-        if (item != null)
+        if (item != null && !item.IsGroup && item.HasFile)
         {
             OpenOriginalFile(item.FilePath, item.LineStart);
         }
@@ -940,7 +983,7 @@ public partial class MainWindow : Window
     private void OnExplorerContextMenuOpenFolder(object? sender, RoutedEventArgs e)
     {
         var item = GetExplorerItemFromSender(sender);
-        if (item != null)
+        if (item != null && !item.IsGroup && item.HasFile)
         {
             OpenContainingFolder(item.FilePath);
         }
@@ -949,7 +992,7 @@ public partial class MainWindow : Window
     private void OnExplorerContextMenuCopyPath(object? sender, RoutedEventArgs e)
     {
         var item = GetExplorerItemFromSender(sender);
-        if (item != null)
+        if (item != null && !item.IsGroup && item.HasFile)
         {
             CopyFilePathToClipboard(item.FilePath);
         }
@@ -977,8 +1020,22 @@ public partial class MainWindow : Window
         {
             if (menuItem.DataContext is ExplorerTreeItem item1)
                 return item1;
-            if (menuItem.Parent is ContextMenu ctx && ctx.PlacementTarget?.DataContext is ExplorerTreeItem item2)
-                return item2;
+            if (menuItem.Parent is ContextMenu ctx && ctx.DataContext is ExplorerTreeItem itemCtx)
+                return itemCtx;
+            if (menuItem.Parent is ContextMenu ctx2 && ctx2.PlacementTarget?.DataContext is ExplorerTreeItem itemTarget)
+                return itemTarget;
+            if (menuItem.Parent is ContextMenu ctxTvi && ctxTvi.PlacementTarget is TreeViewItem tvi && tvi.DataContext is ExplorerTreeItem itemTvi)
+                return itemTvi;
+        }
+
+        if (sender is ContextMenu ctxMenu)
+        {
+            if (ctxMenu.DataContext is ExplorerTreeItem itemCtx)
+                return itemCtx;
+            if (ctxMenu.PlacementTarget?.DataContext is ExplorerTreeItem itemTarget)
+                return itemTarget;
+            if (ctxMenu.PlacementTarget is TreeViewItem tvi2 && tvi2.DataContext is ExplorerTreeItem itemTvi2)
+                return itemTvi2;
         }
 
         if (sender is Control ctrl && ctrl.DataContext is ExplorerTreeItem item3)
