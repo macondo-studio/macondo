@@ -58,6 +58,13 @@ public sealed class LocalizationService
         ["Explorer_Title"] = "Project Explorer",
         ["Tooltip_HideExplorer"] = "Nascondi Project Explorer (Ctrl+B)",
         ["Tooltip_ToggleExplorer"] = "Mostra/Nascondi Project Explorer (Ctrl+B)",
+        ["Explorer_Group_Forms"] = "Forms",
+        ["Explorer_Group_Modules"] = "Moduli",
+        ["Explorer_Group_Classes"] = "Moduli di classe",
+        ["Explorer_Group_UserControls"] = "Controlli utente",
+        ["Explorer_Group_Types"] = "Tipi definiti dall'utente",
+        ["Explorer_Group_Enums"] = "Enumerazioni",
+        ["Explorer_Group_Other"] = "Altri file",
 
         // Inspector & Blast Radius
         ["Inspector_Title"] = "Symbol Inspector & Blast Radius",
@@ -283,6 +290,13 @@ public sealed class LocalizationService
         ["Explorer_Title"] = "Project Explorer",
         ["Tooltip_HideExplorer"] = "Hide Project Explorer (Ctrl+B)",
         ["Tooltip_ToggleExplorer"] = "Toggle Project Explorer (Ctrl+B)",
+        ["Explorer_Group_Forms"] = "Forms",
+        ["Explorer_Group_Modules"] = "Modules",
+        ["Explorer_Group_Classes"] = "Class Modules",
+        ["Explorer_Group_UserControls"] = "User Controls",
+        ["Explorer_Group_Types"] = "User-Defined Types",
+        ["Explorer_Group_Enums"] = "Enumerations",
+        ["Explorer_Group_Other"] = "Other Files",
 
         // Inspector & Blast Radius
         ["Inspector_Title"] = "Symbol Inspector & Blast Radius",

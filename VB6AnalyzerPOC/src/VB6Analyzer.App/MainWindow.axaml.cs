@@ -2142,6 +2142,10 @@ public partial class MainWindow : Window
         // Explorer & Inspector
         ExplorerTitleText.Text = loc["Explorer_Title"];
         InspectorTitleText.Text = loc["Inspector_Title"];
+        if (_graph is not null)
+        {
+            ExplorerTree.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph) };
+        }
 
         // Tab Centrali
         GraphTabHeader.Text = loc["Tab_GraphView"];
