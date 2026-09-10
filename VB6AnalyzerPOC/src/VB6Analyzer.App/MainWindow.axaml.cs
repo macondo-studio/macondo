@@ -1456,6 +1456,11 @@ public partial class MainWindow : Window
         }
 
         Graph.ApplyTheme(theme);
+        Dsm.ApplyTheme(theme);
+        Treemap.ApplyTheme(theme);
+        Hotspot.ApplyTheme(theme);
+        ScreenFlow.ApplyTheme(theme);
+        ControlFlow.ApplyTheme(theme);
     }
 
     /// <summary>

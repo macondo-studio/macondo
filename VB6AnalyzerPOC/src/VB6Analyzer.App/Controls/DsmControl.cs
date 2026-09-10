@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Macondo.App.Services;
 using Macondo.Semantic.Analytics.Dsm;
 
 namespace Macondo.App.Controls;
@@ -46,17 +47,17 @@ public sealed class DsmControl : Control
     private static readonly Typeface BoldTypeface = new("Inter", FontStyle.Normal, FontWeight.Bold);
 
     // Pennelli tema
-    private readonly IBrush _backgroundBrush = new SolidColorBrush(Color.Parse("#14141E"));
-    private readonly IBrush _gridLineBrush = new SolidColorBrush(Color.Parse("#252535"));
-    private readonly IBrush _diagBrush = new SolidColorBrush(Color.Parse("#1E1E2C"));
-    private readonly IBrush _hoverHeaderBrush = new SolidColorBrush(Color.Parse("#2A2A40"));
-    private readonly IBrush _selectedCellBrush = new SolidColorBrush(Color.Parse("#FFD700"));
-    private readonly IBrush _textPrimaryBrush = Brushes.WhiteSmoke;
-    private readonly IBrush _textMutedBrush = new SolidColorBrush(Color.Parse("#888899"));
-    private readonly IBrush _cycleCellBrush = new SolidColorBrush(Color.Parse("#4A1520"));
-    private readonly IBrush _cycleBorderBrush = new SolidColorBrush(Color.Parse("#FF3355"));
-    private readonly IBrush _depCellBrush = new SolidColorBrush(Color.Parse("#1A3050"));
-    private readonly IBrush _depCellTextBrush = new SolidColorBrush(Color.Parse("#60B0FF"));
+    private IBrush _backgroundBrush = new SolidColorBrush(Color.Parse("#14141E"));
+    private IBrush _gridLineBrush = new SolidColorBrush(Color.Parse("#252535"));
+    private IBrush _diagBrush = new SolidColorBrush(Color.Parse("#1E1E2C"));
+    private IBrush _hoverHeaderBrush = new SolidColorBrush(Color.Parse("#2A2A40"));
+    private IBrush _selectedCellBrush = new SolidColorBrush(Color.Parse("#FFD700"));
+    private IBrush _textPrimaryBrush = Brushes.WhiteSmoke;
+    private IBrush _textMutedBrush = new SolidColorBrush(Color.Parse("#888899"));
+    private IBrush _cycleCellBrush = new SolidColorBrush(Color.Parse("#4A1520"));
+    private IBrush _cycleBorderBrush = new SolidColorBrush(Color.Parse("#FF3355"));
+    private IBrush _depCellBrush = new SolidColorBrush(Color.Parse("#1A3050"));
+    private IBrush _depCellTextBrush = new SolidColorBrush(Color.Parse("#60B0FF"));
 
     static DsmControl()
     {
@@ -74,6 +75,44 @@ public sealed class DsmControl : Control
         _scale = 1.0;
         _offsetX = 200.0;
         _offsetY = 140.0;
+        InvalidateVisual();
+    }
+
+    public void ApplyTheme(ThemeDefinition theme)
+    {
+        if (Color.TryParse(theme.GraphBackground, out var bgCol))
+            _backgroundBrush = new SolidColorBrush(bgCol);
+
+        if (Color.TryParse(theme.BorderSubtle, out var borderSubtleCol))
+            _gridLineBrush = new SolidColorBrush(borderSubtleCol);
+
+        if (Color.TryParse(theme.BackgroundSurface, out var bgSurfaceCol))
+            _diagBrush = new SolidColorBrush(bgSurfaceCol);
+
+        if (Color.TryParse(theme.BackgroundElevated, out var bgElevatedCol))
+            _hoverHeaderBrush = new SolidColorBrush(bgElevatedCol);
+
+        if (Color.TryParse(theme.TextPrimary, out var textPrimaryCol))
+            _textPrimaryBrush = new SolidColorBrush(textPrimaryCol);
+
+        if (Color.TryParse(theme.TextMuted, out var textMutedCol))
+            _textMutedBrush = new SolidColorBrush(textMutedCol);
+
+        if (theme.IsDark)
+        {
+            _cycleCellBrush = new SolidColorBrush(Color.Parse("#4A1520"));
+            _cycleBorderBrush = new SolidColorBrush(Color.Parse("#FF3355"));
+            _depCellBrush = new SolidColorBrush(Color.Parse("#1A3050"));
+            _depCellTextBrush = new SolidColorBrush(Color.Parse("#60B0FF"));
+        }
+        else
+        {
+            _cycleCellBrush = new SolidColorBrush(Color.FromArgb(60, 255, 50, 80));
+            _cycleBorderBrush = new SolidColorBrush(Color.Parse("#D32F2F"));
+            _depCellBrush = new SolidColorBrush(Color.FromArgb(40, 0, 122, 204));
+            _depCellTextBrush = new SolidColorBrush(Color.Parse("#005FB8"));
+        }
+
         InvalidateVisual();
     }
 

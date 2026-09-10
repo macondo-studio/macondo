@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Macondo.App.Services;
 using Macondo.Semantic.Analytics.ScreenFlow;
 using Macondo.Semantic.Model;
 
@@ -41,17 +42,19 @@ public sealed class ScreenFlowControl : Control
     private static readonly Typeface LabelTypeface = new("Inter", FontStyle.Normal, FontWeight.Medium);
     private static readonly Typeface BadgeTypeface = new("Inter", FontStyle.Normal, FontWeight.Bold);
 
-    private readonly IBrush _backgroundBrush = new SolidColorBrush(Color.Parse("#14141E"));
-    private readonly IBrush _cardBgBrush = new SolidColorBrush(Color.Parse("#1E1E2C"));
-    private readonly IBrush _cardHeaderBrush = new SolidColorBrush(Color.Parse("#26263A"));
-    private readonly IBrush _startupHeaderBrush = new SolidColorBrush(Color.Parse("#1E3830"));
-    private readonly IBrush _cardBorderBrush = new SolidColorBrush(Color.Parse("#38384E"));
-    private readonly IBrush _selectedBorderBrush = new SolidColorBrush(Color.Parse("#FFD700"));
-    private readonly IBrush _startupBadgeBrush = new SolidColorBrush(Color.Parse("#40C080"));
-    private readonly IBrush _textWhiteBrush = Brushes.WhiteSmoke;
-    private readonly IBrush _textMutedBrush = new SolidColorBrush(Color.Parse("#9A9AB0"));
-    private readonly IPen _transitionPen = new Pen(new SolidColorBrush(Color.Parse("#5088E0")), 1.8);
-    private readonly IPen _modalTransitionPen = new Pen(new SolidColorBrush(Color.Parse("#E08830")), 2.0, DashStyle.Dash);
+    private IBrush _backgroundBrush = new SolidColorBrush(Color.Parse("#14141E"));
+    private IBrush _cardBgBrush = new SolidColorBrush(Color.Parse("#1E1E2C"));
+    private IBrush _cardHeaderBrush = new SolidColorBrush(Color.Parse("#26263A"));
+    private IBrush _startupHeaderBrush = new SolidColorBrush(Color.Parse("#1E3830"));
+    private IBrush _cardBorderBrush = new SolidColorBrush(Color.Parse("#38384E"));
+    private IBrush _selectedBorderBrush = new SolidColorBrush(Color.Parse("#FFD700"));
+    private IBrush _startupBadgeBrush = new SolidColorBrush(Color.Parse("#40C080"));
+    private IBrush _textWhiteBrush = Brushes.WhiteSmoke;
+    private IBrush _textMutedBrush = new SolidColorBrush(Color.Parse("#9A9AB0"));
+    private IBrush _transSubTextBrush = new SolidColorBrush(Color.Parse("#4AE8D0"));
+    private IBrush _badgeBgBrush = new SolidColorBrush(Color.FromArgb(200, 20, 20, 30));
+    private IPen _transitionPen = new Pen(new SolidColorBrush(Color.Parse("#5088E0")), 1.8);
+    private IPen _modalTransitionPen = new Pen(new SolidColorBrush(Color.Parse("#E08830")), 2.0, DashStyle.Dash);
 
     static ScreenFlowControl()
     {
@@ -69,6 +72,50 @@ public sealed class ScreenFlowControl : Control
         _scale = 1.0;
         _offsetX = 40.0;
         _offsetY = 40.0;
+        InvalidateVisual();
+    }
+
+    public void ApplyTheme(ThemeDefinition theme)
+    {
+        if (Color.TryParse(theme.GraphBackground, out var bgCol))
+            _backgroundBrush = new SolidColorBrush(bgCol);
+
+        if (Color.TryParse(theme.GraphNodeFill, out var cardFillCol))
+            _cardBgBrush = new SolidColorBrush(cardFillCol);
+
+        if (Color.TryParse(theme.BackgroundElevated, out var headerCol))
+        {
+            _cardHeaderBrush = new SolidColorBrush(headerCol);
+            _badgeBgBrush = new SolidColorBrush(Color.FromArgb(220, headerCol.R, headerCol.G, headerCol.B));
+        }
+
+        if (Color.TryParse(theme.GraphNodeStroke, out var borderCol))
+            _cardBorderBrush = new SolidColorBrush(borderCol);
+
+        if (Color.TryParse(theme.TextPrimary, out var textPrimaryCol))
+            _textWhiteBrush = new SolidColorBrush(textPrimaryCol);
+
+        if (Color.TryParse(theme.TextMuted, out var textMutedCol))
+            _textMutedBrush = new SolidColorBrush(textMutedCol);
+
+        if (Color.TryParse(theme.AccentColor, out var accentCol))
+            _transSubTextBrush = new SolidColorBrush(accentCol);
+
+        if (theme.IsDark)
+        {
+            _startupHeaderBrush = new SolidColorBrush(Color.Parse("#1E3830"));
+            _startupBadgeBrush = new SolidColorBrush(Color.Parse("#40C080"));
+            _transitionPen = new Pen(new SolidColorBrush(Color.Parse("#5088E0")), 1.8);
+            _modalTransitionPen = new Pen(new SolidColorBrush(Color.Parse("#E08830")), 2.0, DashStyle.Dash);
+        }
+        else
+        {
+            _startupHeaderBrush = new SolidColorBrush(Color.FromArgb(40, 40, 180, 100));
+            _startupBadgeBrush = new SolidColorBrush(Color.Parse("#1B8A4D"));
+            _transitionPen = new Pen(new SolidColorBrush(Color.Parse("#1976D2")), 1.8);
+            _modalTransitionPen = new Pen(new SolidColorBrush(Color.Parse("#D97706")), 2.0, DashStyle.Dash);
+        }
+
         InvalidateVisual();
     }
 
@@ -124,7 +171,7 @@ public sealed class ScreenFlowControl : Control
                     var midPoint = new Point((start.X + end.X) / 2.0, (start.Y + end.Y) / 2.0 - 8);
                     var evtFmt = new FormattedText(t.TriggerEventName, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, BadgeTypeface, 9, _textWhiteBrush);
                     var badgeRect = new Rect(midPoint.X - evtFmt.Width / 2.0 - 4, midPoint.Y - 2, evtFmt.Width + 8, evtFmt.Height + 4);
-                    context.FillRectangle(new SolidColorBrush(Color.FromArgb(200, 20, 20, 30)), badgeRect);
+                    context.FillRectangle(_badgeBgBrush, badgeRect);
                     context.DrawRectangle(new Pen(_cardBorderBrush, 0.8), badgeRect);
                     context.DrawText(evtFmt, new Point(badgeRect.X + 4, badgeRect.Y + 2));
                 }
@@ -172,7 +219,7 @@ public sealed class ScreenFlowControl : Control
                 var evtCountFmt = new FormattedText($"Event Handlers: {screen.EventHandlersCount}", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _textMutedBrush);
                 context.DrawText(evtCountFmt, new Point(screen.X + 8, screen.Y + 50));
 
-                var transFmt = new FormattedText($"Transizioni: {screen.OutgoingTransitionsCount} out / {screen.IncomingTransitionsCount} in", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 9, new SolidColorBrush(Color.Parse("#4AE8D0")));
+                var transFmt = new FormattedText($"Transizioni: {screen.OutgoingTransitionsCount} out / {screen.IncomingTransitionsCount} in", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 9, _transSubTextBrush);
                 context.DrawText(transFmt, new Point(screen.X + 8, screen.Y + 70));
             }
         }

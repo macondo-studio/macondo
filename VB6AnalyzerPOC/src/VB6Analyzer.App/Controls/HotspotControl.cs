@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Macondo.App.Services;
 using Macondo.Semantic.Analytics.Hotspots;
 using Macondo.Semantic.Model;
 
@@ -32,15 +33,17 @@ public sealed class HotspotControl : Control
     private static readonly Typeface LabelTypeface = new("Inter", FontStyle.Normal, FontWeight.Medium);
     private static readonly Typeface AxisTypeface = new("Inter", FontStyle.Normal, FontWeight.SemiBold);
 
-    private readonly IBrush _backgroundBrush = new SolidColorBrush(Color.Parse("#14141E"));
-    private readonly IBrush _axisPenBrush = new SolidColorBrush(Color.Parse("#404058"));
-    private readonly IBrush _thresholdPenBrush = new SolidColorBrush(Color.Parse("#707090"));
-    private readonly IBrush _safeQuadrantBrush = new SolidColorBrush(Color.FromArgb(18, 40, 180, 100));
-    private readonly IBrush _dangerQuadrantBrush = new SolidColorBrush(Color.FromArgb(28, 255, 60, 80));
-    private readonly IBrush _amberQuadrantBrush = new SolidColorBrush(Color.FromArgb(18, 255, 180, 30));
-    private readonly IBrush _blueQuadrantBrush = new SolidColorBrush(Color.FromArgb(18, 60, 160, 255));
-    private readonly IBrush _textMutedBrush = new SolidColorBrush(Color.Parse("#9090A5"));
-    private readonly IBrush _textWhiteBrush = Brushes.WhiteSmoke;
+    private IBrush _backgroundBrush = new SolidColorBrush(Color.Parse("#14141E"));
+    private IBrush _axisPenBrush = new SolidColorBrush(Color.Parse("#404058"));
+    private IBrush _thresholdPenBrush = new SolidColorBrush(Color.Parse("#707090"));
+    private IBrush _safeQuadrantBrush = new SolidColorBrush(Color.FromArgb(18, 40, 180, 100));
+    private IBrush _dangerQuadrantBrush = new SolidColorBrush(Color.FromArgb(28, 255, 60, 80));
+    private IBrush _amberQuadrantBrush = new SolidColorBrush(Color.FromArgb(18, 255, 180, 30));
+    private IBrush _blueQuadrantBrush = new SolidColorBrush(Color.FromArgb(18, 60, 160, 255));
+    private IBrush _textMutedBrush = new SolidColorBrush(Color.Parse("#9090A5"));
+    private IBrush _textWhiteBrush = Brushes.WhiteSmoke;
+    private IBrush _cardBgBrush = new SolidColorBrush(Color.FromArgb(240, 24, 24, 34));
+    private IBrush _cardAccentTextBrush = new SolidColorBrush(Color.Parse("#4AE8D0"));
 
     static HotspotControl()
     {
@@ -51,6 +54,47 @@ public sealed class HotspotControl : Control
     public HotspotControl()
     {
         ClipToBounds = true;
+    }
+
+    public void ApplyTheme(ThemeDefinition theme)
+    {
+        if (Color.TryParse(theme.GraphBackground, out var bgCol))
+            _backgroundBrush = new SolidColorBrush(bgCol);
+
+        if (Color.TryParse(theme.BorderDefault, out var borderCol))
+            _axisPenBrush = new SolidColorBrush(borderCol);
+
+        if (Color.TryParse(theme.BorderSubtle, out var borderSubtleCol))
+            _thresholdPenBrush = new SolidColorBrush(borderSubtleCol);
+
+        if (Color.TryParse(theme.TextPrimary, out var textPrimaryCol))
+            _textWhiteBrush = new SolidColorBrush(textPrimaryCol);
+
+        if (Color.TryParse(theme.TextMuted, out var textMutedCol))
+            _textMutedBrush = new SolidColorBrush(textMutedCol);
+
+        if (Color.TryParse(theme.BackgroundElevated, out var elevatedCol))
+            _cardBgBrush = new SolidColorBrush(Color.FromArgb(240, elevatedCol.R, elevatedCol.G, elevatedCol.B));
+
+        if (Color.TryParse(theme.AccentColor, out var accentCol))
+            _cardAccentTextBrush = new SolidColorBrush(accentCol);
+
+        if (theme.IsDark)
+        {
+            _safeQuadrantBrush = new SolidColorBrush(Color.FromArgb(18, 40, 180, 100));
+            _dangerQuadrantBrush = new SolidColorBrush(Color.FromArgb(28, 255, 60, 80));
+            _amberQuadrantBrush = new SolidColorBrush(Color.FromArgb(18, 255, 180, 30));
+            _blueQuadrantBrush = new SolidColorBrush(Color.FromArgb(18, 60, 160, 255));
+        }
+        else
+        {
+            _safeQuadrantBrush = new SolidColorBrush(Color.FromArgb(30, 40, 180, 100));
+            _dangerQuadrantBrush = new SolidColorBrush(Color.FromArgb(35, 255, 60, 80));
+            _amberQuadrantBrush = new SolidColorBrush(Color.FromArgb(30, 255, 180, 30));
+            _blueQuadrantBrush = new SolidColorBrush(Color.FromArgb(30, 60, 160, 255));
+        }
+
+        InvalidateVisual();
     }
 
     public override void Render(DrawingContext context)
@@ -170,7 +214,7 @@ public sealed class HotspotControl : Control
     private void DrawHoverCard(DrawingContext context, HotspotItem item)
     {
         var cardRect = new Rect(80, Bounds.Height - 65, 360, 54);
-        context.FillRectangle(new SolidColorBrush(Color.FromArgb(240, 24, 24, 34)), cardRect);
+        context.FillRectangle(_cardBgBrush, cardRect);
         context.DrawRectangle(new Pen(_axisPenBrush, 1), cardRect);
 
         var titleFmt = new FormattedText(
@@ -188,7 +232,7 @@ public sealed class HotspotControl : Control
             FlowDirection.LeftToRight,
             LabelTypeface,
             11,
-            new SolidColorBrush(Color.Parse("#4AE8D0")));
+            _cardAccentTextBrush);
         context.DrawText(subFmt, new Point(cardRect.X + 10, cardRect.Y + 28));
     }
 

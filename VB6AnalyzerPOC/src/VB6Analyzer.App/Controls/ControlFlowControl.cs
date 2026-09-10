@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Macondo.App.Services;
 using Macondo.Semantic.Analytics.ControlFlow;
 
 namespace Macondo.App.Controls;
@@ -40,24 +41,25 @@ public sealed class ControlFlowControl : Control
     private static readonly Typeface CodeTypeface = new("Consolas, Courier New, monospace", FontStyle.Normal, FontWeight.Normal);
     private static readonly Typeface BadgeTypeface = new("Inter", FontStyle.Normal, FontWeight.Bold);
 
-    private readonly IBrush _backgroundBrush = new SolidColorBrush(Color.Parse("#14141E"));
-    private readonly IBrush _blockBgBrush = new SolidColorBrush(Color.Parse("#1E1E2C"));
-    private readonly IBrush _entryBgBrush = new SolidColorBrush(Color.Parse("#164032"));
-    private readonly IBrush _exitBgBrush = new SolidColorBrush(Color.Parse("#252538"));
-    private readonly IBrush _decisionBgBrush = new SolidColorBrush(Color.Parse("#382A14"));
-    private readonly IBrush _errorBgBrush = new SolidColorBrush(Color.Parse("#441820"));
-    private readonly IBrush _blockBorderBrush = new SolidColorBrush(Color.Parse("#38384E"));
-    private readonly IBrush _decisionBorderBrush = new SolidColorBrush(Color.Parse("#D49020"));
-    private readonly IBrush _errorBorderBrush = new SolidColorBrush(Color.Parse("#E04050"));
-    private readonly IBrush _selectedBorderBrush = new SolidColorBrush(Color.Parse("#FFD700"));
-    private readonly IBrush _textWhiteBrush = Brushes.WhiteSmoke;
-    private readonly IBrush _textCodeBrush = new SolidColorBrush(Color.Parse("#4AE8D0"));
-    private readonly IBrush _textMutedBrush = new SolidColorBrush(Color.Parse("#9A9AB0"));
+    private IBrush _backgroundBrush = new SolidColorBrush(Color.Parse("#14141E"));
+    private IBrush _blockBgBrush = new SolidColorBrush(Color.Parse("#1E1E2C"));
+    private IBrush _entryBgBrush = new SolidColorBrush(Color.Parse("#164032"));
+    private IBrush _exitBgBrush = new SolidColorBrush(Color.Parse("#252538"));
+    private IBrush _decisionBgBrush = new SolidColorBrush(Color.Parse("#382A14"));
+    private IBrush _errorBgBrush = new SolidColorBrush(Color.Parse("#441820"));
+    private IBrush _blockBorderBrush = new SolidColorBrush(Color.Parse("#38384E"));
+    private IBrush _decisionBorderBrush = new SolidColorBrush(Color.Parse("#D49020"));
+    private IBrush _errorBorderBrush = new SolidColorBrush(Color.Parse("#E04050"));
+    private IBrush _selectedBorderBrush = new SolidColorBrush(Color.Parse("#FFD700"));
+    private IBrush _textWhiteBrush = Brushes.WhiteSmoke;
+    private IBrush _textCodeBrush = new SolidColorBrush(Color.Parse("#4AE8D0"));
+    private IBrush _textMutedBrush = new SolidColorBrush(Color.Parse("#9A9AB0"));
+    private IBrush _badgeBgBrush = new SolidColorBrush(Color.FromArgb(220, 20, 20, 30));
 
-    private readonly IPen _trueBranchPen = new Pen(new SolidColorBrush(Color.Parse("#30C060")), 1.8);
-    private readonly IPen _falseBranchPen = new Pen(new SolidColorBrush(Color.Parse("#E04050")), 1.8);
-    private readonly IPen _errorBranchPen = new Pen(new SolidColorBrush(Color.Parse("#FFA020")), 1.8, DashStyle.Dash);
-    private readonly IPen _fallthroughPen = new Pen(new SolidColorBrush(Color.Parse("#5088E0")), 1.5);
+    private IPen _trueBranchPen = new Pen(new SolidColorBrush(Color.Parse("#30C060")), 1.8);
+    private IPen _falseBranchPen = new Pen(new SolidColorBrush(Color.Parse("#E04050")), 1.8);
+    private IPen _errorBranchPen = new Pen(new SolidColorBrush(Color.Parse("#FFA020")), 1.8, DashStyle.Dash);
+    private IPen _fallthroughPen = new Pen(new SolidColorBrush(Color.Parse("#5088E0")), 1.5);
 
     static ControlFlowControl()
     {
@@ -75,6 +77,55 @@ public sealed class ControlFlowControl : Control
         _scale = 1.0;
         _offsetX = 30.0;
         _offsetY = 30.0;
+        InvalidateVisual();
+    }
+
+    public void ApplyTheme(ThemeDefinition theme)
+    {
+        if (Color.TryParse(theme.GraphBackground, out var bgCol))
+            _backgroundBrush = new SolidColorBrush(bgCol);
+
+        if (Color.TryParse(theme.GraphNodeFill, out var blockFillCol))
+            _blockBgBrush = new SolidColorBrush(blockFillCol);
+
+        if (Color.TryParse(theme.GraphNodeStroke, out var borderCol))
+            _blockBorderBrush = new SolidColorBrush(borderCol);
+
+        if (Color.TryParse(theme.TextPrimary, out var textPrimaryCol))
+            _textWhiteBrush = new SolidColorBrush(textPrimaryCol);
+
+        if (Color.TryParse(theme.TextMuted, out var textMutedCol))
+            _textMutedBrush = new SolidColorBrush(textMutedCol);
+
+        if (Color.TryParse(theme.AccentColor, out var accentCol))
+            _textCodeBrush = new SolidColorBrush(accentCol);
+
+        if (Color.TryParse(theme.BackgroundElevated, out var elevatedCol))
+            _badgeBgBrush = new SolidColorBrush(Color.FromArgb(220, elevatedCol.R, elevatedCol.G, elevatedCol.B));
+
+        if (theme.IsDark)
+        {
+            _entryBgBrush = new SolidColorBrush(Color.Parse("#164032"));
+            _exitBgBrush = new SolidColorBrush(Color.Parse("#252538"));
+            _decisionBgBrush = new SolidColorBrush(Color.Parse("#382A14"));
+            _errorBgBrush = new SolidColorBrush(Color.Parse("#441820"));
+            _trueBranchPen = new Pen(new SolidColorBrush(Color.Parse("#30C060")), 1.8);
+            _falseBranchPen = new Pen(new SolidColorBrush(Color.Parse("#E04050")), 1.8);
+            _errorBranchPen = new Pen(new SolidColorBrush(Color.Parse("#FFA020")), 1.8, DashStyle.Dash);
+            _fallthroughPen = new Pen(new SolidColorBrush(Color.Parse("#5088E0")), 1.5);
+        }
+        else
+        {
+            _entryBgBrush = new SolidColorBrush(Color.FromArgb(35, 40, 180, 100));
+            _exitBgBrush = new SolidColorBrush(Color.FromArgb(30, 80, 80, 100));
+            _decisionBgBrush = new SolidColorBrush(Color.FromArgb(35, 255, 180, 30));
+            _errorBgBrush = new SolidColorBrush(Color.FromArgb(35, 255, 60, 80));
+            _trueBranchPen = new Pen(new SolidColorBrush(Color.Parse("#1B8A4D")), 1.8);
+            _falseBranchPen = new Pen(new SolidColorBrush(Color.Parse("#D32F2F")), 1.8);
+            _errorBranchPen = new Pen(new SolidColorBrush(Color.Parse("#D97706")), 1.8, DashStyle.Dash);
+            _fallthroughPen = new Pen(new SolidColorBrush(Color.Parse("#1976D2")), 1.5);
+        }
+
         InvalidateVisual();
     }
 
@@ -141,7 +192,7 @@ public sealed class ControlFlowControl : Control
                     var midPoint = new Point((start.X + end.X) / 2.0, (start.Y + end.Y) / 2.0);
                     var lblFmt = new FormattedText(edge.ConditionLabel, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, BadgeTypeface, 9, pen.Brush ?? _textWhiteBrush);
                     var badgeRect = new Rect(midPoint.X - lblFmt.Width / 2.0 - 4, midPoint.Y - lblFmt.Height / 2.0 - 2, lblFmt.Width + 8, lblFmt.Height + 4);
-                    context.FillRectangle(new SolidColorBrush(Color.FromArgb(220, 20, 20, 30)), badgeRect);
+                    context.FillRectangle(_badgeBgBrush, badgeRect);
                     context.DrawRectangle(new Pen(_blockBorderBrush, 0.8), badgeRect);
                     context.DrawText(lblFmt, new Point(badgeRect.X + 4, badgeRect.Y + 2));
                 }

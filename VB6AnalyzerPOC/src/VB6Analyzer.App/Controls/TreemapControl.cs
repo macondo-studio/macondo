@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Macondo.App.Services;
 using Macondo.Semantic.Analytics.Treemap;
 using Macondo.Semantic.Model;
 
@@ -33,13 +34,15 @@ public sealed class TreemapControl : Control
     private static readonly Typeface LabelTypeface = new("Inter", FontStyle.Normal, FontWeight.Medium);
     private static readonly Typeface SubLabelTypeface = new("Inter", FontStyle.Normal, FontWeight.Normal);
 
-    private readonly IBrush _backgroundBrush = new SolidColorBrush(Color.Parse("#14141E"));
-    private readonly IBrush _containerHeaderBrush = new SolidColorBrush(Color.Parse("#202030"));
-    private readonly IBrush _containerBorderBrush = new SolidColorBrush(Color.Parse("#35354A"));
-    private readonly IBrush _selectedBorderBrush = new SolidColorBrush(Color.Parse("#FFD700"));
-    private readonly IBrush _hoverBorderBrush = new SolidColorBrush(Color.Parse("#FFFFFF"));
-    private readonly IBrush _textWhiteBrush = Brushes.WhiteSmoke;
-    private readonly IBrush _textMutedBrush = new SolidColorBrush(Color.Parse("#A0A0B0"));
+    private IBrush _backgroundBrush = new SolidColorBrush(Color.Parse("#14141E"));
+    private IBrush _containerHeaderBrush = new SolidColorBrush(Color.Parse("#202030"));
+    private IBrush _containerBorderBrush = new SolidColorBrush(Color.Parse("#35354A"));
+    private IBrush _selectedBorderBrush = new SolidColorBrush(Color.Parse("#FFD700"));
+    private IBrush _hoverBorderBrush = new SolidColorBrush(Color.Parse("#FFFFFF"));
+    private IBrush _textWhiteBrush = Brushes.WhiteSmoke;
+    private IBrush _textMutedBrush = new SolidColorBrush(Color.Parse("#A0A0B0"));
+    private IBrush _hoverCardBgBrush = new SolidColorBrush(Color.FromArgb(235, 30, 30, 42));
+    private IBrush _accentTextBrush = new SolidColorBrush(Color.Parse("#4AE8D0"));
 
     static TreemapControl()
     {
@@ -95,6 +98,34 @@ public sealed class TreemapControl : Control
         InvalidateVisual();
     }
 
+    public void ApplyTheme(ThemeDefinition theme)
+    {
+        if (Color.TryParse(theme.GraphBackground, out var bgCol))
+            _backgroundBrush = new SolidColorBrush(bgCol);
+
+        if (Color.TryParse(theme.BackgroundElevated, out var elevatedCol))
+        {
+            _containerHeaderBrush = new SolidColorBrush(elevatedCol);
+            _hoverCardBgBrush = new SolidColorBrush(Color.FromArgb(240, elevatedCol.R, elevatedCol.G, elevatedCol.B));
+        }
+
+        if (Color.TryParse(theme.BorderDefault, out var borderCol))
+            _containerBorderBrush = new SolidColorBrush(borderCol);
+
+        if (Color.TryParse(theme.TextPrimary, out var textPrimaryCol))
+            _textWhiteBrush = new SolidColorBrush(textPrimaryCol);
+
+        if (Color.TryParse(theme.TextMuted, out var textMutedCol))
+            _textMutedBrush = new SolidColorBrush(textMutedCol);
+
+        if (Color.TryParse(theme.AccentColor, out var accentCol))
+            _accentTextBrush = new SolidColorBrush(accentCol);
+
+        _hoverBorderBrush = theme.IsDark ? Brushes.White : new SolidColorBrush(Color.Parse("#1A1A24"));
+
+        InvalidateVisual();
+    }
+
     public override void Render(DrawingContext context)
     {
         context.FillRectangle(_backgroundBrush, new Rect(Bounds.Size));
@@ -121,7 +152,7 @@ public sealed class TreemapControl : Control
             FlowDirection.LeftToRight,
             HeaderTypeface,
             12,
-            _currentRoot?.Parent != null ? new SolidColorBrush(Color.Parse("#4AE8D0")) : _textMutedBrush);
+            _currentRoot?.Parent != null ? _accentTextBrush : _textMutedBrush);
         context.DrawText(breadcrumbFmt, new Point(16, 12));
 
         // Renderizza ricorsivamente tutti i nodi
@@ -233,7 +264,7 @@ public sealed class TreemapControl : Control
     private void DrawHoverCard(DrawingContext context, TreemapItem item)
     {
         var cardRect = new Rect(16, Bounds.Height - 65, 320, 52);
-        context.FillRectangle(new SolidColorBrush(Color.FromArgb(235, 30, 30, 42)), cardRect);
+        context.FillRectangle(_hoverCardBgBrush, cardRect);
         context.DrawRectangle(new Pen(_containerBorderBrush, 1), cardRect);
 
         var titleFmt = new FormattedText(
@@ -251,7 +282,7 @@ public sealed class TreemapControl : Control
             FlowDirection.LeftToRight,
             LabelTypeface,
             11,
-            new SolidColorBrush(Color.Parse("#4AE8D0")));
+            _accentTextBrush);
         context.DrawText(subFmt, new Point(cardRect.X + 10, cardRect.Y + 28));
     }
 
