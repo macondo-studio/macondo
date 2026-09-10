@@ -86,6 +86,15 @@ public static class KeyboardShortcutsCatalog
             },
             new()
             {
+                KeyBadges = new[] { "F1" },
+                ActionName = isEn ? "Guide & Concepts" : "Guida & Concetti",
+                Category = isEn ? "General" : "Generale",
+                Description = isEn
+                    ? "Opens the documentation and concept guide explaining Treemap, CFG, DSM, and architecture."
+                    : "Apre la guida concettuale con spiegazioni dettagliate di Treemap, CFG, DSM e architettura."
+            },
+            new()
+            {
                 KeyBadges = new[] { "Alt", "F4" },
                 ActionName = isEn ? "Exit Application" : "Esci dall'Applicazione",
                 Category = isEn ? "General" : "Generale",

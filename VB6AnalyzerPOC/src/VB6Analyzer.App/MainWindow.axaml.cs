@@ -87,6 +87,7 @@ public partial class MainWindow : Window
         ExportSliceMenuItem.Click += async (_, _) => await ExportLlmSliceAsync();
         SettingsMenuItem.Click += (_, _) => OpenSettings();
         CheckUpdatesMenuItem.Click += async (_, _) => await CheckForUpdatesManualAsync();
+        InfoMenuItem.Click += (_, _) => OpenInfo();
         ResetSettingsMenuItem.Click += (_, _) => ResetSettingsToDefaults();
         ClearCacheMenuItem.Click += (_, _) => ClearProjectCache();
         ExitMenuItem.Click += (_, _) => Close();
@@ -203,6 +204,11 @@ public partial class MainWindow : Window
             else if (e.KeyModifiers == KeyModifiers.Control && (e.Key == Key.OemComma || e.Key == Key.OemPeriod))
             {
                 OpenSettings();
+                e.Handled = true;
+            }
+            else if (e.KeyModifiers == KeyModifiers.None && e.Key == Key.F1)
+            {
+                OpenInfo();
                 e.Handled = true;
             }
             else if (e.KeyModifiers == KeyModifiers.None && e.Key == Key.F5)
@@ -1502,6 +1508,12 @@ public partial class MainWindow : Window
         settingsWin.ShowDialog(this);
     }
 
+    private void OpenInfo()
+    {
+        var infoWin = new Views.InfoWindow();
+        infoWin.ShowDialog(this);
+    }
+
     private void ApplyTheme(ThemeDefinition theme)
     {
         if (Color.TryParse(theme.BackgroundPrimary, out var bgPrimary))
@@ -2196,6 +2208,7 @@ public partial class MainWindow : Window
 
         // Menu Aiuto
         HelpMenu.Header = loc["Menu_Help"];
+        InfoMenuItem.Header = loc["Menu_HelpInfo"];
         CheckUpdatesMenuItem.Header = loc["Menu_CheckUpdates"];
         ResetSettingsMenuItem.Header = loc["Menu_ResetSettings"];
         ToolTip.SetTip(ResetSettingsMenuItem, loc["Tooltip_ResetSettings"]);

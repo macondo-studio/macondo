@@ -1,0 +1,433 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:services="using:Macondo.App.Services"
+        x:Class="Macondo.App.Views.InfoWindow"
+        Title="Guida &amp; Concetti — Macondo"
+        Icon="avares://Macondo/Assets/Icons/macondo_option3.ico"
+        Width="920" Height="640"
+        MinWidth="780" MinHeight="500"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource ThemeBackgroundPrimaryBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1">
+
+    <Grid RowDefinitions="36,*" Margin="{Binding $parent[Window].OffScreenMargin}">
+
+        <!-- Barra Superiore Titolo e Chiusura Finestra -->
+        <Border x:Name="TopTitleBorder" Grid.Row="0"
+                Background="{DynamicResource ThemeBackgroundSecondaryBrush}"
+                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                BorderThickness="0,0,0,1" Padding="12,0,0,0">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Titolo Finestra con Icona Guida -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                    <PathIcon Data="{StaticResource IconHelp}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                    <TextBlock x:Name="WindowTitleText" Text="Macondo — Guida &amp; Concetti" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Area Trascinamento -->
+                <Border Grid.Column="1" Background="Transparent" PointerPressed="OnTitleBarPointerPressed" />
+
+                <!-- Pulsante Chiudi -->
+                <Button Grid.Column="2" x:Name="CloseButton"
+                        Width="46" Height="36"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="0"
+                        Padding="0"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        ToolTip.Tip="Chiudi"
+                        Click="OnCloseClicked">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Background" Value="#E81123" />
+                        </Style>
+                        <Style Selector="Button:pointerover PathIcon">
+                            <Setter Property="Foreground" Value="#FFFFFF" />
+                        </Style>
+                    </Button.Styles>
+                    <PathIcon Data="{StaticResource IconWindowClose}" Width="10" Height="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Corpo Principale (Sidebar Sinistra + Contenuto Destra) -->
+        <Grid Grid.Row="1" ColumnDefinitions="230,*">
+
+            <!-- Sidebar Sinistra: Categorie della Guida -->
+            <Border x:Name="SidebarBorder" Grid.Column="0"
+                    Background="{DynamicResource ThemeBackgroundSecondaryBrush}"
+                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                    BorderThickness="0,0,1,0" Padding="8,12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="4">
+                        <StackPanel.Styles>
+                            <Style Selector="Button.nav-btn">
+                                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                <Setter Property="Padding" Value="10,8" />
+                                <Setter Property="FontSize" Value="12" />
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="BorderThickness" Value="0" />
+                                <Setter Property="CornerRadius" Value="6" />
+                                <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+                            </Style>
+                            <Style Selector="Button.nav-btn:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+                            </Style>
+                            <Style Selector="Button.nav-btn.selected">
+                                <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </Style>
+                        </StackPanel.Styles>
+
+                        <!-- Tab 0: Panoramica -->
+                        <Button x:Name="NavOverviewButton" Classes="nav-btn selected" Click="OnNavOverviewClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconAppLogo}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavOverviewText" Text="Panoramica &amp; Architettura" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 1: Layout del Grafo -->
+                        <Button x:Name="NavLayoutsButton" Classes="nav-btn" Click="OnNavLayoutsClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconGraph}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavLayoutsText" Text="Disposizioni del Grafo" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 2: Treemap -->
+                        <Button x:Name="NavTreemapButton" Classes="nav-btn" Click="OnNavTreemapClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconTreemap}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavTreemapText" Text="Treemap (Mappa ad Albero)" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 3: Flusso Schermate & Controllo -->
+                        <Button x:Name="NavFlowsButton" Classes="nav-btn" Click="OnNavFlowsClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconScreenFlow}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavFlowsText" Text="Screen &amp; Control Flow" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 4: DSM & Hotspots -->
+                        <Button x:Name="NavDsmHotspotsButton" Classes="nav-btn" Click="OnNavDsmHotspotsClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconMatrix}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavDsmHotspotsText" Text="DSM &amp; Hotspots" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 5: Blast Radius -->
+                        <Button x:Name="NavBlastRadiusButton" Classes="nav-btn" Click="OnNavBlastRadiusClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconBlastRadius}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavBlastRadiusText" Text="Blast Radius (Rischio)" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 6: AI & Esportazione -->
+                        <Button x:Name="NavAiExportButton" Classes="nav-btn" Click="OnNavAiExportClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconExport}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavAiExportText" Text="AI &amp; Esportazione LLM" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Area Contenuti Destra -->
+            <Border x:Name="ContentBorder" Grid.Column="1"
+                    Background="{DynamicResource ThemeBackgroundPrimaryBrush}" Padding="24,18">
+                <Panel>
+                    <Panel.Styles>
+                        <!-- Stile Box/Scheda Informativa -->
+                        <Style Selector="Border.info-card">
+                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDefaultBrush}" />
+                            <Setter Property="BorderThickness" Value="1" />
+                            <Setter Property="CornerRadius" Value="8" />
+                            <Setter Property="Padding" Value="16,14" />
+                            <Setter Property="Margin" Value="0,4,0,8" />
+                        </Style>
+                        <Style Selector="TextBlock.card-title">
+                            <Setter Property="FontSize" Value="13" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+                        </Style>
+                        <Style Selector="TextBlock.card-body">
+                            <Setter Property="FontSize" Value="12" />
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+                            <Setter Property="LineHeight" Value="18" />
+                            <Setter Property="TextWrapping" Value="Wrap" />
+                        </Style>
+                        <Style Selector="Border.badge-accent">
+                            <Setter Property="Background" Value="#204AE8D0" />
+                            <Setter Property="BorderBrush" Value="#404AE8D0" />
+                            <Setter Property="BorderThickness" Value="1" />
+                            <Setter Property="CornerRadius" Value="4" />
+                            <Setter Property="Padding" Value="6,2" />
+                        </Style>
+                        <Style Selector="TextBlock.badge-text">
+                            <Setter Property="FontSize" Value="10" />
+                            <Setter Property="FontWeight" Value="Bold" />
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                        </Style>
+                    </Panel.Styles>
+
+                    <!-- SEZIONE 0: PANORAMICA & ARCHITETTURA -->
+                    <ScrollViewer x:Name="OverviewSection" IsVisible="True" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Panoramica &amp; Funzionamento di Macondo" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Strumento di analisi semantica e reverse engineering per progetti legacy Visual Basic 6.0." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <!-- Card: Cos'è Macondo -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <DockPanel LastChildFill="True">
+                                        <Border Classes="badge-accent" DockPanel.Dock="Right" VerticalAlignment="Center">
+                                            <TextBlock Classes="badge-text" Text="STANDALONE" />
+                                        </Border>
+                                        <TextBlock Classes="card-title" Text="Analizzatore Semantico Indipendente" />
+                                    </DockPanel>
+                                    <TextBlock Classes="card-body" Text="Macondo analizza progetti VB6 direttamente dai file sorgente (.vbp, .frm, .bas, .cls, .ctl) senza richiedere l'ambiente di sviluppo originale VB6 o componenti COM registrati. Effettua il parsing completo dell'AST (Abstract Syntax Tree) per comprendere tipi, dichiarazioni, procedure e relazioni di chiamata." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Il Grafo Semantico -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Modello a Grafo (CodeGraph)" />
+                                    <TextBlock Classes="card-body" Text="Il cuore dell'applicazione è una rappresentazione in memoria a grafo orientato:&#x0a;• Nodi: rappresentano Moduli (.bas), Form (.frm), Classi (.cls), Controlli Utente (.ctl) e le singole routine (Sub, Function, Property).&#x0a;• Archi (Relazioni): collegano i nodi attraverso relazioni di Chiamata (CALLS), Istanziazione (INSTANTIATES) e Dipendenza di Tipo (USES_TYPE)." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Cache Locale Istantanea -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Cache Locale ad Alte Prestazioni" />
+                                    <TextBlock Classes="card-body" Text="Al termine dell'analisi di una cartella, lo snapshot completo del grafo e del calcolo d'impatto viene salvato in cache (%APPDATA%\Macondo\cache\). Alle successive aperture, il progetto viene ripristinato istantaneamente in pochi millisecondi, con verifica automatica (staleness check) per rilevare file modificati su disco." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- SEZIONE 1: DISPOSIZIONI DEL GRAFO (LAYOUTS) -->
+                    <ScrollViewer x:Name="LayoutsSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Disposizioni del Grafo (Layout Engines)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Algoritmi di posizionamento 2D per evidenziare gerarchie, cluster e flussi di codice." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <!-- Card: Radiale Standard -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Classes="card-title" Text="1. Radiale Standard (Concentric Rings)" />
+                                    <TextBlock Classes="card-body" Text="Dispone i componenti su orbite concentriche partendo dal modulo/form principale al centro verso le dipendenze esterne. Ideale per cogliere l'ampiezza complessiva e la gerarchia dei moduli." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Radiale per Affinità -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Classes="card-title" Text="2. Radiale per Affinità (Interaction Affinity)" />
+                                    <TextBlock Classes="card-body" Text="Mantiene la struttura orbitale radiale ma raggruppa vicini sullo stesso angolo i nodi che condividono frequenti relazioni di chiamata. Riduce l'incrocio delle linee e mette in risalto i gruppi di lavoro coesi." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Cluster a Isole -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Classes="card-title" Text="3. Cluster a Isole (Subsystem Islands)" />
+                                    <TextBlock Classes="card-body" Text="Separa fisicamente l'architettura in isole tematiche ben distinte: Isola delle Form UI, Isola dei Moduli Logici, Isola delle Classi di Dominio e Controlli Utente. Ottimo per identificare l'accoppiamento tra interfaccia e logica di business." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Force-Directed -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Classes="card-title" Text="4. Force-Directed (Fisica a Molle)" />
+                                    <TextBlock Classes="card-body" Text="Simula un modello fisico: i nodi si respingono come particelle cariche mentre le relazioni di chiamata agiscono come molle elastiche. Fa emergere naturalmente al centro i componenti 'core' e i nodi ponte." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- SEZIONE 2: TREEMAP (MAPPA AD ALBERO) -->
+                    <ScrollViewer x:Name="TreemapSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Treemap (Mappa ad Albero del Software)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Rappresentazione bidimensionale a rettangoli proporzionali per individuare peso e rischio." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <!-- Card: Cos'è la Treemap -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Cos'è una Treemap e come leggerla" />
+                                    <TextBlock Classes="card-body" Text="La Treemap visualizza l'intera base di codice come un mosaico di rettangoli annidati, suddivisi per Modulo, Form o Classe e contenenti le relative routine interne." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Dimensioni e Metriche -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Dimensione dei Rettangoli: Volume e Complessità" />
+                                    <TextBlock Classes="card-body" Text="L'area occupata da ogni rettangolo è direttamente proporzionale alla metrica selezionata:&#x0a;• Linee di Codice (LOC): evidenzia i file e le procedure più lunghe.&#x0a;• Complessità Ciclomatica (CC): mette in risalto le funzioni con più diramazioni logiche (If, Select, Loop) e salti condizionali." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Colori e Significato del Rischio -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Colori: Livello di Rischio (Blast Radius)" />
+                                    <TextBlock Classes="card-body" Text="La palette cromatica rispecchia il potenziale impatto di regressione:&#x0a;• Verde (Basso): Routine isolate o con impatto minimo.&#x0a;• Giallo (Medio): Routine con chiamanti locali circoscritti.&#x0a;• Arancione (Alto): Routine condivise tra più moduli.&#x0a;• Rosso (Critico): 'God Object' o routine cardine da cui dipendono Form e flussi primari." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: A cosa serve nel concreto -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Perché è fondamentale per il refactoring" />
+                                    <TextBlock Classes="card-body" Text="I rettangoli grandi e rossi saltano subito all'occhio: rappresentano i punti più fragili e pesanti della codebase legacy. Sono le prime candidate per refactoring, scomposizione o copertura con test di regressione." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- SEZIONE 3: SCREEN FLOW & CONTROL FLOW -->
+                    <ScrollViewer x:Name="FlowsSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Screen Flow &amp; Control Flow" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Mappatura della navigazione tra finestre e scomposizione logica interna delle routine." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <!-- Card: Screen Flow -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Screen Flow (Flusso Schermate &amp; Finestre)" />
+                                    <TextBlock Classes="card-body" Text="Mappa visivamente il percorso utente attraverso le Form (.frm) dell'applicazione. Individua:&#x0a;• Aperture e visualizzazioni: chiamate a .Show, Load Form, aperture modali (vbModal).&#x0a;• Chiusure e transizioni: istruzioni .Hide e Unload Me.&#x0a;Permette di comprendere l'esperienza utente e la struttura delle maschere senza avviare il software." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Control Flow -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Control Flow Graph (CFG - Flusso di Controllo)" />
+                                    <TextBlock Classes="card-body" Text="Scompone una singola Sub, Function o Property in un grafo a blocchi di istruzioni base e archi di salto:&#x0a;• Strutture decisionali: If...Then...Else, Select Case.&#x0a;• Cicli: For...Next, Do...While, While...Wend.&#x0a;• Gestione Errori e Salti: On Error GoTo, Resume, GoTo etichette.&#x0a;Indispensabile per verificare la logica di algoritmi contorti e calcolare la complessità ciclomatica." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- SEZIONE 4: DSM & HOTSPOTS -->
+                    <ScrollViewer x:Name="DsmHotspotsSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="DSM (Dependency Matrix) &amp; Hotspots" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Matrici di accoppiamento architetturale e rilevamento dei punti caldi di complessità." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <!-- Card: DSM -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="DSM (Dependency Structure Matrix)" />
+                                    <TextBlock Classes="card-body" Text="Una matrice quadrata N x N in cui righe e colonne corrispondono ai moduli del progetto:&#x0a;• Le celle indicano il numero di chiamate/dipendenze tra il modulo di riga e quello di colonna.&#x0a;• Rilevamento Dipendenze Circolari: le celle sopra la diagonale principale evidenziano chiamate ricorsive o accoppiamenti a doppio senso (anti-pattern ciclici).&#x0a;• Architettura a Strati: aiuta a riordinare i moduli in livelli gerarchici puliti (Layered Architecture)." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Hotspots -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Analisi degli Hotspots (Punti Caldi)" />
+                                    <TextBlock Classes="card-body" Text="Combina Complessità Ciclomatica, Fan-In (quanti chiamano la funzione) e Fan-Out (quante altre funzioni chiama). Permette di ordinare e filtrare immediatamente le routine che necessitano di maggiore attenzione durante le attività di manutenzione ed evoluzione." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- SEZIONE 5: BLAST RADIUS -->
+                    <ScrollViewer x:Name="BlastRadiusSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Analisi d'Impatto (Blast Radius)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Calcolo dei percorsi di propagazione a catena e livello di rischio delle modifiche." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <!-- Card: Come funziona il Blast Radius -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Cos'è il Blast Radius e come viene calcolato" />
+                                    <TextBlock Classes="card-body" Text="Quando si modifica una routine VB6, il Blast Radius esegue una visita a ritroso nel grafo (reverse call graph traversal) per identificare ogni singola procedura o form che, direttamente o indirettamente, invoca quel codice." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Metriche d'Impatto -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Metriche Calcolate" />
+                                    <TextBlock Classes="card-body" Text="• Chiamanti Diretti: routine che contengono una chiamata diretta al simbolo.&#x0a;• Chiamanti Indiretti: routine che invocano i chiamanti diretti (propagazione transitiva).&#x0a;• Profondità Massima (Max Depth): lunghezza della catena di chiamata più profonda.&#x0a;• Form Impattate: elenco delle finestre UI che dipendono da questa funzione." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Livelli di Rischio -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Scala dei Livelli di Rischio" />
+                                    <TextBlock Classes="card-body" Text="• CRITICO: impatta molteplici Form UI e catene profonde di chiamanti. Massima attenzione richiesta.&#x0a;• ALTO: impatto esteso su più moduli della logica di business.&#x0a;• MEDIO: impatto limitato a un sotto-sistema circoscritto.&#x0a;• BASSO: funzione foglia o utilizzata esclusivamente in ambito locale." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- SEZIONE 6: AI & ESPORTAZIONE LLM -->
+                    <ScrollViewer x:Name="AiExportSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Integrazione AI &amp; Esportazione LLM" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Strumenti per esportare contesto strutturato e nutrire assistenti e agenti di intelligenza artificiale." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <!-- Card: Repo Map Markdown -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="1. Esporta Repo Map (Markdown)" />
+                                    <TextBlock Classes="card-body" Text="Genera un documento Markdown compatto e strutturato contenente l'elenco dei moduli, tutte le dichiarazioni di Sub/Function/Property con parametri e le relative dipendenze. Ideale da allegare al contesto di Claude, ChatGPT o Gemini per spiegare l'architettura complessiva." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: Context Slice LLM -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="2. Esporta Context Slice LLM" />
+                                    <TextBlock Classes="card-body" Text="Estrae chirurgicamente solo il sotto-grafo rilevante per la routine selezionata: include il codice sorgente del metodo, i tipi utilizzati e l'elenco dei chiamanti e chiamate uscenti. Riduce al minimo i token consumati e garantisce che l'AI generi risposte accurate e focalizzate." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card: JSON Export/Import -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="3. Esporta / Importa Grafo (JSON)" />
+                                    <TextBlock Classes="card-body" Text="Permette di salvare l'intero grafo semantico in formato JSON standard (schema Macondo Graph v1.0) per archiviarlo, integrarlo in pipeline CI/CD o reimportarlo istantaneamente su un'altra postazione senza ri-eseguire il parsing." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                </Panel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

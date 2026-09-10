@@ -232,6 +232,7 @@ public sealed class LocalizationService
 
         // Aggiornamenti Software & Cache (Menu Aiuto)
         ["Menu_Help"] = "_Aiuto",
+        ["Menu_HelpInfo"] = "Guida & Concetti...",
         ["Menu_CheckUpdates"] = "Verifica Aggiornamenti...",
         ["Menu_ResetSettings"] = "Ripristina Impostazioni Predefinite...",
         ["Menu_ClearCache"] = "Pulisci Cache Progetti...",
@@ -474,6 +475,7 @@ public sealed class LocalizationService
 
         // Software Updates & Cache (Help Menu)
         ["Menu_Help"] = "_Help",
+        ["Menu_HelpInfo"] = "Guide & Concepts...",
         ["Menu_CheckUpdates"] = "Check for Updates...",
         ["Menu_ResetSettings"] = "Restore Default Settings...",
         ["Menu_ClearCache"] = "Clear Project Cache...",

@@ -145,6 +145,12 @@
                             </MenuItem>
                         </MenuItem>
                         <MenuItem x:Name="HelpMenu" Header="_Aiuto">
+                            <MenuItem x:Name="InfoMenuItem" Header="Guida &amp; Concetti..." InputGesture="F1">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconHelp}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator />
                             <MenuItem x:Name="CheckUpdatesMenuItem" Header="Verifica Aggiornamenti...">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconUpdate}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
