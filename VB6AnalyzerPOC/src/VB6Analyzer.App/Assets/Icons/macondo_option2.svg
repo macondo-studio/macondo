@@ -1,21 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-  <rect width="128" height="128" rx="28" fill="#12161C"/>
-  <!-- Main 4 Points -->
-  <polygon points="64,16 64,64 54,64" fill="#10B981"/>
-  <polygon points="64,16 64,64 74,64" fill="#3B82F6"/>
-  <polygon points="64,112 64,64 54,64" fill="#047857"/>
-  <polygon points="64,112 64,64 74,64" fill="#1D4ED8"/>
-  <polygon points="112,64 64,64 64,54" fill="#3B82F6"/>
-  <polygon points="112,64 64,64 64,74" fill="#1D4ED8"/>
-  <polygon points="16,64 64,64 64,54" fill="#10B981"/>
-  <polygon points="16,64 64,64 64,74" fill="#047857"/>
-  <!-- Secondary 4 Points -->
-  <polygon points="98,30 64,64 74,54" fill="#60A5FA"/>
-  <polygon points="98,30 64,64 64,54" fill="#2563EB"/>
-  <polygon points="30,30 64,64 54,64" fill="#34D399"/>
-  <polygon points="30,30 64,64 54,54" fill="#059669"/>
-  <polygon points="98,98 64,64 74,64" fill="#1D4ED8"/>
-  <polygon points="98,98 64,64 64,74" fill="#3B82F6"/>
-  <polygon points="30,98 64,64 64,74" fill="#047857"/>
-  <polygon points="30,98 64,64 54,64" fill="#10B981"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <linearGradient id="g-green" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10e783"/>
+      <stop offset="100%" stop-color="#05c872"/>
+    </linearGradient>
+    <linearGradient id="g-cyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00f2fe"/>
+      <stop offset="100%" stop-color="#00c8e0"/>
+    </linearGradient>
+
+    <filter id="star-shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <g transform="translate(512, 512)">
+    <!-- TOP CHEVRON (Green) -->
+    <polygon points="0,-276 182,-94 144,-56 0,-200 -144,-56 -182,-94"
+             fill="url(#g-green)" />
+
+    <!-- BOTTOM CHEVRON (Green) -->
+    <polygon points="0,276 182,94 144,56 0,200 -144,56 -182,94"
+             fill="url(#g-green)" />
+
+    <!-- LEFT CHEVRON (Cyan) -->
+    <polygon points="-276,0 -94,-182 -56,-144 -200,0 -56,144 -94,182"
+             fill="url(#g-cyan)" />
+
+    <!-- RIGHT CHEVRON (Cyan) -->
+    <polygon points="276,0 94,-182 56,-144 200,0 56,144 94,182"
+             fill="url(#g-cyan)" />
+
+    <!-- CENTER CHISELED STAR (8 Facets) -->
+    <g filter="url(#star-shadow)">
+      <polygon points="0,0 0,-185 -55,-55" fill="#323846" />
+      <polygon points="0,0 -55,-55 -185,0" fill="#292e3a" />
+
+      <polygon points="0,0 -185,0 -55,55" fill="#242933" />
+      <polygon points="0,0 -55,55 0,185" fill="#1e222b" />
+
+      <polygon points="0,0 0,185 55,55" fill="#181b22" />
+      <polygon points="0,0 55,55 185,0" fill="#1d2029" />
+
+      <polygon points="0,0 185,0 55,-55" fill="#252a35" />
+      <polygon points="0,0 55,-55 0,-185" fill="#2c323f" />
+
+      <line x1="0" y1="-185" x2="0" y2="185" stroke="#3d4454" stroke-width="1.5" opacity="0.6"/>
+      <line x1="-185" y1="0" x2="185" y2="0" stroke="#3d4454" stroke-width="1.5" opacity="0.6"/>
+    </g>
+  </g>
 </svg>

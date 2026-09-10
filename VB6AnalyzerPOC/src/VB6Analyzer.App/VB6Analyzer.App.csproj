@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Macondo.App</RootNamespace>
     <AssemblyName>Macondo</AssemblyName>
-    <ApplicationIcon>Assets\Icons\macondo_option3.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\Icons\icon1_star_knot.ico</ApplicationIcon>
 
     <!--
       NOTA IMPORTANTE: SelfContained / PublishSingleFile / RuntimeIdentifier NON sono

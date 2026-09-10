@@ -65,6 +65,15 @@ public sealed class LocalizationService
         ["Explorer_Group_Types"] = "Tipi definiti dall'utente",
         ["Explorer_Group_Enums"] = "Enumerazioni",
         ["Explorer_Group_Other"] = "Altri file",
+        ["Explorer_OpenOriginalFile"] = "Apri file originale",
+        ["Explorer_OpenContainingFolder"] = "Mostra nella cartella",
+        ["Explorer_CopyFilePath"] = "Copia percorso file",
+        ["Explorer_FileNotFound"] = "File non trovato su disco: {0}",
+        ["Explorer_FileOpened"] = "Aperto file: {0}",
+        ["Explorer_FolderOpened"] = "Aperta cartella: {0}",
+        ["Explorer_PathCopied"] = "Percorso copiato negli appunti: {0}",
+        ["Inspector_Tooltip_OpenFile"] = "Apri file sorgente originale",
+        ["Inspector_Tooltip_OpenFolder"] = "Mostra file nella cartella di sistema",
 
         // Inspector & Blast Radius
         ["Inspector_Title"] = "Symbol Inspector & Blast Radius",
@@ -321,6 +330,15 @@ public sealed class LocalizationService
         ["Explorer_Group_Types"] = "User-Defined Types",
         ["Explorer_Group_Enums"] = "Enumerations",
         ["Explorer_Group_Other"] = "Other Files",
+        ["Explorer_OpenOriginalFile"] = "Open Original File",
+        ["Explorer_OpenContainingFolder"] = "Show in Folder",
+        ["Explorer_CopyFilePath"] = "Copy File Path",
+        ["Explorer_FileNotFound"] = "File not found on disk: {0}",
+        ["Explorer_FileOpened"] = "Opened file: {0}",
+        ["Explorer_FolderOpened"] = "Opened folder: {0}",
+        ["Explorer_PathCopied"] = "Path copied to clipboard: {0}",
+        ["Inspector_Tooltip_OpenFile"] = "Open original source file",
+        ["Inspector_Tooltip_OpenFolder"] = "Show file in system folder",
 
         // Inspector & Blast Radius
         ["Inspector_Title"] = "Symbol Inspector & Blast Radius",

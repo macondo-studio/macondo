@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -696,7 +697,7 @@ public partial class MainWindow : Window
         Graph.ResetView();
         Graph.SelectNode(null);
 
-        ExplorerTree.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph) };
+        ExplorerTree.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath) };
 
         ShowEmptyInspector();
         UpdateStatsBar();
@@ -893,6 +894,212 @@ public partial class MainWindow : Window
         var node = _graph.GetNode(item.NodeId);
         if (node is not null)
             SelectAndFocusGraphNode(node);
+    }
+
+    public void OnExplorerDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (ExplorerTree.SelectedItem is not ExplorerTreeItem item) return;
+        if (item.IsGroup) return; // double-clicking group expands/collapses tree
+
+        if (!string.IsNullOrEmpty(item.FilePath))
+        {
+            OpenOriginalFile(item.FilePath, item.LineStart);
+        }
+        else if (_graph != null)
+        {
+            var node = _graph.GetNode(item.NodeId);
+            if (node?.SemanticSymbol?.FilePath != null)
+            {
+                OpenOriginalFile(node.SemanticSymbol.FilePath, node.SemanticSymbol.LineStart);
+            }
+            else if (!string.IsNullOrEmpty(_currentFolderPath))
+            {
+                OpenContainingFolder(_currentFolderPath);
+            }
+        }
+    }
+
+    private void OnExplorerOpenItemButtonClick(object? sender, RoutedEventArgs e)
+    {
+        var item = GetExplorerItemFromSender(sender);
+        if (item != null && !string.IsNullOrEmpty(item.FilePath))
+        {
+            OpenOriginalFile(item.FilePath, item.LineStart);
+        }
+    }
+
+    private void OnExplorerContextMenuOpenFile(object? sender, RoutedEventArgs e)
+    {
+        var item = GetExplorerItemFromSender(sender);
+        if (item != null)
+        {
+            OpenOriginalFile(item.FilePath, item.LineStart);
+        }
+    }
+
+    private void OnExplorerContextMenuOpenFolder(object? sender, RoutedEventArgs e)
+    {
+        var item = GetExplorerItemFromSender(sender);
+        if (item != null)
+        {
+            OpenContainingFolder(item.FilePath);
+        }
+    }
+
+    private void OnExplorerContextMenuCopyPath(object? sender, RoutedEventArgs e)
+    {
+        var item = GetExplorerItemFromSender(sender);
+        if (item != null)
+        {
+            CopyFilePathToClipboard(item.FilePath);
+        }
+    }
+
+    private void OnInspectorOpenFileClicked(object? sender, RoutedEventArgs e)
+    {
+        var filePath = _selectedNode?.SemanticSymbol?.FilePath;
+        var line = _selectedNode?.SemanticSymbol?.LineStart ?? 0;
+        OpenOriginalFile(filePath, line);
+    }
+
+    private void OnInspectorOpenFolderClicked(object? sender, RoutedEventArgs e)
+    {
+        var filePath = _selectedNode?.SemanticSymbol?.FilePath;
+        OpenContainingFolder(filePath);
+    }
+
+    private ExplorerTreeItem? GetExplorerItemFromSender(object? sender)
+    {
+        if (sender is Button btn && btn.CommandParameter is ExplorerTreeItem itemParam)
+            return itemParam;
+
+        if (sender is MenuItem menuItem)
+        {
+            if (menuItem.DataContext is ExplorerTreeItem item1)
+                return item1;
+            if (menuItem.Parent is ContextMenu ctx && ctx.PlacementTarget?.DataContext is ExplorerTreeItem item2)
+                return item2;
+        }
+
+        if (sender is Control ctrl && ctrl.DataContext is ExplorerTreeItem item3)
+            return item3;
+
+        return ExplorerTree.SelectedItem as ExplorerTreeItem;
+    }
+
+    private void OpenOriginalFile(string? filePath, int line = 0)
+    {
+        var loc = LocalizationService.Instance;
+        var resolved = ResolveEffectiveFilePath(filePath);
+
+        if (string.IsNullOrEmpty(resolved) || (!File.Exists(resolved) && !Directory.Exists(resolved)))
+        {
+            StatusText.Text = loc.Get("Explorer_FileNotFound", filePath ?? loc["Explorer_Title"]);
+            return;
+        }
+
+        if (Directory.Exists(resolved) && !File.Exists(resolved))
+        {
+            OpenContainingFolder(resolved);
+            return;
+        }
+
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = resolved,
+                UseShellExecute = true
+            };
+            Process.Start(psi);
+            StatusText.Text = loc.Get("Explorer_FileOpened", Path.GetFileName(resolved));
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Errore nell'apertura del file: {ex.Message}";
+        }
+    }
+
+    private void OpenContainingFolder(string? filePath)
+    {
+        var loc = LocalizationService.Instance;
+        var resolved = ResolveEffectiveFilePath(filePath);
+        if (string.IsNullOrEmpty(resolved))
+        {
+            if (!string.IsNullOrEmpty(_currentFolderPath) && Directory.Exists(_currentFolderPath))
+                resolved = _currentFolderPath;
+            else return;
+        }
+
+        try
+        {
+            if (File.Exists(resolved))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"/select,\"{resolved}\"",
+                    UseShellExecute = true
+                });
+                StatusText.Text = loc.Get("Explorer_FolderOpened", Path.GetFileName(resolved));
+            }
+            else if (Directory.Exists(resolved))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = resolved,
+                    UseShellExecute = true
+                });
+                StatusText.Text = loc.Get("Explorer_FolderOpened", resolved);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Errore nell'apertura della cartella: {ex.Message}";
+        }
+    }
+
+    private async void CopyFilePathToClipboard(string? filePath)
+    {
+        var loc = LocalizationService.Instance;
+        var resolved = ResolveEffectiveFilePath(filePath);
+        if (string.IsNullOrEmpty(resolved)) return;
+
+        try
+        {
+            if (Clipboard != null)
+            {
+                await Clipboard.SetTextAsync(resolved);
+                StatusText.Text = loc.Get("Explorer_PathCopied", resolved);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Errore copia percorso: {ex.Message}";
+        }
+    }
+
+    private string? ResolveEffectiveFilePath(string? filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return _currentFolderPath;
+        }
+
+        if (Path.IsPathRooted(filePath) && (File.Exists(filePath) || Directory.Exists(filePath)))
+        {
+            return filePath;
+        }
+
+        if (!string.IsNullOrEmpty(_currentFolderPath))
+        {
+            var combined = Path.Combine(_currentFolderPath, filePath);
+            if (File.Exists(combined) || Directory.Exists(combined))
+                return combined;
+            return combined;
+        }
+
+        return filePath;
     }
 
     private void OnSearchTextChanged(object? sender, TextChangedEventArgs e)
@@ -2260,9 +2467,14 @@ public partial class MainWindow : Window
         // Explorer & Inspector
         ExplorerTitleText.Text = loc["Explorer_Title"];
         InspectorTitleText.Text = loc["Inspector_Title"];
+        CtxExplorerOpenFile.Header = loc["Explorer_OpenOriginalFile"];
+        CtxExplorerOpenFolder.Header = loc["Explorer_OpenContainingFolder"];
+        CtxExplorerCopyPath.Header = loc["Explorer_CopyFilePath"];
+        ToolTip.SetTip(InspectorOpenFileButton, loc["Inspector_Tooltip_OpenFile"]);
+        ToolTip.SetTip(InspectorOpenFolderButton, loc["Inspector_Tooltip_OpenFolder"]);
         if (_graph is not null)
         {
-            ExplorerTree.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph) };
+            ExplorerTree.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath) };
         }
 
         // Tab Centrali

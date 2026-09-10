@@ -18,13 +18,20 @@ public sealed class ExplorerTreeItem
     public required string BadgeBackground { get; init; }
     public required string BadgeForeground { get; init; }
     public bool IsGroup { get; init; }
+    public string? FilePath { get; init; }
+    public int LineStart { get; init; }
+    public int LineEnd { get; init; }
+    public bool HasFile => !string.IsNullOrEmpty(FilePath);
+    public string ToolTipText => !string.IsNullOrEmpty(FilePath)
+        ? (LineStart > 0 ? $"{FilePath}:{LineStart}" : FilePath)
+        : DisplayText;
     public List<ExplorerTreeItem> Children { get; } = new();
 
     /// <summary>
     /// Costruisce l'albero gerarchico del progetto a partire dal CodeGraph visuale,
     /// con raggruppamento dei file per tipologia.
     /// </summary>
-    public static ExplorerTreeItem BuildTree(VisualCodeGraph graph)
+    public static ExplorerTreeItem BuildTree(VisualCodeGraph graph, string? projectFolderPath = null)
     {
         if (graph.Nodes.Count == 0)
         {
@@ -37,7 +44,8 @@ public sealed class ExplorerTreeItem
                 NodeId = Guid.Empty,
                 KindBadge = emptyBadge,
                 BadgeBackground = emptyBg,
-                BadgeForeground = emptyFg
+                BadgeForeground = emptyFg,
+                FilePath = projectFolderPath
             };
         }
 
@@ -53,7 +61,8 @@ public sealed class ExplorerTreeItem
             NodeId = project.Id,
             KindBadge = prjBadge,
             BadgeBackground = prjBg,
-            BadgeForeground = prjFg
+            BadgeForeground = prjFg,
+            FilePath = ResolvePath(project.SemanticSymbol?.FilePath, projectFolderPath) ?? projectFolderPath
         };
 
         var topLevelChildren = graph.GetChildren(project.Id).ToList();
@@ -85,12 +94,13 @@ public sealed class ExplorerTreeItem
                 KindBadge = badge,
                 BadgeBackground = bg,
                 BadgeForeground = fg,
-                IsGroup = true
+                IsGroup = true,
+                FilePath = projectFolderPath
             };
 
             foreach (var childNode in groupItems)
             {
-                groupFolderItem.Children.Add(Build(graph, childNode));
+                groupFolderItem.Children.Add(Build(graph, childNode, projectFolderPath));
             }
 
             rootItem.Children.Add(groupFolderItem);
@@ -99,9 +109,10 @@ public sealed class ExplorerTreeItem
         return rootItem;
     }
 
-    private static ExplorerTreeItem Build(VisualCodeGraph graph, GraphNode node)
+    private static ExplorerTreeItem Build(VisualCodeGraph graph, GraphNode node, string? projectFolderPath = null)
     {
         var (badge, bg, fg) = GetBadgeInfo(node.Kind);
+        var nodeFilePath = ResolvePath(node.SemanticSymbol?.FilePath, projectFolderPath);
 
         var item = new ExplorerTreeItem
         {
@@ -111,15 +122,48 @@ public sealed class ExplorerTreeItem
             NodeId = node.Id,
             KindBadge = badge,
             BadgeBackground = bg,
-            BadgeForeground = fg
+            BadgeForeground = fg,
+            FilePath = nodeFilePath,
+            LineStart = node.SemanticSymbol?.LineStart ?? 0,
+            LineEnd = node.SemanticSymbol?.LineEnd ?? 0
         };
 
         foreach (var child in graph.GetChildren(node.Id).OrderBy(c => c.Kind).ThenBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
         {
-            item.Children.Add(Build(graph, child));
+            var childItem = Build(graph, child, projectFolderPath);
+            if (string.IsNullOrEmpty(childItem.FilePath) && !string.IsNullOrEmpty(item.FilePath))
+            {
+                childItem = new ExplorerTreeItem
+                {
+                    Name = childItem.Name,
+                    DisplayText = childItem.DisplayText,
+                    Kind = childItem.Kind,
+                    NodeId = childItem.NodeId,
+                    KindBadge = childItem.KindBadge,
+                    BadgeBackground = childItem.BadgeBackground,
+                    BadgeForeground = childItem.BadgeForeground,
+                    FilePath = item.FilePath,
+                    LineStart = childItem.LineStart,
+                    LineEnd = childItem.LineEnd
+                };
+            }
+            item.Children.Add(childItem);
         }
 
         return item;
+    }
+
+    public static string? ResolvePath(string? filePath, string? baseFolder)
+    {
+        if (string.IsNullOrWhiteSpace(filePath)) return null;
+        if (Path.IsPathRooted(filePath) && (File.Exists(filePath) || Directory.Exists(filePath))) return filePath;
+        if (!string.IsNullOrEmpty(baseFolder))
+        {
+            var combined = Path.Combine(baseFolder, filePath);
+            if (File.Exists(combined) || Directory.Exists(combined)) return combined;
+            return combined;
+        }
+        return filePath;
     }
 
     public static (string Badge, string Background, string Foreground) GetBadgeInfo(SymbolKind kind) => kind switch

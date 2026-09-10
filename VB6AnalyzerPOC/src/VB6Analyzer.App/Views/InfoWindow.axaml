@@ -3,7 +3,7 @@
         xmlns:services="using:Macondo.App.Services"
         x:Class="Macondo.App.Views.InfoWindow"
         Title="Guida &amp; Concetti — Macondo"
-        Icon="avares://Macondo/Assets/Icons/macondo_option3.ico"
+        Icon="avares://Macondo/Assets/Icons/icon1_star_knot.ico"
         Width="920" Height="640"
         MinWidth="780" MinHeight="500"
         WindowStartupLocation="CenterOwner"

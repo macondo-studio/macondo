@@ -3,7 +3,7 @@
         xmlns:services="using:Macondo.App.Services"
         x:Class="Macondo.App.Views.SettingsWindow"
         Title="Impostazioni"
-        Icon="avares://Macondo/Assets/Icons/macondo_option3.ico"
+        Icon="avares://Macondo/Assets/Icons/icon1_star_knot.ico"
         Width="780" Height="530"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
