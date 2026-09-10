@@ -49,11 +49,39 @@ public sealed class ExplorerTreeItem
             };
         }
 
-        var project = graph.Nodes.FirstOrDefault(n => n.Kind == SymbolKind.Project)
-                      ?? graph.Nodes.First();
+        var projects = graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
+        if (projects.Count > 1)
+        {
+            // Workspace multi-progetto: crea una radice Workspace contenente ciascun progetto
+            var (wsBadge, wsBg, wsFg) = GetBadgeInfo(SymbolKind.Project);
+            var workspaceItem = new ExplorerTreeItem
+            {
+                Name = "Workspace",
+                DisplayText = $"Workspace ({projects.Count} Progetti)",
+                Kind = SymbolKind.Project,
+                NodeId = Guid.Empty,
+                KindBadge = "WS",
+                BadgeBackground = "#6366F1",
+                BadgeForeground = "#FFFFFF",
+                FilePath = projectFolderPath
+            };
 
+            foreach (var proj in projects)
+            {
+                workspaceItem.Children.Add(BuildProjectSubTree(graph, proj, projectFolderPath));
+            }
+
+            return workspaceItem;
+        }
+
+        var singleProject = projects.FirstOrDefault() ?? graph.Nodes.First();
+        return BuildProjectSubTree(graph, singleProject, projectFolderPath);
+    }
+
+    private static ExplorerTreeItem BuildProjectSubTree(VisualCodeGraph graph, GraphNode project, string? projectFolderPath)
+    {
         var (prjBadge, prjBg, prjFg) = GetBadgeInfo(project.Kind);
-        var rootItem = new ExplorerTreeItem
+        var projectItem = new ExplorerTreeItem
         {
             Name = project.Name,
             DisplayText = project.Name,
@@ -69,7 +97,7 @@ public sealed class ExplorerTreeItem
         if (topLevelChildren.Count == 0)
         {
             topLevelChildren = graph.Nodes
-                .Where(n => n.Id != project.Id && (n.ParentId == null || n.ParentId == project.Id))
+                .Where(n => n.Id != project.Id && (n.ParentId == null || n.ParentId == project.Id) && n.Kind != SymbolKind.Project)
                 .ToList();
         }
 
@@ -103,10 +131,10 @@ public sealed class ExplorerTreeItem
                 groupFolderItem.Children.Add(Build(graph, childNode, projectFolderPath));
             }
 
-            rootItem.Children.Add(groupFolderItem);
+            projectItem.Children.Add(groupFolderItem);
         }
 
-        return rootItem;
+        return projectItem;
     }
 
     private static ExplorerTreeItem Build(VisualCodeGraph graph, GraphNode node, string? projectFolderPath = null)

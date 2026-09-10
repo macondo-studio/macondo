@@ -1,0 +1,4 @@
+VBGROUP 5.0
+StartupProject=SalesApp\SalesApp.vbp
+Project=BillingCore\BillingCore.vbp
+Project=ReportViewer\ReportViewer.vbp

@@ -1,4 +1,4 @@
-﻿using Macondo.Semantic.Model;
+using Macondo.Semantic.Model;
 
 namespace Macondo.Semantic.Resolution;
 
@@ -69,8 +69,12 @@ public sealed class TypeResolver
         {
             if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum)
             {
-                // In VB6 i tipi utente sono univoci a livello di progetto e accessibili per nome
+                // In VB6 i tipi utente sono accessibili per nome semplice o qualificato (es. "Customer" o "ProjectA.Customer")
                 _userTypesByName[symbol.Name] = symbol;
+                if (!string.IsNullOrEmpty(symbol.QualifiedName) && !symbol.QualifiedName.Equals(symbol.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    _userTypesByName[symbol.QualifiedName] = symbol;
+                }
             }
         }
     }

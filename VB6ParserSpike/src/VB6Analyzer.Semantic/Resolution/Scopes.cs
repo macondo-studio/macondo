@@ -1,4 +1,4 @@
-﻿using Macondo.Semantic.Model;
+using Macondo.Semantic.Model;
 
 namespace Macondo.Semantic.Resolution;
 
@@ -36,12 +36,16 @@ public sealed class ProjectScope : IScope
         _typeResolver = typeResolver;
 
         // Costruisce gli indici del progetto per tipi e membri globali .bas.
-        // 1. Indicizza tutti i tipi definiti a livello di progetto
+        // 1. Indicizza tutti i tipi e progetti definiti a livello di workspace/progetto
         foreach (var symbol in _graph.Symbols)
         {
-            if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum)
+            if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum or SymbolKind.Project)
             {
                 _projectTypes[symbol.Name] = symbol;
+                if (!string.IsNullOrEmpty(symbol.QualifiedName) && !symbol.QualifiedName.Equals(symbol.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    _projectTypes[symbol.QualifiedName] = symbol;
+                }
             }
         }
 

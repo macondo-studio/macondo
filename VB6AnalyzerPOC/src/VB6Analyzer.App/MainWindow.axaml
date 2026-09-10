@@ -34,6 +34,11 @@
                                     <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" />
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem x:Name="OpenProjectFilesMenuItem" Header="Apri Progetti / Gruppo (.vbp, .vbg)..." InputGesture="Ctrl+Shift+O">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconFile}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                             <MenuItem x:Name="RefreshProjectMenuItem" Header="Ricarica Progetto Corrente" InputGesture="Ctrl+R">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconRefresh}" Width="14" Height="14" Foreground="#4AE8D0" />

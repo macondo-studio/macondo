@@ -20,6 +20,7 @@ public sealed class LocalizationService
         // Menu File
         ["Menu_File"] = "_File",
         ["Menu_OpenFolder"] = "Apri Cartella VB6...",
+        ["Menu_OpenProjectFiles"] = "Apri Progetti / Gruppo (.vbp, .vbg)...",
         ["Menu_RefreshProject"] = "Ricarica Progetto Corrente",
         ["Menu_LoadFixtures"] = "Carica Fixtures Test",
         ["Menu_GenerateFake"] = "Grafo Demo (~500 nodi)",
@@ -303,6 +304,7 @@ public sealed class LocalizationService
         // Menu File
         ["Menu_File"] = "_File",
         ["Menu_OpenFolder"] = "Open VB6 Folder...",
+        ["Menu_OpenProjectFiles"] = "Open Projects / Group (.vbp, .vbg)...",
         ["Menu_RefreshProject"] = "Reload Current Project",
         ["Menu_LoadFixtures"] = "Load Test Fixtures",
         ["Menu_GenerateFake"] = "Demo Graph (~500 nodes)",

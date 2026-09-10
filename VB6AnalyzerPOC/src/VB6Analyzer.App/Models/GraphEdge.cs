@@ -1,4 +1,4 @@
-﻿using Macondo.Semantic.Model;
+using Macondo.Semantic.Model;
 
 namespace Macondo.App.Models;
 
@@ -24,5 +24,8 @@ public sealed class GraphEdge
     /// <summary>Numero di riga nel sorgente in cui si origina la relazione.</summary>
     public int? Line { get; init; }
 
-    public override string ToString() => $"{Kind}: {SourceId} -> {TargetId} ({Confidence})";
+    /// <summary>Indica se l'arco connette nodi appartenenti a progetti/cartelle differenti.</summary>
+    public bool IsCrossProject { get; set; }
+
+    public override string ToString() => $"{Kind}: {SourceId} -> {TargetId} ({Confidence}){(IsCrossProject ? " [CrossProject]" : "")}";
 }

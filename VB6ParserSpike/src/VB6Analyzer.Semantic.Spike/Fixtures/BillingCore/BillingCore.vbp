@@ -1,0 +1,8 @@
+Type=OleDll
+Name="BillingCore"
+Class=Customer; Customer.cls
+Class=OrderService; OrderService.cls
+Class=OrderRepository; OrderRepository.cls
+Class=TypeResolutionAndParams; 07_TypeResolutionAndParams.cls
+Class=FieldsPropertiesConst; 06_FieldsPropertiesConst.cls
+Module=DatabaseHelper; DatabaseHelper.bas

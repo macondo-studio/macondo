@@ -16,14 +16,10 @@ public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
 
     public static void Apply(VisualCodeGraph graph)
     {
-        var project = graph.Nodes.FirstOrDefault(n => n.Kind == SymbolKind.Project);
-        if (project is null) return;
-
-        project.X = 0;
-        project.Y = 0;
-
-        var containers = graph.GetChildren(project.Id).ToList();
+        var containers = graph.Nodes.Where(n => n.IsContainer).ToList();
         if (containers.Count == 0) return;
+
+        var projects = graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
 
         // 1. Mappa nodi -> container
         var nodeToContainerMap = new Dictionary<Guid, Guid>();
@@ -124,6 +120,22 @@ public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
                     member.X = container.X + Math.Cos(memberAngle) * memberRingRadius;
                     member.Y = container.Y + Math.Sin(memberAngle) * memberRingRadius;
                 }
+            }
+        }
+
+        // Posiziona i nodi Project al centroide dei propri container
+        foreach (var proj in projects)
+        {
+            var projContainers = graph.GetChildren(proj.Id).ToList();
+            if (projContainers.Count > 0)
+            {
+                proj.X = projContainers.Average(c => c.X);
+                proj.Y = projContainers.Average(c => c.Y);
+            }
+            else
+            {
+                proj.X = 0;
+                proj.Y = 0;
             }
         }
     }

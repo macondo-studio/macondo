@@ -37,6 +37,7 @@ public partial class MainWindow : Window
     private List<BlastRadiusGridRow> _allBlastRadiusRows = new();
     private bool _isSyncingSelection;
     private string? _currentFolderPath;
+    private List<string> _currentPaths = new();
     private Layout.GraphLayoutMode _currentLayoutMode = Layout.GraphLayoutMode.StandardRadial;
     private List<VcsBranchInfo> _allVcsBranches = new();
     private AppUpdateInfo? _availableUpdate;
@@ -72,6 +73,7 @@ public partial class MainWindow : Window
 
         // Menu Bar Superiore - File (Command + Click per massima affidabilità)
         OpenFolderMenuItem.Command = new ActionCommand(async () => await OpenFolderAsync());
+        OpenProjectFilesMenuItem.Command = new ActionCommand(async () => await OpenProjectFilesAsync());
         RefreshProjectMenuItem.Command = new ActionCommand(async () => await RefreshCurrentProjectAsync());
         LoadFixturesMenuItem.Command = new ActionCommand(() => LoadDefaultFixtures());
         GenerateFakeMenuItem.Command = new ActionCommand(() => LoadSyntheticGraph());
@@ -86,6 +88,7 @@ public partial class MainWindow : Window
         ExitMenuItem.Command = new ActionCommand(() => Close());
 
         OpenFolderMenuItem.Click += async (_, _) => await OpenFolderAsync();
+        OpenProjectFilesMenuItem.Click += async (_, _) => await OpenProjectFilesAsync();
         RefreshProjectMenuItem.Click += async (_, _) => await RefreshCurrentProjectAsync();
         LoadFixturesMenuItem.Click += (_, _) => LoadDefaultFixtures();
         GenerateFakeMenuItem.Click += (_, _) => LoadSyntheticGraph();
@@ -587,27 +590,61 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Apre un selettore di cartelle per analizzare sorgenti VB6 arbitrari.
+    /// Apre un selettore di cartelle per analizzare uno o più progetti VB6 contemporaneamente.
     /// </summary>
     private async Task OpenFolderAsync()
     {
         var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Seleziona cartella con file sorgente VB6 (.cls, .bas, .frm, .ctl)",
-            AllowMultiple = false
+            Title = "Seleziona una o più cartelle contenenti file/progetti VB6",
+            AllowMultiple = true
         });
 
         if (folders.Count == 0) return;
 
-        var folderPath = folders[0].Path.LocalPath;
-        await AnalyzeAndLoadFolderAsync(folderPath);
+        var folderPaths = folders.Select(f => f.Path.LocalPath).ToList();
+        await AnalyzeAndLoadPathsAsync(folderPaths);
     }
 
     /// <summary>
-    /// Ricarica forzatamente il progetto corrente da disco, ri-eseguendo parsing e analisi e aggiornando la cache.
+    /// Apre un selettore di file per aprire direttamente uno o più file progetto (.vbp) o gruppi (.vbg).
+    /// </summary>
+    private async Task OpenProjectFilesAsync()
+    {
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Seleziona file progetto VB6 (.vbp) o file gruppo (.vbg)",
+            AllowMultiple = true,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("Progetti e Gruppi VB6 (*.vbp, *.vbg)")
+                {
+                    Patterns = new[] { "*.vbp", "*.vbg" }
+                },
+                new FilePickerFileType("Tutti i file (*.*)")
+                {
+                    Patterns = new[] { "*.*" }
+                }
+            }
+        });
+
+        if (files.Count == 0) return;
+
+        var filePaths = files.Select(f => f.Path.LocalPath).ToList();
+        await AnalyzeAndLoadPathsAsync(filePaths);
+    }
+
+    /// <summary>
+    /// Ricarica forzatamente il progetto o i progetti correnti da disco, ri-eseguendo parsing e analisi.
     /// </summary>
     private async Task RefreshCurrentProjectAsync()
     {
+        if (_currentPaths.Count > 0)
+        {
+            await AnalyzeAndLoadPathsAsync(_currentPaths, forceReanalyze: true);
+            return;
+        }
+
         var targetFolder = _currentFolderPath;
         if (string.IsNullOrEmpty(targetFolder) || !Directory.Exists(targetFolder))
         {
@@ -622,42 +659,54 @@ public partial class MainWindow : Window
             return;
         }
 
-        await AnalyzeAndLoadFolderAsync(targetFolder, forceReanalyze: true);
+        await AnalyzeAndLoadPathsAsync(new[] { targetFolder }, forceReanalyze: true);
     }
 
     /// <summary>
-    /// Esegue o ripristina da cache l'analisi dei file VB6 di una cartella con tracciamento del progresso in tempo reale.
+    /// Esegue o ripristina da cache l'analisi di una cartella.
     /// </summary>
     private async Task AnalyzeAndLoadFolderAsync(string folderPath, bool forceReanalyze = false)
     {
-        if (!Directory.Exists(folderPath)) return;
+        await AnalyzeAndLoadPathsAsync(new[] { folderPath }, forceReanalyze);
+    }
+
+    /// <summary>
+    /// Esegue o ripristina l'analisi di uno o più percorsi (cartelle, .vbp, .vbg) creando un workspace integrato.
+    /// </summary>
+    private async Task AnalyzeAndLoadPathsAsync(IReadOnlyList<string> paths, bool forceReanalyze = false)
+    {
+        if (paths.Count == 0) return;
 
         var loc = LocalizationService.Instance;
-        var folderName = Path.GetFileName(folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        var firstPath = paths[0];
+        var titleName = paths.Count == 1 
+            ? Path.GetFileName(firstPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) 
+            : $"Workspace ({paths.Count} percorsi)";
 
         // Mostra subito l'overlay di caricamento per dare feedback immediato all'utente
-        ShowLoading(loc["Loading_AnalyzeProjectTitle"], loc.Get("Loading_AnalyzeProjectSub", folderName));
+        ShowLoading(loc["Loading_AnalyzeProjectTitle"], loc.Get("Loading_AnalyzeProjectSub", titleName));
         await Task.Delay(16);
 
         try
         {
-            // 1. Tenta il ripristino ultra-rapido dalla cache locale (%APPDATA%\Macondo\cache\) se non forzato
-            if (!forceReanalyze)
+            // 1. Tenta il ripristino ultra-rapido dalla cache solo se singola cartella e non forzato
+            if (!forceReanalyze && paths.Count == 1 && Directory.Exists(firstPath))
             {
-                var cachedSnapshot = await ProjectCacheService.Instance.TryLoadSnapshotAsync(folderPath);
+                var cachedSnapshot = await ProjectCacheService.Instance.TryLoadSnapshotAsync(firstPath);
                 if (cachedSnapshot != null)
                 {
                     var (cachedGraph, cachedRows) = await Task.Run(() => ProjectCacheService.Instance.RestoreGraphAndRows(cachedSnapshot));
                     _graph = cachedGraph;
-                    _currentFolderPath = folderPath;
-                    UpdateVcsBranchStatus(folderPath);
+                    _currentFolderPath = firstPath;
+                    _currentPaths = paths.ToList();
+                    UpdateVcsBranchStatus(firstPath);
                     ApplyGraphToUI(cachedRows);
 
                     // Salva l'ultima cartella aperta nelle impostazioni
-                    SettingsService.Instance.Update(s => s.LastOpenedFolder = folderPath);
+                    SettingsService.Instance.Update(s => s.LastOpenedFolder = firstPath);
 
                     // Rileva eventuali modifiche ai sorgenti intervenute dopo il salvataggio della cache
-                    var isStale = ProjectCacheService.Instance.CheckStaleness(cachedSnapshot, folderPath);
+                    var isStale = ProjectCacheService.Instance.CheckStaleness(cachedSnapshot, firstPath);
                     if (isStale)
                     {
                         StatusText.Text = LocalizationService.Instance.Get("Status_CacheStale", cachedSnapshot.ProjectName);
@@ -678,16 +727,29 @@ public partial class MainWindow : Window
                 UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr);
             });
 
-            StatusText.Text = $"Analisi cartella '{folderPath}' in corso...";
-            _graph = await Task.Run(() => ProjectAnalysisService.AnalyzeFolder(folderPath, progress));
-            _currentFolderPath = folderPath;
-            UpdateVcsBranchStatus(folderPath);
+            StatusText.Text = $"Analisi di {paths.Count} sorgenti/progetti in corso...";
+            _graph = await Task.Run(() => ProjectAnalysisService.AnalyzePaths(paths, progress));
+            _currentFolderPath = firstPath;
+            _currentPaths = paths.ToList();
+            if (Directory.Exists(firstPath)) UpdateVcsBranchStatus(firstPath);
             ApplyGraphToUI(); // Avvierà PopulateBlastRadiusGridAsync che poi salverà la cache aggiornata
 
-            StatusText.Text = loc.Get("Status_Refreshed", folderName, _graph.Nodes.Count);
+            var projectCount = _graph.Nodes.Count(n => n.Kind == SymbolKind.Project);
+            var crossCount = _graph.Edges.Count(e => e.IsCrossProject);
+            if (projectCount > 1)
+            {
+                StatusText.Text = $"Workspace analizzato: {projectCount} Progetti, {_graph.Nodes.Count} Simboli, {crossCount} Relazioni Cross-Project.";
+            }
+            else
+            {
+                StatusText.Text = loc.Get("Status_Refreshed", titleName, _graph.Nodes.Count);
+            }
 
-            // Salva l'ultima cartella aperta nelle impostazioni
-            SettingsService.Instance.Update(s => s.LastOpenedFolder = folderPath);
+            // Salva l'ultima cartella aperta nelle impostazioni se singola cartella
+            if (paths.Count == 1 && Directory.Exists(firstPath))
+            {
+                SettingsService.Instance.Update(s => s.LastOpenedFolder = firstPath);
+            }
         }
         catch (Exception ex)
         {
@@ -1952,12 +2014,21 @@ public partial class MainWindow : Window
     {
         if (_graph is null) return;
 
+        var projectCount = _graph.Nodes.Count(n => n.Kind == SymbolKind.Project);
         var nodeCount = _graph.Nodes.Count;
         var relCount = _graph.Edges.Count;
         var callCount = _graph.Edges.Count(e => e.Kind == RelationshipKind.Calls);
         var instCount = _graph.Edges.Count(e => e.Kind == RelationshipKind.Instantiates);
+        var crossCount = _graph.Edges.Count(e => e.IsCrossProject);
 
-        StatusStats.Text = LocalizationService.Instance.Get("Status_StatsFormat", nodeCount, relCount, callCount, instCount);
+        if (projectCount > 1)
+        {
+            StatusStats.Text = $"{projectCount} Progetti | {nodeCount} Nodi | {relCount} Relazioni ({crossCount} Cross-Project) | {callCount} Chiamate | {instCount} Istanze";
+        }
+        else
+        {
+            StatusStats.Text = LocalizationService.Instance.Get("Status_StatsFormat", nodeCount, relCount, callCount, instCount);
+        }
     }
 
     private void OpenSettings()
@@ -2635,6 +2706,7 @@ public partial class MainWindow : Window
         // Menu File
         FileMenu.Header = loc["Menu_File"];
         OpenFolderMenuItem.Header = loc["Menu_OpenFolder"];
+        OpenProjectFilesMenuItem.Header = loc["Menu_OpenProjectFiles"];
         RefreshProjectMenuItem.Header = loc["Menu_RefreshProject"];
         LoadFixturesMenuItem.Header = loc["Menu_LoadFixtures"];
         GenerateFakeMenuItem.Header = loc["Menu_GenerateFake"];

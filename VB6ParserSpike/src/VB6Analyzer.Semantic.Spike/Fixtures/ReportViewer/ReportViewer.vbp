@@ -1,0 +1,8 @@
+Type=Exe
+Name="ReportViewer"
+Startup="Sub Main"
+Class=HelloWorld; 00_HelloWorld.cls
+Class=LateBindingCreateObject; 05_LateBindingCreateObject.cls
+Class=LateBindingResolution; 10_LateBindingResolution.cls
+Class=CallCycles; 14_CallCycles.cls
+Module=StandardModule; 08_StandardModule.bas

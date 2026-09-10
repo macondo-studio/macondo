@@ -1,4 +1,4 @@
-﻿using Macondo.Semantic.Model;
+using Macondo.Semantic.Model;
 
 namespace Macondo.App.Models;
 
@@ -26,6 +26,12 @@ public sealed class GraphNode
 
     /// <summary>Nodo contenitore padre nella gerarchia CONTAINS (null per il Project root).</summary>
     public Guid? ParentId { get; set; }
+
+    /// <summary>ID del progetto a cui appartiene questo nodo (se in un workspace).</summary>
+    public Guid? ProjectId { get; set; }
+
+    /// <summary>Nome del progetto a cui appartiene questo nodo.</summary>
+    public string? ProjectName { get; set; }
 
     /// <summary>Posizione X nel grafo (calcolata dal layout engine).</summary>
     public double X { get; set; }

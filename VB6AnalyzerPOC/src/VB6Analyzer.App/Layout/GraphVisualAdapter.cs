@@ -1,4 +1,4 @@
-﻿using Macondo.App.Models;
+using Macondo.App.Models;
 using Macondo.Semantic.Graph;
 using Macondo.Semantic.Model;
 
@@ -28,19 +28,9 @@ public static class GraphVisualAdapter
             Queries = new CallGraphQueries(semanticGraph)
         };
 
-        // 1. Crea il nodo radice di Progetto con ID deterministico
-        var projectNode = new GraphNode
-        {
-            Id = ProjectRootId,
-            Name = projectName,
-            QualifiedName = projectName,
-            Kind = SymbolKind.Project,
-            IsExpanded = true
-        };
-        visualGraph.Nodes.Add(projectNode);
-
-        // 2. Mappa tutti i simboli semantici in GraphNode
+        // 1. Mappa tutti i simboli semantici in GraphNode
         var nodesBySymbolId = new Dictionary<Guid, GraphNode>();
+        var projectNodes = new List<GraphNode>();
 
         foreach (var symbol in semanticGraph.Symbols)
         {
@@ -55,9 +45,39 @@ public static class GraphVisualAdapter
             };
             nodesBySymbolId[symbol.Id] = node;
             visualGraph.Nodes.Add(node);
+
+            if (symbol.Kind == SymbolKind.Project)
+            {
+                node.ProjectId = symbol.Id;
+                node.ProjectName = symbol.Name;
+                projectNodes.Add(node);
+            }
         }
 
-        // 3. Collega la gerarchia CONTAINS: assegna i ParentId
+        // Se non ci sono nodi Project semantici, crea il nodo radice sintetico
+        GraphNode defaultProjectNode;
+        if (projectNodes.Count == 0)
+        {
+            defaultProjectNode = new GraphNode
+            {
+                Id = ProjectRootId,
+                Name = projectName,
+                QualifiedName = projectName,
+                Kind = SymbolKind.Project,
+                IsExpanded = true
+            };
+            defaultProjectNode.ProjectId = defaultProjectNode.Id;
+            defaultProjectNode.ProjectName = defaultProjectNode.Name;
+            visualGraph.Nodes.Insert(0, defaultProjectNode);
+            nodesBySymbolId[defaultProjectNode.Id] = defaultProjectNode;
+            projectNodes.Add(defaultProjectNode);
+        }
+        else
+        {
+            defaultProjectNode = projectNodes[0];
+        }
+
+        // 2. Collega la gerarchia CONTAINS: assegna i ParentId
         var containsRels = semanticGraph.Relationships
             .Where(r => r.Kind == RelationshipKind.Contains)
             .ToList();
@@ -70,18 +90,18 @@ public static class GraphVisualAdapter
             }
         }
 
-        // 4. I moduli e classi di primo livello che non hanno un parent esplicito vengono agganciati al Project root
+        // 3. I moduli e classi di primo livello che non hanno un parent esplicito vengono agganciati al default project
         foreach (var node in visualGraph.Nodes)
         {
-            if (node.Id != projectNode.Id && node.ParentId == null)
+            if (node.Kind != SymbolKind.Project && node.ParentId == null)
             {
                 if (node.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module
                                  or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum)
                 {
-                    node.ParentId = projectNode.Id;
+                    node.ParentId = defaultProjectNode.Id;
                     visualGraph.Edges.Add(new GraphEdge
                     {
-                        SourceId = projectNode.Id,
+                        SourceId = defaultProjectNode.Id,
                         TargetId = node.Id,
                         Kind = RelationshipKind.Contains,
                         Confidence = ResolutionConfidence.Exact
@@ -90,16 +110,53 @@ public static class GraphVisualAdapter
             }
         }
 
-        // 5. Mappa tutte le relazioni semantiche in GraphEdge
+        // 4. Propaga ProjectId e ProjectName su tutti i nodi risalendo la gerarchia
+        foreach (var node in visualGraph.Nodes)
+        {
+            if (node.Kind == SymbolKind.Project) continue;
+
+            var curr = node;
+            while (curr.ParentId.HasValue && nodesBySymbolId.TryGetValue(curr.ParentId.Value, out var parentNode))
+            {
+                if (parentNode.Kind == SymbolKind.Project)
+                {
+                    node.ProjectId = parentNode.Id;
+                    node.ProjectName = parentNode.Name;
+                    break;
+                }
+                curr = parentNode;
+            }
+
+            if (node.ProjectId == null)
+            {
+                node.ProjectId = defaultProjectNode.Id;
+                node.ProjectName = defaultProjectNode.Name;
+            }
+        }
+
+        // 5. Mappa tutte le relazioni semantiche in GraphEdge e identifica gli archi cross-project
         foreach (var rel in semanticGraph.Relationships)
         {
+            var isCross = false;
+            if (rel.Kind != RelationshipKind.Contains &&
+                nodesBySymbolId.TryGetValue(rel.SourceId, out var srcNode) &&
+                nodesBySymbolId.TryGetValue(rel.TargetId, out var tgtNode))
+            {
+                if (srcNode.ProjectId.HasValue && tgtNode.ProjectId.HasValue &&
+                    srcNode.ProjectId.Value != tgtNode.ProjectId.Value)
+                {
+                    isCross = true;
+                }
+            }
+
             visualGraph.Edges.Add(new GraphEdge
             {
                 SourceId = rel.SourceId,
                 TargetId = rel.TargetId,
                 Kind = rel.Kind,
                 Confidence = rel.Confidence,
-                Line = rel.Line
+                Line = rel.Line,
+                IsCrossProject = isCross
             });
         }
 

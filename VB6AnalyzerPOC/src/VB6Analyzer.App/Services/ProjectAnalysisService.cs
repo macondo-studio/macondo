@@ -13,63 +13,111 @@ namespace Macondo.App.Services;
 public static class ProjectAnalysisService
 {
     /// <summary>
-    /// Analizza tutti i file sorgente VB6 (.cls, .bas, .frm, .ctl) all'interno di una cartella.
+    /// Analizza tutti i file sorgente VB6 all'interno di una cartella.
     /// </summary>
     /// <param name="folderPath">Percorso della cartella contenente i file VB6.</param>
     /// <param name="progress">Oggetto opzionale per la segnalazione dell'avanzamento in tempo reale.</param>
     public static VisualCodeGraph AnalyzeFolder(string folderPath, IProgress<ProjectAnalysisProgress>? progress = null)
     {
-        if (!Directory.Exists(folderPath))
-            throw new DirectoryNotFoundException($"Cartella non trovata: {folderPath}");
+        return AnalyzePaths(new[] { folderPath }, progress);
+    }
 
-        var files = Directory.GetFiles(folderPath, "*.*", SearchOption.AllDirectories)
-            .Where(f => f.EndsWith(".cls", StringComparison.OrdinalIgnoreCase) ||
-                        f.EndsWith(".bas", StringComparison.OrdinalIgnoreCase) ||
-                        f.EndsWith(".frm", StringComparison.OrdinalIgnoreCase) ||
-                        f.EndsWith(".ctl", StringComparison.OrdinalIgnoreCase))
-            .OrderBy(f => Path.GetFileName(f))
-            .ToList();
+    /// <summary>
+    /// Analizza molteplici cartelle, file .vbp o file .vbg all'interno di un unico workspace semantico.
+    /// </summary>
+    public static VisualCodeGraph AnalyzePaths(IReadOnlyList<string> paths, IProgress<ProjectAnalysisProgress>? progress = null)
+    {
+        var projects = ProjectDescriptor.DiscoverFromPaths(paths);
+        if (projects.Count == 0)
+        {
+            var emptySemanticGraph = new Semantic.Model.CodeGraph();
+            return GraphVisualAdapter.FromSemanticGraph(emptySemanticGraph, "Empty Workspace");
+        }
 
-        var totalFiles = files.Count;
-        var projectName = Path.GetFileName(folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        return AnalyzeProjects(projects, progress);
+    }
 
+    /// <summary>
+    /// Esegue l'analisi completa di una lista di progetti VB6 creando un unico CodeGraph unificato
+    /// con risoluzione cross-project di tipi, chiamate e istanziazioni.
+    /// </summary>
+    public static VisualCodeGraph AnalyzeProjects(IReadOnlyList<ProjectDescriptor> projects, IProgress<ProjectAnalysisProgress>? progress = null)
+    {
+        var totalFiles = projects.Sum(p => p.SourceFiles.Count);
         var semanticGraph = new Semantic.Model.CodeGraph();
         var extractionResults = new List<ModuleExtractionResult>(totalFiles);
+        var projectSymbols = new Dictionary<Guid, Symbol>();
+
+        // 1. Registra i simboli radice di ciascun Progetto
+        foreach (var proj in projects)
+        {
+            var projSymbol = new Symbol
+            {
+                Id = proj.Id,
+                Kind = SymbolKind.Project,
+                Name = proj.Name,
+                QualifiedName = proj.Name,
+                FilePath = proj.VbpPath ?? proj.FolderPath,
+                LineStart = 1,
+                LineEnd = 1
+            };
+            semanticGraph.Symbols.Add(projSymbol);
+            projectSymbols[proj.Id] = projSymbol;
+        }
 
         // Segnalazione iniziale
+        var firstFile = projects.SelectMany(p => p.SourceFiles).FirstOrDefault();
         progress?.Report(new ProjectAnalysisProgress
         {
             CurrentFileIndex = 0,
             TotalFiles = totalFiles,
-            CurrentFileName = totalFiles > 0 ? Path.GetFileName(files[0]) : string.Empty,
-            ExtractedNodesCount = 0,
-            PhaseMessage = totalFiles > 0
-                ? LocalizationService.Instance.Get("Loading_ParsingFile", Path.GetFileName(files[0]))
+            CurrentFileName = firstFile != null ? Path.GetFileName(firstFile) : string.Empty,
+            ExtractedNodesCount = semanticGraph.Symbols.Count,
+            PhaseMessage = firstFile != null
+                ? LocalizationService.Instance.Get("Loading_ParsingFile", Path.GetFileName(firstFile))
                 : LocalizationService.Instance["Loading_ResolvingTypes"]
         });
 
-        // 1. Estrazione AST e simboli per ciascun file
-        for (int i = 0; i < totalFiles; i++)
+        int processedFiles = 0;
+
+        // 2. Estrazione AST e simboli per ciascun file di ciascun progetto
+        foreach (var proj in projects)
         {
-            var file = files[i];
-            var fileName = Path.GetFileName(file);
+            var projSymbol = projectSymbols[proj.Id];
 
-            var source = File.ReadAllText(file);
-            var result = ModuleExtractor.ExtractModule(semanticGraph, fileName, source);
-            extractionResults.Add(result);
-
-            // Segnala il completamento del file corrente con il numero aggiornato di nodi/simboli estratti
-            progress?.Report(new ProjectAnalysisProgress
+            foreach (var file in proj.SourceFiles)
             {
-                CurrentFileIndex = i + 1,
-                TotalFiles = totalFiles,
-                CurrentFileName = fileName,
-                ExtractedNodesCount = semanticGraph.Symbols.Count,
-                PhaseMessage = LocalizationService.Instance.Get("Loading_ParsingFile", fileName)
-            });
+                var fileName = Path.GetFileName(file);
+                if (File.Exists(file))
+                {
+                    var source = File.ReadAllText(file);
+                    var result = ModuleExtractor.ExtractModule(semanticGraph, file, source);
+                    extractionResults.Add(result);
+
+                    // Collega il modulo al proprio progetto tramite relazione CONTAINS
+                    semanticGraph.AddContains(projSymbol, result.ModuleSymbol);
+
+                    // Imposta il QualifiedName con il prefisso del progetto se non già presente
+                    if (projects.Count > 1)
+                    {
+                        result.ModuleSymbol.QualifiedName = $"{proj.Name}.{result.ModuleSymbol.Name}";
+                    }
+                }
+
+                processedFiles++;
+
+                progress?.Report(new ProjectAnalysisProgress
+                {
+                    CurrentFileIndex = processedFiles,
+                    TotalFiles = totalFiles,
+                    CurrentFileName = fileName,
+                    ExtractedNodesCount = semanticGraph.Symbols.Count,
+                    PhaseMessage = LocalizationService.Instance.Get("Loading_ParsingFile", fileName)
+                });
+            }
         }
 
-        // 2. Risoluzione globale dei tipi (TypeResolver)
+        // 3. Risoluzione globale dei tipi (TypeResolver) su tutto il Workspace
         progress?.Report(new ProjectAnalysisProgress
         {
             CurrentFileIndex = totalFiles,
@@ -82,7 +130,7 @@ public static class ProjectAnalysisService
         var typeResolver = new TypeResolver(semanticGraph);
         typeResolver.ResolveAllTypes();
 
-        // 3. Risoluzione simboli e costruzione del Call Graph (CallGraphBuilder)
+        // 4. Risoluzione simboli e costruzione del Call Graph cross-project
         progress?.Report(new ProjectAnalysisProgress
         {
             CurrentFileIndex = totalFiles,
@@ -96,7 +144,7 @@ public static class ProjectAnalysisService
         var callGraphBuilder = new CallGraphBuilder(semanticGraph, symbolResolver);
         callGraphBuilder.BuildGraph(extractionResults);
 
-        // 4. Adattamento al modello visuale per Avalonia
+        // 5. Adattamento al modello visuale per Avalonia
         progress?.Report(new ProjectAnalysisProgress
         {
             CurrentFileIndex = totalFiles,
@@ -106,7 +154,8 @@ public static class ProjectAnalysisService
             PhaseMessage = LocalizationService.Instance["Loading_GeneratingVisualGraph"]
         });
 
-        return GraphVisualAdapter.FromSemanticGraph(semanticGraph, projectName);
+        var workspaceTitle = projects.Count == 1 ? projects[0].Name : $"Workspace ({projects.Count} Projects)";
+        return GraphVisualAdapter.FromSemanticGraph(semanticGraph, workspaceTitle);
     }
 
     /// <summary>
@@ -116,19 +165,24 @@ public static class ProjectAnalysisService
     public static VisualCodeGraph LoadDefaultFixtures(IProgress<ProjectAnalysisProgress>? progress = null)
     {
         var baseDir = AppContext.BaseDirectory;
-        var fixturesDir = Path.Combine(baseDir, "Fixtures");
-
-        if (!Directory.Exists(fixturesDir))
+        var candidates = new[]
         {
-            // Cerca nella cartella del progetto di spike se in esecuzione diretta da bin
-            var fallback = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\..\VB6ParserSpike\src\Macondo.Semantic.Spike\Fixtures"));
-            if (Directory.Exists(fallback))
-                fixturesDir = fallback;
-        }
+            Path.Combine(baseDir, "Fixtures"),
+            Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\..\VB6ParserSpike\src\VB6Analyzer.Semantic.Spike\Fixtures")),
+            Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\VB6AnalyzerPOC\src\VB6Analyzer.App\bin\Debug\net8.0\Fixtures")),
+            @".\VB6ParserSpike\src\VB6Analyzer.Semantic.Spike\Fixtures"
+        };
 
-        if (Directory.Exists(fixturesDir))
+        foreach (var dir in candidates)
         {
-            return AnalyzeFolder(fixturesDir, progress);
+            if (Directory.Exists(dir))
+            {
+                var projs = ProjectDescriptor.DiscoverFromPaths(new[] { dir });
+                if (projs.Count > 0 && projs.Any(p => p.SourceFiles.Count > 0))
+                {
+                    return AnalyzeProjects(projs, progress);
+                }
+            }
         }
 
         // Fallback minimale se nessuna cartella fixture è presente su disco

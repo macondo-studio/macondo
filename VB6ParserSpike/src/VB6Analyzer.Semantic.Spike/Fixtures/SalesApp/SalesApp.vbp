@@ -1,0 +1,10 @@
+Type=Exe
+Name="SalesApp"
+Startup="MainSalesForm"
+Form=15_UIEventsAndExpressions.frm
+Class=SetNewInstantiation; 04_SetNewInstantiation.cls
+Class=QualifiedMemberCall; 01_QualifiedMemberCall.cls
+Class=WithImplicitCall; 02_WithImplicitCall.cls
+Class=UnqualifiedCallAndCall; 03_UnqualifiedCallAndCall.cls
+Class=ScopeResolutionCaller; 09_ScopeResolutionCaller.cls
+Reference=*\ABillingCore\BillingCore.vbp

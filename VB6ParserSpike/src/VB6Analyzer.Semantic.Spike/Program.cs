@@ -42,7 +42,7 @@ internal static class Program
         var graph = new CodeGraph();
         var extractionResults = new List<ModuleExtractionResult>();
 
-        var fixtureFiles = Directory.GetFiles(fixturesDir, "*.*")
+        var fixtureFiles = Directory.GetFiles(fixturesDir, "*.*", SearchOption.AllDirectories)
             .Where(f => f.EndsWith(".cls", StringComparison.OrdinalIgnoreCase) ||
                         f.EndsWith(".bas", StringComparison.OrdinalIgnoreCase) ||
                         f.EndsWith(".frm", StringComparison.OrdinalIgnoreCase) ||

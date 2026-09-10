@@ -41,8 +41,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\VB6ParserSpike\src\VB6Analyzer.Semantic.Spike\Fixtures\*.*">
-      <Link>Fixtures\%(Filename)%(Extension)</Link>
+    <None Include="..\..\..\VB6ParserSpike\src\VB6Analyzer.Semantic.Spike\Fixtures\**\*.*">
+      <Link>Fixtures\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

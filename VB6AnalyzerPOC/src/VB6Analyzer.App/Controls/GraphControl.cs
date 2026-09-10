@@ -184,6 +184,7 @@ public sealed class GraphControl : Control
     private static readonly IPen EdgeCallerPen = new Pen(new SolidColorBrush(Color.Parse("#FF9933")), 2.5);
     private static readonly IPen EdgeCalleePen = new Pen(new SolidColorBrush(Color.Parse("#33CCFF")), 2.5);
     private static readonly IPen EdgeBlastRadiusPen = new Pen(new SolidColorBrush(Color.Parse("#FF6600")), 2.5);
+    private static readonly IPen EdgeCrossProjectPen = new Pen(new SolidColorBrush(Color.Parse("#E056FD")), 2.2, DashStyle.Dash);
     private IPen _edgeDimmedPen = new Pen(new SolidColorBrush(Color.Parse("#252532")), 0.8);
     private static readonly IPen SelectionOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#FFD700")), 3);
     private static readonly IPen TargetBlastOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#FF3344")), 3.5);
@@ -264,6 +265,10 @@ public sealed class GraphControl : Control
             {
                 pen = _edgeDimmedPen;
             }
+            else if (edge.IsCrossProject)
+            {
+                pen = EdgeCrossProjectPen;
+            }
             else
             {
                 pen = GetPenForEdgeKind(edge.Kind);
@@ -274,8 +279,8 @@ public sealed class GraphControl : Control
 
             context.DrawLine(pen, p1, p2);
 
-            // Disegna freccia direzionale su chiamate, eventi e istanziazioni o archi attivi
-            if ((isCalleeEdge || isCallerEdge || edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.HandlesEvent) && _scale > 0.25)
+            // Disegna freccia direzionale su chiamate, eventi, istanziazioni o archi attivi/cross-project
+            if ((isCalleeEdge || isCallerEdge || edge.IsCrossProject || edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.HandlesEvent) && _scale > 0.25)
             {
                 DrawArrowHead(context, pen.Brush, p1, p2, target.Radius * Math.Clamp(_scale, 0.2, 2.5));
             }

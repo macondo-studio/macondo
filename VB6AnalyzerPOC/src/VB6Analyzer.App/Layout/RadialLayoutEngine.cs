@@ -21,35 +21,51 @@ public sealed class RadialLayoutEngine : IGraphLayoutEngine
     /// </summary>
     public static void Apply(VisualCodeGraph graph)
     {
-        var project = graph.Nodes.FirstOrDefault(n => n.Kind == SymbolKind.Project);
-        if (project is null) return;
+        var projects = graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
+        if (projects.Count == 0) return;
 
-        project.X = 0;
-        project.Y = 0;
+        var isMultiProject = projects.Count > 1;
+        var projectMacroRadius = Math.Max(1200.0, projects.Count * 700.0);
 
-        var containers = graph.GetChildren(project.Id).ToList();
-        var containerCount = Math.Max(containers.Count, 1);
-
-        // Calcola il raggio dell'anello dei moduli in proporzione al numero di container
-        var containerRingRadius = Math.Max(380.0, containerCount * 35.0);
-
-        for (var i = 0; i < containers.Count; i++)
+        for (var pIdx = 0; pIdx < projects.Count; pIdx++)
         {
-            var angle = 2 * Math.PI * i / containerCount;
-            var container = containers[i];
-            container.X = Math.Cos(angle) * containerRingRadius;
-            container.Y = Math.Sin(angle) * containerRingRadius;
-
-            var members = graph.GetChildren(container.Id).ToList();
-            var memberCount = Math.Max(members.Count, 1);
-            var memberRingRadius = Math.Max(85.0, memberCount * 14.0);
-
-            for (var j = 0; j < members.Count; j++)
+            var project = projects[pIdx];
+            if (isMultiProject)
             {
-                var memberAngle = 2 * Math.PI * j / memberCount;
-                var member = members[j];
-                member.X = container.X + Math.Cos(memberAngle) * memberRingRadius;
-                member.Y = container.Y + Math.Sin(memberAngle) * memberRingRadius;
+                var projAngle = 2 * Math.PI * pIdx / projects.Count;
+                project.X = Math.Cos(projAngle) * projectMacroRadius;
+                project.Y = Math.Sin(projAngle) * projectMacroRadius;
+            }
+            else
+            {
+                project.X = 0;
+                project.Y = 0;
+            }
+
+            var containers = graph.GetChildren(project.Id).ToList();
+            var containerCount = Math.Max(containers.Count, 1);
+
+            // Calcola il raggio dell'anello dei moduli in proporzione al numero di container
+            var containerRingRadius = Math.Max(380.0, containerCount * 35.0);
+
+            for (var i = 0; i < containers.Count; i++)
+            {
+                var angle = 2 * Math.PI * i / containerCount;
+                var container = containers[i];
+                container.X = project.X + Math.Cos(angle) * containerRingRadius;
+                container.Y = project.Y + Math.Sin(angle) * containerRingRadius;
+
+                var members = graph.GetChildren(container.Id).ToList();
+                var memberCount = Math.Max(members.Count, 1);
+                var memberRingRadius = Math.Max(85.0, memberCount * 14.0);
+
+                for (var j = 0; j < members.Count; j++)
+                {
+                    var memberAngle = 2 * Math.PI * j / memberCount;
+                    var member = members[j];
+                    member.X = container.X + Math.Cos(memberAngle) * memberRingRadius;
+                    member.Y = container.Y + Math.Sin(memberAngle) * memberRingRadius;
+                }
             }
         }
     }
