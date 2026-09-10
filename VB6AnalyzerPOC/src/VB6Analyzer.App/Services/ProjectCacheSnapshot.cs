@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Macondo.Semantic.Impact;
 using Macondo.Semantic.Model;
@@ -60,6 +60,7 @@ public sealed class NodeLayoutSnapshot
 public sealed class BlastRadiusRowSnapshot
 {
     public Guid NodeId { get; set; }
+    public string ProjectName { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string QualifiedName { get; set; } = string.Empty;
     public string ContainerName { get; set; } = string.Empty;

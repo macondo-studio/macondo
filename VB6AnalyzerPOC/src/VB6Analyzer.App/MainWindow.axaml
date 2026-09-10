@@ -1055,6 +1055,11 @@
                                   SelectionChanged="OnGridRowSelectionChanged"
                                   DoubleTapped="OnGridRowDoubleTapped">
                             <DataGrid.Columns>
+                                <!-- Progetto / Workspace -->
+                                <DataGridTextColumn Header="Progetto"
+                                                    Binding="{Binding ProjectName}"
+                                                    Width="1.2*" />
+
                                 <!-- Simbolo / Routine -->
                                 <DataGridTextColumn Header="Routine / Simbolo"
                                                     Binding="{Binding Name}"

@@ -115,7 +115,7 @@ public sealed class LocalizationService
 
         // Griglia Toolbar
         ["Grid_FilterLabel"] = "Filtra:",
-        ["Grid_FilterWatermark"] = "Nome routine o modulo...",
+        ["Grid_FilterWatermark"] = "Nome routine, modulo o progetto...",
         ["Grid_RiskLabel"] = "Rischio:",
         ["Grid_AllRisks"] = "Tutti i Livelli",
         ["Grid_Recalculate"] = "Ricalcola Audit",
@@ -123,6 +123,7 @@ public sealed class LocalizationService
         ["Grid_Calculating"] = "Calcolo audit in corso per {0} routine...",
 
         // Griglia Colonne
+        ["Col_Project"] = "Progetto",
         ["Col_Routine"] = "Routine / Simbolo",
         ["Col_Module"] = "Modulo / Container",
         ["Col_DirectCallers"] = "Chiamanti Diretti",
@@ -399,7 +400,7 @@ public sealed class LocalizationService
 
         // Grid Toolbar
         ["Grid_FilterLabel"] = "Filter:",
-        ["Grid_FilterWatermark"] = "Routine or module name...",
+        ["Grid_FilterWatermark"] = "Routine, module or project name...",
         ["Grid_RiskLabel"] = "Risk:",
         ["Grid_AllRisks"] = "All Risk Levels",
         ["Grid_Recalculate"] = "Recalculate Audit",
@@ -407,6 +408,7 @@ public sealed class LocalizationService
         ["Grid_Calculating"] = "Calculating audit for {0} routines...",
 
         // Grid Columns
+        ["Col_Project"] = "Project",
         ["Col_Routine"] = "Routine / Symbol",
         ["Col_Module"] = "Module / Container",
         ["Col_DirectCallers"] = "Direct Callers",

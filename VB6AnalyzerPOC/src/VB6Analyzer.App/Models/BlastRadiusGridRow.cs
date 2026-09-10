@@ -15,6 +15,9 @@ public sealed class BlastRadiusGridRow
     /// <summary>ID univoco del nodo corrispondente nel grafo visuale.</summary>
     public required Guid NodeId { get; init; }
 
+    /// <summary>Nome del progetto o workspace di appartenenza (es. "BillingCore", "SalesApp").</summary>
+    public required string ProjectName { get; init; }
+
     /// <summary>Nome semplice del simbolo (es. "Execute", "Save").</summary>
     public required string Name { get; init; }
 

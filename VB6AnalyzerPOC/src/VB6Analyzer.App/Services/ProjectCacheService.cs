@@ -138,6 +138,7 @@ public sealed class ProjectCacheService
             {
                 TargetSymbol = targetSym,
                 NodeId = r.NodeId,
+                ProjectName = string.IsNullOrEmpty(r.ProjectName) ? snapshot.ProjectName : r.ProjectName,
                 Name = r.Name,
                 QualifiedName = r.QualifiedName,
                 ContainerName = r.ContainerName,
@@ -188,6 +189,7 @@ public sealed class ProjectCacheService
                 BlastRadiusRows = rows.Select(r => new BlastRadiusRowSnapshot
                 {
                     NodeId = r.NodeId,
+                    ProjectName = r.ProjectName,
                     Name = r.Name,
                     QualifiedName = r.QualifiedName,
                     ContainerName = r.ContainerName,

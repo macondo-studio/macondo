@@ -1835,6 +1835,7 @@ public partial class MainWindow : Window
                     {
                         TargetSymbol = sym,
                         NodeId = node.Id,
+                        ProjectName = node.ProjectName ?? "(predefinito)",
                         Name = sym.Name,
                         QualifiedName = sym.QualifiedName,
                         ContainerName = containerName,
@@ -1885,6 +1886,7 @@ public partial class MainWindow : Window
             query = query.Where(r =>
                 r.Name.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
                 r.ContainerName.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
+                r.ProjectName.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
                 r.QualifiedName.Contains(filterText, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -2871,17 +2873,18 @@ public partial class MainWindow : Window
         }
 
         // DataGrid Colonne
-        if (BlastRadiusDataGrid?.Columns.Count >= 9)
+        if (BlastRadiusDataGrid?.Columns.Count >= 10)
         {
-            BlastRadiusDataGrid.Columns[0].Header = loc["Col_Routine"];
-            BlastRadiusDataGrid.Columns[1].Header = loc["Col_Module"];
-            BlastRadiusDataGrid.Columns[2].Header = loc["Col_DirectCallers"];
-            BlastRadiusDataGrid.Columns[3].Header = loc["Col_IndirectCallers"];
-            BlastRadiusDataGrid.Columns[4].Header = loc["Col_Depth"];
-            BlastRadiusDataGrid.Columns[5].Header = loc["Col_Risk"];
-            BlastRadiusDataGrid.Columns[6].Header = loc["Col_Forms"];
-            BlastRadiusDataGrid.Columns[7].Header = loc["Col_TotalImpact"];
-            BlastRadiusDataGrid.Columns[8].Header = loc["Col_Action"];
+            BlastRadiusDataGrid.Columns[0].Header = loc["Col_Project"];
+            BlastRadiusDataGrid.Columns[1].Header = loc["Col_Routine"];
+            BlastRadiusDataGrid.Columns[2].Header = loc["Col_Module"];
+            BlastRadiusDataGrid.Columns[3].Header = loc["Col_DirectCallers"];
+            BlastRadiusDataGrid.Columns[4].Header = loc["Col_IndirectCallers"];
+            BlastRadiusDataGrid.Columns[5].Header = loc["Col_Depth"];
+            BlastRadiusDataGrid.Columns[6].Header = loc["Col_Risk"];
+            BlastRadiusDataGrid.Columns[7].Header = loc["Col_Forms"];
+            BlastRadiusDataGrid.Columns[8].Header = loc["Col_TotalImpact"];
+            BlastRadiusDataGrid.Columns[9].Header = loc["Col_Action"];
         }
 
         // Inspector
