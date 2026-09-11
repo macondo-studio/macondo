@@ -45,6 +45,11 @@
                                     </MenuItem.Icon>
                                 </MenuItem>
                             </MenuItem>
+                            <MenuItem x:Name="RecentProjectsMenuItem" Header="Recenti">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconHistory}" Width="14" Height="14" Foreground="#A78BFA" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                             <MenuItem x:Name="RefreshProjectMenuItem" Header="Ricarica Progetto Corrente" InputGesture="Ctrl+R">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconRefresh}" Width="14" Height="14" Foreground="#4AE8D0" />

@@ -65,4 +65,18 @@ public sealed class AppSettings
 
     /// <summary>Indica se abilitare la selezione/ispezione automatica dei nodi al passaggio del cursore del mouse (Hover).</summary>
     public bool EnableHoverSelection { get; set; } = true;
+
+    /// <summary>Elenco degli ultimi progetti o cartelle analizzati (massimo 10 elementi).</summary>
+    public List<RecentProjectItem> RecentProjects { get; set; } = new();
+}
+
+/// <summary>
+/// Informazioni su un progetto o cartella precedentemente analizzato memorizzato nella cronologia recenti.
+/// </summary>
+public sealed class RecentProjectItem
+{
+    public List<string> Paths { get; set; } = new();
+    public string DisplayName { get; set; } = string.Empty;
+    public bool IsFolder { get; set; }
+    public DateTime LastOpenedUtc { get; set; } = DateTime.UtcNow;
 }

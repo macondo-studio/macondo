@@ -810,8 +810,9 @@ public partial class MainWindow : Window
                     UpdateVcsBranchStatus(firstPath);
                     ApplyGraphToUI(cachedRows);
 
-                    // Salva l'ultima cartella aperta nelle impostazioni
+                    // Salva l'ultima cartella aperta nelle impostazioni e aggiunge ai recenti
                     SettingsService.Instance.Update(s => s.LastOpenedFolder = firstPath);
+                    AddToRecentProjects(paths);
 
                     // Rileva eventuali modifiche ai sorgenti intervenute dopo il salvataggio della cache
                     var isStale = ProjectCacheService.Instance.CheckStaleness(cachedSnapshot, firstPath);
@@ -854,11 +855,12 @@ public partial class MainWindow : Window
                 StatusText.Text = loc.Get("Status_Refreshed", titleName, _graph.Nodes.Count);
             }
 
-            // Salva l'ultima cartella aperta nelle impostazioni se singola cartella
+            // Salva l'ultima cartella aperta nelle impostazioni se singola cartella e aggiunge ai recenti
             if (paths.Count == 1 && Directory.Exists(firstPath))
             {
                 SettingsService.Instance.Update(s => s.LastOpenedFolder = firstPath);
             }
+            AddToRecentProjects(paths);
         }
         catch (OperationCanceledException)
         {
@@ -872,6 +874,123 @@ public partial class MainWindow : Window
         {
             HideLoading();
         }
+    }
+
+    /// <summary>
+    /// Aggiunge un progetto, file o cartella alla lista dei progetti recenti e aggiorna il menu.
+    /// </summary>
+    private void AddToRecentProjects(IReadOnlyList<string> paths)
+    {
+        if (paths.Count == 0) return;
+
+        SettingsService.Instance.Update(settings =>
+        {
+            var isFolder = paths.Count == 1 && Directory.Exists(paths[0]);
+            var firstPath = paths[0];
+            var displayName = paths.Count == 1
+                ? Path.GetFileName(firstPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+                : $"Workspace ({paths.Count} percorsi)";
+
+            if (string.IsNullOrEmpty(displayName))
+            {
+                displayName = firstPath;
+            }
+
+            // Rimuovi se già presente
+            settings.RecentProjects.RemoveAll(r => r.Paths.SequenceEqual(paths, StringComparer.OrdinalIgnoreCase));
+
+            // Inserisci in cima
+            settings.RecentProjects.Insert(0, new RecentProjectItem
+            {
+                Paths = paths.ToList(),
+                DisplayName = displayName,
+                IsFolder = isFolder,
+                LastOpenedUtc = DateTime.UtcNow
+            });
+
+            // Tieni solo gli ultimi 10
+            if (settings.RecentProjects.Count > 10)
+            {
+                settings.RecentProjects = settings.RecentProjects.Take(10).ToList();
+            }
+        });
+
+        UpdateRecentProjectsMenu();
+    }
+
+    /// <summary>
+    /// Ricostruisce dinamicamente il sottomenu "Recenti" nel menu File con gli ultimi 10 elementi.
+    /// </summary>
+    private void UpdateRecentProjectsMenu()
+    {
+        var loc = LocalizationService.Instance;
+        RecentProjectsMenuItem.Header = loc["Menu_Recent"];
+        RecentProjectsMenuItem.Items.Clear();
+
+        var recentList = SettingsService.Instance.Settings.RecentProjects;
+        if (recentList.Count == 0)
+        {
+            var emptyItem = new MenuItem
+            {
+                Header = loc["Menu_NoRecentProjects"],
+                IsEnabled = false
+            };
+            RecentProjectsMenuItem.Items.Add(emptyItem);
+            return;
+        }
+
+        foreach (var recent in recentList)
+        {
+            var iconKey = recent.IsFolder ? "IconFolder" : "IconFile";
+            var iconColor = recent.IsFolder ? "#D4A72C" : "#6366F1";
+
+            var item = new MenuItem
+            {
+                Header = recent.DisplayName,
+                Tag = recent.Paths
+            };
+            ToolTip.SetTip(item, string.Join(Environment.NewLine, recent.Paths));
+
+            if (this.TryFindResource(iconKey, out var res) && res is StreamGeometry geo)
+            {
+                item.Icon = new PathIcon
+                {
+                    Data = geo,
+                    Width = 14,
+                    Height = 14,
+                    Foreground = Color.TryParse(iconColor, out var c) ? new SolidColorBrush(c) : Brushes.DodgerBlue
+                };
+            }
+
+            var capturedPaths = recent.Paths.ToList();
+            item.Click += async (_, _) =>
+            {
+                await AnalyzeAndLoadPathsAsync(capturedPaths);
+            };
+
+            RecentProjectsMenuItem.Items.Add(item);
+        }
+
+        RecentProjectsMenuItem.Items.Add(new Separator());
+        var clearItem = new MenuItem
+        {
+            Header = loc["Menu_ClearRecentProjects"]
+        };
+        if (this.TryFindResource("IconClearFilter", out var clearRes) && clearRes is StreamGeometry clearGeo)
+        {
+            clearItem.Icon = new PathIcon
+            {
+                Data = clearGeo,
+                Width = 12,
+                Height = 12
+            };
+        }
+        clearItem.Click += (_, _) =>
+        {
+            SettingsService.Instance.Update(s => s.RecentProjects.Clear());
+            UpdateRecentProjectsMenu();
+        };
+        RecentProjectsMenuItem.Items.Add(clearItem);
     }
 
     /// <summary>
@@ -3023,6 +3142,7 @@ public partial class MainWindow : Window
         SetLayoutMode(defaultSettings.PreferredLayout);
         SetExplorerVisibility(true);
         SetInspectorVisibility(true);
+        UpdateRecentProjectsMenu();
         StatusText.Text = LocalizationService.Instance["Status_SettingsReset"];
     }
 
@@ -3042,6 +3162,7 @@ public partial class MainWindow : Window
         OpenSubMenu.Header = loc["Menu_Open"];
         OpenProjectFilesMenuItem.Header = loc["Menu_OpenProjectFiles"];
         OpenFolderMenuItem.Header = loc["Menu_OpenFolder"];
+        UpdateRecentProjectsMenu();
         RefreshProjectMenuItem.Header = loc["Menu_RefreshProject"];
         LoadFixturesMenuItem.Header = loc["Menu_LoadFixtures"];
         GenerateFakeMenuItem.Header = loc["Menu_GenerateFake"];
