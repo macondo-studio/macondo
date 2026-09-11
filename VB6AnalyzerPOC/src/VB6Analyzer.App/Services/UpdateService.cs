@@ -49,13 +49,8 @@ public sealed class UpdateService
     public static readonly string CurrentVersionString = "1.0.0";
 
     // =========================================================================================
-    // TODO: CONFIGURAZIONE SERVER AGGIORNAMENTI
-    // Inserire qui l'URL del server / endpoint da cui scaricare il manifesto di aggiornamento o la release.
-    // Esempi di architetture supportate:
-    //   1. Endpoint REST/JSON personalizzato (es. "https://update.example.com/vb6analyzer/version.json")
-    //   2. GitHub Releases API (es. "https://api.github.com/repos/macondo-studio/Vb6Analyzer/releases/latest")
-    // =========================================================================================
-    public string? UpdateEndpointUrl { get; set; } = null; // TODO: Impostare l'URL quando il server sarà online
+    // Endpoint ufficiale per il download del manifesto di aggiornamento (version.json)
+    public string? UpdateEndpointUrl { get; set; } = "https://macondo-studio.github.io/macondo/version.json";
 
     private readonly HttpClient _httpClient;
 

@@ -4,56 +4,56 @@
       <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#000000" flood-opacity="0.6"/>
     </filter>
 
-    <!-- Top Arm (Green) -->
+    <!-- Top Arm (Bright to Vibrant Emerald) -->
     <linearGradient id="g-top-left" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#12e886"/>
       <stop offset="60%" stop-color="#05c872"/>
       <stop offset="100%" stop-color="#00a86b"/>
     </linearGradient>
     <linearGradient id="g-top-right" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00d68f"/>
-      <stop offset="50%" stop-color="#00b4d8"/>
-      <stop offset="100%" stop-color="#0096c7"/>
+      <stop offset="0%" stop-color="#05c872"/>
+      <stop offset="50%" stop-color="#00a86b"/>
+      <stop offset="100%" stop-color="#047857"/>
     </linearGradient>
 
-    <!-- Right Arm (Teal to Blue) -->
+    <!-- Right Arm (Medium to Forest Green) -->
     <linearGradient id="g-right-top" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#00e5ff"/>
-      <stop offset="50%" stop-color="#00b4d8"/>
-      <stop offset="100%" stop-color="#0077b6"/>
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="50%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#047857"/>
     </linearGradient>
     <linearGradient id="g-right-bottom" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#0096c7"/>
-      <stop offset="60%" stop-color="#2563eb"/>
-      <stop offset="100%" stop-color="#1d4ed8"/>
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="60%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#064e3b"/>
     </linearGradient>
 
-    <!-- Bottom Arm (Royal & Deep Blue) -->
+    <!-- Bottom Arm (Deep Forest to Dark Emerald) -->
     <linearGradient id="g-bottom-right" x1="100%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" stop-color="#1d4ed8"/>
-      <stop offset="60%" stop-color="#1e40af"/>
-      <stop offset="100%" stop-color="#111c44"/>
+      <stop offset="0%" stop-color="#047857"/>
+      <stop offset="60%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#022c22"/>
     </linearGradient>
     <linearGradient id="g-bottom-left" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#3b82f6"/>
-      <stop offset="50%" stop-color="#2563eb"/>
-      <stop offset="100%" stop-color="#1d4ed8"/>
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="50%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#064e3b"/>
     </linearGradient>
 
-    <!-- Left Arm (Blue to Cyan) -->
+    <!-- Left Arm (Forest to Bright Emerald) -->
     <linearGradient id="g-left-bottom" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#2563eb"/>
-      <stop offset="60%" stop-color="#0284c7"/>
-      <stop offset="100%" stop-color="#0369a1"/>
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="60%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#065f46"/>
     </linearGradient>
     <linearGradient id="g-left-top" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0096c7"/>
-      <stop offset="60%" stop-color="#00e5ff"/>
-      <stop offset="100%" stop-color="#12e886"/>
+      <stop offset="0%" stop-color="#05c872"/>
+      <stop offset="60%" stop-color="#12e886"/>
+      <stop offset="100%" stop-color="#22e88a"/>
     </linearGradient>
   </defs>
 
-  <g transform="translate(512, 512)">
+  <g transform="translate(512, 505) scale(1.17)">
     <!-- 1. Left arm bottom layer -->
     <path d="M -410,0 C -300,55 -200,120 -140,140 C -85,155 -30,120 0,65 C -65,100 -125,75 -195,0 Z"
           fill="url(#g-left-bottom)" />
