@@ -73,8 +73,8 @@ public partial class MainWindow : Window
         UpdateNowButton.Click += (_, _) => ApplyUpdateAndOpenDownload();
 
         // Menu Bar Superiore - File (Command + Click per massima affidabilità)
-        OpenFolderMenuItem.Command = new ActionCommand(async () => await OpenFolderAsync());
         OpenProjectFilesMenuItem.Command = new ActionCommand(async () => await OpenProjectFilesAsync());
+        OpenFolderMenuItem.Command = new ActionCommand(async () => await OpenFolderAsync());
         RefreshProjectMenuItem.Command = new ActionCommand(async () => await RefreshCurrentProjectAsync());
         LoadFixturesMenuItem.Command = new ActionCommand(() => LoadDefaultFixtures());
         GenerateFakeMenuItem.Command = new ActionCommand(() => LoadSyntheticGraph());
@@ -88,8 +88,13 @@ public partial class MainWindow : Window
         ClearCacheMenuItem.Command = new ActionCommand(ClearProjectCache);
         ExitMenuItem.Command = new ActionCommand(() => Close());
 
-        OpenFolderMenuItem.Click += async (_, _) => await OpenFolderAsync();
         OpenProjectFilesMenuItem.Click += async (_, _) => await OpenProjectFilesAsync();
+        OpenFolderMenuItem.Click += async (_, _) => await OpenFolderAsync();
+
+        // Drag & Drop di file e cartelle direttamente sull'intera finestra
+        AddHandler(DragDrop.DropEvent, OnWindowDrop);
+        AddHandler(DragDrop.DragOverEvent, OnWindowDragOver);
+
         RefreshProjectMenuItem.Click += async (_, _) => await RefreshCurrentProjectAsync();
         LoadFixturesMenuItem.Click += (_, _) => LoadDefaultFixtures();
         GenerateFakeMenuItem.Click += (_, _) => LoadSyntheticGraph();
@@ -215,6 +220,16 @@ public partial class MainWindow : Window
             {
                 SearchBox.Focus();
                 SearchBox.SelectAll();
+                e.Handled = true;
+            }
+            else if ((e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift | KeyModifiers.Alt)) && e.Key == Key.O)
+            {
+                _ = OpenFolderAsync();
+                e.Handled = true;
+            }
+            else if ((e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift)) && e.Key == Key.O)
+            {
+                _ = OpenProjectFilesAsync();
                 e.Handled = true;
             }
             else if (e.KeyModifiers == KeyModifiers.Control && e.Key == Key.O)
@@ -629,6 +644,42 @@ public partial class MainWindow : Window
         finally
         {
             HideLoading();
+        }
+    }
+
+
+
+    /// <summary>
+    /// Gestione Drag & Drop: Accetta file o cartelle trascinate sulla finestra.
+    /// </summary>
+    private void OnWindowDragOver(object? sender, DragEventArgs e)
+    {
+        if (e.Data.Contains(DataFormats.Files))
+        {
+            e.DragEffects = DragDropEffects.Copy;
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>
+    /// Gestione Drag & Drop: Riceve i file/cartelle rilasciati ed avvia l'analisi immediata.
+    /// </summary>
+    private async void OnWindowDrop(object? sender, DragEventArgs e)
+    {
+        if (e.Data.Contains(DataFormats.Files))
+        {
+            var items = e.Data.GetFiles();
+            if (items != null)
+            {
+                var paths = items
+                    .Select(i => i.Path.LocalPath)
+                    .Where(p => !string.IsNullOrEmpty(p))
+                    .ToList();
+                if (paths.Count > 0)
+                {
+                    await AnalyzeAndLoadPathsAsync(paths);
+                }
+            }
         }
     }
 
@@ -2951,8 +3002,9 @@ public partial class MainWindow : Window
 
         // Menu File
         FileMenu.Header = loc["Menu_File"];
-        OpenFolderMenuItem.Header = loc["Menu_OpenFolder"];
+        OpenSubMenu.Header = loc["Menu_Open"];
         OpenProjectFilesMenuItem.Header = loc["Menu_OpenProjectFiles"];
+        OpenFolderMenuItem.Header = loc["Menu_OpenFolder"];
         RefreshProjectMenuItem.Header = loc["Menu_RefreshProject"];
         LoadFixturesMenuItem.Header = loc["Menu_LoadFixtures"];
         GenerateFakeMenuItem.Header = loc["Menu_GenerateFake"];
@@ -3178,6 +3230,8 @@ public partial class MainWindow : Window
 
         // Overlay Caricamento
         LoadingCancelButton.Content = loc["Loading_Cancel"];
+
+
 
         // Refresh dynamic strings in Grid and Status
         UpdateStatsBar();

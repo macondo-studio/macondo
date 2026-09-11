@@ -10,7 +10,8 @@
         Background="{DynamicResource ThemeBackgroundPrimaryBrush}"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="NoChrome"
-        ExtendClientAreaTitleBarHeightHint="-1">
+        ExtendClientAreaTitleBarHeightHint="-1"
+        DragDrop.AllowDrop="True">
 
     <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="{Binding $parent[Window].OffScreenMargin}">
 
@@ -29,15 +30,20 @@
 
                     <Menu Background="Transparent">
                         <MenuItem x:Name="FileMenu" Header="_File">
-                            <MenuItem x:Name="OpenFolderMenuItem" Header="Apri Cartella VB6..." InputGesture="Ctrl+O">
+                            <MenuItem x:Name="OpenSubMenu" Header="Apri">
                                 <MenuItem.Icon>
-                                    <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" />
+                                    <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#D4A72C" />
                                 </MenuItem.Icon>
-                            </MenuItem>
-                            <MenuItem x:Name="OpenProjectFilesMenuItem" Header="Apri Progetti / Gruppo (.vbp, .vbg)..." InputGesture="Ctrl+Shift+O">
-                                <MenuItem.Icon>
-                                    <PathIcon Data="{StaticResource IconFile}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
-                                </MenuItem.Icon>
+                                <MenuItem x:Name="OpenProjectFilesMenuItem" Header="Progetto / Gruppo..." InputGesture="Ctrl+Shift+O">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconFile}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="OpenFolderMenuItem" Header="Cartella..." InputGesture="Ctrl+Shift+Alt+O">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#D4A72C" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
                             </MenuItem>
                             <MenuItem x:Name="RefreshProjectMenuItem" Header="Ricarica Progetto Corrente" InputGesture="Ctrl+R">
                                 <MenuItem.Icon>
@@ -1487,6 +1493,8 @@
                 </StackPanel>
             </Border>
         </Grid>
+
+
 
         <!-- Overlay Modale Aggiornamento Disponibile -->
         <Grid x:Name="UpdateOverlay" Grid.Row="0" Grid.RowSpan="4"
