@@ -82,7 +82,7 @@ public partial class MainWindow : Window
         ExportJsonMenuItem.Command = new ActionCommand(async () => await ExportJsonAsync());
         ImportJsonMenuItem.Command = new ActionCommand(async () => await ImportJsonAsync());
         ExportSliceMenuItem.Command = new ActionCommand(async () => await ExportLlmSliceAsync());
-        SettingsMenuItem.Command = new ActionCommand(OpenSettings);
+        SettingsMenuItem.Command = new ActionCommand(() => OpenSettings());
         CheckUpdatesMenuItem.Command = new ActionCommand(async () => await CheckForUpdatesManualAsync());
         ResetSettingsMenuItem.Command = new ActionCommand(ResetSettingsToDefaults);
         ClearCacheMenuItem.Command = new ActionCommand(ClearProjectCache);
@@ -210,7 +210,7 @@ public partial class MainWindow : Window
         SearchBox.GotFocus += (_, _) =>
         {
             var query = SearchBox.Text?.Trim();
-            if (!string.IsNullOrEmpty(query) && SearchResultsList.ItemsSource is IList<GraphNode> { Count: > 1 })
+            if (!string.IsNullOrEmpty(query) && SearchResultsList.ItemsSource is IList<SearchResultItem> { Count: > 0 })
             {
                 SearchResultsPopup.IsOpen = true;
             }
@@ -1833,10 +1833,209 @@ public partial class MainWindow : Window
         return filePath;
     }
 
+    private record AppSearchTarget(string Title, string Subtitle, string BadgeText, SearchResultCategory Category, string[] Keywords, Action Action);
+
+    private List<AppSearchTarget> GetAppSearchTargets()
+    {
+        var loc = LocalizationService.Instance;
+        var isEn = loc.CurrentLanguage == AppLanguage.English;
+
+        return new List<AppSearchTarget>
+        {
+            // --- SCHERMATE DI IMPOSTAZIONI ---
+            new AppSearchTarget(
+                isEn ? "Settings" : "Impostazioni",
+                isEn ? "Open application settings and preferences (Ctrl+,)" : "Apri il pannello delle impostazioni e preferenze (Ctrl+,)",
+                isEn ? "Settings" : "Impostazioni",
+                SearchResultCategory.Settings,
+                new[] { "impostazioni", "settings", "preferenze", "configurazione", "opzioni", "config", "preferences" },
+                () => OpenSettings(0)),
+
+            new AppSearchTarget(
+                isEn ? "Settings: Appearance & Themes" : "Impostazioni: Aspetto & Temi",
+                isEn ? "Change visual theme (Dark Modern, Midnight Blue, Dracula, Light)" : "Personalizza il tema grafico (Dark Modern, Midnight Blue, Dracula, Light)",
+                isEn ? "Settings" : "Impostazioni",
+                SearchResultCategory.Settings,
+                new[] { "tema", "temi", "aspetto", "colori", "theme", "dark", "light", "dracula", "midnight" },
+                () => OpenSettings(0)),
+
+            new AppSearchTarget(
+                isEn ? "Settings: Language" : "Impostazioni: Lingua",
+                isEn ? "Change application language (Italiano, English)" : "Cambia lingua dell'interfaccia (Italiano, English)",
+                isEn ? "Settings" : "Impostazioni",
+                SearchResultCategory.Settings,
+                new[] { "lingua", "language", "italiano", "inglese", "english", "traduzione", "localizzazione" },
+                () => OpenSettings(1)),
+
+            new AppSearchTarget(
+                isEn ? "Settings: Behavior" : "Impostazioni: Comportamento",
+                isEn ? "Configure hover selection and UI interaction" : "Configura selezione al passaggio del mouse e interazioni UI",
+                isEn ? "Settings" : "Impostazioni",
+                SearchResultCategory.Settings,
+                new[] { "comportamento", "behavior", "hover", "mouse", "interazione", "selezione" },
+                () => OpenSettings(2)),
+
+            new AppSearchTarget(
+                isEn ? "Settings: Keyboard Shortcuts" : "Impostazioni: Scorciatoie da Tastiera",
+                isEn ? "View all available keyboard shortcuts and keybindings" : "Elenco completo delle scorciatoie da tastiera e combinazioni di tasti",
+                isEn ? "Settings" : "Impostazioni",
+                SearchResultCategory.Settings,
+                new[] { "scorciatoie", "shortcuts", "tasti", "tastiera", "keyboard", "hotkeys", "comandi" },
+                () => OpenSettings(3)),
+
+            // --- VISTE CENTRALI ---
+            new AppSearchTarget(
+                isEn ? "View: Dependency Graph" : "Vista: Grafo delle Dipendenze",
+                isEn ? "Interactive node-link graph showing calls and relationships" : "Grafo interattivo delle relazioni e chiamate tra classi, moduli e form",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "grafo", "graph", "dipendenze", "relazioni", "chiamate", "nodi", "dependencies" },
+                () => CentralTabControl.SelectedIndex = 0),
+
+            new AppSearchTarget(
+                isEn ? "View: DSM Matrix" : "Vista: Matrice DSM",
+                isEn ? "Dependency Structure Matrix for coupling and cycle analysis" : "Matrice delle dipendenze per analisi di accoppiamento e cicli",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "dsm", "matrice", "matrix", "cicli", "accoppiamento", "struttura" },
+                () => CentralTabControl.SelectedIndex = 1),
+
+            new AppSearchTarget(
+                isEn ? "View: Treemap" : "Vista: Treemap Gerarchica",
+                isEn ? "Proportional metric treemap by LOC size and complexity" : "Mappa ad albero gerarchica proporzionale per righe di codice e complessità",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "treemap", "albero", "loc", "complessita", "dimensioni", "metriche", "size" },
+                () => CentralTabControl.SelectedIndex = 2),
+
+            new AppSearchTarget(
+                isEn ? "View: Hotspot Risk Matrix" : "Vista: Matrice Hotspot",
+                isEn ? "4-Quadrant risk matrix (Complexity vs Churn / Fan-In)" : "Grafico cartesiano a 4 quadranti per individuare componenti ad alto rischio",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "hotspot", "rischio", "fan-in", "churn", "criticita", "risk" },
+                () => CentralTabControl.SelectedIndex = 3),
+
+            new AppSearchTarget(
+                isEn ? "View: Screen Flow" : "Vista: Flusso Schermate",
+                isEn ? "UI form navigation diagram, modal dialogs and screen transitions" : "Diagramma di flusso e navigazione tra Form, finestre e dialoghi UI",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "flusso schermate", "screenflow", "schermate", "form", "finestre", "dialoghi", "ui", "screens", "flow" },
+                () => CentralTabControl.SelectedIndex = 4),
+
+            new AppSearchTarget(
+                isEn ? "View: Control Flow Graph (CFG)" : "Vista: Control Flow Graph (CFG)",
+                isEn ? "Control flow graph of routines, branching and basic blocks" : "Grafo del flusso di controllo per Sub, Function e Property",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "control flow", "cfg", "flusso controllo", "blocchi", "rami", "routine" },
+                () => CentralTabControl.SelectedIndex = 5),
+
+            new AppSearchTarget(
+                isEn ? "View: Blast Radius Grid" : "Vista: Griglia Blast Radius",
+                isEn ? "Tabular impact assessment and blast radius details" : "Tabella di analisi impatto e raggio d'azione per le modifiche",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "blast radius", "impatto", "griglia", "tabella", "modifiche", "impact" },
+                () => CentralTabControl.SelectedIndex = 6),
+
+            // --- GUIDA & INFORMAZIONI ---
+            new AppSearchTarget(
+                isEn ? "Help: Concepts & Guide" : "Guida: Concetti & Documentazione",
+                isEn ? "Open architecture and analysis concepts manual (F1)" : "Consulta la guida completa e i concetti architettonici (F1)",
+                isEn ? "Help" : "Guida",
+                SearchResultCategory.Help,
+                new[] { "guida", "help", "aiuto", "info", "manuale", "documentazione", "concetti" },
+                () => OpenInfo(0)),
+
+            new AppSearchTarget(
+                isEn ? "Help: Graph Layouts" : "Guida: Disposizioni del Grafo",
+                isEn ? "Learn about Radial, Islands, and Force-Directed layout engines" : "Approfondimento sugli algoritmi di layout (Radiale, Isole, Force-Directed)",
+                isEn ? "Help" : "Guida",
+                SearchResultCategory.Help,
+                new[] { "guida layout", "disposizioni", "algoritmi", "layout info" },
+                () => OpenInfo(1)),
+
+            new AppSearchTarget(
+                isEn ? "Help: Metrics & Hotspots" : "Guida: Metriche & Hotspot",
+                isEn ? "How to interpret cyclomatic complexity, churn, and hotspot risk" : "Come interpretare complessità ciclomantica, churn e rischio hotspot",
+                isEn ? "Help" : "Guida",
+                SearchResultCategory.Help,
+                new[] { "guida metriche", "guida hotspot", "complessita spiegazione" },
+                () => OpenInfo(5)),
+
+            // --- AZIONI E STRUMENTI RAPIDI ---
+            new AppSearchTarget(
+                isEn ? "Action: Calculate Blast Radius" : "Azione: Calcola Blast Radius",
+                isEn ? "Calculate change impact radius for selected symbol (F5)" : "Calcola il raggio d'impatto del simbolo attualmente selezionato (F5)",
+                isEn ? "Action" : "Azione",
+                SearchResultCategory.Action,
+                new[] { "calcola blast radius", "analizza impatto", "blast radius", "calcola impatto" },
+                () => OnBlastRadiusClicked()),
+
+            new AppSearchTarget(
+                isEn ? "Action: Show Callers" : "Azione: Mostra Chiamanti (Callers)",
+                isEn ? "Highlight all callers of the selected routine or module" : "Evidenzia sul grafo tutti i chiamanti del simbolo selezionato",
+                isEn ? "Action" : "Azione",
+                SearchResultCategory.Action,
+                new[] { "mostra callers", "chiamanti", "callers", "chi chiama" },
+                () => OnShowCallersClicked()),
+
+            new AppSearchTarget(
+                isEn ? "Action: Show Callees" : "Azione: Mostra Chiamati (Callees)",
+                isEn ? "Highlight all callees of the selected routine or module" : "Evidenzia sul grafo tutte le routine chiamate dal simbolo selezionato",
+                isEn ? "Action" : "Azione",
+                SearchResultCategory.Action,
+                new[] { "mostra callees", "chiamati", "callees", "chi viene chiamato" },
+                () => OnShowCalleesClicked()),
+
+            new AppSearchTarget(
+                isEn ? "Action: Clear Filters" : "Azione: Pulisci Filtri ed Evidenziazioni",
+                isEn ? "Clear all active highlights and search filters" : "Rimuove tutti i filtri ed evidenziazioni attive",
+                isEn ? "Action" : "Azione",
+                SearchResultCategory.Action,
+                new[] { "pulisci filtri", "clear filters", "reset filtri", "rimuovi evidenziazione" },
+                () => { Graph.ClearHighlightMode(); ScreenFlow.ClearHighlight(); }),
+
+            new AppSearchTarget(
+                isEn ? "Action: Export to Markdown" : "Azione: Esporta in Markdown",
+                isEn ? "Generate full architecture summary in Markdown" : "Esporta report architettonico e metriche in formato Markdown",
+                isEn ? "Action" : "Azione",
+                SearchResultCategory.Action,
+                new[] { "esporta markdown", "export markdown", "report md", "salva markdown" },
+                () => _ = ExportMarkdownAsync()),
+
+            new AppSearchTarget(
+                isEn ? "Action: Export to JSON" : "Azione: Esporta in JSON",
+                isEn ? "Export semantic code graph to JSON format" : "Esporta l'intero grafo semantico in formato JSON strutturato",
+                isEn ? "Action" : "Azione",
+                SearchResultCategory.Action,
+                new[] { "esporta json", "export json", "salva json", "grafo json" },
+                () => _ = ExportJsonAsync()),
+
+            new AppSearchTarget(
+                isEn ? "Action: Check Updates" : "Azione: Verifica Aggiornamenti",
+                isEn ? "Check for new releases of Macondo" : "Verifica la disponibilità di nuove versioni dell'applicazione",
+                isEn ? "Action" : "Azione",
+                SearchResultCategory.Action,
+                new[] { "aggiornamenti", "updates", "nuova versione", "check updates" },
+                () => _ = CheckForUpdatesManualAsync()),
+
+            new AppSearchTarget(
+                isEn ? "Action: Clear Project Cache" : "Azione: Pulisci Cache Progetti",
+                isEn ? "Remove cached analysis snapshots from disk" : "Elimina gli snapshot di analisi memorizzati nella cache",
+                isEn ? "Action" : "Azione",
+                SearchResultCategory.Action,
+                new[] { "pulisci cache", "clear cache", "elimina cache", "svuota cache" },
+                () => ClearProjectCache())
+        };
+    }
+
     private void OnSearchTextChanged(object? sender, TextChangedEventArgs e)
     {
         var query = SearchBox.Text?.Trim();
-        if (string.IsNullOrEmpty(query) || _graph is null)
+        if (string.IsNullOrEmpty(query))
         {
             SearchResultsPopup.IsOpen = false;
             SearchResultsList.ItemsSource = null;
@@ -1844,53 +2043,92 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Cerca tutti i nodi corrispondenti per nome o nome qualificato (escludendo il root di progetto sintetico)
-        var matches = _graph.Nodes
-            .Where(n => n.Kind != SymbolKind.Project &&
-                       (n.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                        n.QualifiedName.Contains(query, StringComparison.OrdinalIgnoreCase)))
-            .OrderBy(n => n.Name.StartsWith(query, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-            .ThenBy(n => n.Name)
-            .Take(30)
-            .ToList();
+        var results = new List<SearchResultItem>();
 
-        // Evidenzia le schermate corrispondenti nel controllo ScreenFlow
-        var matchedScreenIds = matches
-            .Select(m => m.Id)
-            .Concat(matches.Where(m => m.ParentId.HasValue).Select(m => m.ParentId!.Value));
-        ScreenFlow.SetSearchFilter(query, matchedScreenIds);
+        // 1. Cerca tra le schermate e comandi dell'applicazione (Impostazioni, Viste, Guida, Azioni)
+        var appTargets = GetAppSearchTargets();
+        var matchingAppTargets = appTargets
+            .Where(t => t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                        t.Subtitle.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                        t.Keywords.Any(k => k.Contains(query, StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(t => t.Title.StartsWith(query, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .Select(t => new SearchResultItem
+            {
+                Title = t.Title,
+                Subtitle = t.Subtitle,
+                BadgeText = t.BadgeText,
+                Category = t.Category,
+                ExecuteAction = t.Action
+            });
 
-        if (matches.Count == 0)
+        results.AddRange(matchingAppTargets);
+
+        // 2. Cerca tra i simboli del grafo di codice (se presente un progetto caricato)
+        List<GraphNode> matchedNodes = new();
+        if (_graph != null)
+        {
+            matchedNodes = _graph.Nodes
+                .Where(n => n.Kind != SymbolKind.Project &&
+                           (n.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                            n.QualifiedName.Contains(query, StringComparison.OrdinalIgnoreCase)))
+                .OrderBy(n => n.Name.StartsWith(query, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                .ThenBy(n => n.Name)
+                .Take(30)
+                .ToList();
+
+            var symbolItems = matchedNodes.Select(node => new SearchResultItem
+            {
+                Title = node.Name,
+                Subtitle = node.QualifiedName,
+                BadgeText = node.Kind.ToString(),
+                Category = SearchResultCategory.Symbol,
+                Node = node
+            });
+
+            results.AddRange(symbolItems);
+
+            // Evidenzia le schermate corrispondenti nel controllo ScreenFlow
+            var matchedScreenIds = matchedNodes
+                .Select(m => m.Id)
+                .Concat(matchedNodes.Where(m => m.ParentId.HasValue).Select(m => m.ParentId!.Value));
+            ScreenFlow.SetSearchFilter(query, matchedScreenIds);
+        }
+
+        if (results.Count == 0)
         {
             SearchResultsHeader.Text = LocalizationService.Instance.Get("Search_NoMatches", query);
             SearchResultsList.ItemsSource = null;
             SearchResultsPopup.IsOpen = true;
             StatusText.Text = LocalizationService.Instance.Get("Search_NoMatches", query);
         }
-        else if (matches.Count == 1)
-        {
-            // Un solo risultato: chiudi la lista e seleziona direttamente il nodo
-            SearchResultsPopup.IsOpen = false;
-            SearchResultsList.ItemsSource = matches;
-            SelectAndFocusGraphNode(matches[0]);
-            StatusText.Text = LocalizationService.Instance.Get("Search_SingleMatch", matches[0].Kind, matches[0].QualifiedName);
-        }
         else
         {
-            // Più di un risultato: mostra la lista dei risultati da cui selezionare
-            SearchResultsHeader.Text = LocalizationService.Instance.Get("Search_MultipleMatches", matches.Count);
-            SearchResultsList.ItemsSource = matches;
+            SearchResultsHeader.Text = LocalizationService.Instance.Get("Search_MultipleMatches", results.Count);
+            SearchResultsList.ItemsSource = results;
             SearchResultsPopup.IsOpen = true;
-            StatusText.Text = LocalizationService.Instance.Get("Search_MultipleMatches", matches.Count);
+            StatusText.Text = LocalizationService.Instance.Get("Search_MultipleMatches", results.Count);
+        }
+    }
+
+    private void ExecuteSearchResult(SearchResultItem item)
+    {
+        SearchResultsPopup.IsOpen = false;
+        if (item.Node != null)
+        {
+            SelectAndFocusGraphNode(item.Node);
+        }
+        else if (item.ExecuteAction != null)
+        {
+            item.ExecuteAction.Invoke();
+            StatusText.Text = $"{item.Title}";
         }
     }
 
     private void OnSearchResultSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (e.AddedItems.Count > 0 && e.AddedItems[0] is GraphNode selectedNode)
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is SearchResultItem selected)
         {
-            SelectAndFocusGraphNode(selectedNode);
-            SearchResultsPopup.IsOpen = false;
+            ExecuteSearchResult(selected);
             Dispatcher.UIThread.Post(() => SearchResultsList.SelectedItem = null);
         }
     }
@@ -1899,22 +2137,20 @@ public partial class MainWindow : Window
     {
         if (e.Key == Key.Enter)
         {
-            if (SearchResultsList.SelectedItem is GraphNode selected)
+            if (SearchResultsList.SelectedItem is SearchResultItem selected)
             {
-                SelectAndFocusGraphNode(selected);
-                SearchResultsPopup.IsOpen = false;
+                ExecuteSearchResult(selected);
                 e.Handled = true;
             }
-            else if (SearchResultsList.ItemsSource is IList<GraphNode> list && list.Count > 0)
+            else if (SearchResultsList.ItemsSource is IList<SearchResultItem> list && list.Count > 0)
             {
-                SelectAndFocusGraphNode(list[0]);
-                SearchResultsPopup.IsOpen = false;
+                ExecuteSearchResult(list[0]);
                 e.Handled = true;
             }
         }
         else if (e.Key == Key.Down)
         {
-            if (SearchResultsPopup.IsOpen && SearchResultsList.ItemsSource is IList<GraphNode> list && list.Count > 0)
+            if (SearchResultsPopup.IsOpen && SearchResultsList.ItemsSource is IList<SearchResultItem> list && list.Count > 0)
             {
                 SearchResultsList.Focus();
                 if (SearchResultsList.SelectedIndex < 0)
@@ -1933,10 +2169,9 @@ public partial class MainWindow : Window
     {
         if (e.Key == Key.Enter)
         {
-            if (SearchResultsList.SelectedItem is GraphNode selected)
+            if (SearchResultsList.SelectedItem is SearchResultItem selected)
             {
-                SelectAndFocusGraphNode(selected);
-                SearchResultsPopup.IsOpen = false;
+                ExecuteSearchResult(selected);
                 SearchBox.Focus();
                 e.Handled = true;
             }
@@ -2496,15 +2731,15 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OpenSettings()
+    private void OpenSettings(int initialTab = 0)
     {
-        var settingsWin = new SettingsWindow();
+        var settingsWin = new SettingsWindow(initialTab);
         settingsWin.ShowDialog(this);
     }
 
-    private void OpenInfo()
+    private void OpenInfo(int initialTab = 0)
     {
-        var infoWin = new Views.InfoWindow();
+        var infoWin = new Views.InfoWindow(initialTab);
         infoWin.ShowDialog(this);
     }
 

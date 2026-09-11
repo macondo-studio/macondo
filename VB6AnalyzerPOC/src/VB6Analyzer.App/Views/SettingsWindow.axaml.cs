@@ -12,7 +12,11 @@ public partial class SettingsWindow : Window
 {
     private readonly List<ShortcutItem> _allShortcuts;
 
-    public SettingsWindow()
+    public SettingsWindow() : this(0)
+    {
+    }
+
+    public SettingsWindow(int initialTab)
     {
         InitializeComponent();
 
@@ -24,6 +28,7 @@ public partial class SettingsWindow : Window
         UpdateLanguageSelection(LocalizationService.Instance.CurrentLanguage);
         UpdateBehaviorSelection(SettingsService.Instance.Settings.EnableHoverSelection);
         UpdateLocalizedTexts();
+        SetSelectedNav(initialTab);
 
         LocalizationService.Instance.LanguageChanged += (_, lang) =>
         {
@@ -76,7 +81,7 @@ public partial class SettingsWindow : Window
         SetSelectedNav(3);
     }
 
-    private void SetSelectedNav(int index)
+    public void SetSelectedNav(int index)
     {
         NavThemeButton.Classes.Set("selected", index == 0);
         NavLanguageButton.Classes.Set("selected", index == 1);

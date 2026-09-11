@@ -8,12 +8,17 @@ namespace Macondo.App.Views;
 
 public partial class InfoWindow : Window
 {
-    public InfoWindow()
+    public InfoWindow() : this(0)
+    {
+    }
+
+    public InfoWindow(int initialTab)
     {
         InitializeComponent();
 
         ApplyTheme(ThemeService.Instance.CurrentDefinition);
         UpdateLocalizedTexts();
+        SetSelectedNav(initialTab);
 
         LocalizationService.Instance.LanguageChanged += (_, _) =>
         {
@@ -61,7 +66,7 @@ public partial class InfoWindow : Window
     private void OnNavBlastRadiusClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(6);
     private void OnNavAiExportClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(7);
 
-    private void SetSelectedNav(int index)
+    public void SetSelectedNav(int index)
     {
         NavOverviewButton.Classes.Set("selected", index == 0);
         NavLayoutsButton.Classes.Set("selected", index == 1);
