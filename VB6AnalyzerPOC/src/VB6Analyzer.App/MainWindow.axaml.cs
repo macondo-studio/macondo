@@ -123,6 +123,7 @@ public partial class MainWindow : Window
         ClearHighlightMenuItem.Command = new ActionCommand(() =>
         {
             Graph.ClearHighlightMode();
+            ScreenFlow.ClearHighlight();
             StatusText.Text = LocalizationService.Instance["Menu_ClearHighlight"];
         });
 
@@ -139,6 +140,7 @@ public partial class MainWindow : Window
         ClearHighlightMenuItem.Click += (_, _) =>
         {
             Graph.ClearHighlightMode();
+            ScreenFlow.ClearHighlight();
             StatusText.Text = LocalizationService.Instance["Menu_ClearHighlight"];
         };
                 
@@ -154,6 +156,7 @@ public partial class MainWindow : Window
         ClearHighlightButton.Click += (_, _) =>
         {
             Graph.ClearHighlightMode();
+            ScreenFlow.ClearHighlight();
             StatusText.Text = LocalizationService.Instance["Menu_ClearHighlight"];
         };
 
@@ -1546,6 +1549,19 @@ public partial class MainWindow : Window
 
         Graph.FocusOnNode(node.Id);
         Graph.SelectNode(node);
+
+        // Seleziona e inquadra la schermata se presente nel grafo ScreenFlow
+        var screenId = node.Id;
+        if (ScreenFlow.Graph?.FindScreen(screenId) is null && node.ParentId.HasValue)
+        {
+            screenId = node.ParentId.Value;
+        }
+        if (ScreenFlow.Graph?.FindScreen(screenId) is not null)
+        {
+            ScreenFlow.SelectScreen(screenId);
+            ScreenFlow.FocusOnScreen(screenId);
+        }
+
         StatusText.Text = $"Selezionato: [{node.Kind}] {node.QualifiedName}";
     }
 
@@ -1824,6 +1840,7 @@ public partial class MainWindow : Window
         {
             SearchResultsPopup.IsOpen = false;
             SearchResultsList.ItemsSource = null;
+            ScreenFlow.SetSearchFilter(null);
             return;
         }
 
@@ -1836,6 +1853,12 @@ public partial class MainWindow : Window
             .ThenBy(n => n.Name)
             .Take(30)
             .ToList();
+
+        // Evidenzia le schermate corrispondenti nel controllo ScreenFlow
+        var matchedScreenIds = matches
+            .Select(m => m.Id)
+            .Concat(matches.Where(m => m.ParentId.HasValue).Select(m => m.ParentId!.Value));
+        ScreenFlow.SetSearchFilter(query, matchedScreenIds);
 
         if (matches.Count == 0)
         {

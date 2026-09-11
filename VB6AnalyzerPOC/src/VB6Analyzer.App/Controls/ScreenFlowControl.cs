@@ -38,6 +38,9 @@ public sealed class ScreenFlowControl : Control
     private ScreenFlowNode? _selectedScreen;
     private ScreenFlowNode? _hoveredScreen;
 
+    private readonly HashSet<Guid> _highlightedScreenIds = new();
+    private string? _searchQuery;
+
     private static readonly Typeface HeaderTypeface = new("Inter", FontStyle.Normal, FontWeight.Bold);
     private static readonly Typeface LabelTypeface = new("Inter", FontStyle.Normal, FontWeight.Medium);
     private static readonly Typeface BadgeTypeface = new("Inter", FontStyle.Normal, FontWeight.Bold);
@@ -56,6 +59,10 @@ public sealed class ScreenFlowControl : Control
     private IPen _transitionPen = new Pen(new SolidColorBrush(Color.Parse("#5088E0")), 1.8);
     private IPen _modalTransitionPen = new Pen(new SolidColorBrush(Color.Parse("#E08830")), 2.0, DashStyle.Dash);
 
+    private IBrush _highlightBorderBrush = new SolidColorBrush(Color.Parse("#4AE8D0"));
+    private IPen _highlightBorderPen = new Pen(new SolidColorBrush(Color.Parse("#4AE8D0")), 2.5);
+    private IPen _highlightGlowPen = new Pen(new SolidColorBrush(Color.FromArgb(90, 74, 232, 208)), 5.0);
+
     static ScreenFlowControl()
     {
         AffectsRender<ScreenFlowControl>(GraphProperty);
@@ -73,6 +80,71 @@ public sealed class ScreenFlowControl : Control
         _offsetX = 40.0;
         _offsetY = 40.0;
         InvalidateVisual();
+    }
+
+    public void SelectScreen(Guid screenId)
+    {
+        _selectedScreen = Graph?.FindScreen(screenId);
+        InvalidateVisual();
+    }
+
+    public void SelectScreen(ScreenFlowNode? screen)
+    {
+        _selectedScreen = screen;
+        InvalidateVisual();
+    }
+
+    public void FocusOnScreen(Guid screenId)
+    {
+        var screen = Graph?.FindScreen(screenId);
+        if (screen is null) return;
+
+        var centerX = screen.X + screen.Width / 2.0;
+        var centerY = screen.Y + screen.Height / 2.0;
+
+        _offsetX = (Bounds.Width > 0 ? Bounds.Width / 2.0 : 400.0) - (centerX * _scale);
+        _offsetY = (Bounds.Height > 0 ? Bounds.Height / 2.0 : 300.0) - (centerY * _scale);
+        InvalidateVisual();
+    }
+
+    public void SetSearchFilter(string? query, IEnumerable<Guid>? matchedScreenIds = null)
+    {
+        _searchQuery = string.IsNullOrWhiteSpace(query) ? null : query.Trim();
+        _highlightedScreenIds.Clear();
+
+        if (matchedScreenIds != null)
+        {
+            foreach (var id in matchedScreenIds)
+            {
+                _highlightedScreenIds.Add(id);
+            }
+        }
+
+        InvalidateVisual();
+    }
+
+    public void ClearHighlight()
+    {
+        _highlightedScreenIds.Clear();
+        _searchQuery = null;
+        _selectedScreen = null;
+        InvalidateVisual();
+    }
+
+    public bool IsScreenMatchingSearch(ScreenFlowNode screen)
+    {
+        if (_highlightedScreenIds.Contains(screen.Id))
+            return true;
+
+        if (!string.IsNullOrEmpty(_searchQuery))
+        {
+            if (screen.Name.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (!string.IsNullOrEmpty(screen.Title) && screen.Title.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 
     public void ApplyTheme(ThemeDefinition theme)
@@ -99,7 +171,12 @@ public sealed class ScreenFlowControl : Control
             _textMutedBrush = new SolidColorBrush(textMutedCol);
 
         if (Color.TryParse(theme.AccentColor, out var accentCol))
+        {
             _transSubTextBrush = new SolidColorBrush(accentCol);
+            _highlightBorderBrush = new SolidColorBrush(accentCol);
+            _highlightBorderPen = new Pen(_highlightBorderBrush, 2.5);
+            _highlightGlowPen = new Pen(new SolidColorBrush(Color.FromArgb(90, accentCol.R, accentCol.G, accentCol.B)), 5.0);
+        }
 
         if (theme.IsDark)
         {
@@ -137,6 +214,9 @@ public sealed class ScreenFlowControl : Control
             return;
         }
 
+        bool hasSearch = !string.IsNullOrEmpty(_searchQuery) || _highlightedScreenIds.Count > 0;
+        bool anyMatches = hasSearch && graph.Screens.Any(IsScreenMatchingSearch);
+
         using (context.PushTransform(Matrix.CreateTranslation(_offsetX, _offsetY)))
         using (context.PushTransform(Matrix.CreateScale(_scale, _scale)))
         {
@@ -147,33 +227,50 @@ public sealed class ScreenFlowControl : Control
                 var tgt = graph.FindScreen(t.TargetScreenId);
                 if (src == null || tgt == null) continue;
 
-                var start = new Point(src.X + src.Width, src.Y + src.Height / 2.0);
-                var end = new Point(tgt.X, tgt.Y + tgt.Height / 2.0);
+                bool isRelevant = !hasSearch || !anyMatches || IsScreenMatchingSearch(src) || IsScreenMatchingSearch(tgt);
 
-                var pen = t.TransitionKind == ScreenTransitionKind.OpenModal ? _modalTransitionPen : _transitionPen;
-
-                // Linea curva di collegamento
-                var geometry = new StreamGeometry();
-                using (var ctx = geometry.Open())
+                void DrawTransition()
                 {
-                    ctx.BeginFigure(start, false);
-                    double dx = Math.Abs(end.X - start.X) * 0.5;
-                    ctx.CubicBezierTo(new Point(start.X + dx, start.Y), new Point(end.X - dx, end.Y), end);
+                    var start = new Point(src.X + src.Width, src.Y + src.Height / 2.0);
+                    var end = new Point(tgt.X, tgt.Y + tgt.Height / 2.0);
+
+                    var pen = t.TransitionKind == ScreenTransitionKind.OpenModal ? _modalTransitionPen : _transitionPen;
+
+                    // Linea curva di collegamento
+                    var geometry = new StreamGeometry();
+                    using (var ctx = geometry.Open())
+                    {
+                        ctx.BeginFigure(start, false);
+                        double dx = Math.Abs(end.X - start.X) * 0.5;
+                        ctx.CubicBezierTo(new Point(start.X + dx, start.Y), new Point(end.X - dx, end.Y), end);
+                    }
+                    context.DrawGeometry(null, pen, geometry);
+
+                    // Freccia finale
+                    DrawArrowHead(context, end, pen.Brush ?? Brushes.DodgerBlue);
+
+                    // Badge con il nome dell'evento scatenante
+                    if (!string.IsNullOrEmpty(t.TriggerEventName))
+                    {
+                        var midPoint = new Point((start.X + end.X) / 2.0, (start.Y + end.Y) / 2.0 - 8);
+                        var evtFmt = new FormattedText(t.TriggerEventName, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, BadgeTypeface, 9, _textWhiteBrush);
+                        var badgeRect = new Rect(midPoint.X - evtFmt.Width / 2.0 - 4, midPoint.Y - 2, evtFmt.Width + 8, evtFmt.Height + 4);
+                        context.FillRectangle(_badgeBgBrush, badgeRect);
+                        context.DrawRectangle(new Pen(_cardBorderBrush, 0.8), badgeRect);
+                        context.DrawText(evtFmt, new Point(badgeRect.X + 4, badgeRect.Y + 2));
+                    }
                 }
-                context.DrawGeometry(null, pen, geometry);
 
-                // Freccia finale
-                DrawArrowHead(context, end, pen.Brush ?? Brushes.DodgerBlue);
-
-                // Badge con il nome dell'evento scatenante
-                if (!string.IsNullOrEmpty(t.TriggerEventName))
+                if (!isRelevant)
                 {
-                    var midPoint = new Point((start.X + end.X) / 2.0, (start.Y + end.Y) / 2.0 - 8);
-                    var evtFmt = new FormattedText(t.TriggerEventName, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, BadgeTypeface, 9, _textWhiteBrush);
-                    var badgeRect = new Rect(midPoint.X - evtFmt.Width / 2.0 - 4, midPoint.Y - 2, evtFmt.Width + 8, evtFmt.Height + 4);
-                    context.FillRectangle(_badgeBgBrush, badgeRect);
-                    context.DrawRectangle(new Pen(_cardBorderBrush, 0.8), badgeRect);
-                    context.DrawText(evtFmt, new Point(badgeRect.X + 4, badgeRect.Y + 2));
+                    using (context.PushOpacity(0.25))
+                    {
+                        DrawTransition();
+                    }
+                }
+                else
+                {
+                    DrawTransition();
                 }
             }
 
@@ -183,44 +280,70 @@ public sealed class ScreenFlowControl : Control
                 var cardRect = new Rect(screen.X, screen.Y, screen.Width, screen.Height);
                 var headerRect = new Rect(screen.X, screen.Y, screen.Width, 26.0);
 
-                // Sfondo Card
-                context.FillRectangle(_cardBgBrush, cardRect);
-                context.FillRectangle(screen.IsStartupScreen ? _startupHeaderBrush : _cardHeaderBrush, headerRect);
+                bool isSelected = _selectedScreen?.Id == screen.Id;
+                bool isMatch = hasSearch && IsScreenMatchingSearch(screen);
+                bool isHovered = _hoveredScreen?.Id == screen.Id;
+                bool isDimmed = hasSearch && anyMatches && !isMatch && !isSelected;
 
-                // Bordo
-                if (_selectedScreen?.Id == screen.Id)
+                void DrawScreenCard()
                 {
-                    context.DrawRectangle(new Pen(_selectedBorderBrush, 2.5), cardRect);
+                    // Sfondo Card
+                    context.FillRectangle(_cardBgBrush, cardRect);
+                    context.FillRectangle(screen.IsStartupScreen ? _startupHeaderBrush : _cardHeaderBrush, headerRect);
+
+                    // Bordo ed evidenziazione
+                    if (isSelected)
+                    {
+                        context.DrawRectangle(new Pen(_selectedBorderBrush, 2.5), cardRect);
+                    }
+                    else if (isMatch)
+                    {
+                        // Glow esterno e bordo evidenziato per ricerca
+                        context.DrawRectangle(_highlightGlowPen, cardRect);
+                        context.DrawRectangle(_highlightBorderPen, cardRect);
+                    }
+                    else if (isHovered)
+                    {
+                        context.DrawRectangle(new Pen(Brushes.White, 1.5), cardRect);
+                    }
+                    else
+                    {
+                        context.DrawRectangle(new Pen(_cardBorderBrush, 1.0), cardRect);
+                    }
+
+                    // Titolo / Nome Screen
+                    string screenTitle = screen.Name.Length > 16 ? screen.Name[..14] + "…" : screen.Name;
+                    var titleFmt = new FormattedText(screenTitle, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, HeaderTypeface, 11, _textWhiteBrush);
+                    context.DrawText(titleFmt, new Point(screen.X + 8, screen.Y + 6));
+
+                    if (screen.IsStartupScreen)
+                    {
+                        var startBadgeFmt = new FormattedText("STARTUP", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, BadgeTypeface, 8, _startupBadgeBrush);
+                        context.DrawText(startBadgeFmt, new Point(screen.X + screen.Width - startBadgeFmt.Width - 6, screen.Y + 8));
+                    }
+
+                    // Corpo Card: Metriche Controlli ed Eventi
+                    var ctrlFmt = new FormattedText($"Controlli UI: {screen.ControlsCount}", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _textMutedBrush);
+                    context.DrawText(ctrlFmt, new Point(screen.X + 8, screen.Y + 34));
+
+                    var evtCountFmt = new FormattedText($"Event Handlers: {screen.EventHandlersCount}", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _textMutedBrush);
+                    context.DrawText(evtCountFmt, new Point(screen.X + 8, screen.Y + 50));
+
+                    var transFmt = new FormattedText($"Transizioni: {screen.OutgoingTransitionsCount} out / {screen.IncomingTransitionsCount} in", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 9, _transSubTextBrush);
+                    context.DrawText(transFmt, new Point(screen.X + 8, screen.Y + 70));
                 }
-                else if (_hoveredScreen?.Id == screen.Id)
+
+                if (isDimmed)
                 {
-                    context.DrawRectangle(new Pen(Brushes.White, 1.5), cardRect);
+                    using (context.PushOpacity(0.25))
+                    {
+                        DrawScreenCard();
+                    }
                 }
                 else
                 {
-                    context.DrawRectangle(new Pen(_cardBorderBrush, 1.0), cardRect);
+                    DrawScreenCard();
                 }
-
-                // Titolo / Nome Screen
-                string screenTitle = screen.Name.Length > 16 ? screen.Name[..14] + "…" : screen.Name;
-                var titleFmt = new FormattedText(screenTitle, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, HeaderTypeface, 11, _textWhiteBrush);
-                context.DrawText(titleFmt, new Point(screen.X + 8, screen.Y + 6));
-
-                if (screen.IsStartupScreen)
-                {
-                    var startBadgeFmt = new FormattedText("STARTUP", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, BadgeTypeface, 8, _startupBadgeBrush);
-                    context.DrawText(startBadgeFmt, new Point(screen.X + screen.Width - startBadgeFmt.Width - 6, screen.Y + 8));
-                }
-
-                // Corpo Card: Metriche Controlli ed Eventi
-                var ctrlFmt = new FormattedText($"Controlli UI: {screen.ControlsCount}", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _textMutedBrush);
-                context.DrawText(ctrlFmt, new Point(screen.X + 8, screen.Y + 34));
-
-                var evtCountFmt = new FormattedText($"Event Handlers: {screen.EventHandlersCount}", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _textMutedBrush);
-                context.DrawText(evtCountFmt, new Point(screen.X + 8, screen.Y + 50));
-
-                var transFmt = new FormattedText($"Transizioni: {screen.OutgoingTransitionsCount} out / {screen.IncomingTransitionsCount} in", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 9, _transSubTextBrush);
-                context.DrawText(transFmt, new Point(screen.X + 8, screen.Y + 70));
             }
         }
     }
