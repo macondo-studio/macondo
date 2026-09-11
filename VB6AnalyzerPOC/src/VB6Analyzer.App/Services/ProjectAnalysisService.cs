@@ -17,16 +17,17 @@ public static class ProjectAnalysisService
     /// </summary>
     /// <param name="folderPath">Percorso della cartella contenente i file VB6.</param>
     /// <param name="progress">Oggetto opzionale per la segnalazione dell'avanzamento in tempo reale.</param>
-    public static VisualCodeGraph AnalyzeFolder(string folderPath, IProgress<ProjectAnalysisProgress>? progress = null)
+    public static VisualCodeGraph AnalyzeFolder(string folderPath, IProgress<ProjectAnalysisProgress>? progress = null, CancellationToken cancellationToken = default)
     {
-        return AnalyzePaths(new[] { folderPath }, progress);
+        return AnalyzePaths(new[] { folderPath }, progress, cancellationToken);
     }
 
     /// <summary>
     /// Analizza molteplici cartelle, file .vbp o file .vbg all'interno di un unico workspace semantico.
     /// </summary>
-    public static VisualCodeGraph AnalyzePaths(IReadOnlyList<string> paths, IProgress<ProjectAnalysisProgress>? progress = null)
+    public static VisualCodeGraph AnalyzePaths(IReadOnlyList<string> paths, IProgress<ProjectAnalysisProgress>? progress = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var projects = ProjectDescriptor.DiscoverFromPaths(paths);
         if (projects.Count == 0)
         {
@@ -34,15 +35,16 @@ public static class ProjectAnalysisService
             return GraphVisualAdapter.FromSemanticGraph(emptySemanticGraph, "Empty Workspace");
         }
 
-        return AnalyzeProjects(projects, progress);
+        return AnalyzeProjects(projects, progress, cancellationToken);
     }
 
     /// <summary>
     /// Esegue l'analisi completa di una lista di progetti VB6 creando un unico CodeGraph unificato
     /// con risoluzione cross-project di tipi, chiamate e istanziazioni.
     /// </summary>
-    public static VisualCodeGraph AnalyzeProjects(IReadOnlyList<ProjectDescriptor> projects, IProgress<ProjectAnalysisProgress>? progress = null)
+    public static VisualCodeGraph AnalyzeProjects(IReadOnlyList<ProjectDescriptor> projects, IProgress<ProjectAnalysisProgress>? progress = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var totalFiles = projects.Sum(p => p.SourceFiles.Count);
         var semanticGraph = new Semantic.Model.CodeGraph();
         var extractionResults = new List<ModuleExtractionResult>(totalFiles);
@@ -51,6 +53,7 @@ public static class ProjectAnalysisService
         // 1. Registra i simboli radice di ciascun Progetto
         foreach (var proj in projects)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var projSymbol = new Symbol
             {
                 Id = proj.Id,
@@ -83,10 +86,12 @@ public static class ProjectAnalysisService
         // 2. Estrazione AST e simboli per ciascun file di ciascun progetto
         foreach (var proj in projects)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var projSymbol = projectSymbols[proj.Id];
 
             foreach (var file in proj.SourceFiles)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var fileName = Path.GetFileName(file);
                 if (File.Exists(file))
                 {
@@ -118,6 +123,7 @@ public static class ProjectAnalysisService
         }
 
         // 3. Risoluzione globale dei tipi (TypeResolver) su tutto il Workspace
+        cancellationToken.ThrowIfCancellationRequested();
         progress?.Report(new ProjectAnalysisProgress
         {
             CurrentFileIndex = totalFiles,
@@ -131,6 +137,7 @@ public static class ProjectAnalysisService
         typeResolver.ResolveAllTypes();
 
         // 4. Risoluzione simboli e costruzione del Call Graph cross-project
+        cancellationToken.ThrowIfCancellationRequested();
         progress?.Report(new ProjectAnalysisProgress
         {
             CurrentFileIndex = totalFiles,
@@ -145,6 +152,7 @@ public static class ProjectAnalysisService
         callGraphBuilder.BuildGraph(extractionResults);
 
         // 5. Adattamento al modello visuale per Avalonia
+        cancellationToken.ThrowIfCancellationRequested();
         progress?.Report(new ProjectAnalysisProgress
         {
             CurrentFileIndex = totalFiles,
@@ -162,8 +170,10 @@ public static class ProjectAnalysisService
     /// Carica e analizza la suite integrata di fixture VB6.
     /// </summary>
     /// <param name="progress">Oggetto opzionale per la segnalazione dell'avanzamento in tempo reale.</param>
-    public static VisualCodeGraph LoadDefaultFixtures(IProgress<ProjectAnalysisProgress>? progress = null)
+    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere l'analisi in corso.</param>
+    public static VisualCodeGraph LoadDefaultFixtures(IProgress<ProjectAnalysisProgress>? progress = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var baseDir = AppContext.BaseDirectory;
         var candidates = new[]
         {
@@ -180,7 +190,7 @@ public static class ProjectAnalysisService
                 var projs = ProjectDescriptor.DiscoverFromPaths(new[] { dir });
                 if (projs.Count > 0 && projs.Any(p => p.SourceFiles.Count > 0))
                 {
-                    return AnalyzeProjects(projs, progress);
+                    return AnalyzeProjects(projs, progress, cancellationToken);
                 }
             }
         }

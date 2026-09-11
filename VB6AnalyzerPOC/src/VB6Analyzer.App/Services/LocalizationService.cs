@@ -206,6 +206,9 @@ public sealed class LocalizationService
         ["Loading_GeneratingVisualGraph"] = "Generazione grafo visuale e layout...",
         ["Loading_FilesProgressFormat"] = "{0} / {1} file ({2}%)",
         ["Loading_NodesExtractedFormat"] = "{0} nodi rilevati",
+        ["Loading_Cancel"] = "Annulla",
+        ["Loading_Cancelling"] = "Annullamento in corso...",
+        ["Status_AnalysisCancelled"] = "Analisi annullata dall'utente.",
 
         // Finestra Impostazioni
         ["Settings_Title"] = "Impostazioni",
@@ -491,6 +494,9 @@ public sealed class LocalizationService
         ["Loading_GeneratingVisualGraph"] = "Generating visual graph and layout...",
         ["Loading_FilesProgressFormat"] = "{0} / {1} files ({2}%)",
         ["Loading_NodesExtractedFormat"] = "{0} nodes detected",
+        ["Loading_Cancel"] = "Cancel",
+        ["Loading_Cancelling"] = "Cancelling...",
+        ["Status_AnalysisCancelled"] = "Analysis cancelled by user.",
 
         // Settings Window
         ["Settings_Title"] = "Settings",

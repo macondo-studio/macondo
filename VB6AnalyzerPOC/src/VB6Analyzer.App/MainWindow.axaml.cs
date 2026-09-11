@@ -46,6 +46,7 @@ public partial class MainWindow : Window
     private bool _isExplorerVisible = true;
     private bool _isInspectorVisible = true;
     private bool _isSyncingFilterUi;
+    private CancellationTokenSource? _loadingCts;
 
     public MainWindow()
     {
@@ -445,14 +446,22 @@ public partial class MainWindow : Window
     /// <summary>
     /// Mostra l'overlay modale di caricamento centrato a tutto schermo con opzioni per la barra di avanzamento e statistiche.
     /// </summary>
-    private void ShowLoading(string title, string subtitle, bool isIndeterminate = true, double progressValue = 0, double progressMax = 100, string? countText = null, string? statsText = null)
+    private void ShowLoading(string title, string subtitle, bool isIndeterminate = true, double progressValue = 0, double progressMax = 100, string? countText = null, string? statsText = null, bool canCancel = true)
     {
+        _loadingCts?.Cancel();
+        _loadingCts?.Dispose();
+        _loadingCts = canCancel ? new CancellationTokenSource() : null;
+
         LoadingTitle.Text = title;
         LoadingSubtitle.Text = subtitle;
         LoadingProgressBar.IsIndeterminate = isIndeterminate;
         LoadingProgressBar.Minimum = 0;
         LoadingProgressBar.Maximum = progressMax > 0 ? progressMax : 100;
         LoadingProgressBar.Value = progressValue;
+
+        LoadingCancelButton.IsVisible = canCancel;
+        LoadingCancelButton.IsEnabled = true;
+        LoadingCancelButton.Content = LocalizationService.Instance["Loading_Cancel"];
 
         if (!string.IsNullOrEmpty(countText))
         {
@@ -516,6 +525,19 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Gestisce il click sul pulsante Annulla all'interno del popup di caricamento / analisi.
+    /// </summary>
+    private void LoadingCancelButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_loadingCts != null && !_loadingCts.IsCancellationRequested)
+        {
+            LoadingCancelButton.IsEnabled = false;
+            LoadingSubtitle.Text = LocalizationService.Instance["Loading_Cancelling"];
+            _loadingCts.Cancel();
+        }
+    }
+
+    /// <summary>
     /// Nasconde l'overlay di caricamento e reimposta lo stato della barra di avanzamento.
     /// </summary>
     private void HideLoading()
@@ -525,6 +547,8 @@ public partial class MainWindow : Window
         LoadingProgressBar.Value = 0;
         LoadingProgressCount.IsVisible = false;
         LoadingProgressStats.IsVisible = false;
+        _loadingCts?.Dispose();
+        _loadingCts = null;
     }
 
     /// <summary>
@@ -532,17 +556,22 @@ public partial class MainWindow : Window
     /// </summary>
     private async void LoadSyntheticGraph()
     {
-        ShowLoading("Generazione del grafo sintetico...", "Creazione di ~500 nodi e calcolo del layout radiale...");
-        await Task.Delay(16);
-
+        ShowLoading("Generazione del grafo sintetico...", "Creazione di ~500 nodi e calcolo del layout radiale...", canCancel: true);
+        var token = _loadingCts?.Token ?? CancellationToken.None;
         try
         {
+            await Task.Delay(16, token);
             _currentFolderPath = null;
             UpdateVcsBranchStatus(null);
             StatusText.Text = "Generazione del grafo sintetico (~500 nodi)...";
-            _graph = await Task.Run(() => Generation.FakeGraphGenerator.Generate(seed: Environment.TickCount));
+            _graph = await Task.Run(() => Generation.FakeGraphGenerator.Generate(seed: Environment.TickCount), token);
+            token.ThrowIfCancellationRequested();
             ApplyGraphToUI();
             StatusText.Text = "Grafo sintetico di benchmark (~500 nodi) generato con successo.";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText.Text = LocalizationService.Instance["Status_AnalysisCancelled"];
         }
         catch (Exception ex)
         {
@@ -560,8 +589,8 @@ public partial class MainWindow : Window
     private async void LoadDefaultFixtures()
     {
         var loc = LocalizationService.Instance;
-        ShowLoading(loc["Loading_FixturesTitle"], loc["Loading_FixturesSub"], isIndeterminate: false, progressValue: 0, progressMax: 100);
-        await Task.Delay(16);
+        ShowLoading(loc["Loading_FixturesTitle"], loc["Loading_FixturesSub"], isIndeterminate: false, progressValue: 0, progressMax: 100, canCancel: true);
+        var token = _loadingCts?.Token ?? CancellationToken.None;
 
         var progress = new Progress<ProjectAnalysisProgress>(p =>
         {
@@ -572,12 +601,18 @@ public partial class MainWindow : Window
 
         try
         {
+            await Task.Delay(16, token);
             _currentFolderPath = null;
             UpdateVcsBranchStatus(null);
             StatusText.Text = loc["Loading_FixturesSub"];
-            _graph = await Task.Run(() => ProjectAnalysisService.LoadDefaultFixtures(progress));
+            _graph = await Task.Run(() => ProjectAnalysisService.LoadDefaultFixtures(progress, token), token);
+            token.ThrowIfCancellationRequested();
             ApplyGraphToUI();
             StatusText.Text = "Suite di fixture VB6 analizzata con successo in memoria.";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText.Text = loc["Status_AnalysisCancelled"];
         }
         catch (Exception ex)
         {
@@ -684,18 +719,22 @@ public partial class MainWindow : Window
             : $"Workspace ({paths.Count} percorsi)";
 
         // Mostra subito l'overlay di caricamento per dare feedback immediato all'utente
-        ShowLoading(loc["Loading_AnalyzeProjectTitle"], loc.Get("Loading_AnalyzeProjectSub", titleName));
-        await Task.Delay(16);
+        ShowLoading(loc["Loading_AnalyzeProjectTitle"], loc.Get("Loading_AnalyzeProjectSub", titleName), canCancel: true);
+        var token = _loadingCts?.Token ?? CancellationToken.None;
 
         try
         {
+            await Task.Delay(16, token);
+
             // 1. Tenta il ripristino ultra-rapido dalla cache solo se singola cartella e non forzato
             if (!forceReanalyze && paths.Count == 1 && Directory.Exists(firstPath))
             {
                 var cachedSnapshot = await ProjectCacheService.Instance.TryLoadSnapshotAsync(firstPath);
+                token.ThrowIfCancellationRequested();
                 if (cachedSnapshot != null)
                 {
-                    var (cachedGraph, cachedRows) = await Task.Run(() => ProjectCacheService.Instance.RestoreGraphAndRows(cachedSnapshot));
+                    var (cachedGraph, cachedRows) = await Task.Run(() => ProjectCacheService.Instance.RestoreGraphAndRows(cachedSnapshot), token);
+                    token.ThrowIfCancellationRequested();
                     _graph = cachedGraph;
                     _currentFolderPath = firstPath;
                     _currentPaths = paths.ToList();
@@ -728,7 +767,8 @@ public partial class MainWindow : Window
             });
 
             StatusText.Text = $"Analisi di {paths.Count} sorgenti/progetti in corso...";
-            _graph = await Task.Run(() => ProjectAnalysisService.AnalyzePaths(paths, progress));
+            _graph = await Task.Run(() => ProjectAnalysisService.AnalyzePaths(paths, progress, token), token);
+            token.ThrowIfCancellationRequested();
             _currentFolderPath = firstPath;
             _currentPaths = paths.ToList();
             if (Directory.Exists(firstPath)) UpdateVcsBranchStatus(firstPath);
@@ -750,6 +790,10 @@ public partial class MainWindow : Window
             {
                 SettingsService.Instance.Update(s => s.LastOpenedFolder = firstPath);
             }
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText.Text = loc["Status_AnalysisCancelled"];
         }
         catch (Exception ex)
         {
@@ -2925,6 +2969,9 @@ public partial class MainWindow : Window
             UpdateLaterButton.Content = loc["Update_ButtonLater"];
             UpdateNowButton.Content = loc["Update_ButtonNow"];
         }
+
+        // Overlay Caricamento
+        LoadingCancelButton.Content = loc["Loading_Cancel"];
 
         // Refresh dynamic strings in Grid and Status
         UpdateStatsBar();
