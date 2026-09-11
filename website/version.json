@@ -1,8 +1,0 @@
-{
-  "version": "1.0.0",
-  "title": "Macondo v1.0.0 - Release Ufficiale",
-  "releaseNotes": "Prima versione ufficiale di Macondo.\n- Analizzatore semantico AST per progetti VB6 (.vbp, .frm, .bas, .cls, .ctl)\n- Grafo interattivo con 4 algoritmi di layout (Radiale, Affinità, Isole, Force-Directed)\n- Blast Radius e matrice d'impatto con calcolo del rischio di regressione\n- Symbol Inspector completo con tracciamento call chains e istanziazioni\n- Esportazione Repo Map e AI Context Slice per LLM (Claude, ChatGPT, Gemini)\n- Integrazione Git & SVN per cambio branch al volo\n- Cache persistente locale ultra-veloce",
-  "downloadUrl": "https://github.com/macondo-studio/macondo/releases/download/v1.0.0/Macondo.exe",
-  "publishedAt": "2026-09-10T00:00:00Z",
-  "isMandatory": false
-}
