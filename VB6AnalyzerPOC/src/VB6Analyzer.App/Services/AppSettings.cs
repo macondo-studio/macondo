@@ -62,4 +62,7 @@ public sealed class AppSettings
 
     /// <summary>Indica se mostrare i tipi definiti dall'utente ed enumerazioni nel grafo.</summary>
     public bool ShowTypesAndEnums { get; set; } = true;
+
+    /// <summary>Indica se abilitare la selezione/ispezione automatica dei nodi al passaggio del cursore del mouse (Hover).</summary>
+    public bool EnableHoverSelection { get; set; } = true;
 }

@@ -22,6 +22,7 @@ public partial class SettingsWindow : Window
         ApplyTheme(ThemeService.Instance.CurrentDefinition);
         UpdateThemeSelection(ThemeService.Instance.CurrentTheme);
         UpdateLanguageSelection(LocalizationService.Instance.CurrentLanguage);
+        UpdateBehaviorSelection(SettingsService.Instance.Settings.EnableHoverSelection);
         UpdateLocalizedTexts();
 
         LocalizationService.Instance.LanguageChanged += (_, lang) =>
@@ -65,20 +66,27 @@ public partial class SettingsWindow : Window
         SetSelectedNav(1);
     }
 
-    private void OnNavShortcutsClicked(object? sender, RoutedEventArgs e)
+    private void OnNavBehaviorClicked(object? sender, RoutedEventArgs e)
     {
         SetSelectedNav(2);
+    }
+
+    private void OnNavShortcutsClicked(object? sender, RoutedEventArgs e)
+    {
+        SetSelectedNav(3);
     }
 
     private void SetSelectedNav(int index)
     {
         NavThemeButton.Classes.Set("selected", index == 0);
         NavLanguageButton.Classes.Set("selected", index == 1);
-        NavShortcutsButton.Classes.Set("selected", index == 2);
+        NavBehaviorButton.Classes.Set("selected", index == 2);
+        NavShortcutsButton.Classes.Set("selected", index == 3);
 
         ThemeSection.IsVisible = index == 0;
         LanguageSection.IsVisible = index == 1;
-        ShortcutsSection.IsVisible = index == 2;
+        BehaviorSection.IsVisible = index == 2;
+        ShortcutsSection.IsVisible = index == 3;
     }
 
     // =========================================================================
@@ -153,6 +161,8 @@ public partial class SettingsWindow : Window
 
             CardLangItalian.BorderBrush = borderBrush;
             CardLangEnglish.BorderBrush = borderBrush;
+
+            CardHoverSelection.BorderBrush = borderBrush;
         }
 
         if (surfBrush != null)
@@ -165,6 +175,8 @@ public partial class SettingsWindow : Window
 
             CardLangItalian.Background = surfBrush;
             CardLangEnglish.Background = surfBrush;
+
+            CardHoverSelection.Background = surfBrush;
         }
     }
 
@@ -186,6 +198,23 @@ public partial class SettingsWindow : Window
     {
         CheckLangItalian.IsVisible = language == AppLanguage.Italian;
         CheckLangEnglish.IsVisible = language == AppLanguage.English;
+    }
+
+    // =========================================================================
+    // Opzioni Comportamento & Grafo
+    // =========================================================================
+
+    private void OnToggleHoverSetting(object? sender, PointerPressedEventArgs e)
+    {
+        var current = SettingsService.Instance.Settings.EnableHoverSelection;
+        var updated = !current;
+        SettingsService.Instance.Update(s => s.EnableHoverSelection = updated);
+        UpdateBehaviorSelection(updated);
+    }
+
+    private void UpdateBehaviorSelection(bool enabled)
+    {
+        CheckHoverSelection.IsVisible = enabled;
     }
 
     // =========================================================================
@@ -233,6 +262,7 @@ public partial class SettingsWindow : Window
         LocalizationService.Instance.SetLanguage(defaultSettings.Language);
         UpdateThemeSelection(defaultSettings.Theme);
         UpdateLanguageSelection(defaultSettings.Language);
+        UpdateBehaviorSelection(defaultSettings.EnableHoverSelection);
         UpdateLocalizedTexts();
     }
 
@@ -243,6 +273,7 @@ public partial class SettingsWindow : Window
         WindowTitleText.Text = loc["Settings_Title"];
         NavThemeText.Text = loc["Settings_Tab_Appearance"];
         NavLanguageText.Text = loc["Settings_Tab_Language"];
+        NavBehaviorText.Text = loc["Settings_Tab_Behavior"];
         NavShortcutsText.Text = loc["Settings_Tab_Shortcuts"];
 
         ResetSettingsButtonText.Text = loc["Settings_Reset"];
@@ -251,6 +282,7 @@ public partial class SettingsWindow : Window
         ToolTip.SetTip(CloseButton, loc["Tooltip_Close"]);
         ToolTip.SetTip(NavThemeButton, loc["Settings_Tab_Appearance"]);
         ToolTip.SetTip(NavLanguageButton, loc["Settings_Tab_Language"]);
+        ToolTip.SetTip(NavBehaviorButton, loc["Settings_Tab_Behavior"]);
         ToolTip.SetTip(NavShortcutsButton, loc["Settings_Tab_Shortcuts"]);
 
         ThemeHeaderTitle.Text = loc["Settings_Appearance_Header"];
@@ -258,6 +290,11 @@ public partial class SettingsWindow : Window
 
         LangHeaderTitle.Text = loc["Settings_Language_Header"];
         LangHeaderSub.Text = loc["Settings_Language_Sub"];
+
+        BehaviorHeaderTitle.Text = loc["Settings_Behavior_Header"];
+        BehaviorHeaderSub.Text = loc["Settings_Behavior_Sub"];
+        HoverSelectionTitleText.Text = loc["Settings_HoverSelection_Title"];
+        HoverSelectionSubText.Text = loc["Settings_HoverSelection_Sub"];
 
         ShortcutsHeaderTitle.Text = loc["Settings_Shortcuts_Header"];
         ShortcutsHeaderSub.Text = loc["Settings_Shortcuts_Sub"];

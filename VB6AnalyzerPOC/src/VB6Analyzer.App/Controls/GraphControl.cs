@@ -115,6 +115,14 @@ public sealed class GraphControl : Control
         }
     }
 
+    private bool _enableHoverSelection = true;
+    /// <summary>Indica se la selezione e ispezione dei nodi avviene automaticamente al passaggio del puntatore del mouse (Hover).</summary>
+    public bool EnableHoverSelection
+    {
+        get => _enableHoverSelection;
+        set => _enableHoverSelection = value;
+    }
+
     /// <summary>
     /// Imposta simultaneamente tutti i filtri di visibilità per tipologia di simbolo.
     /// </summary>
@@ -630,22 +638,53 @@ public sealed class GraphControl : Control
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        if (!_isPointerDown) return;
-
-        var current = e.GetPosition(this);
-        var dx = current.X - _pointerDownScreenPos.X;
-        var dy = current.Y - _pointerDownScreenPos.Y;
-
-        if (!_isPanning && (Math.Abs(dx) > PanThreshold || Math.Abs(dy) > PanThreshold))
-            _isPanning = true;
-
-        if (_isPanning)
+        if (_isPointerDown)
         {
-            _offsetX += dx;
-            _offsetY += dy;
-            _pointerDownScreenPos = current;
-            InvalidateVisual();
+            var current = e.GetPosition(this);
+            var dx = current.X - _pointerDownScreenPos.X;
+            var dy = current.Y - _pointerDownScreenPos.Y;
+
+            if (!_isPanning && (Math.Abs(dx) > PanThreshold || Math.Abs(dy) > PanThreshold))
+                _isPanning = true;
+
+            if (_isPanning)
+            {
+                _offsetX += dx;
+                _offsetY += dy;
+                _pointerDownScreenPos = current;
+                InvalidateVisual();
+            }
         }
+        else if (EnableHoverSelection)
+        {
+            var graphPoint = ScreenToGraph(e.GetPosition(this));
+            var hit = HitTest(graphPoint);
+
+            if (hit != null)
+            {
+                Cursor = new Cursor(StandardCursorType.Hand);
+                if (hit.Id != _selectedNode?.Id)
+                {
+                    SelectNode(hit);
+                }
+            }
+            else
+            {
+                Cursor = Cursor.Default;
+            }
+        }
+        else
+        {
+            var graphPoint = ScreenToGraph(e.GetPosition(this));
+            var hit = HitTest(graphPoint);
+            Cursor = hit != null ? new Cursor(StandardCursorType.Hand) : Cursor.Default;
+        }
+    }
+
+    protected override void OnPointerExited(PointerEventArgs e)
+    {
+        base.OnPointerExited(e);
+        Cursor = Cursor.Default;
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)

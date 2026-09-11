@@ -89,6 +89,8 @@ public sealed class SettingsService
         }
     }
 
+    public event EventHandler<AppSettings>? SettingsChanged;
+
     /// <summary>
     /// Modifica le impostazioni tramite una lambda ed esegue automaticamente la persistenza su disco.
     /// </summary>
@@ -99,6 +101,7 @@ public sealed class SettingsService
             updateAction(Settings);
             Save();
         }
+        SettingsChanged?.Invoke(this, Settings);
     }
 
     /// <summary>
@@ -110,7 +113,8 @@ public sealed class SettingsService
         {
             Settings = new AppSettings();
             Save();
-            return Settings;
         }
+        SettingsChanged?.Invoke(this, Settings);
+        return Settings;
     }
 }

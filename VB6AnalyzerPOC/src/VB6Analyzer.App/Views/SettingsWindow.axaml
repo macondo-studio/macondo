@@ -102,7 +102,15 @@
                             </StackPanel>
                         </Button>
 
-                        <!-- Tab 3: Scorciatoie -->
+                        <!-- Tab 3: Comportamento -->
+                        <Button x:Name="NavBehaviorButton" Classes="nav-btn" Click="OnNavBehaviorClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconGraph}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavBehaviorText" Text="Comportamento" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 4: Scorciatoie -->
                         <Button x:Name="NavShortcutsButton" Classes="nav-btn" Click="OnNavShortcutsClicked">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <PathIcon Data="{StaticResource IconKeyboard}" Width="14" Height="14" VerticalAlignment="Center" />
@@ -313,7 +321,38 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- SEZIONE 3: SCORCIATOIE DA TASTIERA -->
+                    <!-- SEZIONE 3: COMPORTAMENTO E GRAFO -->
+                    <ScrollViewer x:Name="BehaviorSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Name="BehaviorHeaderTitle" Text="Opzioni Interazione e Grafo" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock x:Name="BehaviorHeaderSub" Text="Personalizza il comportamento del puntatore del mouse e della vista grafo." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="10">
+                                <!-- Card Selezione Hover -->
+                                <Border x:Name="CardHoverSelection"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="16" Cursor="Hand" PointerPressed="OnToggleHoverSetting">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconTarget}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="HoverSelectionTitleText" Text="Selezione al passaggio del mouse (Hover)" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="HoverSelectionSubText" Text="Seleziona e ispeziona automaticamente i nodi quando il cursore vi passa sopra." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckHoverSelection" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- SEZIONE 4: SCORCIATOIE DA TASTIERA -->
                     <Grid x:Name="ShortcutsSection" RowDefinitions="Auto,Auto,*" IsVisible="False">
                         <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
                             <TextBlock x:Name="ShortcutsHeaderTitle" Text="Catalogo Scorciatoie da Tastiera" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />

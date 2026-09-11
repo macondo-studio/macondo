@@ -397,9 +397,17 @@ public partial class MainWindow : Window
             SettingsService.Instance.Update(s => s.Theme = theme.Theme);
         };
 
+        SettingsService.Instance.SettingsChanged += (_, s) =>
+        {
+            Graph.EnableHoverSelection = s.EnableHoverSelection;
+            HoverSelectionCheckIcon.IsVisible = s.EnableHoverSelection;
+        };
+
         // Applica i valori salvati prima del rendering iniziale
         ThemeService.Instance.ApplyTheme(settings.Theme);
         LocalizationService.Instance.SetLanguage(settings.Language);
+        Graph.EnableHoverSelection = settings.EnableHoverSelection;
+        HoverSelectionCheckIcon.IsVisible = settings.EnableHoverSelection;
         UpdateLocalizedUI();
 
         // Ripristino Filtro di Rischio salvato
@@ -2394,6 +2402,17 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Attiva o disattiva la selezione e ispezione dei nodi al passaggio del cursore del mouse (Hover).
+    /// </summary>
+    private void OnToggleHoverSelectionClicked(object? sender, RoutedEventArgs e)
+    {
+        var newValue = !Graph.EnableHoverSelection;
+        Graph.EnableHoverSelection = newValue;
+        HoverSelectionCheckIcon.IsVisible = newValue;
+        SettingsService.Instance.Update(s => s.EnableHoverSelection = newValue);
+    }
+
+    /// <summary>
     /// Aggiorna la visibilità, icona e testo dell'indicatore del branch VCS (Git o SVN) nella barra di stato.
     /// </summary>
     private void UpdateVcsBranchStatus(string? folderPath)
@@ -2784,6 +2803,7 @@ public partial class MainWindow : Window
         LayoutAffinityMenuItem.Header = loc["Layout_AffinityRadial"];
         LayoutIslandsMenuItem.Header = loc["Layout_ClusteredIslands"];
         LayoutForceMenuItem.Header = loc["Layout_ForceDirected"];
+        ToggleHoverSelectionMenuItem.Header = loc["Menu_HoverSelection"];
 
         // Menu Analisi
         AnalysisMenu.Header = loc["Menu_Analysis"];

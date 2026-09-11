@@ -139,6 +139,12 @@
                                 <MenuItem x:Name="LayoutIslandsMenuItem" Header="Cluster a Isole (Sottosistemi)" />
                                 <MenuItem x:Name="LayoutForceMenuItem" Header="Force-Directed (Fisica a Molle)" />
                             </MenuItem>
+                            <Separator />
+                            <MenuItem x:Name="ToggleHoverSelectionMenuItem" Header="Selezione al Passaggio del Mouse" Click="OnToggleHoverSelectionClicked">
+                                <MenuItem.Icon>
+                                    <PathIcon x:Name="HoverSelectionCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                         </MenuItem>
                         <MenuItem x:Name="AnalysisMenu" Header="_Analisi">
                             <MenuItem x:Name="BlastRadiusMenuItem" Header="Calcola Blast Radius" InputGesture="F5">
