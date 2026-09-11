@@ -252,6 +252,16 @@ public partial class MainWindow : Window
                 OpenInfo();
                 e.Handled = true;
             }
+            else if ((e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift)) && e.Key == Key.Tab)
+            {
+                CycleCentralTab(forward: false);
+                e.Handled = true;
+            }
+            else if (e.KeyModifiers == KeyModifiers.Control && e.Key == Key.Tab)
+            {
+                CycleCentralTab(forward: true);
+                e.Handled = true;
+            }
             else if (e.KeyModifiers == KeyModifiers.None && e.Key == Key.F5)
             {
                 OnBlastRadiusClicked();
@@ -874,6 +884,17 @@ public partial class MainWindow : Window
 
         Layout.GraphLayoutManager.ApplyLayout(_graph, _currentLayoutMode);
         Graph.ClearHiddenProjects();
+
+        // Se sono presenti più progetti, pre-seleziona solo il primo progetto (nascondendo tutti gli altri)
+        var projectNodes = _graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
+        if (projectNodes.Count > 1)
+        {
+            foreach (var otherProj in projectNodes.Skip(1))
+            {
+                Graph.SetProjectVisibility(otherProj.Id, false);
+            }
+        }
+
         Graph.Graph = _graph;
         Graph.ResetView();
         Graph.SelectNode(null);
@@ -1361,7 +1382,7 @@ public partial class MainWindow : Window
     {
         _selectedNode = node;
 
-        if (!_isSyncingSelection && CentralTabControl?.SelectedIndex == 1 && node != null)
+        if (!_isSyncingSelection && CentralTabControl?.SelectedIndex == 6 && node != null)
         {
             var matchingRow = _allBlastRadiusRows.FirstOrDefault(r => r.NodeId == node.Id);
             if (matchingRow != null && BlastRadiusDataGrid.SelectedItem != matchingRow)
@@ -2040,12 +2061,28 @@ public partial class MainWindow : Window
     }
 
     // =========================================================================
-    // VISTA GRIGLIA BLAST RADIUS (Milestone M6 - Tab Risultati Tabulari)
+    // VISTA GRIGLIA BLAST RADIUS & NAVIGAZIONE TAB (Milestone M6)
     // =========================================================================
+
+    /// <summary>
+    /// Cambia ciclicamente la scheda di visualizzazione centrale (Grafo, DSM, Treemap, Hotspots, ScreenFlow, CFG, Griglia Blast Radius).
+    /// </summary>
+    private void CycleCentralTab(bool forward = true)
+    {
+        var count = CentralTabControl.ItemCount;
+        if (count <= 1) return;
+
+        var current = CentralTabControl.SelectedIndex;
+        if (current < 0) current = 0;
+
+        CentralTabControl.SelectedIndex = forward
+            ? (current + 1) % count
+            : (current - 1 + count) % count;
+    }
 
     private void OnCentralTabSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (e.Source == CentralTabControl && CentralTabControl.SelectedIndex == 1 && _selectedNode != null)
+        if (e.Source == CentralTabControl && CentralTabControl.SelectedIndex == 6 && _selectedNode != null)
         {
             var matchingRow = _allBlastRadiusRows.FirstOrDefault(r => r.NodeId == _selectedNode.Id);
             if (matchingRow != null && BlastRadiusDataGrid.SelectedItem != matchingRow)
