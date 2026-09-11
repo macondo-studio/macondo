@@ -147,6 +147,65 @@ public sealed class GraphControl : Control
         return (visible.Count, graph.Nodes.Count);
     }
 
+    private readonly HashSet<Guid> _hiddenProjectIds = new();
+    /// <summary>Insieme di ID dei progetti nascosti nel grafo.</summary>
+    public IReadOnlySet<Guid> HiddenProjectIds => _hiddenProjectIds;
+
+    /// <summary>Sollevato quando cambia la visibilità di un progetto nel grafo.</summary>
+    public event EventHandler<Guid>? ProjectVisibilityChanged;
+
+    /// <summary>Verifica se un progetto è visibile nel grafo.</summary>
+    public bool IsProjectVisible(Guid projectId) => !_hiddenProjectIds.Contains(projectId);
+
+    /// <summary>Imposta la visibilità di un progetto nel grafo.</summary>
+    public void SetProjectVisibility(Guid projectId, bool isVisible)
+    {
+        if (isVisible)
+        {
+            if (!_hiddenProjectIds.Remove(projectId))
+                return;
+        }
+        else
+        {
+            if (!_hiddenProjectIds.Add(projectId))
+                return;
+
+            // Se il nodo selezionato appartiene al progetto nascosto, deselezionalo
+            if (_selectedNode != null)
+            {
+                var isSelectedInProject = (_selectedNode.Kind == SymbolKind.Project && _selectedNode.Id == projectId) ||
+                                          (_selectedNode.ProjectId == projectId);
+                if (isSelectedInProject)
+                {
+                    SelectNode(null);
+                }
+            }
+        }
+
+        InvalidateVisual();
+        ProjectVisibilityChanged?.Invoke(this, projectId);
+    }
+
+    /// <summary>Rende visibili tutti i progetti nel grafo.</summary>
+    public void ClearHiddenProjects()
+    {
+        if (_hiddenProjectIds.Count == 0) return;
+        _hiddenProjectIds.Clear();
+        InvalidateVisual();
+        ProjectVisibilityChanged?.Invoke(this, Guid.Empty);
+    }
+
+    /// <summary>Calcola il numero di progetti visibili e totali nel grafo corrente.</summary>
+    public (int visibleProjects, int totalProjects) GetProjectCounts()
+    {
+        if (Graph is not { } graph) return (0, 0);
+        var projectNodes = graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
+        var total = projectNodes.Count;
+        if (total == 0) return (0, 0);
+        var visible = projectNodes.Count(p => !_hiddenProjectIds.Contains(p.Id));
+        return (visible, total);
+    }
+
     // Trasformazioni di vista (Zoom & Pan)
     private double _scale = 1.0;
     private double _offsetX;
@@ -549,6 +608,12 @@ public sealed class GraphControl : Control
         var visible = new HashSet<Guid>();
         foreach (var node in graph.Nodes)
         {
+            // Se il progetto a cui appartiene il nodo o il nodo radice di progetto è nascosto, ignoralo
+            if (node.ProjectId.HasValue && _hiddenProjectIds.Contains(node.ProjectId.Value))
+                continue;
+            if (node.Kind == SymbolKind.Project && _hiddenProjectIds.Contains(node.Id))
+                continue;
+
             var isPrimaryContainer = node.Kind is SymbolKind.Project or SymbolKind.Class or SymbolKind.Form
                                               or SymbolKind.Module or SymbolKind.UserControl;
 

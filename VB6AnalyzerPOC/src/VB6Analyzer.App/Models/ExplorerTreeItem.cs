@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Macondo.App.Services;
 using Macondo.Semantic.Model;
 
@@ -8,8 +9,10 @@ namespace Macondo.App.Models;
 /// Wrappa un <see cref="GraphNode"/> per la visualizzazione ad albero nel TreeView,
 /// raggruppando i file di primo livello per tipologia (Forms, Moduli, Moduli di classe, Controlli utente, ecc.).
 /// </summary>
-public sealed class ExplorerTreeItem
+public sealed class ExplorerTreeItem : INotifyPropertyChanged
 {
+    public event PropertyChangedEventHandler? PropertyChanged;
+
     public required string Name { get; init; }
     public required string DisplayText { get; init; }
     public required SymbolKind Kind { get; init; }
@@ -18,6 +21,23 @@ public sealed class ExplorerTreeItem
     public required string BadgeBackground { get; init; }
     public required string BadgeForeground { get; init; }
     public bool IsGroup { get; init; }
+    public bool IsProjectRoot { get; init; }
+    public Guid? ProjectId { get; init; }
+
+    private bool _isProjectVisible = true;
+    public bool IsProjectVisible
+    {
+        get => _isProjectVisible;
+        set
+        {
+            if (_isProjectVisible != value)
+            {
+                _isProjectVisible = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsProjectVisible)));
+            }
+        }
+    }
+
     public string? FilePath { get; init; }
     public int LineStart { get; init; }
     public int LineEnd { get; init; }
@@ -31,7 +51,7 @@ public sealed class ExplorerTreeItem
     /// Costruisce l'albero gerarchico del progetto a partire dal CodeGraph visuale,
     /// con raggruppamento dei file per tipologia.
     /// </summary>
-    public static ExplorerTreeItem BuildTree(VisualCodeGraph graph, string? projectFolderPath = null)
+    public static ExplorerTreeItem BuildTree(VisualCodeGraph graph, string? projectFolderPath = null, IReadOnlySet<Guid>? hiddenProjectIds = null)
     {
         if (graph.Nodes.Count == 0)
         {
@@ -68,25 +88,29 @@ public sealed class ExplorerTreeItem
 
             foreach (var proj in projects)
             {
-                workspaceItem.Children.Add(BuildProjectSubTree(graph, proj, projectFolderPath));
+                workspaceItem.Children.Add(BuildProjectSubTree(graph, proj, projectFolderPath, isWorkspace: true, hiddenProjectIds: hiddenProjectIds));
             }
 
             return workspaceItem;
         }
 
         var singleProject = projects.FirstOrDefault() ?? graph.Nodes.First();
-        return BuildProjectSubTree(graph, singleProject, projectFolderPath);
+        return BuildProjectSubTree(graph, singleProject, projectFolderPath, isWorkspace: false, hiddenProjectIds: hiddenProjectIds);
     }
 
-    private static ExplorerTreeItem BuildProjectSubTree(VisualCodeGraph graph, GraphNode project, string? projectFolderPath)
+    private static ExplorerTreeItem BuildProjectSubTree(VisualCodeGraph graph, GraphNode project, string? projectFolderPath, bool isWorkspace = false, IReadOnlySet<Guid>? hiddenProjectIds = null)
     {
         var (prjBadge, prjBg, prjFg) = GetBadgeInfo(project.Kind);
+        var isVis = hiddenProjectIds == null || !hiddenProjectIds.Contains(project.Id);
         var projectItem = new ExplorerTreeItem
         {
             Name = project.Name,
             DisplayText = project.Name,
             Kind = project.Kind,
             NodeId = project.Id,
+            IsProjectRoot = isWorkspace,
+            ProjectId = project.Id,
+            IsProjectVisible = isVis,
             KindBadge = prjBadge,
             BadgeBackground = prjBg,
             BadgeForeground = prjFg,

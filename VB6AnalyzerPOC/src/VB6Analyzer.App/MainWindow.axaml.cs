@@ -822,24 +822,19 @@ public partial class MainWindow : Window
         if (_graph is null) return;
 
         Layout.GraphLayoutManager.ApplyLayout(_graph, _currentLayoutMode);
+        Graph.ClearHiddenProjects();
         Graph.Graph = _graph;
         Graph.ResetView();
         Graph.SelectNode(null);
 
-        ExplorerTree.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath) };
+        ExplorerTree.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds) };
 
         ShowEmptyInspector();
+        UpdateProjectsFilterUI();
         UpdateStatsBar();
         SyncFilterUiState();
 
-        if (_graph.SemanticGraph != null)
-        {
-            var semGraph = _graph.SemanticGraph;
-            Dsm.Matrix = DsmMatrixBuilder.Build(semGraph);
-            Treemap.RootItem = TreemapModelBuilder.Build(semGraph);
-            Hotspot.Dataset = HotspotAnalyzer.Analyze(semGraph);
-            ScreenFlow.Graph = ScreenFlowBuilder.Build(semGraph);
-        }
+        UpdateAnalyticsViews();
 
         if (precalculatedRows != null && precalculatedRows.Count > 0)
         {
@@ -877,6 +872,7 @@ public partial class MainWindow : Window
         Graph.ShowTypesAndEnums = settings.ShowTypesAndEnums;
 
         Graph.FilterChanged += (_, _) => SyncFilterUiState();
+        Graph.ProjectVisibilityChanged += OnGraphProjectVisibilityChanged;
 
         DetailLevelComboBox.SelectionChanged += OnDetailLevelComboBoxSelectionChanged;
 
@@ -1030,6 +1026,183 @@ public partial class MainWindow : Window
         {
             _isSyncingFilterUi = false;
         }
+    }
+
+    /// <summary>
+    /// Ricalcola e aggiorna tutte le viste analitiche (DSM, Treemap, Hotspots, Screen Flow)
+    /// tenendo conto dei progetti attualmente visibili (escludendo i progetti disattivati).
+    /// </summary>
+    private void UpdateAnalyticsViews()
+    {
+        if (_graph?.SemanticGraph is null) return;
+
+        var semGraph = _graph.SemanticGraph;
+        var hiddenIds = Graph.HiddenProjectIds;
+
+        CodeGraph targetGraph;
+        if (hiddenIds.Count > 0)
+        {
+            var hiddenSymbolIds = _graph.Nodes
+                .Where(n => (n.ProjectId.HasValue && hiddenIds.Contains(n.ProjectId.Value)) ||
+                            (n.Kind == SymbolKind.Project && hiddenIds.Contains(n.Id)))
+                .Select(n => n.Id)
+                .ToHashSet();
+
+            targetGraph = new CodeGraph();
+            foreach (var s in semGraph.Symbols)
+            {
+                if (!hiddenSymbolIds.Contains(s.Id))
+                    targetGraph.Symbols.Add(s);
+            }
+            foreach (var r in semGraph.Relationships)
+            {
+                if (!hiddenSymbolIds.Contains(r.SourceId) && !hiddenSymbolIds.Contains(r.TargetId))
+                    targetGraph.Relationships.Add(r);
+            }
+        }
+        else
+        {
+            targetGraph = semGraph;
+        }
+
+        Dsm.Matrix = DsmMatrixBuilder.Build(targetGraph);
+        Treemap.RootItem = TreemapModelBuilder.Build(targetGraph);
+        Hotspot.Dataset = HotspotAnalyzer.Analyze(targetGraph);
+        ScreenFlow.Graph = ScreenFlowBuilder.Build(targetGraph);
+    }
+
+    /// <summary>
+    /// Popola dinamicamente i selettori di visibilità dei singoli progetti (Project Explorer e Menu Visualizza)
+    /// quando sono presenti progetti multipli nel workspace corrente.
+    /// </summary>
+    private void UpdateProjectsFilterUI()
+    {
+        if (_graph is null)
+        {
+            ExplorerProjectFilterBar.IsVisible = false;
+            FilterProjectsMenuItem.IsVisible = false;
+            FilterProjectsMenuItem.Items.Clear();
+            return;
+        }
+
+        var projectNodes = _graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
+        if (projectNodes.Count <= 1)
+        {
+            ExplorerProjectFilterBar.IsVisible = false;
+            FilterProjectsMenuItem.IsVisible = false;
+            FilterProjectsMenuItem.Items.Clear();
+            return;
+        }
+
+        ExplorerProjectFilterBar.IsVisible = true;
+        FilterProjectsMenuItem.IsVisible = true;
+
+        // Popola le voci del menu a discesa Visualizza -> Filtra Progetti
+        FilterProjectsMenuItem.Items.Clear();
+        foreach (var projNode in projectNodes)
+        {
+            var pId = projNode.Id;
+            var isVis = Graph.IsProjectVisible(pId);
+
+            var mi = new MenuItem
+            {
+                Header = projNode.Name,
+                Tag = pId
+            };
+            UpdateMenuItemCheck(mi, isVis);
+            mi.Click += (_, _) =>
+            {
+                var next = !Graph.IsProjectVisible(pId);
+                Graph.SetProjectVisibility(pId, next);
+            };
+            FilterProjectsMenuItem.Items.Add(mi);
+        }
+
+        UpdateProjectsBadgeText();
+    }
+
+    private void UpdateMenuItemCheck(MenuItem mi, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (this.TryFindResource("IconCheck", out var res) && res is StreamGeometry geo)
+            {
+                mi.Icon = new PathIcon
+                {
+                    Data = geo,
+                    Width = 12,
+                    Height = 12,
+                    Foreground = this.FindResource("ThemeAccentBrush") as IBrush ?? Brushes.DodgerBlue
+                };
+            }
+        }
+        else
+        {
+            mi.Icon = null;
+        }
+    }
+
+    private void UpdateProjectsBadgeText()
+    {
+        var (vis, total) = Graph.GetProjectCounts();
+        var loc = LocalizationService.Instance;
+        ExplorerProjectsCountText.Text = loc.CurrentLanguage == AppLanguage.English
+            ? $"{vis}/{total} Projects visible"
+            : $"{vis}/{total} Progetti visibili";
+        ExplorerProjectsSelectAllButton.IsEnabled = (vis < total);
+    }
+
+    private void OnExplorerProjectCheckBoxClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox cb && cb.DataContext is ExplorerTreeItem item && item.ProjectId.HasValue)
+        {
+            var isVis = cb.IsChecked == true;
+            Graph.SetProjectVisibility(item.ProjectId.Value, isVis);
+        }
+    }
+
+    private void OnGraphProjectVisibilityChanged(object? sender, Guid projectId)
+    {
+        // Sincronizza lo stato dei nodi nell'ExplorerTree
+        if (ExplorerTree.ItemsSource is IEnumerable<ExplorerTreeItem> rootItems)
+        {
+            void SyncTreeItemVisibility(ExplorerTreeItem item)
+            {
+                if (item.IsProjectRoot && item.ProjectId.HasValue)
+                {
+                    item.IsProjectVisible = Graph.IsProjectVisible(item.ProjectId.Value);
+                }
+                foreach (var child in item.Children)
+                {
+                    SyncTreeItemVisibility(child);
+                }
+            }
+
+            foreach (var root in rootItems)
+            {
+                SyncTreeItemVisibility(root);
+            }
+        }
+
+        // Sincronizza le icone di spunta nei MenuItem
+        foreach (var item in FilterProjectsMenuItem.Items)
+        {
+            if (item is MenuItem mi && mi.Tag is Guid pId)
+            {
+                var isVis = Graph.IsProjectVisible(pId);
+                UpdateMenuItemCheck(mi, isVis);
+            }
+        }
+
+        UpdateProjectsBadgeText();
+        UpdateStatsBar();
+        ApplyGridFilters();
+        UpdateAnalyticsViews();
+    }
+
+    private void OnProjectsSelectAllClicked(object? sender, RoutedEventArgs e)
+    {
+        Graph.ClearHiddenProjects();
     }
 
     #endregion
@@ -1887,6 +2060,7 @@ public partial class MainWindow : Window
                     {
                         TargetSymbol = sym,
                         NodeId = node.Id,
+                        ProjectId = node.ProjectId ?? (node.Kind == SymbolKind.Project ? node.Id : null),
                         ProjectName = node.ProjectName ?? "(predefinito)",
                         Name = sym.Name,
                         QualifiedName = sym.QualifiedName,
@@ -1932,6 +2106,11 @@ public partial class MainWindow : Window
         var selectedRiskIndex = RiskFilterComboBox?.SelectedIndex ?? 0;
 
         IEnumerable<BlastRadiusGridRow> query = _allBlastRadiusRows;
+
+        if (Graph.HiddenProjectIds.Count > 0)
+        {
+            query = query.Where(r => !r.ProjectId.HasValue || !Graph.HiddenProjectIds.Contains(r.ProjectId.Value));
+        }
 
         if (!string.IsNullOrEmpty(filterText))
         {
@@ -2068,8 +2247,8 @@ public partial class MainWindow : Window
     {
         if (_graph is null) return;
 
-        var projectCount = _graph.Nodes.Count(n => n.Kind == SymbolKind.Project);
-        var nodeCount = _graph.Nodes.Count;
+        var (visProj, projectCount) = Graph.GetProjectCounts();
+        var (visNodes, nodeCount) = Graph.GetNodeCounts();
         var relCount = _graph.Edges.Count;
         var callCount = _graph.Edges.Count(e => e.Kind == RelationshipKind.Calls);
         var instCount = _graph.Edges.Count(e => e.Kind == RelationshipKind.Instantiates);
@@ -2077,7 +2256,9 @@ public partial class MainWindow : Window
 
         if (projectCount > 1)
         {
-            StatusStats.Text = $"{projectCount} Progetti | {nodeCount} Nodi | {relCount} Relazioni ({crossCount} Cross-Project) | {callCount} Chiamate | {instCount} Istanze";
+            var projText = visProj < projectCount ? $"{visProj}/{projectCount} Progetti" : $"{projectCount} Progetti";
+            var nodesText = visNodes < nodeCount ? $"{visNodes}/{nodeCount} Nodi" : $"{nodeCount} Nodi";
+            StatusStats.Text = $"{projText} | {nodesText} | {relCount} Relazioni ({crossCount} Cross-Project) | {callCount} Chiamate | {instCount} Istanze";
         }
         else
         {
@@ -2790,6 +2971,7 @@ public partial class MainWindow : Window
         ExpandAllMenuItem.Header = loc["Menu_ExpandAll"];
         CollapseAllMenuItem.Header = loc["Menu_CollapseAll"];
         FilterDetailLevelMenuItem.Header = loc["Menu_FilterDetailLevel"];
+        FilterProjectsMenuItem.Header = loc["Menu_FilterProjects"];
         FilterAllMenuItem.Header = loc["Filter_AllMembers"];
         FilterMethodsPropsMenuItem.Header = loc["Filter_MethodsAndProperties"];
         FilterContainersOnlyMenuItem.Header = loc["Filter_ContainersOnly"];
@@ -2858,12 +3040,16 @@ public partial class MainWindow : Window
         ToolTip.SetTip(InspectorOpenFolderButton, loc["Inspector_Tooltip_OpenFolder"]);
         if (_graph is not null)
         {
-            ExplorerTree.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath) };
+            ExplorerTree.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds) };
         }
 
         // Tab Centrali
         GraphTabHeader.Text = loc["Tab_GraphView"];
         GridTabHeader.Text = loc["Tab_BlastRadiusGrid"];
+
+        // Project Explorer Toolbar
+        ExplorerProjectsSelectAllButton.Content = loc["HUD_SelectAll"];
+        UpdateProjectsBadgeText();
 
         // Floating HUD
         HudLayoutLabel.Text = loc["HUD_LayoutLabel"];
