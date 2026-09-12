@@ -74,7 +74,26 @@ const i18n = {
     dl_meta_1: "Compatibile con Windows 10 e Windows 11 (64-bit)",
     dl_meta_2: "Standalone & Portable (Nessuna installazione)",
 
-    footer_license: "Licenza"
+    footer_license: "Licenza",
+    footer_privacy: "Privacy",
+
+    // Privacy Page
+    priv_back: "&larr; Torna alla Home",
+    priv_badge: "Privacy by Design • 100% Locale",
+    priv_title: "Informativa sulla Privacy",
+    priv_subtitle: "Architettura Zero-Data e massima riservatezza per il tuo codice sorgente legacy.",
+    priv_s1_title: "1. Zero Telemetria e Tracciamento",
+    priv_s1_desc: "L'applicazione desktop Macondo non raccoglie, memorizza né trasmette alcuna metrica diagnostica, telemetria di utilizzo, crash report o identificatore univoco di sistema.",
+    priv_s2_title: "2. Elaborazione 100% Offline e Locale",
+    priv_s2_desc: "Tutti i file di progetto (.vbp, .frm, .bas, .cls, .ctl), la risoluzione dell'albero sintattico (AST), la matrice Blast Radius e la cache locale risiedono esclusivamente sul tuo computer. Nessun frammento di codice o metadato viene mai inviato a server cloud o terze parti.",
+    priv_s3_title: "3. Verifica Trasparente degli Aggiornamenti",
+    priv_s3_desc: "Macondo include un controllo automatico opzionale delle versioni che effettua una semplice richiesta HTTP GET pubblica per scaricare il file <code>version.json</code> su GitHub. Nessun dato utente, token o informazione hardware viene inviata durante questa richiesta.",
+    priv_s4_title: "4. Nessun Cookie di Profilazione sul Sito",
+    priv_s4_desc: "Questo sito web è puramente informativo e non fa uso di cookie di profilazione, cookie pubblicitari o strumenti di tracciamento invasivi come Google Analytics o pixel di terze parti. Non raccogliamo dati personali dai visitatori.",
+    priv_s5_title: "5. Hosting su GitHub Pages",
+    priv_s5_desc: "Il sito web è ospitato tramite GitHub Pages. Durante la navigazione, GitHub potrebbe registrare log di connessione standard (come indirizzi IP e user agent) esclusivamente per finalità di sicurezza, diagnostica di rete e integrità dell'infrastruttura, in conformità all'informativa sulla privacy di GitHub.",
+    priv_s6_title: "6. Licenza Freeware e Disclaimer di Responsabilità",
+    priv_s6_desc: "Macondo è fornito gratuitamente (freeware) per uso personale e commerciale secondo i termini della <a href=\"LICENSE.md\" target=\"_blank\">Licenza Macondo</a>. Il software è distribuito \"così com'è\" (AS IS), senza garanzie di alcun tipo o supporto vincolante. Il software è un prodotto proprietario (closed-source)."
   },
 
   en: {
@@ -147,7 +166,26 @@ const i18n = {
     dl_meta_1: "Compatible with Windows 10 & Windows 11 (64-bit)",
     dl_meta_2: "Single Portable Executable (No Install)",
 
-    footer_license: "License"
+    footer_license: "License",
+    footer_privacy: "Privacy",
+
+    // Privacy Page
+    priv_back: "&larr; Back to Home",
+    priv_badge: "Privacy by Design • 100% Local",
+    priv_title: "Privacy Policy",
+    priv_subtitle: "Zero-Data architecture and absolute confidentiality for your legacy code.",
+    priv_s1_title: "1. Zero Telemetry & Tracking",
+    priv_s1_desc: "The Macondo desktop application does not collect, store, or transmit any diagnostic metrics, usage telemetry, crash logs containing code, or unique hardware identifiers.",
+    priv_s2_title: "2. 100% Offline & Local Processing",
+    priv_s2_desc: "All project files (.vbp, .frm, .bas, .cls, .ctl), AST syntax tree resolution, Blast Radius computation, and disk caching reside solely on your machine. No source code snippets or project metadata are ever uploaded to cloud servers or third parties.",
+    priv_s3_title: "3. Transparent Update Checks",
+    priv_s3_desc: "Macondo includes an optional update check that performs a simple, public HTTP GET request to download <code>version.json</code> from GitHub. No user data, device tokens, or environment details are transmitted during this request.",
+    priv_s4_title: "4. No Tracking Cookies on Website",
+    priv_s4_desc: "This website is strictly informational and does not use profiling cookies, advertising cookies, or invasive analytics trackers (such as Google Analytics or marketing pixels). We do not collect personal data from visitors.",
+    priv_s5_title: "5. GitHub Pages Hosting",
+    priv_s5_desc: "This website is hosted via GitHub Pages. While browsing, GitHub may log standard network connection metadata (such as IP addresses and user agents) strictly for security, routing diagnostics, and service integrity, governed by GitHub's Privacy Statement.",
+    priv_s6_title: "6. Freeware License & Disclaimer",
+    priv_s6_desc: "Macondo is provided free of charge (freeware) for personal, educational, and commercial use under the terms of the <a href=\"LICENSE.md\" target=\"_blank\">Macondo License</a>. The software is distributed \"as is\", without warranty of any kind. The application is a proprietary, closed-source freeware product."
   }
 };
 
