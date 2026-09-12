@@ -55,12 +55,12 @@
                                     <PathIcon Data="{StaticResource IconRefresh}" Width="14" Height="14" Foreground="#4AE8D0" />
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem x:Name="LoadFixturesMenuItem" Header="Carica Fixtures Test">
+                            <MenuItem x:Name="LoadFixturesMenuItem" Header="Carica Fixtures Test" IsVisible="False">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconBeaker}" Width="14" Height="14" />
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem x:Name="GenerateFakeMenuItem" Header="Grafo Demo (~500 nodi)">
+                            <MenuItem x:Name="GenerateFakeMenuItem" Header="Grafo Demo (~500 nodi)" IsVisible="False">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconZap}" Width="14" Height="14" />
                                 </MenuItem.Icon>

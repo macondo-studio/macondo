@@ -40,7 +40,7 @@
     <ProjectReference Include="..\..\..\VB6ParserSpike\src\VB6Analyzer.Semantic\VB6Analyzer.Semantic.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <None Include="..\..\..\VB6ParserSpike\src\VB6Analyzer.Semantic.Spike\Fixtures\**\*.*">
       <Link>Fixtures\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

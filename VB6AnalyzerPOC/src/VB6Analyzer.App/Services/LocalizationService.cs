@@ -356,7 +356,7 @@ public sealed class LocalizationService
         ["Legend_Instantiates"] = "Instantiates (New)",
 
         // Grafo Canvas
-        ["Graph_Placeholder"] = "Nessun CodeGraph caricato. Clicca su 'Carica Fixtures' o 'Apri Cartella VB6'.",
+        ["Graph_Placeholder"] = "Nessun CodeGraph caricato. Apri un progetto o una cartella VB6 dal menu File.",
 
         // Barra di Stato & Statistiche
         ["Status_Ready"] = "Pronto.",
@@ -749,7 +749,7 @@ public sealed class LocalizationService
         ["Legend_Instantiates"] = "Instantiates (New)",
 
         // Graph Canvas
-        ["Graph_Placeholder"] = "No CodeGraph loaded. Click 'Load Test Fixtures' or 'Open Folder'.",
+        ["Graph_Placeholder"] = "No CodeGraph loaded. Open a VB6 project or folder from the File menu.",
 
         // Status Bar & Stats
         ["Status_Ready"] = "Ready.",

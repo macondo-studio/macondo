@@ -76,8 +76,12 @@ public partial class MainWindow : Window
         OpenProjectFilesMenuItem.Command = new ActionCommand(async () => await OpenProjectFilesAsync());
         OpenFolderMenuItem.Command = new ActionCommand(async () => await OpenFolderAsync());
         RefreshProjectMenuItem.Command = new ActionCommand(async () => await RefreshCurrentProjectAsync());
+#if DEBUG
+        LoadFixturesMenuItem.IsVisible = true;
+        GenerateFakeMenuItem.IsVisible = true;
         LoadFixturesMenuItem.Command = new ActionCommand(() => LoadDefaultFixtures());
         GenerateFakeMenuItem.Command = new ActionCommand(() => LoadSyntheticGraph());
+#endif
         ExportMarkdownMenuItem.Command = new ActionCommand(async () => await ExportMarkdownAsync());
         ExportJsonMenuItem.Command = new ActionCommand(async () => await ExportJsonAsync());
         ImportJsonMenuItem.Command = new ActionCommand(async () => await ImportJsonAsync());
@@ -96,8 +100,10 @@ public partial class MainWindow : Window
         AddHandler(DragDrop.DragOverEvent, OnWindowDragOver);
 
         RefreshProjectMenuItem.Click += async (_, _) => await RefreshCurrentProjectAsync();
+#if DEBUG
         LoadFixturesMenuItem.Click += (_, _) => LoadDefaultFixtures();
         GenerateFakeMenuItem.Click += (_, _) => LoadSyntheticGraph();
+#endif
         ExportMarkdownMenuItem.Click += async (_, _) => await ExportMarkdownAsync();
         ExportJsonMenuItem.Click += async (_, _) => await ExportJsonAsync();
         ImportJsonMenuItem.Click += async (_, _) => await ImportJsonAsync();
@@ -441,15 +447,17 @@ public partial class MainWindow : Window
         // Ripristino Filtro di Rischio salvato
         RiskFilterComboBox.SelectedIndex = Math.Clamp(settings.DefaultRiskFilterIndex, 0, 4);
 
-        // Caricamento del Progetto: Ultima cartella aperta o Fixture reali di default
+        // Caricamento del Progetto: Ultima cartella aperta o Fixture reali di default (solo in Debug)
         if (!string.IsNullOrEmpty(settings.LastOpenedFolder) && Directory.Exists(settings.LastOpenedFolder))
         {
             _ = AnalyzeAndLoadFolderAsync(settings.LastOpenedFolder);
         }
+#if DEBUG
         else
         {
             LoadDefaultFixtures();
         }
+#endif
 
         // Controllo automatico aggiornamenti in background all'avvio
         _ = CheckForUpdatesOnStartupAsync();
