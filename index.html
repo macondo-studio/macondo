@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Macondo • Visual Code Graph & Blast Radius for VB6</title>
+  <meta name="description" content="Analizzatore semantico e calcolo del Blast Radius per Visual Basic 6.0. 100% offline, privacy assoluta, pronto per modelli AI. Gratuito.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="alternate icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="favicon-192x192.png">
+</head>
+<body>
+
+  <!-- Minimal Header -->
+  <header class="header">
+    <div class="container header-inner">
+      <a href="#" class="brand">
+        <img src="logo.svg" alt="Macondo Logo" class="brand-icon">
+        <span>Macondo</span>
+      </a>
+
+      <nav>
+        <ul class="nav">
+          <li><a href="#graph" data-i18n="nav_graph">Grafo</a></li>
+          <li><a href="#blast" data-i18n="nav_blast">Blast Radius</a></li>
+          <li><a href="#ai" data-i18n="nav_ai">AI Context</a></li>
+          <li><a href="#specs" data-i18n="nav_specs">Specifiche</a></li>          
+        </ul>
+      </nav>
+
+      <div class="header-right">
+        <button id="lang-toggle" class="lang-btn" title="Language">
+          <span id="lang-it" class="current">IT</span> / <span id="lang-en">EN</span>
+        </button>
+        <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-primary" data-i18n="nav_download">Scarica</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-pill">
+        <span class="hero-pill-badge">Release</span>
+        <span data-i18n="hero_pill">Macondo v1.0.0 per Windows • Gratuito</span>
+      </div>
+
+      <h1 class="hero-title">
+        <span data-i18n="hero_title_lead">Vedi la struttura.</span><br>
+        <span class="dimmed" data-i18n="hero_title_dim">Domina il legacy.</span>
+      </h1>
+
+      <p class="hero-subtitle" data-i18n="hero_subtitle">
+        Analizzatore semantico e calcolo del Blast Radius per Visual Basic 6.0. 100% offline, privacy assoluta, pronto per la migrazione con modelli AI.
+      </p>
+
+      <div class="hero-cta">
+        <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-accent btn-large">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5zM7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+          </svg>
+          <span data-i18n="hero_btn_dl">Scarica per Windows</span>
+        </a>
+        <a href="#graph" class="btn btn-secondary btn-large">
+          <span data-i18n="hero_btn_explore">Guarda le funzionalità</span>
+        </a>
+      </div>
+
+      <div class="hero-note">
+        <span data-i18n="hero_note">Gratuito • Nessuna installazione richiesta • 100% locale</span>
+        <span class="dot-sep">&bull;</span>
+        <span class="release-date-text">Ultimo aggiornamento: 10 settembre 2026</span>
+      </div>
+
+      <!-- Obsidian & Supabase Style App Screenshot Showcase -->
+      <div class="showcase-window">
+        <div class="screenshot-holder">
+          <img id="graph-screenshot" src="VistaGrafoIta.png" alt="Macondo Semantic Graph UI" class="app-screenshot">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature 1: Visual Graph -->
+  <section id="graph" class="feature-block">
+    <div class="container feature-grid-2">
+      <div>
+        <div class="feature-tag" data-i18n="f1_tag">Esplorazione Visuale</div>
+        <h2 class="feature-heading" data-i18n="f1_title">Comprendi ogni dipendenza a colpo d'occhio.</h2>
+        <p class="feature-desc" data-i18n="f1_desc">Parsing AST completo di file .vbp, .frm, .bas, .cls e .ctl. Esplora gerarchie e chiamate con 4 algoritmi di layout ottimizzati per grandi progetti.</p>
+        <ul class="feature-points">
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span data-i18n="f1_p1">Layout Radiale, Affinità, Cluster a Isole e simulazione fisica Force-Directed.</span>
+          </li>
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span data-i18n="f1_p2">Espansione dinamica di classi e moduli con visualizzazione granulare dei metodi.</span>
+          </li>
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span data-i18n="f1_p3">Prestazioni native a 60 FPS anche su codebase con oltre 10.000 simboli.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="feature-card-visual">
+        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); line-height: 1.8;">
+          <div style="color: #ffffff; margin-bottom: 8px;" data-i18n="f1_box_title">Pipeline di Risoluzione AST:</div>
+          <div>&bull; 14 <span data-i18n="f1_box_l1">Form (.FRM) &rarr; Gestori Eventi UI</span></div>
+          <div>&bull; 22 <span data-i18n="f1_box_l2">Moduli Standard (.BAS) &rarr; Routine Globali</span></div>
+          <div>&bull; 18 <span data-i18n="f1_box_l3">Moduli di Classe (.CLS) &rarr; Istanze &amp; Membri</span></div>
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle); color: var(--text-headline);" data-i18n="f1_box_total">
+            Totale: <strong>1.482 chiamate risolte</strong> (32ms cold parse)
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature 2: Blast Radius -->
+  <section id="blast" class="feature-block">
+    <div class="container feature-grid-2">
+      <div class="feature-card-visual">
+        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); line-height: 1.8;">
+          <div style="color: #ffffff; margin-bottom: 8px;" data-i18n="f2_box_title">Formula d'Impatto Ricorsiva:</div>
+          <div><span data-i18n="f2_box_l1">Profondità:</span> <strong style="color: #ffffff;" data-i18n="f2_box_l1_val">6 livelli</strong></div>
+          <div><span data-i18n="f2_box_l2">Chiamanti Diretti:</span> <strong style="color: #ffffff;">18</strong> | <span data-i18n="f2_box_l2_ind">Indiretti:</span> <strong style="color: #ffffff;">142</strong></div>
+          <div><span data-i18n="f2_box_l3">Form UI Impattate:</span> <strong style="color: #ffffff;" data-i18n="f2_box_l3_val">11 form</strong></div>
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle); color: #ff453a;" data-i18n="f2_box_risk">
+            Punteggio di Rischio: <strong>CRITICO (94/100)</strong>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="feature-tag" data-i18n="f2_tag">Analisi d'Impatto</div>
+        <h2 class="feature-heading" data-i18n="f2_title">Modifica senza paura di rompere la produzione.</h2>
+        <p class="feature-desc" data-i18n="f2_desc">La matrice Blast Radius traccia ricorsivamente ogni chiamante a monte. Riconosci prima di toccare il codice quali schermate UI o classi verranno impattate.</p>
+        <ul class="feature-points">
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span data-i18n="f2_p1">Valutazione automatica del rischio di regressione da Basso a Critico.</span>
+          </li>
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span data-i18n="f2_p2">Griglia interattiva con ordinamento per impatto totale e profondità di chiamata.</span>
+          </li>
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span data-i18n="f2_p3">Salto immediato con 1-click dalla riga della griglia al nodo nel grafo.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature 3: AI Slicing -->
+  <section id="ai" class="feature-block">
+    <div class="container feature-grid-2">
+      <div>
+        <div class="feature-tag" data-i18n="f3_tag">AI & Modernizzazione</div>
+        <h2 class="feature-heading" data-i18n="f3_title">Il ponte ideale tra codice legacy e moderni LLM.</h2>
+        <p class="feature-desc" data-i18n="f3_desc">Estrai Repo Map e contesti semantici compatti in formato Markdown pronti per Claude, ChatGPT, Gemini o Copilot per guidare la riscrittura in C#/.NET.</p>
+        <ul class="feature-points">
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span data-i18n="f3_p1">Subgrafi mirati per evitare il rumore e massimizzare la precisione del modello.</span>
+          </li>
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span data-i18n="f3_p2">Esportazione istantanea con 1 click negli appunti o su file .md.</span>
+          </li>
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span data-i18n="f3_p3">Ideale per refactoring architetturali o migrazioni modulari passo dopo passo.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="feature-card-visual">
+        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); line-height: 1.8;">
+          <div style="color: var(--accent); margin-bottom: 8px;" data-i18n="f3_box_title">Pronto per il tuo LLM preferito:</div>
+          <div data-i18n="f3_box_sub">1-click LLM Context Slice:</div>
+          <div style="background: #000; padding: 12px; border-radius: 6px; border: 1px solid var(--border-subtle); margin-top: 8px; color: var(--text-headline);">
+            <code>&gt; macondo export-slice --symbol CalculateTax</code>
+          </div>
+          <div style="margin-top: 8px; color: #30d158;" data-i18n="f3_box_copied">&check; Markdown formattato copiato negli appunti</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Specifications 3-Column Grid -->
+  <section id="specs" class="feature-block">
+    <div class="container">
+      <div class="grid-3">
+        <div class="card-minimal">
+          <h3 class="card-title" data-i18n="g1_title">100% Gratuito</h3>
+          <p class="card-body" data-i18n="g1_desc">Nessun abbonamento, nessuna licenza a pagamento, nessun limite artificiale. Uno strumento creato per la community.</p>
+        </div>
+
+        <div class="card-minimal">
+          <h3 class="card-title" data-i18n="g2_title">Privacy Assoluta</h3>
+          <p class="card-body" data-i18n="g2_desc">Funziona al 100% in locale sul tuo computer. Nessun sorgente o metadato viene mai inviato all'esterno o sul cloud.</p>
+        </div>
+
+        <div class="card-minimal">
+          <h3 class="card-title" data-i18n="g3_title">Cache & Velocità</h3>
+          <p class="card-body" data-i18n="g3_desc">Cache persistente ultra-veloce su disco: apri progetti enterprise con centinaia di moduli in una frazione di secondo.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Minimal Download CTA -->
+  <section id="download" class="download-section">
+    <div class="container">
+      <div class="download-box">
+        <h2 class="download-title" data-i18n="dl_title">Inizia subito ad analizzare.</h2>
+        <p class="download-subtitle" data-i18n="dl_sub">Scarica direttamente l'eseguibile Macondo per Windows. Nessuna installazione richiesta, avvio istantaneo.</p>
+
+        <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-primary btn-large">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5zM7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+          </svg>
+          <span data-i18n="dl_btn">Scarica Macondo.exe (Windows x64)</span>
+        </a>
+
+        <div class="download-meta">
+          <span class="release-date-text">Ultimo aggiornamento: 10 settembre 2026</span>
+          <span>&bull;</span>
+          <span data-i18n="dl_meta_1">Compatibile con Windows 10 e Windows 11 (64-bit)</span>
+          <span>&bull;</span>
+          <span data-i18n="dl_meta_2">Standalone &amp; Portable (Nessuna installazione)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Minimal Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>&copy; <span id="current-year">2026</span> Macondo</span>
+      <div class="footer-links">
+        <a href="https://github.com/macondo-studio" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="LICENSE.md" target="_blank" data-i18n="footer_license">Licenza</a>
+        <a href="#graph" data-i18n="nav_graph">Grafo</a>
+        <a href="#blast" data-i18n="nav_blast">Blast Radius</a>
+        <a href="#download" data-i18n="nav_download">Scarica</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
