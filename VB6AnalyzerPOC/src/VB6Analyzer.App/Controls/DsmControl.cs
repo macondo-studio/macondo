@@ -120,11 +120,12 @@ public sealed class DsmControl : Control
     {
         context.FillRectangle(_backgroundBrush, new Rect(Bounds.Size));
 
+        var loc = LocalizationService.Instance;
         var matrix = Matrix;
         if (matrix is null || matrix.Size == 0)
         {
             var placeholder = new FormattedText(
-                "Nessuna Matrice DSM calcolata. Carica un progetto per analizzare le dipendenze.",
+                loc["Dsm_Placeholder"],
                 CultureInfo.InvariantCulture,
                 FlowDirection.LeftToRight,
                 LabelTypeface,

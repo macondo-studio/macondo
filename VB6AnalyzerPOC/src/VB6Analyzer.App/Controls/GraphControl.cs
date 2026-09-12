@@ -282,7 +282,7 @@ public sealed class GraphControl : Control
         if (graph is null || graph.Nodes.Count == 0)
         {
             var placeholder = new FormattedText(
-                "Nessun CodeGraph caricato. Clicca su 'Carica Fixtures' o 'Apri Cartella VB6'.",
+                LocalizationService.Instance["Graph_Placeholder"],
                 CultureInfo.InvariantCulture,
                 FlowDirection.LeftToRight,
                 LabelTypeface,

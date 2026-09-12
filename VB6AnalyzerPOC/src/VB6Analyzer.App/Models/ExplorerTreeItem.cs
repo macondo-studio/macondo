@@ -77,7 +77,7 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
             var workspaceItem = new ExplorerTreeItem
             {
                 Name = "Workspace",
-                DisplayText = $"Workspace ({projects.Count} Progetti)",
+                DisplayText = LocalizationService.Instance.Get("Explorer_WorkspaceFormat", projects.Count),
                 Kind = SymbolKind.Project,
                 NodeId = Guid.Empty,
                 KindBadge = "WS",

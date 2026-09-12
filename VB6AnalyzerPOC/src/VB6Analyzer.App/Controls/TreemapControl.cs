@@ -130,11 +130,12 @@ public sealed class TreemapControl : Control
     {
         context.FillRectangle(_backgroundBrush, new Rect(Bounds.Size));
 
+        var loc = LocalizationService.Instance;
         var root = _currentRoot ?? RootItem;
         if (root is null || root.Children.Count == 0)
         {
             var placeholder = new FormattedText(
-                "Nessuna Treemap calcolata. Carica un progetto per visualizzare la mappa delle metriche.",
+                loc["Treemap_Placeholder"],
                 CultureInfo.InvariantCulture,
                 FlowDirection.LeftToRight,
                 LabelTypeface,
@@ -145,7 +146,9 @@ public sealed class TreemapControl : Control
         }
 
         // Header / Breadcrumb superiore
-        string breadcrumb = _currentRoot?.Parent != null ? $"⬅ Torna su | Vista: {_currentRoot.Name} ({_currentRoot.Kind})" : "Tutti i Moduli del Progetto (Grandezza = LOC / Dimensione | Colore = Complessità)";
+        string breadcrumb = _currentRoot?.Parent != null 
+            ? loc.Get("Treemap_BreadcrumbDrillUp", _currentRoot.Name, _currentRoot.Kind) 
+            : loc["Treemap_BreadcrumbRoot"];
         var breadcrumbFmt = new FormattedText(
             breadcrumb,
             CultureInfo.InvariantCulture,
@@ -182,7 +185,7 @@ public sealed class TreemapControl : Control
                 // Titolo del modulo
                 if (rect.Width > 50 && rect.Height > 18)
                 {
-                    string header = $"{item.Name} ({item.Children.Count} membri)";
+                    string header = $"{item.Name} ({LocalizationService.Instance.Get("Treemap_MembersCount", item.Children.Count)})";
                     var hFmt = new FormattedText(
                         header,
                         CultureInfo.InvariantCulture,
@@ -272,7 +275,7 @@ public sealed class TreemapControl : Control
             _textWhiteBrush);
 
         var subFmt = new FormattedText(
-            $"Complessità Ciclomatica: {item.MetricScore:F1} | Dimensione: {item.Value:F0} LOC",
+            LocalizationService.Instance.Get("Treemap_HoverSub", item.MetricScore, item.Value),
             CultureInfo.InvariantCulture,
             FlowDirection.LeftToRight,
             LabelTypeface,

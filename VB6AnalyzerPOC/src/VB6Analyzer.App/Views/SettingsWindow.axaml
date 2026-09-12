@@ -171,14 +171,14 @@
                                         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center" Margin="0,0,14,0">
                                             <Border Width="16" Height="32" Background="#181820" CornerRadius="3,0,0,3" BorderBrush="#353545" BorderThickness="1" />
                                             <Border Width="16" Height="32" Background="#1E1E28" BorderBrush="#353545" BorderThickness="1,1,0,1" />
-                                            <Border Width="16" Height="32" Background="#FF6633" BorderBrush="#353545" BorderThickness="1,1,0,1" />
+                                            <Border Width="16" Height="32" Background="#10B981" BorderBrush="#353545" BorderThickness="1,1,0,1" />
                                             <Border Width="16" Height="32" Background="#ECECF0" CornerRadius="0,3,3,0" BorderBrush="#353545" BorderThickness="1" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                             <TextBlock x:Name="ThemeDarkModernTitle" Text="Dark Modern (Predefinito)" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                            <TextBlock x:Name="ThemeDarkModernDesc" Text="Stile grafite scuro minimale con accenti arancione caldo." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                            <TextBlock x:Name="ThemeDarkModernDesc" Text="Stile grafite scuro minimale con accenti verde smeraldo." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <Border Grid.Column="2" x:Name="CheckDarkModern" Width="22" Height="22" CornerRadius="11" Background="#FF6633" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <Border Grid.Column="2" x:Name="CheckDarkModern" Width="22" Height="22" CornerRadius="11" Background="#10B981" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
                                         </Border>
                                     </Grid>

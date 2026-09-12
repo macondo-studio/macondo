@@ -133,11 +133,12 @@ public sealed class ControlFlowControl : Control
     {
         context.FillRectangle(_backgroundBrush, new Rect(Bounds.Size));
 
+        var loc = LocalizationService.Instance;
         var graph = Graph;
         if (graph is null || graph.Blocks.Count == 0)
         {
             var placeholder = new FormattedText(
-                "Nessun Control Flow Graph (CFG) selezionato. Seleziona una routine o metodo per visualizzare il flusso.",
+                loc["ControlFlow_Placeholder"],
                 CultureInfo.InvariantCulture,
                 FlowDirection.LeftToRight,
                 HeaderTypeface,
@@ -148,7 +149,7 @@ public sealed class ControlFlowControl : Control
         }
 
         // Header superiore con metadati della procedura
-        string header = $"CFG: {graph.ProcedureName} ({graph.ContainerName}) | Complessità Ciclomatica (CC): {graph.CyclomaticComplexity} | Blocchi Base: {graph.Blocks.Count}";
+        string header = loc.Get("ControlFlow_Header", graph.ProcedureName, graph.ContainerName, graph.CyclomaticComplexity, graph.Blocks.Count);
         var hFmt = new FormattedText(header, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, HeaderTypeface, 12, _textWhiteBrush);
         context.DrawText(hFmt, new Point(16, 12));
 

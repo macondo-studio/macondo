@@ -85,6 +85,7 @@ public sealed class LocalizationService
 
         // Explorer
         ["Explorer_Title"] = "Project Explorer",
+        ["Explorer_WorkspaceFormat"] = "Workspace ({0} Progetti)",
         ["Tooltip_HideExplorer"] = "Nascondi Project Explorer (Ctrl+B)",
         ["Tooltip_ToggleExplorer"] = "Mostra/Nascondi Project Explorer (Ctrl+B)",
         ["Explorer_Group_Forms"] = "Forms",
@@ -111,7 +112,41 @@ public sealed class LocalizationService
 
         // Tab Centrali
         ["Tab_GraphView"] = "Vista Grafo",
+        ["Tab_DsmMatrix"] = "Matrice DSM",
+        ["Tab_TreemapMetrics"] = "Treemap Metriche",
+        ["Tab_RiskHotspots"] = "Hotspot di Rischio",
+        ["Tab_ScreenFlow"] = "Flusso Schermate",
+        ["Tab_ControlFlow"] = "Control Flow (CFG)",
         ["Tab_BlastRadiusGrid"] = "Griglia Blast Radius",
+
+        // Treemap Metriche
+        ["Treemap_Placeholder"] = "Nessuna Treemap calcolata. Carica un progetto per visualizzare la mappa delle metriche.",
+        ["Treemap_BreadcrumbDrillUp"] = "⬅ Torna su | Vista: {0} ({1})",
+        ["Treemap_BreadcrumbRoot"] = "Tutti i Moduli del Progetto (Grandezza = LOC / Dimensione | Colore = Complessità)",
+        ["Treemap_MembersCount"] = "{0} membri",
+        ["Treemap_HoverSub"] = "Complessità Ciclomatica: {0:F1} | Dimensione: {1:F0} LOC",
+
+        // Hotspot di Rischio
+        ["Hotspot_Placeholder"] = "Nessun dataset Hotspot calcolato. Carica un progetto per analizzare i punti di rischio.",
+        ["Hotspot_DangerBadge"] = "🔥 ZONA HOTSPOT (Critico)",
+        ["Hotspot_SafeBadge"] = "✓ ZONA STABILE",
+        ["Hotspot_AxisY"] = "↑ COMPLESSITÀ CICLOMATICA",
+        ["Hotspot_AxisX"] = "FREQUENZA MODIFICHE / FAN-IN (CHURN) →",
+        ["Hotspot_HoverSub"] = "Rischio: {0:F0}% ({1}) | CC: {2:F1} | Churn: {3:F0} | Chiamanti: {4}",
+
+        // Flusso Schermate (Screen Flow)
+        ["ScreenFlow_Placeholder"] = "Nessun Form o Schermata UI individuata nel progetto corrente.",
+        ["ScreenFlow_ControlsCount"] = "Controlli UI: {0}",
+        ["ScreenFlow_EventHandlersCount"] = "Event Handlers: {0}",
+        ["ScreenFlow_TransitionsCount"] = "Transizioni: {0} out / {1} in",
+        ["ScreenFlow_StartupBadge"] = "STARTUP",
+
+        // Matrice DSM
+        ["Dsm_Placeholder"] = "Nessuna Matrice DSM calcolata. Carica un progetto per analizzare le dipendenze.",
+
+        // Control Flow Graph (CFG)
+        ["ControlFlow_Placeholder"] = "Nessun Control Flow Graph (CFG) selezionato. Seleziona una routine o metodo per visualizzare il flusso.",
+        ["ControlFlow_Header"] = "CFG: {0} ({1}) | Complessità Ciclomatica (CC): {2} | Blocchi Base: {3}",
 
         // Floating HUD
         ["HUD_ResetView"] = "Reset Vista",
@@ -229,7 +264,7 @@ public sealed class LocalizationService
         ["Settings_Appearance_Header"] = "Seleziona Tema Grafico",
         ["Settings_Appearance_Sub"] = "Scegli una palette visiva per l'interfaccia e il canvas del grafo.",
         ["Theme_DarkModern_Title"] = "Dark Modern (Predefinito)",
-        ["Theme_DarkModern_Desc"] = "Stile grafite scuro minimale con accenti arancione caldo.",
+        ["Theme_DarkModern_Desc"] = "Stile grafite scuro minimale con accenti verde smeraldo.",
         ["Theme_DarkStudio_Title"] = "Dark Studio",
         ["Theme_DarkStudio_Desc"] = "Palette scura classica con accento blu.",
         ["Theme_OneDark_Title"] = "One Dark Pro",
@@ -320,10 +355,51 @@ public sealed class LocalizationService
         ["Legend_Calls"] = "Calls (Chiamata)",
         ["Legend_Instantiates"] = "Instantiates (New)",
 
-        // Barra di Stato
+        // Grafo Canvas
+        ["Graph_Placeholder"] = "Nessun CodeGraph caricato. Clicca su 'Carica Fixtures' o 'Apri Cartella VB6'.",
+
+        // Barra di Stato & Statistiche
         ["Status_Ready"] = "Pronto.",
         ["Status_Selected"] = "Selezionato: [{0}] {1}",
-        ["Status_StatsFormat"] = "Nodi: {0} | Relazioni: {1} (Calls: {2}, Instantiates: {3})",
+        ["Status_StatsFormat"] = "Nodi: {0} | Relazioni: {1} (Chiamate: {2}, Istanze: {3})",
+        ["Stats_ProjectsFormat"] = "{0} Progetti",
+        ["Stats_ProjectsRatioFormat"] = "{0}/{1} Progetti",
+        ["Stats_NodesFormat"] = "{0} Nodi",
+        ["Stats_NodesRatioFormat"] = "{0}/{1} Nodi",
+        ["Stats_RelationsFormat"] = "{0} Relazioni",
+        ["Stats_RelationsCrossFormat"] = "{0} Relazioni ({1} Cross-Project)",
+        ["Stats_CallsFormat"] = "{0} Chiamate",
+        ["Stats_InstantiatesFormat"] = "{0} Istanze",
+        ["Explorer_ProjectsVisible"] = "{0}/{1} Progetti visibili",
+        ["Open_FolderTitle"] = "Seleziona una o più cartelle contenenti file/progetti VB6",
+        ["Open_ProjectFilesTitle"] = "Seleziona file progetto VB6 (.vbp) o file gruppo (.vbg)",
+        ["Open_FileTypeProjects"] = "Progetti e Gruppi VB6 (*.vbp, *.vbg)",
+        ["Open_FileTypeAll"] = "Tutti i file (*.*)",
+        ["Status_FixturesLoaded"] = "Suite di fixture VB6 analizzata con successo in memoria.",
+        ["Status_FakeGraphGenerating"] = "Generazione del grafo sintetico (~500 nodi)...",
+        ["Status_FakeGraphGenerated"] = "Grafo sintetico di benchmark (~500 nodi) generato con successo.",
+        ["Status_AnalyzingSources"] = "Analisi di {0} sorgenti/progetti in corso...",
+        ["Status_WorkspaceAnalyzed"] = "Workspace analizzato: {0} Progetti, {1} Simboli, {2} Relazioni Cross-Project.",
+        ["Status_NodesDisplayed"] = "Nodi visualizzati: {0} di {1}",
+        ["Status_CalleesFound"] = "Callees per '{0}': trovate {1} chiamate uscenti verso ({2}).",
+        ["Status_CalleesNone"] = "Nessuna chiamata uscente effettuata da '{0}'.",
+        ["Status_CallersFound"] = "Callers per '{0}': trovati {1} chiamanti diretti da ({2}).",
+        ["Status_CallersNone"] = "Nessun chiamante diretto per '{0}'.",
+        ["Status_DsmDependency"] = "DSM: Dipendenza [{0} collegamenti] tra container.",
+        ["Status_CfgBlock"] = "CFG Blocco: [{0}] {1}",
+        ["Status_ErrorLoading"] = "Errore durante il caricamento: {0}",
+        ["Status_ErrorGenerating"] = "Errore durante la generazione: {0}",
+        ["Status_ErrorAnalyzing"] = "Errore durante l'analisi: {0}",
+        ["Status_ErrorOpenFile"] = "Errore nell'apertura del file: {0}",
+        ["Status_ErrorOpenFolder"] = "Errore nell'apertura della cartella: {0}",
+        ["Status_ErrorCopyPath"] = "Errore copia percorso: {0}",
+        ["Status_ErrorGridCalc"] = "Errore durante il calcolo della griglia Blast Radius: {0}",
+        ["Status_ErrorExportMarkdown"] = "Errore durante l'esportazione Markdown: {0}",
+        ["Status_ErrorExportJson"] = "Errore durante l'esportazione JSON: {0}",
+        ["Status_ErrorImportJson"] = "Errore durante l'importazione del JSON: {0}",
+        ["Status_ErrorCopyClipboard"] = "Errore durante la copia negli appunti: {0}",
+        ["Status_ErrorSaveSlice"] = "Errore durante il salvataggio dello slice: {0}",
+        ["Status_ErrorCheckUpdates"] = "Errore controllo aggiornamenti: {0}",
         ["Status_LoadedFromCache"] = "Progetto '{0}' caricato dalla cache locale ({1}). Premi 'Ricarica' (Ctrl+R) per rianalizzare.",
         ["Status_CacheStale"] = "Progetto '{0}' caricato da cache. Modifiche rilevate su disco: premi 'Ricarica' (Ctrl+R) per aggiornare.",
         ["Status_Refreshed"] = "Progetto '{0}' ricaricato da disco ({1} file analizzati).",
@@ -402,6 +478,7 @@ public sealed class LocalizationService
 
         // Explorer
         ["Explorer_Title"] = "Project Explorer",
+        ["Explorer_WorkspaceFormat"] = "Workspace ({0} Projects)",
         ["Tooltip_HideExplorer"] = "Hide Project Explorer (Ctrl+B)",
         ["Tooltip_ToggleExplorer"] = "Toggle Project Explorer (Ctrl+B)",
         ["Explorer_Group_Forms"] = "Forms",
@@ -428,7 +505,41 @@ public sealed class LocalizationService
 
         // Center Tabs
         ["Tab_GraphView"] = "Graph View",
+        ["Tab_DsmMatrix"] = "DSM Matrix",
+        ["Tab_TreemapMetrics"] = "Treemap Metrics",
+        ["Tab_RiskHotspots"] = "Risk Hotspots",
+        ["Tab_ScreenFlow"] = "Screen Flow",
+        ["Tab_ControlFlow"] = "Control Flow (CFG)",
         ["Tab_BlastRadiusGrid"] = "Blast Radius Grid",
+
+        // Treemap Metrics
+        ["Treemap_Placeholder"] = "No Treemap calculated. Load a project to view the metrics map.",
+        ["Treemap_BreadcrumbDrillUp"] = "⬅ Go up | View: {0} ({1})",
+        ["Treemap_BreadcrumbRoot"] = "All Project Modules (Size = LOC / Volume | Color = Complexity)",
+        ["Treemap_MembersCount"] = "{0} members",
+        ["Treemap_HoverSub"] = "Cyclomatic Complexity: {0:F1} | Size: {1:F0} LOC",
+
+        // Risk Hotspots
+        ["Hotspot_Placeholder"] = "No Hotspot dataset calculated. Load a project to analyze risk areas.",
+        ["Hotspot_DangerBadge"] = "🔥 HOTSPOT ZONE (Critical)",
+        ["Hotspot_SafeBadge"] = "✓ STABLE ZONE",
+        ["Hotspot_AxisY"] = "↑ CYCLOMATIC COMPLEXITY",
+        ["Hotspot_AxisX"] = "CHANGE FREQUENCY / FAN-IN (CHURN) →",
+        ["Hotspot_HoverSub"] = "Risk: {0:F0}% ({1}) | CC: {2:F1} | Churn: {3:F0} | Callers: {4}",
+
+        // Screen Flow
+        ["ScreenFlow_Placeholder"] = "No Form or UI Screen detected in the current project.",
+        ["ScreenFlow_ControlsCount"] = "UI Controls: {0}",
+        ["ScreenFlow_EventHandlersCount"] = "Event Handlers: {0}",
+        ["ScreenFlow_TransitionsCount"] = "Transitions: {0} out / {1} in",
+        ["ScreenFlow_StartupBadge"] = "STARTUP",
+
+        // DSM Matrix
+        ["Dsm_Placeholder"] = "No DSM Matrix calculated. Load a project to analyze dependencies.",
+
+        // Control Flow Graph (CFG)
+        ["ControlFlow_Placeholder"] = "No Control Flow Graph (CFG) selected. Select a routine or method to view flow.",
+        ["ControlFlow_Header"] = "CFG: {0} ({1}) | Cyclomatic Complexity (CC): {2} | Basic Blocks: {3}",
 
         // Floating HUD
         ["HUD_ResetView"] = "Reset View",
@@ -546,7 +657,7 @@ public sealed class LocalizationService
         ["Settings_Appearance_Header"] = "Select Theme",
         ["Settings_Appearance_Sub"] = "Choose a visual palette for the interface and graph canvas.",
         ["Theme_DarkModern_Title"] = "Dark Modern (Default)",
-        ["Theme_DarkModern_Desc"] = "Minimal dark graphite style with warm orange accents.",
+        ["Theme_DarkModern_Desc"] = "Minimal dark graphite style with vibrant emerald green accents.",
         ["Theme_DarkStudio_Title"] = "Dark Studio",
         ["Theme_DarkStudio_Desc"] = "Classic dark palette inspired with blue accents.",
         ["Theme_OneDark_Title"] = "One Dark Pro",
@@ -637,10 +748,51 @@ public sealed class LocalizationService
         ["Legend_Calls"] = "Calls",
         ["Legend_Instantiates"] = "Instantiates (New)",
 
-        // Status Bar
+        // Graph Canvas
+        ["Graph_Placeholder"] = "No CodeGraph loaded. Click 'Load Test Fixtures' or 'Open Folder'.",
+
+        // Status Bar & Stats
         ["Status_Ready"] = "Ready.",
         ["Status_Selected"] = "Selected: [{0}] {1}",
         ["Status_StatsFormat"] = "Nodes: {0} | Relations: {1} (Calls: {2}, Instantiates: {3})",
+        ["Stats_ProjectsFormat"] = "{0} Projects",
+        ["Stats_ProjectsRatioFormat"] = "{0}/{1} Projects",
+        ["Stats_NodesFormat"] = "{0} Nodes",
+        ["Stats_NodesRatioFormat"] = "{0}/{1} Nodes",
+        ["Stats_RelationsFormat"] = "{0} Relations",
+        ["Stats_RelationsCrossFormat"] = "{0} Relations ({1} Cross-Project)",
+        ["Stats_CallsFormat"] = "{0} Calls",
+        ["Stats_InstantiatesFormat"] = "{0} Instantiates",
+        ["Explorer_ProjectsVisible"] = "{0}/{1} Projects visible",
+        ["Open_FolderTitle"] = "Select one or more folders containing VB6 files/projects",
+        ["Open_ProjectFilesTitle"] = "Select VB6 project files (.vbp) or group files (.vbg)",
+        ["Open_FileTypeProjects"] = "VB6 Projects and Groups (*.vbp, *.vbg)",
+        ["Open_FileTypeAll"] = "All files (*.*)",
+        ["Status_FixturesLoaded"] = "VB6 fixtures suite successfully analyzed in memory.",
+        ["Status_FakeGraphGenerating"] = "Generating synthetic demo graph (~500 nodes)...",
+        ["Status_FakeGraphGenerated"] = "Synthetic benchmark demo graph (~500 nodes) successfully generated.",
+        ["Status_AnalyzingSources"] = "Analyzing {0} sources/projects in progress...",
+        ["Status_WorkspaceAnalyzed"] = "Workspace analyzed: {0} Projects, {1} Symbols, {2} Cross-Project Relationships.",
+        ["Status_NodesDisplayed"] = "Nodes displayed: {0} of {1}",
+        ["Status_CalleesFound"] = "Callees for '{0}': found {1} outgoing calls to ({2}).",
+        ["Status_CalleesNone"] = "No outgoing calls made by '{0}'.",
+        ["Status_CallersFound"] = "Callers for '{0}': found {1} direct callers from ({2}).",
+        ["Status_CallersNone"] = "No direct callers for '{0}'.",
+        ["Status_DsmDependency"] = "DSM: Dependency [{0} links] between containers.",
+        ["Status_CfgBlock"] = "CFG Block: [{0}] {1}",
+        ["Status_ErrorLoading"] = "Error during loading: {0}",
+        ["Status_ErrorGenerating"] = "Error during generation: {0}",
+        ["Status_ErrorAnalyzing"] = "Error during analysis: {0}",
+        ["Status_ErrorOpenFile"] = "Error opening file: {0}",
+        ["Status_ErrorOpenFolder"] = "Error opening folder: {0}",
+        ["Status_ErrorCopyPath"] = "Error copying path: {0}",
+        ["Status_ErrorGridCalc"] = "Error calculating Blast Radius grid: {0}",
+        ["Status_ErrorExportMarkdown"] = "Error during Markdown export: {0}",
+        ["Status_ErrorExportJson"] = "Error during JSON export: {0}",
+        ["Status_ErrorImportJson"] = "Error importing JSON: {0}",
+        ["Status_ErrorCopyClipboard"] = "Error copying to clipboard: {0}",
+        ["Status_ErrorSaveSlice"] = "Error saving slice: {0}",
+        ["Status_ErrorCheckUpdates"] = "Error checking for updates: {0}",
         ["Status_LoadedFromCache"] = "Project '{0}' loaded from local cache ({1}). Press 'Reload' (Ctrl+R) to reanalyze.",
         ["Status_CacheStale"] = "Project '{0}' loaded from cache. Modified files detected on disk: press 'Reload' (Ctrl+R) to update.",
         ["Status_Refreshed"] = "Project '{0}' reloaded from disk ({1} files analyzed).",

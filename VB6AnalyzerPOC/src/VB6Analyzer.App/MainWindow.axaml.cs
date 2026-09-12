@@ -291,7 +291,7 @@ public partial class MainWindow : Window
             {
                 var rowNode = _graph.GetNode(cell.RowContainerId);
                 if (rowNode != null) SelectAndFocusGraphNode(rowNode);
-                StatusText.Text = $"DSM: Dipendenza [{cell.Weight} collegamenti] tra container.";
+                StatusText.Text = LocalizationService.Instance.Get("Status_DsmDependency", cell.Weight);
             }
         };
 
@@ -326,7 +326,7 @@ public partial class MainWindow : Window
         {
             if (block != null)
             {
-                StatusText.Text = $"CFG Blocco: [{block.BlockKind}] {block.Title}";
+                StatusText.Text = LocalizationService.Instance.Get("Status_CfgBlock", block.BlockKind, block.Title);
             }
         };
 
@@ -592,6 +592,7 @@ public partial class MainWindow : Window
     /// </summary>
     private async void LoadSyntheticGraph()
     {
+        var loc = LocalizationService.Instance;
         ShowLoading("Generazione del grafo sintetico...", "Creazione di ~500 nodi e calcolo del layout radiale...", canCancel: true);
         var token = _loadingCts?.Token ?? CancellationToken.None;
         try
@@ -599,11 +600,11 @@ public partial class MainWindow : Window
             await Task.Delay(16, token);
             _currentFolderPath = null;
             UpdateVcsBranchStatus(null);
-            StatusText.Text = "Generazione del grafo sintetico (~500 nodi)...";
+            StatusText.Text = loc["Status_FakeGraphGenerating"];
             _graph = await Task.Run(() => Generation.FakeGraphGenerator.Generate(seed: Environment.TickCount), token);
             token.ThrowIfCancellationRequested();
             ApplyGraphToUI();
-            StatusText.Text = "Grafo sintetico di benchmark (~500 nodi) generato con successo.";
+            StatusText.Text = loc["Status_FakeGraphGenerated"];
         }
         catch (OperationCanceledException)
         {
@@ -611,7 +612,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore durante la generazione: {ex.Message}";
+            StatusText.Text = loc.Get("Status_ErrorGenerating", ex.Message);
         }
         finally
         {
@@ -644,7 +645,7 @@ public partial class MainWindow : Window
             _graph = await Task.Run(() => ProjectAnalysisService.LoadDefaultFixtures(progress, token), token);
             token.ThrowIfCancellationRequested();
             ApplyGraphToUI();
-            StatusText.Text = "Suite di fixture VB6 analizzata con successo in memoria.";
+            StatusText.Text = loc["Status_FixturesLoaded"];
         }
         catch (OperationCanceledException)
         {
@@ -652,7 +653,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore durante il caricamento: {ex.Message}";
+            StatusText.Text = loc.Get("Status_ErrorLoading", ex.Message);
         }
         finally
         {
@@ -701,9 +702,10 @@ public partial class MainWindow : Window
     /// </summary>
     private async Task OpenFolderAsync()
     {
+        var loc = LocalizationService.Instance;
         var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Seleziona una o più cartelle contenenti file/progetti VB6",
+            Title = loc["Open_FolderTitle"],
             AllowMultiple = true
         });
 
@@ -718,17 +720,18 @@ public partial class MainWindow : Window
     /// </summary>
     private async Task OpenProjectFilesAsync()
     {
+        var loc = LocalizationService.Instance;
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Seleziona file progetto VB6 (.vbp) o file gruppo (.vbg)",
+            Title = loc["Open_ProjectFilesTitle"],
             AllowMultiple = true,
             FileTypeFilter = new[]
             {
-                new FilePickerFileType("Progetti e Gruppi VB6 (*.vbp, *.vbg)")
+                new FilePickerFileType(loc["Open_FileTypeProjects"])
                 {
                     Patterns = new[] { "*.vbp", "*.vbg" }
                 },
-                new FilePickerFileType("Tutti i file (*.*)")
+                new FilePickerFileType(loc["Open_FileTypeAll"])
                 {
                     Patterns = new[] { "*.*" }
                 }
@@ -839,7 +842,7 @@ public partial class MainWindow : Window
                 UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr);
             });
 
-            StatusText.Text = $"Analisi di {paths.Count} sorgenti/progetti in corso...";
+            StatusText.Text = loc.Get("Status_AnalyzingSources", paths.Count);
             _graph = await Task.Run(() => ProjectAnalysisService.AnalyzePaths(paths, progress, token), token);
             token.ThrowIfCancellationRequested();
             _currentFolderPath = firstPath;
@@ -851,7 +854,7 @@ public partial class MainWindow : Window
             var crossCount = _graph.Edges.Count(e => e.IsCrossProject);
             if (projectCount > 1)
             {
-                StatusText.Text = $"Workspace analizzato: {projectCount} Progetti, {_graph.Nodes.Count} Simboli, {crossCount} Relazioni Cross-Project.";
+                StatusText.Text = loc.Get("Status_WorkspaceAnalyzed", projectCount, _graph.Nodes.Count, crossCount);
             }
             else
             {
@@ -871,7 +874,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore durante l'analisi: {ex.Message}";
+            StatusText.Text = loc.Get("Status_ErrorAnalyzing", ex.Message);
         }
         finally
         {
@@ -1212,7 +1215,7 @@ public partial class MainWindow : Window
                 var (vis, total) = Graph.GetNodeCounts();
                 if (Graph.CurrentHighlightMode == HighlightMode.Normal && total > 0)
                 {
-                    StatusText.Text = $"Nodi visualizzati: {vis} di {total}";
+                    StatusText.Text = LocalizationService.Instance.Get("Status_NodesDisplayed", vis, total);
                 }
             }
         }
@@ -1339,10 +1342,7 @@ public partial class MainWindow : Window
     private void UpdateProjectsBadgeText()
     {
         var (vis, total) = Graph.GetProjectCounts();
-        var loc = LocalizationService.Instance;
-        ExplorerProjectsCountText.Text = loc.CurrentLanguage == AppLanguage.English
-            ? $"{vis}/{total} Projects visible"
-            : $"{vis}/{total} Progetti visibili";
+        ExplorerProjectsCountText.Text = LocalizationService.Instance.Get("Explorer_ProjectsVisible", vis, total);
         ExplorerProjectsSelectAllButton.IsEnabled = (vis < total);
     }
 
@@ -1466,12 +1466,12 @@ public partial class MainWindow : Window
         if (callees.Count > 0)
         {
             var names = string.Join(", ", callees.Take(4).Select(c => c.Name));
-            if (callees.Count > 4) names += $" e altri {callees.Count - 4}...";
-            StatusText.Text = $"Callees per '{_selectedNode.Name}': trovate {callees.Count} chiamate uscenti verso ({names}).";
+            if (callees.Count > 4) names += $" +{callees.Count - 4}...";
+            StatusText.Text = loc.Get("Status_CalleesFound", _selectedNode.Name, callees.Count, names);
         }
         else
         {
-            StatusText.Text = $"Nessuna chiamata uscente effettuata da '{_selectedNode.Name}'.";
+            StatusText.Text = loc.Get("Status_CalleesNone", _selectedNode.Name);
         }
     }
 
@@ -1491,12 +1491,12 @@ public partial class MainWindow : Window
         if (callers.Count > 0)
         {
             var names = string.Join(", ", callers.Take(4).Select(c => c.Name));
-            if (callers.Count > 4) names += $" e altri {callers.Count - 4}...";
-            StatusText.Text = $"Callers per '{_selectedNode.Name}': trovati {callers.Count} chiamanti diretti da ({names}).";
+            if (callers.Count > 4) names += $" +{callers.Count - 4}...";
+            StatusText.Text = loc.Get("Status_CallersFound", _selectedNode.Name, callers.Count, names);
         }
         else
         {
-            StatusText.Text = $"Nessun chiamante diretto per '{_selectedNode.Name}'.";
+            StatusText.Text = loc.Get("Status_CallersNone", _selectedNode.Name);
         }
     }
 
@@ -1562,7 +1562,7 @@ public partial class MainWindow : Window
             ScreenFlow.FocusOnScreen(screenId);
         }
 
-        StatusText.Text = $"Selezionato: [{node.Kind}] {node.QualifiedName}";
+        StatusText.Text = LocalizationService.Instance.Get("Status_Selected", node.Kind, node.QualifiedName);
     }
 
     private void OnExplorerSelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -1747,7 +1747,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore nell'apertura del file: {ex.Message}";
+            StatusText.Text = loc.Get("Status_ErrorOpenFile", ex.Message);
         }
     }
 
@@ -1786,7 +1786,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore nell'apertura della cartella: {ex.Message}";
+            StatusText.Text = loc.Get("Status_ErrorOpenFolder", ex.Message);
         }
     }
 
@@ -1806,7 +1806,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore copia percorso: {ex.Message}";
+            StatusText.Text = loc.Get("Status_ErrorCopyPath", ex.Message);
         }
     }
 
@@ -2559,7 +2559,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore durante il calcolo della griglia Blast Radius: {ex.Message}";
+            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorGridCalc", ex.Message);
         }
     }
 
@@ -2712,6 +2712,7 @@ public partial class MainWindow : Window
     {
         if (_graph is null) return;
 
+        var loc = LocalizationService.Instance;
         var (visProj, projectCount) = Graph.GetProjectCounts();
         var (visNodes, nodeCount) = Graph.GetNodeCounts();
         var relCount = _graph.Edges.Count;
@@ -2721,13 +2722,23 @@ public partial class MainWindow : Window
 
         if (projectCount > 1)
         {
-            var projText = visProj < projectCount ? $"{visProj}/{projectCount} Progetti" : $"{projectCount} Progetti";
-            var nodesText = visNodes < nodeCount ? $"{visNodes}/{nodeCount} Nodi" : $"{nodeCount} Nodi";
-            StatusStats.Text = $"{projText} | {nodesText} | {relCount} Relazioni ({crossCount} Cross-Project) | {callCount} Chiamate | {instCount} Istanze";
+            var projText = visProj < projectCount 
+                ? loc.Get("Stats_ProjectsRatioFormat", visProj, projectCount) 
+                : loc.Get("Stats_ProjectsFormat", projectCount);
+            var nodesText = visNodes < nodeCount 
+                ? loc.Get("Stats_NodesRatioFormat", visNodes, nodeCount) 
+                : loc.Get("Stats_NodesFormat", nodeCount);
+            var relText = crossCount > 0 
+                ? loc.Get("Stats_RelationsCrossFormat", relCount, crossCount) 
+                : loc.Get("Stats_RelationsFormat", relCount);
+            var callText = loc.Get("Stats_CallsFormat", callCount);
+            var instText = loc.Get("Stats_InstantiatesFormat", instCount);
+
+            StatusStats.Text = $"{projText} | {nodesText} | {relText} | {callText} | {instText}";
         }
         else
         {
-            StatusStats.Text = LocalizationService.Instance.Get("Status_StatsFormat", nodeCount, relCount, callCount, instCount);
+            StatusStats.Text = loc.Get("Status_StatsFormat", nodeCount, relCount, callCount, instCount);
         }
     }
 
@@ -2830,7 +2841,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore durante l'esportazione Markdown: {ex.Message}";
+            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorExportMarkdown", ex.Message);
         }
     }
 
@@ -2874,7 +2885,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore durante l'esportazione JSON: {ex.Message}";
+            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorExportJson", ex.Message);
         }
     }
 
@@ -2921,7 +2932,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore durante l'importazione del JSON: {ex.Message}";
+            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorImportJson", ex.Message);
         }
         finally
         {
@@ -2955,7 +2966,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore durante la copia negli appunti: {ex.Message}";
+            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorCopyClipboard", ex.Message);
         }
     }
 
@@ -2997,7 +3008,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore durante il salvataggio dello slice: {ex.Message}";
+            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorSaveSlice", ex.Message);
         }
     }
 
@@ -3231,7 +3242,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Errore controllo aggiornamenti: {ex.Message}";
+            StatusText.Text = loc.Get("Status_ErrorCheckUpdates", ex.Message);
         }
     }
 
@@ -3513,7 +3524,18 @@ public partial class MainWindow : Window
 
         // Tab Centrali
         GraphTabHeader.Text = loc["Tab_GraphView"];
+        DsmTabHeader.Text = loc["Tab_DsmMatrix"];
+        TreemapTabHeader.Text = loc["Tab_TreemapMetrics"];
+        HotspotTabHeader.Text = loc["Tab_RiskHotspots"];
+        ScreenFlowTabHeader.Text = loc["Tab_ScreenFlow"];
+        ControlFlowTabHeader.Text = loc["Tab_ControlFlow"];
         GridTabHeader.Text = loc["Tab_BlastRadiusGrid"];
+
+        Dsm.InvalidateVisual();
+        Treemap.InvalidateVisual();
+        Hotspot.InvalidateVisual();
+        ScreenFlow.InvalidateVisual();
+        ControlFlow.InvalidateVisual();
 
         // Project Explorer Toolbar
         ExplorerProjectsSelectAllButton.Content = loc["HUD_SelectAll"];
