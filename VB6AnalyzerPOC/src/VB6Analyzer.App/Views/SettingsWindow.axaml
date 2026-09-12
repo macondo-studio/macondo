@@ -175,8 +175,8 @@
                                             <Border Width="16" Height="32" Background="#ECECF0" CornerRadius="0,3,3,0" BorderBrush="#353545" BorderThickness="1" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Dark Modern (Predefinito)" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                            <TextBlock Text="Stile grafite scuro minimale con accenti arancione caldo." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                            <TextBlock x:Name="ThemeDarkModernTitle" Text="Dark Modern (Predefinito)" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="ThemeDarkModernDesc" Text="Stile grafite scuro minimale con accenti arancione caldo." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <Border Grid.Column="2" x:Name="CheckDarkModern" Width="22" Height="22" CornerRadius="11" Background="#FF6633" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
@@ -184,7 +184,7 @@
                                     </Grid>
                                 </Border>
 
-                                <!-- Card 2: Visual Studio Dark -->
+                                <!-- Card 2: Dark Studio-->
                                 <Border x:Name="CardVSDark"
                                         Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
                                         BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
@@ -197,8 +197,8 @@
                                             <Border Width="16" Height="32" Background="#F1F1F1" CornerRadius="0,3,3,0" BorderBrush="#353545" BorderThickness="1" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Visual Studio Dark" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                            <TextBlock Text="La classica palette scura di Visual Studio con accento blu Microsoft." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                            <TextBlock x:Name="ThemeVSDarkTitle" Text="Studio Dark" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="ThemeVSDarkDesc" Text="Palette scura classica con accento blu." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <Border Grid.Column="2" x:Name="CheckVSDark" Width="22" Height="22" CornerRadius="11" Background="#007ACC" IsVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
@@ -219,8 +219,8 @@
                                             <Border Width="16" Height="32" Background="#ABB2BF" CornerRadius="0,3,3,0" BorderBrush="#353545" BorderThickness="1" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="One Dark Pro" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                            <TextBlock Text="Ispirato al celebre tema Atom con toni blu notte e accento celeste." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                            <TextBlock x:Name="ThemeOneDarkTitle" Text="One Dark Pro" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="ThemeOneDarkDesc" Text="Ispirato al celebre tema Atom con toni blu notte e accento celeste." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <Border Grid.Column="2" x:Name="CheckOneDark" Width="22" Height="22" CornerRadius="11" Background="#61AFEF" IsVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
@@ -241,8 +241,8 @@
                                             <Border Width="16" Height="32" Background="#E4EFE8" CornerRadius="0,3,3,0" BorderBrush="#2A4236" BorderThickness="1" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Forest Dark (Verde Scuro)" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                            <TextBlock Text="Atmosfera scura foresta con toni smeraldo e verde salvia." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                            <TextBlock x:Name="ThemeDarkGreenTitle" Text="Forest Dark (Verde Scuro)" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="ThemeDarkGreenDesc" Text="Atmosfera scura foresta con toni smeraldo e verde salvia." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <Border Grid.Column="2" x:Name="CheckDarkGreen" Width="22" Height="22" CornerRadius="11" Background="#10B981" IsVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
@@ -263,8 +263,8 @@
                                             <Border Width="16" Height="32" Background="#1A1A24" CornerRadius="0,3,3,0" BorderBrush="#9E9EB0" BorderThickness="1" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Light Modern" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                            <TextBlock Text="Tema chiaro ad alto contrasto per ambienti diurni con accento cobalto." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                            <TextBlock x:Name="ThemeLightModernTitle" Text="Light Modern" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="ThemeLightModernDesc" Text="Tema chiaro ad alto contrasto per ambienti diurni con accento cobalto." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <Border Grid.Column="2" x:Name="CheckLightModern" Width="22" Height="22" CornerRadius="11" Background="#0066B8" IsVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
@@ -292,8 +292,8 @@
                                     <Grid ColumnDefinitions="Auto,*,Auto">
                                         <TextBlock Grid.Column="0" Text="🇮🇹" FontSize="26" VerticalAlignment="Center" Margin="0,0,16,0" />
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Italiano (Predefinito)" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                            <TextBlock Text="Interfaccia, menu e documentazione in lingua italiana." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                                            <TextBlock x:Name="LangItalianTitle" Text="Italiano (Predefinito)" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="LangItalianDesc" Text="Interfaccia, menu e documentazione in lingua italiana." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
                                         </StackPanel>
                                         <Border Grid.Column="2" x:Name="CheckLangItalian" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
@@ -309,8 +309,8 @@
                                     <Grid ColumnDefinitions="Auto,*,Auto">
                                         <TextBlock Grid.Column="0" Text="🇬🇧" FontSize="26" VerticalAlignment="Center" Margin="0,0,16,0" />
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="English" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                            <TextBlock Text="Full English interface, menus, and inspection terminology." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                                            <TextBlock x:Name="LangEnglishTitle" Text="English" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="LangEnglishDesc" Text="Full English interface, menus, and inspection terminology." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
                                         </StackPanel>
                                         <Border Grid.Column="2" x:Name="CheckLangEnglish" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" IsVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />

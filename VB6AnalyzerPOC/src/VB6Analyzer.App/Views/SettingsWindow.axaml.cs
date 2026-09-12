@@ -105,7 +105,7 @@ public partial class SettingsWindow : Window
 
     private void OnSelectVSDark(object? sender, PointerPressedEventArgs e)
     {
-        ThemeService.Instance.ApplyTheme(AppTheme.VisualStudioDark);
+        ThemeService.Instance.ApplyTheme(AppTheme.DarkStudio);
     }
 
     private void OnSelectOneDark(object? sender, PointerPressedEventArgs e)
@@ -126,7 +126,7 @@ public partial class SettingsWindow : Window
     private void UpdateThemeSelection(AppTheme theme)
     {
         CheckDarkModern.IsVisible = theme == AppTheme.DarkModern;
-        CheckVSDark.IsVisible = theme == AppTheme.VisualStudioDark;
+        CheckVSDark.IsVisible = theme == AppTheme.DarkStudio;
         CheckOneDark.IsVisible = theme == AppTheme.OneDarkPro;
         CheckDarkGreen.IsVisible = theme == AppTheme.DarkGreen;
         CheckLightModern.IsVisible = theme == AppTheme.LightModern;
@@ -275,6 +275,7 @@ public partial class SettingsWindow : Window
     {
         var loc = LocalizationService.Instance;
 
+        Title = loc["Settings_Title"];
         WindowTitleText.Text = loc["Settings_Title"];
         NavThemeText.Text = loc["Settings_Tab_Appearance"];
         NavLanguageText.Text = loc["Settings_Tab_Language"];
@@ -293,8 +294,23 @@ public partial class SettingsWindow : Window
         ThemeHeaderTitle.Text = loc["Settings_Appearance_Header"];
         ThemeHeaderSub.Text = loc["Settings_Appearance_Sub"];
 
+        ThemeDarkModernTitle.Text = loc["Theme_DarkModern_Title"];
+        ThemeDarkModernDesc.Text = loc["Theme_DarkModern_Desc"];
+        ThemeVSDarkTitle.Text = loc["Theme_DarkStudio_Title"];
+        ThemeVSDarkDesc.Text = loc["Theme_DarkStudio_Desc"];
+        ThemeOneDarkTitle.Text = loc["Theme_OneDark_Title"];
+        ThemeOneDarkDesc.Text = loc["Theme_OneDark_Desc"];
+        ThemeDarkGreenTitle.Text = loc["Theme_DarkGreen_Title"];
+        ThemeDarkGreenDesc.Text = loc["Theme_DarkGreen_Desc"];
+        ThemeLightModernTitle.Text = loc["Theme_LightModern_Title"];
+        ThemeLightModernDesc.Text = loc["Theme_LightModern_Desc"];
+
         LangHeaderTitle.Text = loc["Settings_Language_Header"];
         LangHeaderSub.Text = loc["Settings_Language_Sub"];
+        LangItalianTitle.Text = loc["Lang_Italian_Title"];
+        LangItalianDesc.Text = loc["Lang_Italian_Desc"];
+        LangEnglishTitle.Text = loc["Lang_English_Title"];
+        LangEnglishDesc.Text = loc["Lang_English_Desc"];
 
         BehaviorHeaderTitle.Text = loc["Settings_Behavior_Header"];
         BehaviorHeaderSub.Text = loc["Settings_Behavior_Sub"];

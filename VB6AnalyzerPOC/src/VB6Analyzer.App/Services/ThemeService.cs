@@ -7,7 +7,7 @@ namespace Macondo.App.Services;
 public enum AppTheme
 {
     DarkModern,
-    VisualStudioDark,
+    DarkStudio,
     OneDarkPro,
     DarkGreen,
     LightModern
@@ -16,8 +16,6 @@ public enum AppTheme
 public sealed class ThemeDefinition
 {
     public required AppTheme Theme { get; init; }
-    public required string DisplayName { get; init; }
-    public required string Description { get; init; }
     public required bool IsDark { get; init; }
 
     public required string BackgroundPrimary { get; init; }
@@ -61,8 +59,6 @@ public sealed class ThemeService
             [AppTheme.DarkModern] = new ThemeDefinition
             {
                 Theme = AppTheme.DarkModern,
-                DisplayName = "Dark Modern (Default)",
-                Description = "Stile grafite scuro minimale con accenti arancione caldo.",
                 IsDark = true,
                 BackgroundPrimary = "#181820",
                 BackgroundSecondary = "#14141D",
@@ -80,11 +76,9 @@ public sealed class ThemeService
                 GraphNodeFill = "#222230",
                 GraphNodeStroke = "#3D3D55"
             },
-            [AppTheme.VisualStudioDark] = new ThemeDefinition
+            [AppTheme.DarkStudio] = new ThemeDefinition
             {
-                Theme = AppTheme.VisualStudioDark,
-                DisplayName = "Visual Studio Dark",
-                Description = "La classica palette scura di Visual Studio con accento blu Microsoft.",
+                Theme = AppTheme.DarkStudio,
                 IsDark = true,
                 BackgroundPrimary = "#1E1E1E",
                 BackgroundSecondary = "#252526",
@@ -105,8 +99,6 @@ public sealed class ThemeService
             [AppTheme.OneDarkPro] = new ThemeDefinition
             {
                 Theme = AppTheme.OneDarkPro,
-                DisplayName = "One Dark Pro",
-                Description = "Ispirato al celebre tema scuro Atom/VS Code con sfumature blu notte e ciano.",
                 IsDark = true,
                 BackgroundPrimary = "#21252B",
                 BackgroundSecondary = "#1E2227",
@@ -127,8 +119,6 @@ public sealed class ThemeService
             [AppTheme.DarkGreen] = new ThemeDefinition
             {
                 Theme = AppTheme.DarkGreen,
-                DisplayName = "Forest Dark (Verde Scuro)",
-                Description = "Atmosfera scura foresta con toni smeraldo e verde salvia.",
                 IsDark = true,
                 BackgroundPrimary = "#101814",
                 BackgroundSecondary = "#0C130F",
@@ -149,8 +139,6 @@ public sealed class ThemeService
             [AppTheme.LightModern] = new ThemeDefinition
             {
                 Theme = AppTheme.LightModern,
-                DisplayName = "Light Modern",
-                Description = "Tema chiaro ad alto contrasto per ambienti luminosi con accento cobalto.",
                 IsDark = false,
                 BackgroundPrimary = "#F3F3F7",
                 BackgroundSecondary = "#E8E8EE",
