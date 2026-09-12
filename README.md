@@ -130,7 +130,7 @@ Quando si implementa una modifica o si aggiunge codice:
 
 ### Esecuzione in Sviluppo
 ```bash
-# Eseguire l'applicazione desktop
+# Eseguire l'interfaccia grafica desktop
 cd VB6AnalyzerPOC/src/VB6Analyzer.App
 dotnet run
 
@@ -143,6 +143,25 @@ cd VB6ParserSpike/src/VB6Analyzer.Semantic.Spike
 dotnet run
 ```
 
+### 💻 Utilizzo da Riga di Comando (CLI & Headless)
+L'eseguibile `Macondo.exe` (oppure `dotnet run --project VB6AnalyzerPOC/src/VB6Analyzer.App -- analyze ...`) può essere eseguito direttamente da terminale o pipeline CI/CD per analizzare progetti ed esportare report senza aprire la GUI:
+
+```bash
+# Esporta la Repo Map Markdown del progetto
+Macondo.exe analyze "C:\Progetti\MioProgettoVB6" --export-md "repo-map.md"
+
+# Esporta il grafo semantico completo in JSON
+Macondo.exe analyze "C:\Progetti\MioProgettoVB6\App.vbp" --export-json "graph.json"
+
+# Esporta entrambi i formati contemporaneamente
+Macondo.exe analyze "C:\Progetti\MioProgettoVB6" --export-md "repo-map.md" --export-json "graph.json"
+```
+
+Opzioni disponibili:
+- `--export-md <file.md>`, `-m <file.md>`: Esporta la Repo Map gerarchica token-efficient in Markdown.
+- `--export-json <file.json>`, `-j <file.json>`: Esporta l'intero `CodeGraph` in formato JSON strutturato.
+- `--help`, `-h`: Mostra il sommario delle opzioni da riga di comando.
+
 ### Pubblicazione EXE Standalone (Single-File)
 Per generare l'eseguibile unico autonomo per Windows x64:
 ```powershell
@@ -152,12 +171,30 @@ L'eseguibile generato sarà disponibile in `publish/win-x64/Macondo.exe`.
 
 ---
 
-## 🤖 Guida per Modelli AI / LLM
+## 🤖 Integrazione con LLM Harness & AI Agents
 
-Se sei un assistente AI che sta leggendo questo repository per eseguire un task o implementare una modifica:
+`Macondo.exe` è progettato per essere consumato direttamente da **LLM Harness, Agenti Autonomi e Assistenti AI** (come Claude Code, Cursor, Antigravity, o server MCP custom):
+
+### 1. Invocazione come Tool Deterministico da Sub-Processo
+Invece di far leggere e interpretare centinaia di file sorgente VB6 all'LLM (consumando milioni di token ed esponendosi ad allucinazioni sintattiche), l'harness esegue `Macondo.exe`:
+
+```bash
+Macondo.exe analyze "C:\Percorso\ProgettoVB6" --export-md "repo-map.md" --export-json "graph.json"
+```
+
+### 2. Risultati Ottenuti per il Prompt / Contesto:
+- **`repo-map.md`**: Mappa gerarchica condensata e token-efficient che riassume tutti i moduli, classi, routine, parametri formali e chiamate. Ideale come system prompt di contesto.
+- **`graph.json`**: Grafo semantico strutturato con tutti i simboli (GUID, percorsi file, righe), relazioni di chiamata (`CALLS`), istanziazioni (`INSTANTIATES`), e livelli di visibilità.
+- **Analisi d'Impatto (Blast Radius)**: L'LLM può determinare a priori il rischio di una modifica e le form impattate senza dover analizzare l'intero codice manualmente.
+
+---
+
+## 🧭 Regole per Assistenti AI che Lavorano su questa Codebase
+
+Se sei un assistente AI incaricato di sviluppare, modificare o refactorizzare questo repository:
 - **Consulta sempre questo file e `VB6Analyzer-Project.md`** per comprendere lo scope e le decisioni architetturali del progetto.
-- **Mantieni la separazione a livelli**:
+- **Separazione Rigorosa dei Livelli**:
   - `VB6Analyzer.Parser`: solo grammatica e parse tree ANTLR (nessuna logica di business o UI).
   - `VB6Analyzer.Semantic`: modelli `CodeGraph`, risoluzione semantica, calcolo metriche e impatti (indipendente dalla UI).
   - `VB6Analyzer.App`: interfaccia Avalonia, controlli grafici, gestione interazioni, caching e localizzazione.
-- **Ricorda la regola i18n**: Ogni singolo testo visualizzato dall'utente deve avere la controparte in `_itStrings` e `_enStrings` in `LocalizationService.cs`.
+- **REQUISITO MANDATORIO i18n**: Ogni singolo testo utente (UI, notifiche, menu, tooltip, log, errori) deve essere registrato sia in `_itStrings` che in `_enStrings` in `LocalizationService.cs`. Non inserire mai stringhe hardcodate.

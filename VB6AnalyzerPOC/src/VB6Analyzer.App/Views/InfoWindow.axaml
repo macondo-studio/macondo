@@ -658,6 +658,66 @@
                                     <TextBlock Classes="card-body" Text="Permette di salvare l'intero grafo semantico in formato JSON standard (schema Macondo Graph v1.0) per archiviarlo, integrarlo in pipeline CI/CD o reimportarlo istantaneamente su un'altra postazione senza ri-eseguire il parsing." />
                                 </StackPanel>
                             </Border>
+
+                            <!-- Card: CLI & Headless Usage -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <DockPanel LastChildFill="True">
+                                        <Border Classes="badge-accent" DockPanel.Dock="Right" VerticalAlignment="Center">
+                                            <TextBlock Classes="badge-text" Text="CLI / HEADLESS" />
+                                        </Border>
+                                        <TextBlock x:Name="CliCardTitleText" Classes="card-title" Text="4. Utilizzo da Riga di Comando (CLI &amp; Headless)" />
+                                    </DockPanel>
+                                    <TextBlock x:Name="CliCardDescText" Classes="card-body" Text="Macondo può essere eseguito direttamente da terminale (PowerShell, Command Prompt o script CI/CD) per analizzare progetti ed esportare la Repo Map Markdown o il grafo JSON senza avviare la GUI:" />
+                                    <Border Background="{DynamicResource ThemeBackgroundSecondaryBrush}"
+                                            BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                            BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,4,0,4">
+                                        <Grid RowDefinitions="Auto,Auto">
+                                            <DockPanel Grid.Row="0" Margin="0,0,0,8">
+                                                <Button x:Name="CopyCliCommandsButton"
+                                                        DockPanel.Dock="Right"
+                                                        Background="Transparent"
+                                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="4"
+                                                        Padding="8,4"
+                                                        Cursor="Hand"
+                                                        ToolTip.Tip="Copia comandi negli appunti">
+                                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                                        <PathIcon Data="{StaticResource IconCopy}" Width="11" Height="11" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                                                        <TextBlock x:Name="CopyCliButtonText" Text="Copia" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Button>
+                                                <TextBlock Text="Comandi CLI / PowerShell" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource ThemeTextMutedBrush}" VerticalAlignment="Center" />
+                                            </DockPanel>
+
+                                            <SelectableTextBlock Grid.Row="1"
+                                                                 FontFamily="Consolas, Cascadia Code, Menlo, monospace"
+                                                                 FontSize="11"
+                                                                 Foreground="{DynamicResource ThemeAccentBrush}"
+                                                                 TextWrapping="Wrap"
+                                                                 SelectionBrush="{DynamicResource ThemeAccentBrush}"
+                                                                 LineHeight="18">
+                                                <SelectableTextBlock.Inlines>
+                                                    <Run x:Name="CliCommentMdRun" Text="# Esporta la Repo Map Markdown del progetto" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                                    <LineBreak />
+                                                    <Run Text="Macondo.exe analyze &quot;C:\Progetti\MioProgettoVB6&quot; --export-md &quot;repo-map.md&quot;" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                                    <LineBreak />
+                                                    <LineBreak />
+                                                    <Run x:Name="CliCommentJsonRun" Text="# Esporta il grafo semantico completo in JSON" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                                    <LineBreak />
+                                                    <Run Text="Macondo.exe analyze &quot;C:\Progetti\MioProgettoVB6\App.vbp&quot; --export-json &quot;graph.json&quot;" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                                    <LineBreak />
+                                                    <LineBreak />
+                                                    <Run x:Name="CliCommentBothRun" Text="# Esporta entrambi i formati contemporaneamente" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                                    <LineBreak />
+                                                    <Run Text="Macondo.exe analyze &quot;C:\Progetti\MioProgettoVB6&quot; --export-md &quot;repo-map.md&quot; --export-json &quot;graph.json&quot;" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                                </SelectableTextBlock.Inlines>
+                                            </SelectableTextBlock>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </ScrollViewer>
 

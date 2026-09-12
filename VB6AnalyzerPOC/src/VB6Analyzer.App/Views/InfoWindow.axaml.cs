@@ -38,6 +38,29 @@ public partial class InfoWindow : Window
                 e.Handled = true;
             }
         }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
+
+        CopyCliCommandsButton.Click += async (_, _) =>
+        {
+            var commandsText = 
+$@"{CliCommentMdRun.Text}
+Macondo.exe analyze ""C:\Progetti\MioProgettoVB6"" --export-md ""repo-map.md""
+
+{CliCommentJsonRun.Text}
+Macondo.exe analyze ""C:\Progetti\MioProgettoVB6\App.vbp"" --export-json ""graph.json""
+
+{CliCommentBothRun.Text}
+Macondo.exe analyze ""C:\Progetti\MioProgettoVB6"" --export-md ""repo-map.md"" --export-json ""graph.json""";
+
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel?.Clipboard != null)
+            {
+                await topLevel.Clipboard.SetTextAsync(commandsText);
+                var isEn = LocalizationService.Instance.CurrentLanguage == AppLanguage.English;
+                CopyCliButtonText.Text = isEn ? "Copied!" : "Copiato!";
+                await System.Threading.Tasks.Task.Delay(1800);
+                CopyCliButtonText.Text = isEn ? "Copy" : "Copia";
+            }
+        };
     }
 
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -103,6 +126,15 @@ public partial class InfoWindow : Window
         NavDsmHotspotsText.Text = isEn ? "DSM & Hotspots" : "DSM & Hotspots";
         NavBlastRadiusText.Text = isEn ? "Blast Radius (Risk)" : "Blast Radius (Rischio)";
         NavAiExportText.Text = isEn ? "AI & LLM Export" : "AI & Esportazione LLM";
+
+        CliCardTitleText.Text = loc["Info_CliTitle"];
+        CliCardDescText.Text = loc["Info_CliDescription"];
+        CliCommentMdRun.Text = loc["Info_CliCommentMd"];
+        CliCommentJsonRun.Text = loc["Info_CliCommentJson"];
+        CliCommentBothRun.Text = loc["Info_CliCommentBoth"];
+
+        CopyCliButtonText.Text = isEn ? "Copy" : "Copia";
+        ToolTip.SetTip(CopyCliCommandsButton, isEn ? "Copy commands to clipboard" : "Copia comandi negli appunti");
     }
 
     private void ApplyTheme(ThemeDefinition theme)

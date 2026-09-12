@@ -310,6 +310,11 @@ public sealed class LocalizationService
         ["Status_CopiedLlmSlice"] = "Context Slice LLM per '{0}' copiato negli appunti!",
         ["Status_NoSymbolSelected"] = "Nessun simbolo selezionato per l'esportazione dello slice.",
         ["Status_NoSemanticGraph"] = "Nessun grafo semantico disponibile per l'esportazione.",
+        ["Info_CliTitle"] = "4. Utilizzo da Riga di Comando (CLI & Headless)",
+        ["Info_CliDescription"] = "Macondo può essere eseguito direttamente da terminale (PowerShell, Command Prompt o CI/CD) per analizzare progetti ed esportare report senza aprire l'interfaccia grafica:",
+        ["Info_CliCommentMd"] = "# Esporta la Repo Map Markdown del progetto",
+        ["Info_CliCommentJson"] = "# Esporta il grafo semantico completo in JSON",
+        ["Info_CliCommentBoth"] = "# Esporta entrambi i formati contemporaneamente",
 
         // Git & SVN (VCS) Integration
         ["Git_BranchTooltip"] = "Branch Git corrente: {0}. Clicca per cambiare branch.",
@@ -703,6 +708,11 @@ public sealed class LocalizationService
         ["Status_CopiedLlmSlice"] = "LLM Context Slice for '{0}' copied to clipboard!",
         ["Status_NoSymbolSelected"] = "No symbol selected for slice export.",
         ["Status_NoSemanticGraph"] = "No semantic graph available for export.",
+        ["Info_CliTitle"] = "4. Command Line Usage (CLI & Headless)",
+        ["Info_CliDescription"] = "Macondo can be executed directly from terminal (PowerShell, Command Prompt, or CI/CD) to analyze projects and export reports without launching the GUI:",
+        ["Info_CliCommentMd"] = "# Export project Markdown Repo Map",
+        ["Info_CliCommentJson"] = "# Export complete semantic graph to JSON",
+        ["Info_CliCommentBoth"] = "# Export both formats simultaneously",
 
         // Git & SVN (VCS) Integration
         ["Git_BranchTooltip"] = "Current Git branch: {0}. Click to switch branch.",

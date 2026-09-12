@@ -98,10 +98,22 @@ In `LocalizationService.cs`, aggiungere la chiave con la stringa tradotta in **e
 
 ## 🚀 Esecuzione e Build
 
-### Avvio in modalità sviluppo
+### Avvio in modalità sviluppo (GUI)
 ```bash
 cd src/VB6Analyzer.App
 dotnet run
+```
+
+### Avvio in modalità riga di comando (CLI / Headless)
+```bash
+# Esporta la Repo Map Markdown
+dotnet run --project src/VB6Analyzer.App -- analyze "C:\Percorso\Progetto" --export-md "repo-map.md"
+
+# Esporta il grafo semantico in JSON
+dotnet run --project src/VB6Analyzer.App -- analyze "C:\Percorso\Progetto\App.vbp" --export-json "graph.json"
+
+# Esporta entrambi i formati con l'eseguibile compilato
+Macondo.exe analyze "C:\Percorso\Progetto" --export-md "repo-map.md" --export-json "graph.json"
 ```
 
 ### Build eseguibile singolo per Windows x64
