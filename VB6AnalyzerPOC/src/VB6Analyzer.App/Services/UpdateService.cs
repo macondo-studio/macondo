@@ -1,8 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text.Json.Serialization;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +10,7 @@ namespace Macondo.App.Services;
 
 /// <summary>
 /// Dettagli relativi a un aggiornamento software disponibile.
+/// Supporta note di rilascio e titoli multilingua (es. IT, EN).
 /// </summary>
 public sealed class AppUpdateInfo
 {
@@ -19,11 +20,17 @@ public sealed class AppUpdateInfo
     /// <summary>Stringa formattata della versione (es. '1.1.0').</summary>
     public string VersionString => Version.ToString(3);
 
-    /// <summary>Titolo o nome della release.</summary>
+    /// <summary>Titolo o nome predefinito della release.</summary>
     public string Title { get; init; } = string.Empty;
 
-    /// <summary>Note di rilascio / changelog con le novità della versione.</summary>
+    /// <summary>Note di rilascio predefinite / changelog.</summary>
     public string ReleaseNotes { get; init; } = string.Empty;
+
+    /// <summary>Titoli localizzati per codice lingua ('it', 'en').</summary>
+    public IReadOnlyDictionary<string, string>? LocalizedTitles { get; init; }
+
+    /// <summary>Note di rilascio localizzate per codice lingua ('it', 'en').</summary>
+    public IReadOnlyDictionary<string, string>? LocalizedReleaseNotes { get; init; }
 
     /// <summary>URL della pagina di download o del pacchetto di installazione.</summary>
     public string DownloadUrl { get; init; } = string.Empty;
@@ -33,6 +40,46 @@ public sealed class AppUpdateInfo
 
     /// <summary>Indica se l'aggiornamento è critico/obbligatorio.</summary>
     public bool IsMandatory { get; init; }
+
+    /// <summary>
+    /// Restituisce il titolo localizzato per la lingua richiesta, con fallback automatico.
+    /// </summary>
+    public string GetTitle(string langCode = "it")
+    {
+        if (LocalizedTitles != null)
+        {
+            if (LocalizedTitles.TryGetValue(langCode, out var localized) && !string.IsNullOrWhiteSpace(localized))
+                return localized;
+            if (LocalizedTitles.TryGetValue("it", out var it) && !string.IsNullOrWhiteSpace(it))
+                return it;
+            if (LocalizedTitles.TryGetValue("en", out var en) && !string.IsNullOrWhiteSpace(en))
+                return en;
+        }
+
+        return !string.IsNullOrWhiteSpace(Title) ? Title : $"Macondo v{VersionString}";
+    }
+
+    /// <summary>
+    /// Restituisce le note di rilascio localizzate per la lingua richiesta, con fallback automatico.
+    /// </summary>
+    public string GetReleaseNotes(string langCode = "it")
+    {
+        if (LocalizedReleaseNotes != null)
+        {
+            if (LocalizedReleaseNotes.TryGetValue(langCode, out var localized) && !string.IsNullOrWhiteSpace(localized))
+                return localized;
+            if (LocalizedReleaseNotes.TryGetValue("it", out var it) && !string.IsNullOrWhiteSpace(it))
+                return it;
+            if (LocalizedReleaseNotes.TryGetValue("en", out var en) && !string.IsNullOrWhiteSpace(en))
+                return en;
+        }
+
+        return !string.IsNullOrWhiteSpace(ReleaseNotes)
+            ? ReleaseNotes
+            : (langCode == "it"
+                ? "Miglioramenti generali delle prestazioni e correzioni di bug."
+                : "General performance improvements and bug fixes.");
+    }
 }
 
 /// <summary>
@@ -71,10 +118,9 @@ public sealed class UpdateService
     {
         var endpoint = UpdateEndpointUrl;
 
-        // Se l'endpoint non è ancora configurato (TODO server), restituiamo null senza generare errori
+        // Se l'endpoint non è ancora configurato, restituiamo null senza generare errori
         if (string.IsNullOrWhiteSpace(endpoint))
         {
-            // TODO: Quando il server sarà pronto, rimuovere o valorizzare UpdateEndpointUrl
             return null;
         }
 
@@ -87,24 +133,55 @@ public sealed class UpdateService
                 return null;
             }
 
-            var manifest = await response.Content.ReadFromJsonAsync<UpdateManifestDto>(cancellationToken: ct).ConfigureAwait(false);
-            if (manifest == null || string.IsNullOrWhiteSpace(manifest.Version))
+            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false), cancellationToken: ct).ConfigureAwait(false);
+            var root = doc.RootElement;
+
+            if (!root.TryGetProperty("version", out var verProp) || verProp.ValueKind != JsonValueKind.String)
             {
                 return null;
             }
 
-            if (Version.TryParse(manifest.Version.TrimStart('v', 'V'), out var remoteVersion))
+            var versionStr = verProp.GetString();
+            if (string.IsNullOrWhiteSpace(versionStr))
+            {
+                return null;
+            }
+
+            if (Version.TryParse(versionStr.TrimStart('v', 'V'), out var remoteVersion))
             {
                 if (remoteVersion > CurrentVersion)
                 {
+                    var (defaultTitle, localizedTitles) = ParseLocalizedField(root, "title");
+                    var (defaultNotes, localizedNotes) = ParseLocalizedField(root, "releaseNotes");
+
+                    string downloadUrl = string.Empty;
+                    if (root.TryGetProperty("downloadUrl", out var dlProp) && dlProp.ValueKind == JsonValueKind.String)
+                    {
+                        downloadUrl = dlProp.GetString() ?? string.Empty;
+                    }
+
+                    DateTime? publishedAt = null;
+                    if (root.TryGetProperty("publishedAt", out var pubProp) && pubProp.ValueKind == JsonValueKind.String && DateTime.TryParse(pubProp.GetString(), out var dt))
+                    {
+                        publishedAt = dt;
+                    }
+
+                    bool isMandatory = false;
+                    if (root.TryGetProperty("isMandatory", out var mandProp))
+                    {
+                        isMandatory = mandProp.ValueKind == JsonValueKind.True;
+                    }
+
                     return new AppUpdateInfo
                     {
                         Version = remoteVersion,
-                        Title = manifest.Title ?? $"Versione {remoteVersion}",
-                        ReleaseNotes = manifest.ReleaseNotes ?? "Miglioramenti di stabilità e nuove funzionalità.",
-                        DownloadUrl = manifest.DownloadUrl ?? string.Empty,
-                        PublishedAtUtc = manifest.PublishedAt,
-                        IsMandatory = manifest.IsMandatory
+                        Title = defaultTitle,
+                        ReleaseNotes = defaultNotes,
+                        LocalizedTitles = localizedTitles,
+                        LocalizedReleaseNotes = localizedNotes,
+                        DownloadUrl = downloadUrl,
+                        PublishedAtUtc = publishedAt,
+                        IsMandatory = isMandatory
                     };
                 }
             }
@@ -117,6 +194,43 @@ public sealed class UpdateService
         return null;
     }
 
+    private static (string DefaultValue, Dictionary<string, string>? Localized) ParseLocalizedField(JsonElement root, string propertyName)
+    {
+        if (!root.TryGetProperty(propertyName, out var prop))
+        {
+            return (string.Empty, null);
+        }
+
+        if (prop.ValueKind == JsonValueKind.String)
+        {
+            var val = prop.GetString() ?? string.Empty;
+            return (val, null);
+        }
+
+        if (prop.ValueKind == JsonValueKind.Object)
+        {
+            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            string fallback = string.Empty;
+
+            foreach (var item in prop.EnumerateObject())
+            {
+                if (item.Value.ValueKind == JsonValueKind.String)
+                {
+                    var text = item.Value.GetString() ?? string.Empty;
+                    dict[item.Name] = text;
+                    if (string.IsNullOrEmpty(fallback) || item.Name.Equals("it", StringComparison.OrdinalIgnoreCase))
+                    {
+                        fallback = text;
+                    }
+                }
+            }
+
+            return (fallback, dict);
+        }
+
+        return (string.Empty, null);
+    }
+
     /// <summary>
     /// Apre nel browser predefinito dell'utente la pagina o il link per scaricare l'aggiornamento.
     /// </summary>
@@ -124,8 +238,7 @@ public sealed class UpdateService
     {
         if (string.IsNullOrWhiteSpace(downloadUrl))
         {
-            // TODO: URL di fallback della pagina del progetto se il downloadUrl non è specificato
-            downloadUrl = "https://github.com";
+            downloadUrl = "https://github.com/macondo-studio/macondo";
         }
 
         try
@@ -140,29 +253,5 @@ public sealed class UpdateService
         {
             Debug.WriteLine($"[UpdateService] Errore durante l'apertura del browser: {ex.Message}");
         }
-    }
-
-    /// <summary>
-    /// DTO per la deserializzazione del manifesto JSON degli aggiornamenti.
-    /// </summary>
-    private sealed class UpdateManifestDto
-    {
-        [JsonPropertyName("version")]
-        public string? Version { get; set; }
-
-        [JsonPropertyName("title")]
-        public string? Title { get; set; }
-
-        [JsonPropertyName("releaseNotes")]
-        public string? ReleaseNotes { get; set; }
-
-        [JsonPropertyName("downloadUrl")]
-        public string? DownloadUrl { get; set; }
-
-        [JsonPropertyName("publishedAt")]
-        public DateTime? PublishedAt { get; set; }
-
-        [JsonPropertyName("isMandatory")]
-        public bool IsMandatory { get; set; }
     }
 }

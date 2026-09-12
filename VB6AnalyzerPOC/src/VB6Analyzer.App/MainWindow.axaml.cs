@@ -3257,9 +3257,7 @@ public partial class MainWindow : Window
         UpdateModalTitle.Text = loc["Update_AvailableTitle"];
         UpdateModalSubtitle.Text = loc.Get("Update_AvailableSubtitle", update.VersionString, UpdateService.CurrentVersionString);
         UpdateModalNotesLabel.Text = loc["Update_NotesLabel"];
-        UpdateModalNotes.Text = string.IsNullOrWhiteSpace(update.ReleaseNotes)
-            ? "Miglioramenti generali delle prestazioni e correzioni di bug."
-            : update.ReleaseNotes;
+        UpdateModalNotes.Text = update.GetReleaseNotes(loc.CurrentLanguage == AppLanguage.Italian ? "it" : "en");
         UpdateLaterButton.Content = loc["Update_ButtonLater"];
         UpdateNowButton.Content = loc["Update_ButtonNow"];
 
@@ -3662,6 +3660,7 @@ public partial class MainWindow : Window
             UpdateModalTitle.Text = loc["Update_AvailableTitle"];
             UpdateModalSubtitle.Text = loc.Get("Update_AvailableSubtitle", _availableUpdate.VersionString, UpdateService.CurrentVersionString);
             UpdateModalNotesLabel.Text = loc["Update_NotesLabel"];
+            UpdateModalNotes.Text = _availableUpdate.GetReleaseNotes(loc.CurrentLanguage == AppLanguage.Italian ? "it" : "en");
             UpdateLaterButton.Content = loc["Update_ButtonLater"];
             UpdateNowButton.Content = loc["Update_ButtonNow"];
         }
