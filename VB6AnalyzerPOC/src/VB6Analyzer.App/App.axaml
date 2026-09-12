@@ -21,12 +21,65 @@
             <SolidColorBrush x:Key="ThemeTextMutedBrush" Color="#707084" />
             <SolidColorBrush x:Key="ThemeAccentBrush" Color="#FF6633" />
             <SolidColorBrush x:Key="ThemeAccentHoverBrush" Color="#FF8555" />
+
+            <!-- Fluent Theme Menu Overrides (valori iniziali) -->
+            <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#1E1E28" />
+            <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="#2D2D3E" />
+            <SolidColorBrush x:Key="FlyoutPresenterBackground" Color="#1E1E28" />
+            <SolidColorBrush x:Key="FlyoutPresenterBorderBrush" Color="#2D2D3E" />
+            <SolidColorBrush x:Key="MenuItemBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="MenuItemForeground" Color="#ECECF0" />
+            <SolidColorBrush x:Key="MenuItemBackgroundPointerOver" Color="#22222E" />
+            <SolidColorBrush x:Key="MenuItemForegroundPointerOver" Color="#ECECF0" />
+            <SolidColorBrush x:Key="MenuItemBackgroundPressed" Color="#22222E" />
+            <SolidColorBrush x:Key="MenuItemForegroundPressed" Color="#ECECF0" />
+            <SolidColorBrush x:Key="MenuItemBackgroundSelected" Color="#22222E" />
+            <SolidColorBrush x:Key="MenuItemForegroundSelected" Color="#ECECF0" />
+            <SolidColorBrush x:Key="MenuItemForegroundDisabled" Color="#707084" />
+            <SolidColorBrush x:Key="MenuItemChevronForeground" Color="#A0A0B8" />
+            <SolidColorBrush x:Key="MenuItemInputGestureTextForeground" Color="#707084" />
+            <SolidColorBrush x:Key="MenuFlyoutItemBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="MenuFlyoutItemForeground" Color="#ECECF0" />
+            <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="#22222E" />
+            <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="#ECECF0" />
+            <SolidColorBrush x:Key="MenuFlyoutSeparatorBackground" Color="#22222E" />
+            <SolidColorBrush x:Key="MenuBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="MenuForeground" Color="#ECECF0" />
+
+            <!-- Fluent Theme ComboBox Overrides (valori iniziali) -->
+            <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#1E1E28" />
+            <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#2D2D3E" />
+            <SolidColorBrush x:Key="ComboBoxBackground" Color="#1E1E28" />
+            <SolidColorBrush x:Key="ComboBoxForeground" Color="#ECECF0" />
+            <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#1E1E28" />
+            <SolidColorBrush x:Key="ComboBoxForegroundPointerOver" Color="#ECECF0" />
+            <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#1E1E28" />
+            <SolidColorBrush x:Key="ComboBoxForegroundPressed" Color="#ECECF0" />
+            <SolidColorBrush x:Key="ComboBoxBackgroundDisabled" Color="#14141D" />
+            <SolidColorBrush x:Key="ComboBoxForegroundDisabled" Color="#707084" />
+            <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#22222E" />
+            <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#2D2D3E" />
+            <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#2D2D3E" />
+            <SolidColorBrush x:Key="ComboBoxDropDownGlyphForeground" Color="#A0A0B8" />
+            <SolidColorBrush x:Key="ComboBoxItemBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="ComboBoxItemForeground" Color="#ECECF0" />
+            <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="#22222E" />
+            <SolidColorBrush x:Key="ComboBoxItemForegroundPointerOver" Color="#ECECF0" />
+            <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="#22222E" />
+            <SolidColorBrush x:Key="ComboBoxItemForegroundSelected" Color="#ECECF0" />
+            <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver" Color="#22222E" />
+            <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedPointerOver" Color="#ECECF0" />
+            <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="#22222E" />
+            <SolidColorBrush x:Key="ComboBoxItemForegroundPressed" Color="#ECECF0" />
+            <SolidColorBrush x:Key="ComboBoxItemBackgroundDisabled" Color="Transparent" />
+            <SolidColorBrush x:Key="ComboBoxItemForegroundDisabled" Color="#707084" />
         </ResourceDictionary>
     </Application.Resources>
 
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+        <StyleInclude Source="avares://Macondo/Styles/Menu.axaml"/>
     </Application.Styles>
 
 </Application>

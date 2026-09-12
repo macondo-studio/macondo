@@ -1,0 +1,276 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ========================================================================= -->
+    <!-- STILE TENDINE DEI MENU, SOTTOMENU, CONTEXT MENU, FLYOUT E COMBOBOX       -->
+    <!-- Supporto completo Avalonia 11 Fluent Theme + Dynamic Theme Brushes       -->
+    <!-- ========================================================================= -->
+
+    <!-- ========================================== -->
+    <!-- 1. Contenitori Tendine Popup & Flyout       -->
+    <!-- ========================================== -->
+    <Style Selector="MenuFlyoutPresenter">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="4,4" />
+        <Setter Property="MinWidth" Value="160" />
+    </Style>
+
+    <Style Selector="MenuFlyoutPresenter /template/ Border#LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDefaultBrush}" />
+    </Style>
+
+    <Style Selector="ContextMenu">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="4,4" />
+        <Setter Property="MinWidth" Value="160" />
+    </Style>
+
+    <Style Selector="ContextMenu /template/ Border#LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDefaultBrush}" />
+    </Style>
+
+    <Style Selector="FlyoutPresenter">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+
+    <Style Selector="FlyoutPresenter /template/ Border#LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDefaultBrush}" />
+    </Style>
+
+    <!-- Submenu Popups inside MenuItem -->
+    <Style Selector="MenuItem /template/ Popup#PART_Popup Border">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDefaultBrush}" />
+    </Style>
+
+    <!-- ========================================== -->
+    <!-- 2. Barra Superiore Menu (Menu > MenuItem)  -->
+    <!-- ========================================== -->
+    <Style Selector="Menu > MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Menu > MenuItem /template/ Border#PART_Background">
+        <Setter Property="CornerRadius" Value="4" />
+    </Style>
+
+    <Style Selector="Menu > MenuItem:pointerover /template/ Border#PART_Background">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <Style Selector="Menu > MenuItem:open /template/ Border#PART_Background">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <Style Selector="Menu > MenuItem:selected /template/ Border#PART_Background">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <Style Selector="Menu > MenuItem:focus /template/ Border#PART_Background">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <Style Selector="Menu > MenuItem:pointerover /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <Style Selector="Menu > MenuItem:open /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <Style Selector="Menu > MenuItem:selected /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <!-- ========================================== -->
+    <!-- 3. Voci di Menu Dropdown (MenuItem)       -->
+    <!-- ========================================== -->
+    <Style Selector="MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="MinHeight" Value="26" />
+        <Setter Property="Padding" Value="8,4" />
+    </Style>
+
+    <Style Selector="MenuItem /template/ Border#PART_Background">
+        <Setter Property="CornerRadius" Value="4" />
+    </Style>
+
+    <!-- Hover ed evidenziazione sulle voci di menu della tendina (Avalonia 11 PART_Background) -->
+    <Style Selector="MenuItem:pointerover /template/ Border#PART_Background">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <Style Selector="MenuItem:selected /template/ Border#PART_Background">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <Style Selector="MenuItem:open /template/ Border#PART_Background">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <Style Selector="MenuItem:pressed /template/ Border#PART_Background">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <!-- Fallback legacy/alt template PART_LayoutRoot -->
+    <Style Selector="MenuItem:pointerover /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <Style Selector="MenuItem:selected /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <Style Selector="MenuItem:pressed /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <!-- Testo intestazione voce di menu -->
+    <Style Selector="MenuItem /template/ ContentPresenter#PART_HeaderPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="MenuItem:pointerover /template/ ContentPresenter#PART_HeaderPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="MenuItem:selected /template/ ContentPresenter#PART_HeaderPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+
+    <!-- Stato disabilitato per voci di menu -->
+    <Style Selector="MenuItem:disabled /template/ ContentPresenter#PART_HeaderPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextMutedBrush}" />
+    </Style>
+
+    <Style Selector="MenuItem:disabled">
+        <Setter Property="Opacity" Value="0.5" />
+    </Style>
+
+    <!-- Testo delle scorciatoie da tastiera (es. Ctrl+Shift+O) -->
+    <Style Selector="MenuItem /template/ TextBlock#PART_InputGestureText">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextMutedBrush}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Margin" Value="24,0,0,0" />
+    </Style>
+
+    <Style Selector="MenuItem:pointerover /template/ TextBlock#PART_InputGestureText">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+    </Style>
+
+    <!-- Freccia di espansione per sottomenu (Chevron >) -->
+    <Style Selector="MenuItem /template/ Path#PART_ChevronPath">
+        <Setter Property="Fill" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="MenuItem:pointerover /template/ Path#PART_ChevronPath">
+        <Setter Property="Fill" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+
+    <!-- Icone delle voci di menu -->
+    <Style Selector="MenuItem PathIcon">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="MenuItem:pointerover PathIcon">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+
+    <!-- ========================================== -->
+    <!-- 4. Separatori                              -->
+    <!-- ========================================== -->
+    <Style Selector="MenuFlyoutPresenter Separator">
+        <Setter Property="Background" Value="{DynamicResource ThemeBorderSubtleBrush}" />
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="4,3" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="ContextMenu Separator">
+        <Setter Property="Background" Value="{DynamicResource ThemeBorderSubtleBrush}" />
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="4,3" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="Menu Separator">
+        <Setter Property="Background" Value="{DynamicResource ThemeBorderSubtleBrush}" />
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="4,3" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <!-- ========================================== -->
+    <!-- 5. Tendine ComboBox e ComboBoxItem         -->
+    <!-- ========================================== -->
+    <Style Selector="ComboBox /template/ Border#PopupBorder">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+
+    <Style Selector="ComboBox /template/ Popup#PART_Popup Border">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDefaultBrush}" />
+    </Style>
+
+    <Style Selector="ComboBoxItem">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="8,5" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="MinHeight" Value="24" />
+    </Style>
+
+    <Style Selector="ComboBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="CornerRadius" Value="4" />
+    </Style>
+
+    <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+    </Style>
+
+    <Style Selector="ComboBoxItem:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="ComboBoxItem:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextMutedBrush}" />
+    </Style>
+
+</Styles>

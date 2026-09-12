@@ -179,6 +179,68 @@ public sealed class ThemeService
             SetAppBrush("ThemeTextMutedBrush", def.TextMuted);
             SetAppBrush("ThemeAccentBrush", def.AccentColor);
             SetAppBrush("ThemeAccentHoverBrush", def.AccentHover);
+
+            // Avalonia Fluent Theme Override Keys for Menus, Dropdowns, Flyouts & ContextMenus
+            SetAppBrush("MenuFlyoutPresenterBackground", def.BackgroundSurface);
+            SetAppBrush("MenuFlyoutPresenterBorderBrush", def.BorderDefault);
+            SetAppBrush("FlyoutPresenterBackground", def.BackgroundSurface);
+            SetAppBrush("FlyoutPresenterBorderBrush", def.BorderDefault);
+
+            SetAppBrush("MenuItemBackground", "Transparent");
+            SetAppBrush("MenuItemForeground", def.TextPrimary);
+            SetAppBrush("MenuItemBackgroundPointerOver", def.BackgroundElevated);
+            SetAppBrush("MenuItemForegroundPointerOver", def.TextPrimary);
+            SetAppBrush("MenuItemBackgroundPressed", def.BackgroundElevated);
+            SetAppBrush("MenuItemForegroundPressed", def.TextPrimary);
+            SetAppBrush("MenuItemBackgroundSelected", def.BackgroundElevated);
+            SetAppBrush("MenuItemForegroundSelected", def.TextPrimary);
+            SetAppBrush("MenuItemBackgroundDisabled", "Transparent");
+            SetAppBrush("MenuItemForegroundDisabled", def.TextMuted);
+            SetAppBrush("MenuItemChevronForeground", def.TextSecondary);
+            SetAppBrush("MenuItemInputGestureTextForeground", def.TextMuted);
+
+            SetAppBrush("MenuFlyoutItemBackground", "Transparent");
+            SetAppBrush("MenuFlyoutItemForeground", def.TextPrimary);
+            SetAppBrush("MenuFlyoutItemBackgroundPointerOver", def.BackgroundElevated);
+            SetAppBrush("MenuFlyoutItemForegroundPointerOver", def.TextPrimary);
+            SetAppBrush("MenuFlyoutItemBackgroundPressed", def.BackgroundElevated);
+            SetAppBrush("MenuFlyoutItemForegroundPressed", def.TextPrimary);
+            SetAppBrush("MenuFlyoutItemBackgroundDisabled", "Transparent");
+            SetAppBrush("MenuFlyoutItemForegroundDisabled", def.TextMuted);
+            SetAppBrush("MenuFlyoutSeparatorBackground", def.BorderSubtle);
+            SetAppBrush("MenuFlyoutSeparatorForeground", def.BorderSubtle);
+
+            SetAppBrush("MenuBackground", "Transparent");
+            SetAppBrush("MenuForeground", def.TextPrimary);
+
+            // Avalonia Fluent Theme Override Keys for ComboBox & ComboBox Dropdown
+            SetAppBrush("ComboBoxDropDownBackground", def.BackgroundSurface);
+            SetAppBrush("ComboBoxDropDownBorderBrush", def.BorderDefault);
+            SetAppBrush("ComboBoxBackground", def.BackgroundSurface);
+            SetAppBrush("ComboBoxForeground", def.TextPrimary);
+            SetAppBrush("ComboBoxBackgroundPointerOver", def.BackgroundSurface);
+            SetAppBrush("ComboBoxForegroundPointerOver", def.TextPrimary);
+            SetAppBrush("ComboBoxBackgroundPressed", def.BackgroundSurface);
+            SetAppBrush("ComboBoxForegroundPressed", def.TextPrimary);
+            SetAppBrush("ComboBoxBackgroundDisabled", def.BackgroundSecondary);
+            SetAppBrush("ComboBoxForegroundDisabled", def.TextMuted);
+            SetAppBrush("ComboBoxBorderBrush", def.BorderSubtle);
+            SetAppBrush("ComboBoxBorderBrushPointerOver", def.BorderDefault);
+            SetAppBrush("ComboBoxBorderBrushPressed", def.BorderDefault);
+            SetAppBrush("ComboBoxDropDownGlyphForeground", def.TextSecondary);
+
+            SetAppBrush("ComboBoxItemBackground", "Transparent");
+            SetAppBrush("ComboBoxItemForeground", def.TextPrimary);
+            SetAppBrush("ComboBoxItemBackgroundPointerOver", def.BackgroundElevated);
+            SetAppBrush("ComboBoxItemForegroundPointerOver", def.TextPrimary);
+            SetAppBrush("ComboBoxItemBackgroundSelected", def.BackgroundElevated);
+            SetAppBrush("ComboBoxItemForegroundSelected", def.TextPrimary);
+            SetAppBrush("ComboBoxItemBackgroundSelectedPointerOver", def.BackgroundElevated);
+            SetAppBrush("ComboBoxItemForegroundSelectedPointerOver", def.TextPrimary);
+            SetAppBrush("ComboBoxItemBackgroundPressed", def.BackgroundElevated);
+            SetAppBrush("ComboBoxItemForegroundPressed", def.TextPrimary);
+            SetAppBrush("ComboBoxItemBackgroundDisabled", "Transparent");
+            SetAppBrush("ComboBoxItemForegroundDisabled", def.TextMuted);
         }
 
         ThemeChanged?.Invoke(this, def);
@@ -186,6 +248,12 @@ public sealed class ThemeService
 
     private static void SetAppBrush(string key, string colorHex)
     {
+        if (string.Equals(colorHex, "Transparent", StringComparison.OrdinalIgnoreCase))
+        {
+            Application.Current!.Resources[key] = Brushes.Transparent;
+            return;
+        }
+
         if (Color.TryParse(colorHex, out var color))
         {
             Application.Current!.Resources[key] = new SolidColorBrush(color);

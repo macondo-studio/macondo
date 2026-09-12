@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
@@ -13,6 +13,8 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        Services.ThemeService.Instance.ApplyTheme(Services.SettingsService.Instance.Settings.Theme);
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = new MainWindow();
