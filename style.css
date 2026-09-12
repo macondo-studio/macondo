@@ -547,6 +547,15 @@ body {
   color: var(--text-headline);
 }
 
+.footer-disclaimer {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
 /* Legal & Documentation Pages */
 .legal-page {
   padding: 60px 0 100px;

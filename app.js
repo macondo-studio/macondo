@@ -7,7 +7,7 @@ const i18n = {
   it: {
     nav_graph: "Grafo",
     nav_blast: "Blast Radius",
-    nav_ai: "AI Context",
+    nav_ai: "AI & Modernizzazione",
     nav_specs: "Specifiche",
     nav_download: "Scarica",
 
@@ -48,16 +48,16 @@ const i18n = {
     f2_box_l3_val: "11 form",
     f2_box_risk: "Punteggio di Rischio: <strong>CRITICO (94/100)</strong>",
 
-    // Feature 3: AI Slicing
+    // Feature 3: AI & Modernizzazione
     f3_tag: "AI & Modernizzazione",
     f3_title: "Il ponte ideale tra codice legacy e moderni LLM.",
-    f3_desc: "Estrai Repo Map e contesti semantici compatti in formato Markdown pronti per Claude, ChatGPT, Gemini o Copilot per guidare la riscrittura in C#/.NET.",
+    f3_desc: "Estrai Repo Map e contesti semantici compatti in formato Markdown pronti per Claude, ChatGPT, Gemini, Copilot, ecc. per guidare la riscrittura in C#/.NET.",
     f3_p1: "Subgrafi mirati per evitare il rumore e massimizzare la precisione del modello.",
-    f3_p2: "Esportazione istantanea con 1 click negli appunti o su file .md.",
-    f3_p3: "Ideale per refactoring architetturali o migrazioni modulari passo dopo passo.",
-    f3_box_title: "Pronto per il tuo LLM preferito:",
-    f3_box_sub: "1-click LLM Context Slice:",
-    f3_box_copied: "&check; Markdown formattato copiato negli appunti",
+    f3_p2: "Zero allucinazioni: l'LLM riceve AST, relazioni CALLS e tipi già verificati e risolti.",
+    f3_p3: "Esecuzione headless da terminale o come tool per agenti autonomi (Claude Code, Cursor, Antigravity, MCP, ecc.).",
+    cli_box_c1: "# Esporta la Repo Map Markdown del progetto",
+    cli_box_c2: "# Esporta il grafo semantico completo in JSON",
+    cli_box_c3: "# Esporta entrambi i formati contemporaneamente",
 
     // Minimal Grid 3
     g1_title: "100% Gratuito",
@@ -76,6 +76,7 @@ const i18n = {
 
     footer_license: "Licenza",
     footer_privacy: "Privacy",
+    footer_disclaimer: "Tutti i marchi e i nomi commerciali citati (inclusi Claude, ChatGPT, Gemini, Copilot, Windows, Visual Basic, ecc.) appartengono ai rispettivi titolari e sono utilizzati esclusivamente a scopo descrittivo e di interoperabilità.",
 
     // Privacy Page
     priv_back: "&larr; Torna alla Home",
@@ -93,13 +94,15 @@ const i18n = {
     priv_s5_title: "5. Hosting su GitHub Pages",
     priv_s5_desc: "Il sito web è ospitato tramite GitHub Pages. Durante la navigazione, GitHub potrebbe registrare log di connessione standard (come indirizzi IP e user agent) esclusivamente per finalità di sicurezza, diagnostica di rete e integrità dell'infrastruttura, in conformità all'informativa sulla privacy di GitHub.",
     priv_s6_title: "6. Licenza Freeware e Disclaimer di Responsabilità",
-    priv_s6_desc: "Macondo è fornito gratuitamente (freeware) per uso personale e commerciale secondo i termini della <a href=\"LICENSE.md\" target=\"_blank\">Licenza Macondo</a>. Il software è distribuito \"così com'è\" (AS IS), senza garanzie di alcun tipo o supporto vincolante. Il software è un prodotto proprietario (closed-source)."
+    priv_s6_desc: "Macondo è fornito gratuitamente (freeware) per uso personale e commerciale secondo i termini della <a href=\"LICENSE.md\" target=\"_blank\">Licenza Macondo</a>. Il software è distribuito \"così com'è\" (AS IS), senza garanzie di alcun tipo o supporto vincolante. Il software è un prodotto proprietario (closed-source).",
+    priv_s7_title: "7. Marchi Registrati e Disclaimer di Terze Parti",
+    priv_s7_desc: "Tutti i marchi, loghi o nomi di modelli e prodotti AI citati nel sito e nella documentazione (inclusi Claude, ChatGPT, Gemini, Copilot, Windows, Visual Basic, Cursor, ecc.) appartengono ai rispettivi proprietari. Il loro utilizzo ha natura puramente identificativa, informativa e di interoperabilità tecnica, senza alcuna affiliazione, sponsorizzazione o approvazione formale da parte dei rispettivi titolari."
   },
 
   en: {
     nav_graph: "Graph",
     nav_blast: "Blast Radius",
-    nav_ai: "AI Context",
+    nav_ai: "AI & Modernization",
     nav_specs: "Specifications",
     nav_download: "Download",
 
@@ -140,16 +143,16 @@ const i18n = {
     f2_box_l3_val: "11 forms",
     f2_box_risk: "Regression Risk Score: <strong>CRITICAL (94/100)</strong>",
 
-    // Feature 3: AI Slicing
+    // Feature 3: AI & Modernization
     f3_tag: "AI & Modernization",
     f3_title: "The ideal bridge between legacy code and AI models.",
-    f3_desc: "Extract compact, structured Markdown Repo Maps and semantic context slices ready for Claude, ChatGPT, Gemini, or Copilot to guide your C#/.NET rewrite.",
-    f3_p1: "Scoped subgraphs that minimize token noise and maximize LLM accuracy.",
-    f3_p2: "Instant 1-click clipboard or .md file export.",
-    f3_p3: "Perfect for phased, modular migrations from VB6 to modern stacks.",
-    f3_box_title: "Ready for your favorite LLM:",
-    f3_box_sub: "1-click LLM Context Slice:",
-    f3_box_copied: "&check; Formatted markdown copied to clipboard",
+    f3_desc: "Extract compact, structured Markdown Repo Maps and semantic context slices ready for Claude, ChatGPT, Gemini, Copilot, etc. to guide your C#/.NET rewrite.",
+    f3_p1: "Targeted subgraphs that minimize token noise and maximize LLM accuracy.",
+    f3_p2: "Zero hallucinations: the LLM receives verified AST, CALLS relationships, and resolved types.",
+    f3_p3: "Headless CLI execution for CI/CD pipelines or as a tool for autonomous AI agents (Claude Code, Cursor, Antigravity, MCP, etc.).",
+    cli_box_c1: "# Export project Markdown Repo Map",
+    cli_box_c2: "# Export complete semantic graph to JSON",
+    cli_box_c3: "# Export both formats simultaneously",
 
     // Minimal Grid 3
     g1_title: "100% Free",
@@ -168,6 +171,7 @@ const i18n = {
 
     footer_license: "License",
     footer_privacy: "Privacy",
+    footer_disclaimer: "All trademarks, product names, and logos cited (including Claude, ChatGPT, Gemini, Copilot, Windows, Visual Basic, etc.) belong to their respective owners and are used strictly for descriptive, identification, and interoperability purposes.",
 
     // Privacy Page
     priv_back: "&larr; Back to Home",
@@ -185,7 +189,9 @@ const i18n = {
     priv_s5_title: "5. GitHub Pages Hosting",
     priv_s5_desc: "This website is hosted via GitHub Pages. While browsing, GitHub may log standard network connection metadata (such as IP addresses and user agents) strictly for security, routing diagnostics, and service integrity, governed by GitHub's Privacy Statement.",
     priv_s6_title: "6. Freeware License & Disclaimer",
-    priv_s6_desc: "Macondo is provided free of charge (freeware) for personal, educational, and commercial use under the terms of the <a href=\"LICENSE.md\" target=\"_blank\">Macondo License</a>. The software is distributed \"as is\", without warranty of any kind. The application is a proprietary, closed-source freeware product."
+    priv_s6_desc: "Macondo is provided free of charge (freeware) for personal, educational, and commercial use under the terms of the <a href=\"LICENSE.md\" target=\"_blank\">Macondo License</a>. The software is distributed \"as is\", without warranty of any kind. The application is a proprietary, closed-source freeware product.",
+    priv_s7_title: "7. Trademarks & Third-Party Disclaimers",
+    priv_s7_desc: "All trademarks, logos, model names, and software products mentioned on this website and documentation (including Claude, ChatGPT, Gemini, Copilot, Windows, Visual Basic, Cursor, etc.) belong to their respective holders. Their mention is purely for identification, technical compatibility, and interoperability, implying no endorsement, sponsorship, or official affiliation."
   }
 };
 

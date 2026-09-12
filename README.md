@@ -18,7 +18,7 @@
 - **Interactive Code Graph:** 4 layout algorithms (Standard Radial, Affinity, Clustered Islands, Force-Directed Physics) with 60 FPS hardware acceleration.
 - **Blast Radius & Impact Matrix:** Recursive upstream caller analysis with automatic regression risk scoring (Low, Medium, High, Critical).
 - **Symbol Inspector:** Full bidirectional call chain inspection (*Who Calls Me* / *What Do I Call*) with source line coordinate mapping.
-- **AI Context & LLM Slicing:** One-click Markdown/JSON Repo Map and Context Slice export optimized for Claude, ChatGPT, Gemini, and Copilot prompts.
+- **AI Context & LLM Slicing:** One-click Markdown/JSON Repo Map and Context Slice export optimized for Claude, ChatGPT, Gemini, Copilot, etc. prompts.
 - **VCS & Fast Cache:** Integrated Git / SVN branch switching and sub-second cold starts with persistent local caching.
 
 ---
@@ -29,10 +29,24 @@
 - **Distribution:** Single-File Portable Executable (`Macondo.exe` - No installation or unzipping needed)
 - **Privacy:** 100% Local & Offline execution (Zero cloud transmission)
 
-### Quick Start:
+### Quick Start (GUI):
 1. Download `Macondo.exe` directly from [Releases](https://github.com/macondo-studio/macondo/releases/latest).
 2. Double-click `Macondo.exe` to launch.
-3. Go to **File → Open VB6 Folder...** and select your VB6 project directory.
+3. Go to **File → Open Project / Folder...** and select your VB6 project directory.
+
+### 🤖 CLI & LLM Harness Integration:
+`Macondo.exe` can also be invoked in headless mode directly from a terminal, CI/CD pipeline, or as a deterministic tool inside an **LLM Harness / AI Agent** (Claude Code, Cursor, Antigravity, MCP servers, etc.) to export structured knowledge graphs without UI:
+
+```bash
+# Export Markdown Repo Map for AI context
+Macondo.exe analyze "C:\Projects\MyVB6Project" --export-md "repo-map.md"
+
+# Export complete semantic CodeGraph to JSON
+Macondo.exe analyze "C:\Projects\MyVB6Project\App.vbp" --export-json "graph.json"
+
+# Export both formats simultaneously
+Macondo.exe analyze "C:\Projects\MyVB6Project" --export-md "repo-map.md" --export-json "graph.json"
+```
 
 ---
 
