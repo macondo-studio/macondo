@@ -1,118 +1,116 @@
-# VB6 Analyzer — M0 Technology POC
+# VB6 Analyzer — Desktop Application (Macondo UI)
 
-Questo è il POC descritto nella sezione 41 del project charter: **non fa parsing VB6**,
-serve solo a validare lo stack (C# + Avalonia) prima di investire nel parser reale.
+Questo modulo contiene l'interfaccia grafica desktop completa di **Macondo (VB6 Analyzer)**, sviluppata in **C# / .NET 8** con **Avalonia UI 11**.
 
-> ⚠️ **Nota**: questo codice è stato scritto in un ambiente senza SDK .NET installato e
-> senza accesso a NuGet, quindi non è stato possibile compilarlo/eseguirlo qui. È scritto
-> per essere corretto e idiomatico per Avalonia 11 / .NET 8, ma **va validato con una
-> build reale in locale** — è esattamente il tipo di verifica che il POC deve fare.
+> ⚠️ **REQUISITO FONDAMENTALE MULTI-LINGUA (i18n) PER SVILUPPATORI ED LLM:**  
+> L'applicazione supporta nativamente il **bilinguismo completo (Italiano e Inglese)** tramite `Macondo.App.Services.LocalizationService`.  
+> **Ogni modifica alla UI, nuovo controllo, messaggio di stato, intestazione di colonna, tooltip o finestra di dialogo DEVE utilizzare `LocalizationService.Instance.Get("Key")` ed avere la chiave registrata sia in `_itStrings` (Italiano) che in `_enStrings` (Inglese) in `LocalizationService.cs`. Non inserire mai testi hardcodati.**
 
-## Prerequisiti
+---
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download) (o superiore)
-- Windows, Linux o macOS (il target primario resta Windows, ma Avalonia è cross-platform
-  e questo aiuta a sviluppare anche da altre macchine)
+## 🖥️ Panoramica dell'Applicazione
 
-## Eseguire in sviluppo
+L'applicazione desktop fornisce una suite integrata per l'analisi architetturale, l'esplorazione del codice e la valutazione del rischio di modifica su progetti Microsoft Visual Basic 6.0 (`.vbp`, `.vbg`, `.frm`, `.bas`, `.cls`, `.ctl`).
 
+La finestra principale (`MainWindow.axaml`) è strutturata su 3 aree principali:
+1. **Pannello Sinistro — Project Explorer**: navigazione ad albero del workspace (Forms, Moduli, Classi, Controlli, UDT, Enums) con ricerca globale e menu contestuale per aprire file e cartelle nel filesystem.
+2. **Area Centrale — Viste & Strumenti Analitici**:
+   - **Vista Grafo (`GraphControl`)**: rendering vettoriale 2D ad alte prestazioni con zoom, pan, selezione nodi, evidenziazione di chiamanti (*Callers*) e chiamate (*Callees*), collasso/espansione dei container e 4 motori di layout.
+   - **Matrice DSM (`DsmControl`)**: matrice di dipendenza tra moduli per identificare accoppiamenti e dipendenze circolari.
+   - **Treemap Metriche (`TreemapControl`)**: mappa gerarchica delle dimensioni (LOC) e della complessità ciclomatica con drill-down.
+   - **Hotspot di Rischio (`HotspotControl`)**: grafico di dispersione 2D che incrocia la Complessità Ciclomatica con la Frequenza di modifica/Fan-in.
+   - **Flusso Schermate (`ScreenFlowControl`)**: mappa delle transizioni e navigazione tra le finestre UI.
+   - **Control Flow Graph (`ControlFlowControl`)**: visualizzazione a blocchi base del flusso di controllo per singola routine.
+   - **Griglia Blast Radius**: tabella interattiva con l'audit completo di tutte le routine e filtro per livello di rischio.
+3. **Pannello Destro — Symbol Inspector & Blast Radius**:
+   - Ispezione semantica dettagliata (visibilità, tipo, parametri, righe, chi chiama la routine e cosa viene chiamato).
+   - Calcolo del **Blast Radius** con profondità massima, form impattate, classi toccate, catene di chiamata e livello di rischio (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`).
+   - Generazione ed esportazione di **Context Slice per LLM** (Markdown mirato pronto da incollare nei prompt AI).
+
+---
+
+## 📐 Struttura del Progetto
+
+```
+src/VB6Analyzer.App/
+├── Controls/                         # Custom controls vettoriali per le varie viste
+│   ├── GraphControl.cs               # Canvas del grafo interattivo (pan, zoom, rendering custom)
+│   ├── DsmControl.cs                 # Rendering e interazione matrice DSM
+│   ├── TreemapControl.cs             # Rendering Treemap gerarchica con drill-down
+│   ├── HotspotControl.cs             # Rendering scatter plot Hotspot di rischio
+│   ├── ScreenFlowControl.cs          # Rendering grafo di flusso schermate UI
+│   └── ControlFlowControl.cs         # Rendering grafo CFG (Basic Blocks)
+├── Layout/                           # Motori di calcolo delle coordinate del grafo
+│   ├── IGraphLayoutEngine.cs         # Interfaccia comune di layout
+│   ├── GraphLayoutManager.cs         # Dispatcher dei layout disponibili
+│   ├── RadialLayoutEngine.cs         # Layout Radiale Standard
+│   ├── AffinityRadialLayoutEngine.cs # Layout Radiale per Affinità di chiamate
+│   ├── ClusteredIslandsLayoutEngine.cs# Layout Cluster a Isole (Sottosistemi)
+│   └── ForceDirectedLayoutEngine.cs  # Layout Force-Directed (simulazione fisica a molle)
+├── Models/                           # Modelli di presentazione per la UI
+│   ├── VisualCodeGraph.cs            # Grafo visuale arricchito con coordinate e stato visivo
+│   ├── GraphNode.cs & GraphEdge.cs   # Nodi e archi visualizzati
+│   ├── ExplorerTreeItem.cs           # Nodi dell'albero Project Explorer
+│   ├── BlastRadiusGridRow.cs         # Righe della tabella di audit Blast Radius
+│   └── SearchResultItem.cs           # Risultati della ricerca rapida
+├── Services/                         # Servizi applicativi
+│   ├── LocalizationService.cs        # Motore i18n (Italiano / Inglese)
+│   ├── SettingsService.cs            # Persistenza configurazione e preferenze utente
+│   ├── ThemeService.cs               # Gestione dei 5 temi grafici scuri e chiari
+│   ├── ProjectAnalysisService.cs     # Orchestratore asincrono del parsing e analisi semantica
+│   ├── ProjectCacheService.cs        # Caching persistente dei progetti analizzati
+│   ├── GitService.cs & SvnService.cs # Integrazione con i sistemi di controllo versione
+│   └── UpdateService.cs              # Controllo e notifica nuovi aggiornamenti
+├── Views/                            # Finestre secondarie e dialog
+│   ├── SettingsWindow.axaml(.cs)     # Finestra Impostazioni (Temi, Lingua, Comportamento, Scorciatoie)
+│   └── InfoWindow.axaml(.cs)         # Finestra Guida, concetti e statistiche
+├── MainWindow.axaml(.cs)             # Finestra principale con gestione layout, menu e comandi
+├── App.axaml(.cs)                    # Entry point Avalonia e risorse condivise
+└── Program.cs                        # Entry point dell'applicazione
+```
+
+---
+
+## 🌐 Linee Guida per il Multi-Lingua (`LocalizationService`)
+
+Tutti i testi dell'applicazione sono centralizzati in `Services/LocalizationService.cs`.
+
+### Come usare le traduzioni nel codice C#:
+```csharp
+// Recupero di una stringa semplice
+string title = LocalizationService.Instance["Inspector_Title"];
+
+// Recupero con formattazione e parametri
+string status = LocalizationService.Instance.Get("Status_BlastReportFormat", symbolName, directCount, indirectCount, formsCount, riskLevel);
+```
+
+### Come aggiungere nuove voci:
+In `LocalizationService.cs`, aggiungere la chiave con la stringa tradotta in **entrambi** i dizionari:
+```csharp
+// In _itStrings:
+["MiaChiave_Esempio"] = "Testo descrittivo in italiano con parametro {0}",
+
+// In _enStrings:
+["MiaChiave_Esempio"] = "Descriptive English text with parameter {0}",
+```
+
+---
+
+## 🚀 Esecuzione e Build
+
+### Avvio in modalità sviluppo
 ```bash
 cd src/VB6Analyzer.App
 dotnet run
 ```
 
-Al primo avvio genera un `CodeGraph` fittizio (~500 nodi: 1 Project, ~18 Form/Class/Module,
-ognuno con 20-30 Method) e lo visualizza.
-
-## Cosa provare
-
-| Interazione | Come |
-|---|---|
-| Pan | click sinistro + trascina sullo sfondo |
-| Zoom | rotellina del mouse (centrato sul cursore) |
-| Selezione nodo | click su un nodo — evidenzia archi/nodi collegati e popola l'Inspector |
-| Expand/collapse | doppio click su un nodo Form/Class/Module (i Method compaiono/scompaiono) |
-| Focus da Explorer | click su un item nell'albero a sinistra: centra il grafo su quel nodo |
-| Nuovo grafo | pulsante "Rigenera grafo" nella toolbar |
-
-## Checklist POC (sezione 41 del charter) — stato
-
-| # | Punto | Stato in questo codice |
-|---|---|---|
-| 1 | App Avalonia minimale | ✅ `Program.cs` / `App.axaml` |
-| 2 | CodeGraph fittizio | ✅ `Generation/FakeGraphGenerator.cs` |
-| 3 | ~500 nodi | ✅ default: 1 + 18 container + ~480 metodi ≈ 500 |
-| 4 | Visualizzarli | ✅ `Controls/GraphControl.cs` (custom render, no libreria terza parte) |
-| 5 | Pan | ✅ |
-| 6 | Zoom | ✅ (centrato sul cursore) |
-| 7 | Selezione nodo | ✅ + evidenziazione relazioni |
-| 8 | Evidenziare relazioni | ✅ callers/callees evidenziati alla selezione |
-| 9 | Espandere/collassare gruppi | ✅ doppio click sui container |
-| 10 | Verificare performance | ⚠️ **da fare manualmente** — con 500 nodi dovrebbe essere fluido; se non lo è, va capito se il collo di bottiglia è il rendering per-frame (ridisegno completo ad ogni InvalidateVisual) o altro |
-| 11 | Provare Native AOT | ⚠️ **da fare manualmente**, vedi sotto |
-| 12 | Dimensione EXE | ⚠️ **da misurare dopo publish**, vedi sotto |
-
-## Publish — Single file, self-contained
-
+### Build eseguibile singolo per Windows x64
+Dalla root del repository:
+```powershell
+.\publish-single-file.ps1
+```
+oppure:
 ```bash
-dotnet publish src/VB6Analyzer.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out/win-x64
+dotnet publish src/VB6Analyzer.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o ../../publish/win-x64
 ```
-
-Verificare poi:
-- dimensione di `out/win-x64/Macondo.exe`
-- tempo di avvio (a freddo e a caldo)
-
-## Publish — Native AOT (da validare, sezione 34/39)
-
-```bash
-dotnet publish src/VB6Analyzer.App -c Release -r win-x64 -p:PublishAot=true -o out/win-x64-aot
-```
-
-Avalonia 11 dichiara supporto ad AOT, ma va verificato con le combinazioni di pacchetti
-usate qui. Possibili problemi noti da controllare se la build fallisce o crasha a runtime:
-- warning/errori di trimming legati a `Avalonia.Diagnostics` (è incluso solo in Debug,
-  non dovrebbe interferire con Release/AOT, ma controllare)
-- eventuali binding non compilati (qui `AvaloniaUseCompiledBindingsByDefault=true` è già
-  attivo per limitare la reflection a runtime)
-
-Se AOT si rivela problematico, il fallback è single-file self-contained "normale"
-(comando sopra), che rimane comunque coerente con l'obiettivo "single EXE portable"
-della sezione 5 — solo senza i benefici di startup/size di AOT.
-
-## Struttura del codice
-
-```
-src/VB6Analyzer.App/
-  Models/
-    GraphNode.cs, GraphEdge.cs, CodeGraph.cs   — modello dati (Symbol/Relationship semplificati)
-    ExplorerTreeItem.cs                        — adapter per il TreeView dell'Explorer
-  Generation/
-    FakeGraphGenerator.cs                      — genera dati fittizi (NON parsing VB6 reale)
-  Layout/
-    RadialLayoutEngine.cs                      — calcola le posizioni (separato dal model e dal renderer)
-  Controls/
-    GraphControl.cs                            — custom control: input, pan, zoom, selection, rendering
-  MainWindow.axaml(.cs)                        — Explorer | Graph | Inspector, come da sezione 25
-```
-
-La separazione Model / Layout / Renderer rispecchia deliberatamente la sezione 23 del
-charter, così che in futuro sia facile sostituire `RadialLayoutEngine` con un layout
-gerarchico/Sugiyama senza toccare `GraphControl`, e sostituire il generatore fittizio
-con il vero output del Semantic Analyzer senza toccare né layout né rendering.
-
-## Cosa NON fa questo POC (di proposito)
-
-- Nessun parsing di `.vbp`/`.frm`/`.cls`/`.bas` — è compito di M1
-- Nessun symbol resolution reale — M3
-- Nessuna persistenza — coerente con la sezione 19 (non richiesta in V1)
-- Nessuna AI — esclusa dalla V1 (sezione 35)
-- Layout molto semplice (radiale a due livelli), non ottimizzato per grafi grandi o
-  irregolari — la sezione 23 lascia aperta la scelta dell'algoritmo definitivo
-
-## Prossimi passi suggeriti
-
-1. Validare in locale performance / AOT / dimensione EXE (i tre punti ⚠️ sopra)
-2. In parallelo: spike di ricerca su parser VB6 (Tree-sitter vs ANTLR vs esistenti) —
-   questione aperta della sezione 39, indipendente da questo POC
-3. Se il POC è soddisfacente → si passa a M1 (parser reale) mantenendo questa stessa
-   separazione architetturale (il vero Analyzer sostituirà solo `FakeGraphGenerator`)
+L'eseguibile autonomo `Macondo.exe` sarà generato nella cartella `publish/win-x64/`.
