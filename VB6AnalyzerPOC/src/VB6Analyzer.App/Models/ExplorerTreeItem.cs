@@ -5,7 +5,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Nodo gerarchico per il Project Explorer (sezione 25 del charter).
+/// Nodo gerarchico per il Project Explorer.
 /// Wrappa un <see cref="GraphNode"/> per la visualizzazione ad albero nel TreeView,
 /// raggruppando i file di primo livello per tipologia (Forms, Moduli, Moduli di classe, Controlli utente, ecc.).
 /// </summary>

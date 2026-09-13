@@ -1,9 +1,9 @@
-﻿using Macondo.Semantic.Model;
+using Macondo.Semantic.Model;
 
 namespace Macondo.Semantic.Resolution;
 
 /// <summary>
-/// Interfaccia per uno scope di visibilità e lookup dei simboli in VB6 (sezione 13 del charter).
+/// Interfaccia per uno scope di visibilità e lookup dei simboli in VB6.
 /// 
 /// Gli scope sono organizzati in una catena gerarchica genitore-figlio (parent chain):
 /// - LocalScope (variabili locali, parametri)

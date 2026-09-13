@@ -28,7 +28,7 @@ public sealed class TypeInfo
 }
 
 /// <summary>
-/// Motore di risoluzione dei tipi per VB6 (sezione 12 e Milestone M3 del charter).
+/// Motore di risoluzione dei tipi per VB6.
 /// 
 /// RESPONSABILITÀ:
 /// 1. Mappatura Tipi Primitivi: riconosce i tipi scalari VB6 (Boolean, Byte, Integer, Long, Single, Double, Currency, Date, String, Collection).

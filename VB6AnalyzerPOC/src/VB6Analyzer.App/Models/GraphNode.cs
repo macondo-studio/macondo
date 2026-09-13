@@ -3,7 +3,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Nodo visuale del CodeGraph renderizzato dal GraphControl (sezione 21 e 24 del charter).
+/// Nodo visuale del CodeGraph renderizzato dal GraphControl.
 /// Incapsula il <see cref="Symbol"/> semantico reale estratto dalla pipeline di analisi VB6
 /// e mantiene le coordinate per il layout e lo stato di interazione (zoom, selezione, espansione).
 /// </summary>

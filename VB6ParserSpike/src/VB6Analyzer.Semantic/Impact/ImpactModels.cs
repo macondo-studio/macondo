@@ -1,4 +1,4 @@
-﻿using Macondo.Semantic.Graph;
+using Macondo.Semantic.Graph;
 using Macondo.Semantic.Model;
 
 namespace Macondo.Semantic.Impact;
@@ -25,7 +25,7 @@ public sealed class ImpactedCaller
 }
 
 /// <summary>
-/// Report completo di Impact Analysis / Blast Radius (sezione 17 del charter).
+/// Report completo di Impact Analysis / Blast Radius.
 /// Calcola tutte le entità e i percorsi di esecuzione a rischio generati dalla modifica di un simbolo target.
 /// </summary>
 public sealed class ImpactReport

@@ -1,8 +1,8 @@
-﻿namespace Macondo.Semantic.Model;
+namespace Macondo.Semantic.Model;
 
 
 /// <summary>
-/// Rappresenta una relazione diretta / arco orientato tra due simboli all'interno del <see cref="CodeGraph"/> (sezione 10 del charter).
+/// Rappresenta una relazione diretta / arco orientato tra due simboli all'interno del <see cref="CodeGraph"/>.
 /// </summary>
 public sealed class Relationship
 {

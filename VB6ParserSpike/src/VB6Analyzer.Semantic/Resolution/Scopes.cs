@@ -316,7 +316,7 @@ public sealed class LocalScope : IScope
 }
 
 /// <summary>
-/// Scope contestuale generato da un blocco "With &lt;expr&gt; ... End With" (sezione 14 e Milestone M3).
+/// Scope contestuale generato da un blocco "With &lt;expr&gt; ... End With".
 /// 
 /// REGOLE VB6:
 /// - Le chiamate che iniziano con punto (".Member") vengono risolte direttamente sui membri del tipo target del With.

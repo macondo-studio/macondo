@@ -1,10 +1,10 @@
-﻿using Macondo.Semantic.Graph;
+using Macondo.Semantic.Graph;
 using Macondo.Semantic.Model;
 
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Modello visuale del grafo per il rendering e l'interazione UI (sezione 18 e 24 del charter).
+/// Modello visuale del grafo per il rendering e l'interazione UI.
 /// Mantiene l'elenco dei <see cref="GraphNode"/> posizionati e dei <see cref="GraphEdge"/>,
 /// e fa da ponte verso il <see cref="SemanticGraph"/> e <see cref="CallGraphQueries"/> sottostanti.
 /// </summary>

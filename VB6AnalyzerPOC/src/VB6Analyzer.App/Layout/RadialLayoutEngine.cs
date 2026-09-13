@@ -4,7 +4,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Layout;
 
 /// <summary>
-/// Motore di layout radiale/gerarchico standard per il CodeGraph visuale (sezioni 21 e 23 del charter).
+/// Motore di layout radiale/gerarchico standard per il CodeGraph visuale.
 /// Posiziona:
 /// - Il nodo Progetto al centro (0, 0).
 /// - I moduli, classi, form, UDT ed enum su un anello principale concentrico.

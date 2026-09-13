@@ -1,8 +1,8 @@
-﻿namespace Macondo.Semantic.Model;
+namespace Macondo.Semantic.Model;
 
 
 /// <summary>
-/// Rappresenta un'entità / nodo all'interno del <see cref="CodeGraph"/> (sezioni 8 e 9 del charter).
+/// Rappresenta un'entità / nodo all'interno del <see cref="CodeGraph"/>.
 /// 
 /// Ogni dichiarazione identificata nel sorgente VB6 (moduli, metodi, variabili, tipi) produce
 /// un'istanza di Symbol con identificatore univoco <see cref="Id"/>, posizione nel file,

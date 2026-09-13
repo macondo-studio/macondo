@@ -26,7 +26,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.App;
 
 /// <summary>
-/// Finestra principale dell'applicazione VB6 Analyzer (Milestone M5 + M6).
+/// Finestra principale dell'applicazione VB6 Analyzer.
 /// Gestisce l'interazione tra Toolbar, Project Explorer (TreeView),
 /// Canvas del Grafo (<see cref="Controls.GraphControl"/>), Symbol Inspector e Blast Radius Engine.
 /// </summary>
@@ -2447,7 +2447,7 @@ public partial class MainWindow : Window
     }
 
     // =========================================================================
-    // VISTA GRIGLIA BLAST RADIUS & NAVIGAZIONE TAB (Milestone M6)
+    // VISTA GRIGLIA BLAST RADIUS & NAVIGAZIONE TAB
     // =========================================================================
 
     /// <summary>

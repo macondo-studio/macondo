@@ -7,7 +7,7 @@ using Macondo.Semantic.Resolution;
 namespace Macondo.Semantic.Spike;
 
 /// <summary>
-/// Programma di verifica / Spike per la Milestone M4: Call Graph.
+/// Programma di verifica / Spike per il Call Graph Engine.
 /// 
 /// OBIETTIVI VERIFICATI:
 /// 1. Generazione automatica nel CodeGraph di:
@@ -33,7 +33,7 @@ internal static class Program
         }
 
         Console.WriteLine("================================================================================");
-        Console.WriteLine("               VB6 ANALYZER — SPIKE M4 (CALL GRAPH ENGINE)                      ");
+        Console.WriteLine("               VB6 ANALYZER — SPIKE (CALL GRAPH ENGINE)                         ");
         Console.WriteLine("================================================================================");
         Console.WriteLine();
 
@@ -183,10 +183,10 @@ internal static class Program
         Console.WriteLine();
 
         // ---------------------------------------------------------------------
-        // PASSO 7: Impact Analysis & Blast Radius (Milestone M6)
+        // PASSO 7: Impact Analysis & Blast Radius
         // ---------------------------------------------------------------------
         Console.WriteLine("--------------------------------------------------------------------------------");
-        Console.WriteLine("5. IMPACT ANALYSIS & BLAST RADIUS (Milestone M6)");
+        Console.WriteLine("5. IMPACT ANALYSIS & BLAST RADIUS");
         Console.WriteLine("--------------------------------------------------------------------------------");
 
         var impactAnalyzer = new Impact.ImpactAnalyzer(graph, queries);
@@ -319,10 +319,10 @@ internal static class Program
         Console.WriteLine();
 
         // ---------------------------------------------------------------------
-        // PASSO 9: Riepilogo Finale M4 + M6 + Export
+        // PASSO 9: Riepilogo Finale & Export
         // ---------------------------------------------------------------------
         Console.WriteLine("================================================================================");
-        Console.WriteLine("                  RIEPILOGO FINALE MILESTONE M4 & M6                            ");
+        Console.WriteLine("                  RIEPILOGO FINALE ANALISI & EXPORT                             ");
         Console.WriteLine("================================================================================");
         Console.WriteLine($"Totale moduli analizzati       : {extractionResults.Count}");
         Console.WriteLine($"Totale simboli nel CodeGraph   : {graph.Symbols.Count}");
@@ -333,7 +333,7 @@ internal static class Program
         Console.WriteLine($"  - USES_TYPE                  : {graph.Relationships.Count(r => r.Kind == RelationshipKind.UsesType)}");
         Console.WriteLine();
 
-        Console.WriteLine("Verifica dei punti chiave del Charter per M6 & Export:");
+        Console.WriteLine("Verifica delle funzionalità chiave di Analisi & Export:");
         Console.WriteLine("  [OK] Direct & Indirect callers calculation with Depth levels");
         Console.WriteLine("  [OK] Affected Forms, Classes, and Modules identification");
         Console.WriteLine("  [OK] Affected Execution Paths (Call Chains) discovery");

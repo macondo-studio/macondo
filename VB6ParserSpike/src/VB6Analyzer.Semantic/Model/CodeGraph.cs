@@ -1,7 +1,7 @@
 namespace Macondo.Semantic.Model;
 
 /// <summary>
-/// Grafo del codice semantico in memoria (CodeGraph, sezioni 3 e 18 del charter).
+/// Grafo del codice semantico in memoria (CodeGraph).
 /// 
 /// Rappresenta l'intero modello del codice analizzato: nodi (<see cref="Symbols"/>) ed archi orientati (<see cref="Relationships"/>).
 /// È progettato per aggregare molteplici moduli, classi e form di un intero progetto VB6 in un'unica struttura

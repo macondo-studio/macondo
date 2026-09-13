@@ -1311,7 +1311,7 @@
 
                             <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,6" />
 
-                            <!-- Sezione Impact Analysis & Blast Radius (M6) -->
+                            <!-- Sezione Impact Analysis & Blast Radius -->
                             <Border x:Name="BlastRadiusCardBorder"
                                     Background="{DynamicResource ThemeBackgroundElevatedBrush}"
                                     BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"

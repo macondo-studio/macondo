@@ -1,7 +1,7 @@
-﻿namespace Macondo.Semantic.Model;
+namespace Macondo.Semantic.Model;
 
 /// <summary>
-/// Rappresenta l'esito della risoluzione semantica di un identificatore, espressione o call-site in VB6 (M3).
+/// Rappresenta l'esito della risoluzione semantica di un identificatore, espressione o call-site in VB6.
 /// 
 /// Contiene il simbolo target risolto nel <see cref="CodeGraph"/> (o parametro formale),
 /// il livello di confidenza (<see cref="ResolutionConfidence"/>), il tipo semantico dedotto
@@ -16,7 +16,7 @@ public sealed class ResolutionResult
     public ParameterSymbol? TargetParameter { get; init; }
 
     /// <summary>
-    /// Livello di certezza della risoluzione (sezione 11 del charter):
+    /// Livello di certezza della risoluzione:
     /// - Exact: risoluzione certa e deterministica.
     /// - Inferred: dedotta per euristica o inferenza di tipo.
     /// - Ambiguous: molteplici candidati con lo stesso nome nello stesso scope.

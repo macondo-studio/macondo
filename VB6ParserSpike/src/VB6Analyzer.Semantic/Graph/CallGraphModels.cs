@@ -1,10 +1,10 @@
-﻿using Macondo.Semantic.Model;
+using Macondo.Semantic.Model;
 
 namespace Macondo.Semantic.Graph;
 
 /// <summary>
 /// Rappresenta un cammino di esecuzione (execution path) ordinato tra un punto di partenza
-/// e una destinazione (sezione 16 del charter).
+/// e una destinazione.
 /// Esempio: Form1.cmdSave_Click -> Order.Save -> OrderRepository.Insert -> DatabaseHelper.Execute
 /// </summary>
 public sealed class CallPath
@@ -31,7 +31,7 @@ public sealed class CallPath
 }
 
 /// <summary>
-/// Rappresenta un ciclo di chiamate o ricorsione mutua individuato nel Call Graph (sezione 16 e 29 del charter).
+/// Rappresenta un ciclo di chiamate o ricorsione mutua individuato nel Call Graph.
 /// Esempio: ServiceA.Method1 -> ServiceB.Method2 -> ServiceA.Method1
 /// </summary>
 public sealed class CallCycle

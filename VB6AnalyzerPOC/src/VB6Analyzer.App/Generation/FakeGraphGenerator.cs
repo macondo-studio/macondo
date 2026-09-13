@@ -1,4 +1,4 @@
-﻿using Macondo.App.Layout;
+using Macondo.App.Layout;
 using Macondo.App.Models;
 using Macondo.Semantic.Graph;
 using Macondo.Semantic.Model;
@@ -6,7 +6,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Generation;
 
 /// <summary>
-/// Generatore di grafi sintetici/fittizi per test di carico, benchmark UI e modalità demo (sezione 41 del charter).
+/// Generatore di grafi sintetici/fittizi per test di carico, benchmark UI e modalità demo.
 /// Produce una struttura gerarchica realistica (~500 nodi) con Progetto, Form, Classi, Moduli, Metodi,
 /// Proprietà, Campi e relazioni semantiche di chiamata (CALLS), contenimento (CONTAINS) e istanziazione (INSTANTIATES).
 /// </summary>

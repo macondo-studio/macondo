@@ -5,7 +5,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Graph;
 
 /// <summary>
-/// Motore di interrogazione e algoritmi sul Call Graph (sezione 16 del charter).
+/// Motore di interrogazione e algoritmi sul Call Graph.
 /// 
 /// FORNISCE FUNZIONALITÀ PER:
 /// 1. Query Callers: identificare chi chiama una routine (diretti e indiretti/transitivi).
@@ -88,7 +88,7 @@ public sealed class CallGraphQueries
 
     /// <summary>
     /// Trova tutti i cammini di esecuzione aciclici da una routine sorgente (es. Form_Click)
-    /// a una routine di destinazione (es. Database.Execute), fino a una profondità massima (sezione 16 del charter).
+    /// a una routine di destinazione (es. Database.Execute), fino a una profondità massima.
     /// </summary>
     /// <param name="source">Simbolo di partenza.</param>
     /// <param name="target">Simbolo di arrivo.</param>
@@ -241,7 +241,7 @@ public sealed class CallGraphQueries
 
 
     // =========================================================================
-    // IMPACT ANALYSIS & BLAST RADIUS (Milestone M6)
+    // IMPACT ANALYSIS & BLAST RADIUS
     // =========================================================================
 
     /// <summary>

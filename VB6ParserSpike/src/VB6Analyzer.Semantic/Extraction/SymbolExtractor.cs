@@ -5,7 +5,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Estrattore semantico dei simboli basato su parse tree ANTLR (Milestone M2 + M3).
+/// Estrattore semantico dei simboli basato su parse tree ANTLR.
 /// 
 /// Questa classe implementa il pattern Visitor di ANTLR (<see cref="VisualBasic6ParserBaseVisitor{TResult}"/>)
 /// per percorrere l'albero sintattico astratto (AST / Parse Tree) di un singolo file sorgente VB6
@@ -13,7 +13,7 @@ namespace Macondo.Semantic.Extraction;
 /// Variabili, Costanti, UDT, Enum) inserendoli nel <see cref="CodeGraph"/> condiviso.
 /// 
 /// PRINCIPI CHIAVE:
-/// 1. Separazione Parsing / Semantica (Sezione 6 del charter):
+/// 1. Separazione Parsing / Semantica:
 ///    Il parser produce l'albero sintattico grezzo; questo visitor lo interpreta semanticamente
 ///    costruendo simboli strutturati e relazioni gerarchiche CONTAINS.
 /// 2. Gerarchia e Contenimento (Stack dei Container):
@@ -23,7 +23,7 @@ namespace Macondo.Semantic.Extraction;
 ///    In VB6 una proprietà può essere definita da più blocchi separati (es. "Property Get Name" e
 ///    "Property Let Name"). Questo estrattore le unifica in un unico <see cref="Symbol"/> logico di tipo Property,
 ///    aggregando parametri, tipo di ritorno e intervallo di righe.
-/// 4. Cattura di Metadati per M3 (Risoluzione dei Simboli):
+/// 4. Cattura di Metadati per la Risoluzione dei Simboli:
 ///    Estrae visibilità (Public/Private/Friend/Global), tipi dichiarati (As Customer, As Long),
 ///    parametri formali (ByVal/ByRef, Optional, ParamArray), flag Static/Array/New.
 /// </summary>

@@ -1,10 +1,10 @@
-﻿using Macondo.Semantic.Model;
+using Macondo.Semantic.Model;
 
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
 /// Helper per determinare la categoria di modulo (<see cref="SymbolKind"/>)
-/// a partire dall'estensione del file sorgente VB6 (come descritto nella sezione 7 del charter).
+/// a partire dall'estensione del file sorgente VB6.
 /// 
 /// MAPPATURA:
 /// - .cls -> <see cref="SymbolKind.Class"/> (Classe VB6)
@@ -31,7 +31,7 @@ public static class ModuleFileKind
             ".ctl" => SymbolKind.UserControl,
             _ => throw new NotSupportedException(
                 $"Estensione non supportata da ModuleFileKind: '{ext}' (file: {filePath}). " +
-                "I formati supportati sono .cls, .frm, .bas, .ctl (sezione 7 del charter).")
+                "I formati supportati sono .cls, .frm, .bas, .ctl.")
         };
     }
 }

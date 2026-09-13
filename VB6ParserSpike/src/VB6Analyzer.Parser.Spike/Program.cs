@@ -1,19 +1,17 @@
-﻿using Antlr4.Runtime;
+using Antlr4.Runtime;
 using Macondo.Parser.Diagnostics;
 using Macondo.Parser.Grammar;
 
 namespace Macondo.Parser.Spike;
 
 /// <summary>
-/// Spike M1: verifica che la grammar ANTLR4 VisualBasic6 (ProLeap/grammars-v4),
-/// rigenerata per C#, parsi correttamente un set minimo di costrutti VB6 rilevanti
-/// per il charter (sezione 14, 32), e in particolare verifica concretamente il
-/// rischio aperto della sezione 44.4: la distinzione tra chiamata a membro
+/// Spike: verifica che la grammar ANTLR4 VisualBasic6 (ProLeap/grammars-v4),
+/// rigenerata per C#, parsi correttamente un set minimo di costrutti VB6 rilevanti,
+/// e in particolare verifica concretamente la distinzione tra chiamata a membro
 /// qualificata (Customer.Update) e chiamata implicita in un blocco With (.Update).
 ///
-/// NON fa ancora symbol extraction vera (quello è M2): qui ci limitiamo a parsare
-/// e stampare l'albero sintattico, più un mini-visitor di esempio che elenca i Sub
-/// trovati, solo per dimostrare come si aggancia un Visitor alla grammar generata.
+/// Si limita a parsare e stampare l'albero sintattico, più un mini-visitor di esempio che elenca i Sub
+/// trovati, per dimostrare come si aggancia un Visitor alla grammar generata.
 /// </summary>
 internal static class Program
 {
@@ -75,7 +73,7 @@ internal static class Program
         Console.WriteLine("Parse OK.");
 
         // Elenco dei Sub trovati, tramite il Visitor generato — dimostrazione
-        // minima del pattern che useremo in M2 per la symbol extraction vera.
+        // minima del pattern per la symbol extraction.
         var subNames = new SubNameCollectorVisitor();
         subNames.Visit(tree);
         if (subNames.Names.Count > 0)
@@ -89,7 +87,7 @@ internal static class Program
 
     /// <summary>
     /// Visitor di esempio: raccoglie i nomi dei Sub incontrati nell'albero.
-    /// Anticipazione minima di come sarà strutturato il vero symbol extractor (M2).
+    /// Anticipazione minima di come è strutturato il symbol extractor.
     /// </summary>
     private sealed class SubNameCollectorVisitor : VisualBasic6ParserBaseVisitor<object?>
     {

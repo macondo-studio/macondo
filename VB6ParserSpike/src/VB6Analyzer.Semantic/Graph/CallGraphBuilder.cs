@@ -5,7 +5,7 @@ using Macondo.Semantic.Resolution;
 namespace Macondo.Semantic.Graph;
 
 /// <summary>
-/// Costruttore del Call Graph e generatore delle relazioni semantiche nel CodeGraph (Milestone M4).
+/// Costruttore del Call Graph e generatore delle relazioni semantiche nel CodeGraph.
 /// 
 /// RESPONSABILITÀ:
 /// 1. Analisi Invocazioni: attraversa gli AST di tutti i moduli tramite <see cref="RoutineInvocationAnalyzer"/>

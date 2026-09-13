@@ -14,7 +14,7 @@
       NOTA IMPORTANTE: SelfContained / PublishSingleFile / RuntimeIdentifier NON sono
       impostati qui a livello globale, apposta: se lo fossero, 'dotnet build' e
       'dotnet run' in sviluppo si romperebbero (richiedono un RID esplicito).
-      Per il packaging "single EXE portable" (sezione 5 del charter) usare i comandi
+      Per il packaging "single EXE portable" usare i comandi
       dotnet publish elencati nel README, che passano questi flag solo in fase di publish.
     -->
 

@@ -33,7 +33,7 @@ public static class CodeGraphJsonExporter
     /// <summary>
     /// Converte il <see cref="CodeGraph"/> in un DTO strutturato.
     /// </summary>
-    public static CodeGraphDto ExportToDto(CodeGraph graph)
+    private static CodeGraphDto ExportToDto(CodeGraph graph)
     {
         var dto = new CodeGraphDto();
 
@@ -106,7 +106,7 @@ public static class CodeGraphJsonExporter
     /// <summary>
     /// Ricostruisce un'istanza di <see cref="CodeGraph"/> a partire da un <see cref="CodeGraphDto"/>.
     /// </summary>
-    public static CodeGraph ImportFromDto(CodeGraphDto dto)
+    private static CodeGraph ImportFromDto(CodeGraphDto dto)
     {
         var graph = new CodeGraph();
 

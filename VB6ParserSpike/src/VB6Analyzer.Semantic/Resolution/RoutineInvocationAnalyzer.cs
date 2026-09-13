@@ -54,7 +54,7 @@ public sealed class ResolvedInstantiation
 
 /// <summary>
 /// Analizzatore AST per individuare e risolvere tutti i call-site, gli accessi a membro
-/// e le istanziazioni di oggetti all'interno del corpo di un modulo VB6 (Milestone M3 + M4).
+/// e le istanziazioni di oggetti all'interno del corpo di un modulo VB6.
 /// 
 /// Questa classe implementa il pattern Visitor di ANTLR (<see cref="VisualBasic6ParserBaseVisitor{TResult}"/>)
 /// per percorrere le istruzioni all'interno dei corpi di Sub, Function e Property, tracciando lo scope attivo

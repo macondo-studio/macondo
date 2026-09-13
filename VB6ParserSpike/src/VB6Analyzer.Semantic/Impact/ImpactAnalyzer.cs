@@ -4,7 +4,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Impact;
 
 /// <summary>
-/// Motore di calcolo dell'Impact Analysis e del Blast Radius (sezione 17 e Milestone M6 del charter).
+/// Motore di calcolo dell'Impact Analysis e del Blast Radius.
 /// 
 /// RESPONSABILITÀ:
 /// 1. Calcolo Chiamanti Transitivi: attraversa il Call Graph a ritroso tramite BFS, calcolando la distanza (Depth)
@@ -78,7 +78,7 @@ public sealed class ImpactAnalyzer
     /// <summary>
     /// Calcola il Blast Radius per una singola routine (Sub, Function, Property).
     /// </summary>
-    public ImpactReport AnalyzeRoutineImpact(Symbol routine, int maxDepth = 10, CancellationToken cancellationToken = default)
+    private ImpactReport AnalyzeRoutineImpact(Symbol routine, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -205,7 +205,7 @@ public sealed class ImpactAnalyzer
     /// <summary>
     /// Calcola il Blast Radius per un intero tipo di dato o modulo (Class, Form, Module, Type, Enum).
     /// </summary>
-    public ImpactReport AnalyzeTypeImpact(Symbol typeSymbol, int maxDepth = 10, CancellationToken cancellationToken = default)
+    private ImpactReport AnalyzeTypeImpact(Symbol typeSymbol, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 

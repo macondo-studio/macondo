@@ -1,11 +1,11 @@
-﻿using Macondo.Semantic.Model;
+using Macondo.Semantic.Model;
 
 namespace Macondo.Semantic.Resolution;
 
 
 
 /// <summary>
-/// Motore principale di risoluzione dei simboli e degli accessi per VB6 (Milestone M3, sezioni 11, 12, 13, 14 del charter).
+/// Motore principale di risoluzione dei simboli e degli accessi per VB6.
 /// 
 /// RESPONSABILITÀ:
 /// 1. Risoluzione Identificatori Semplici: delega alla gerarchia di scope (<see cref="IScope"/>).

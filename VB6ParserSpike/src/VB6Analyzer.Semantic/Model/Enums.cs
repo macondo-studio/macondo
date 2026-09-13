@@ -1,7 +1,7 @@
-﻿namespace Macondo.Semantic.Model;
+namespace Macondo.Semantic.Model;
 
 /// <summary>
-/// Categoria del simbolo semantico, allineata con l'elenco della sezione 8 del charter.
+/// Categoria del simbolo semantico.
 /// Rappresenta la tipologia di elemento nel modello concettuale del codice VB6.
 /// </summary>
 public enum SymbolKind
@@ -44,7 +44,7 @@ public enum SymbolKind
 }
 
 /// <summary>
-/// Tipologie di relazioni / archi tra simboli nel CodeGraph (sezione 8 del charter).
+/// Tipologie di relazioni / archi tra simboli nel CodeGraph.
 /// </summary>
 public enum RelationshipKind
 {
@@ -83,7 +83,7 @@ public enum RelationshipKind
 }
 
 /// <summary>
-/// Livello di confidenza / certezza della risoluzione semantica di un simbolo o relazione (sezione 11 del charter).
+/// Livello di confidenza / certezza della risoluzione semantica di un simbolo o relazione.
 /// In VB6, costrutti come Variant, Object o CreateObject("...") non possono essere risolti staticamente con certezza assoluta.
 /// </summary>
 public enum ResolutionConfidence
@@ -102,7 +102,7 @@ public enum ResolutionConfidence
 }
 
 /// <summary>
-/// Livelli di visibilità e modificatori di accesso dei simboli in VB6 (sezione 9 del charter).
+/// Livelli di visibilità e modificatori di accesso dei simboli in VB6.
 /// </summary>
 public enum Accessibility
 {
@@ -123,7 +123,7 @@ public enum Accessibility
 }
 
 /// <summary>
-/// Livello di rischio stimato per la modifica di un simbolo in base al suo Blast Radius (sezione 17 del charter).
+/// Livello di rischio stimato per la modifica di un simbolo in base al suo Blast Radius.
 /// </summary>
 public enum ImpactRiskLevel
 {
