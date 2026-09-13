@@ -6,11 +6,11 @@
 
 **High-Performance Semantic Code Graph & Reverse Engineering Tool for Visual Basic 6.0**
 
-[🌐 Official Website](https://macondo-studio.github.io/macondo/) • [⬇️ Download Latest Release](https://github.com/macondo-studio/macondo/releases/latest) • [📄 License](LICENSE.md)
+[Official Website](https://macondo-studio.com) • [Download Latest Release](https://github.com/macondo-studio/macondo/releases/latest) • [License](LICENSE.md)
 
 ---
 
-## ⚡ Overview
+## Overview
 
 **Macondo** is a desktop developer tool designed to deconstruct, visualize, and safely refactor complex legacy Visual Basic 6.0 (`.vbp`, `.frm`, `.bas`, `.cls`, `.ctl`) codebases.
 
@@ -23,18 +23,18 @@
 
 ---
 
-## 💻 System Requirements & Installation
+## System Requirements & Installation
 
 - **OS:** Windows 10 / Windows 11 (64-bit)
 - **Distribution:** Single-File Portable Executable (`Macondo.exe` - No installation or unzipping needed)
 - **Privacy:** 100% Local & Offline execution (Zero cloud transmission)
 
-### Quick Start (GUI):
+### Quick Start (GUI)
 1. Download `Macondo.exe` directly from [Releases](https://github.com/macondo-studio/macondo/releases/latest).
 2. Double-click `Macondo.exe` to launch.
 3. Go to **File → Open Project / Folder...** and select your VB6 project directory.
 
-### 🤖 CLI & LLM Harness Integration:
+### CLI & LLM Harness Integration
 `Macondo.exe` can also be invoked in headless mode directly from a terminal, CI/CD pipeline, or as a deterministic tool inside an **LLM Harness / AI Agent** (Claude Code, Cursor, Antigravity, MCP servers, etc.) to export structured knowledge graphs without UI:
 
 ```bash
@@ -50,7 +50,15 @@ Macondo.exe analyze "C:\Projects\MyVB6Project" --export-md "repo-map.md" --expor
 
 ---
 
-## 📜 License
+## Feedback, Support & Bug Reports
+
+Have a feature request, encountered an AST edge-case, or found a bug?
+- **Public Discussions & Issues:** Open an issue on [GitHub Issues](https://github.com/macondo-studio/macondo/issues)
+- **Direct & Confidential Inquiries:** Email us at [info@macondo-studio.com](mailto:info@macondo-studio.com)
+
+---
+
+## License
 
 Macondo is provided free of charge for personal, educational, and commercial use.  
 See [LICENSE.md](LICENSE.md) for full terms and conditions.

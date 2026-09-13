@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://macondo-studio.github.io/macondo/sitemap.xml
+Sitemap: https://macondo-studio.com/sitemap.xml
