@@ -19,6 +19,7 @@ using Macondo.Semantic.Analytics.Dsm;
 using Macondo.Semantic.Analytics.Hotspots;
 using Macondo.Semantic.Analytics.ScreenFlow;
 using Macondo.Semantic.Analytics.Treemap;
+using Macondo.Semantic.Export;
 using Macondo.Semantic.Impact;
 using Macondo.Semantic.Model;
 
@@ -2840,7 +2841,7 @@ public partial class MainWindow : Window
 
         try
         {
-            var markdown = semGraph.ToMarkdown();
+            var markdown = CodeGraphMarkdownExporter.Export(semGraph);
             await using var stream = await file.OpenWriteAsync();
             await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
             await writer.WriteAsync(markdown);
@@ -2884,7 +2885,7 @@ public partial class MainWindow : Window
 
         try
         {
-            var json = semGraph.ToJson(indented: true);
+            var json = CodeGraphJsonExporter.ExportToJson(semGraph, indented: true);
             await using var stream = await file.OpenWriteAsync();
             await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
             await writer.WriteAsync(json);
@@ -2924,7 +2925,7 @@ public partial class MainWindow : Window
             using var reader = new StreamReader(stream, System.Text.Encoding.UTF8);
             var json = await reader.ReadToEndAsync();
 
-            var importedGraph = await Task.Run(() => Macondo.Semantic.Model.CodeGraph.FromJson(json));
+            var importedGraph = await Task.Run(() => CodeGraphJsonExporter.ImportFromJson(json));
             var projectName = Path.GetFileNameWithoutExtension(file.Name);
             var visualGraph = await Task.Run(() => Layout.GraphVisualAdapter.FromSemanticGraph(importedGraph, projectName));
 
@@ -2964,7 +2965,7 @@ public partial class MainWindow : Window
 
         try
         {
-            var slice = semGraph.ToMarkdownSlice(symbol);
+            var slice = CodeGraphMarkdownExporter.ExportSlice(semGraph, symbol);
             var topLevel = TopLevel.GetTopLevel(this);
             if (topLevel?.Clipboard != null)
             {
@@ -3007,7 +3008,7 @@ public partial class MainWindow : Window
 
         try
         {
-            var slice = semGraph.ToMarkdownSlice(symbol);
+            var slice = CodeGraphMarkdownExporter.ExportSlice(semGraph, symbol);
             await using var stream = await file.OpenWriteAsync();
             await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
             await writer.WriteAsync(slice);
