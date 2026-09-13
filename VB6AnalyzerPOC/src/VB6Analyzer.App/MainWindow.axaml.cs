@@ -32,6 +32,8 @@ namespace Macondo.App;
 /// </summary>
 public partial class MainWindow : Window
 {
+    #region Campi e Stato
+
     private VisualCodeGraph? _graph;
     private GraphNode? _selectedNode;
     private CancellationTokenSource? _selectionCts;
@@ -48,6 +50,10 @@ public partial class MainWindow : Window
     private bool _isInspectorVisible = true;
     private bool _isSyncingFilterUi;
     private CancellationTokenSource? _loadingCts;
+
+    #endregion
+
+    #region Costruttore & Inizializzazione
 
     public MainWindow()
     {
@@ -464,6 +470,10 @@ public partial class MainWindow : Window
         _ = CheckForUpdatesOnStartupAsync();
     }
 
+    #endregion
+
+    #region Gestione Finestra & Barra del Titolo
+
     /// <summary>
     /// Consente il trascinamento della finestra dall'area centrale libera della barra del titolo.
     /// </summary>
@@ -487,6 +497,10 @@ public partial class MainWindow : Window
     {
         WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     }
+
+    #endregion
+
+    #region Overlay di Caricamento & Progresso
 
     /// <summary>
     /// Mostra l'overlay modale di caricamento centrato a tutto schermo con opzioni per la barra di avanzamento e statistiche.
@@ -595,6 +609,10 @@ public partial class MainWindow : Window
         _loadingCts?.Dispose();
         _loadingCts = null;
     }
+
+    #endregion
+
+    #region Caricamento Dati, Workspace & Fixture
 
     /// <summary>
     /// Genera e carica un grafo sintetico di ~500 nodi tramite FakeGraphGenerator per benchmark e test.
@@ -1066,7 +1084,9 @@ public partial class MainWindow : Window
         SyncFilterUiState();
     }
 
-    #region Gestione Filtri Livelli e Categorie Simboli
+    #endregion
+
+    #region Filtri Simboli, Livelli di Dettaglio & Progetti Multipli
 
     private void InitFilterControls()
     {
@@ -1410,6 +1430,8 @@ public partial class MainWindow : Window
 
     #endregion
 
+    #region Azioni Grafo & Analisi Impatto
+
     /// <summary>
     /// Calcola ed evidenzia il Blast Radius per il nodo selezionato in modo asincrono con loading overlay.
     /// Se il risultato è già in cache, viene applicato all'istante senza mostrare l'overlay.
@@ -1573,6 +1595,10 @@ public partial class MainWindow : Window
 
         StatusText.Text = LocalizationService.Instance.Get("Status_Selected", node.Kind, node.QualifiedName);
     }
+
+    #endregion
+
+    #region Project Explorer & Interazione File e Cartelle
 
     private void OnExplorerSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
@@ -1841,6 +1867,10 @@ public partial class MainWindow : Window
 
         return filePath;
     }
+
+    #endregion
+
+    #region Ricerca Globale & Command Palette
 
     private record AppSearchTarget(string Title, string Subtitle, string BadgeText, SearchResultCategory Category, string[] Keywords, Action Action);
 
@@ -2193,6 +2223,10 @@ public partial class MainWindow : Window
         }
     }
 
+    #endregion
+
+    #region Symbol Inspector & Dettagli Semantici
+
     private void ShowEmptyInspector()
     {
         InspectorEmptyPanel.IsVisible = true;
@@ -2446,9 +2480,9 @@ public partial class MainWindow : Window
         }
     }
 
-    // =========================================================================
-    // VISTA GRIGLIA BLAST RADIUS & NAVIGAZIONE TAB
-    // =========================================================================
+    #endregion
+
+    #region Griglia Blast Radius, Navigazione Tab & Statistiche
 
     /// <summary>
     /// Cambia ciclicamente la scheda di visualizzazione centrale (Grafo, DSM, Treemap, Hotspots, ScreenFlow, CFG, Griglia Blast Radius).
@@ -2751,6 +2785,10 @@ public partial class MainWindow : Window
         }
     }
 
+    #endregion
+
+    #region Impostazioni, Informazioni & Temi
+
     private void OpenSettings(int initialTab = 0)
     {
         var settingsWin = new SettingsWindow(initialTab);
@@ -2809,6 +2847,10 @@ public partial class MainWindow : Window
         ScreenFlow.ApplyTheme(theme);
         ControlFlow.ApplyTheme(theme);
     }
+
+    #endregion
+
+    #region Esportazione & Importazione Dati
 
     /// <summary>
     /// Esporta l'intero grafo in formato Markdown compatto (Repo Map) per LLM tramite selettore di file.
@@ -3021,6 +3063,10 @@ public partial class MainWindow : Window
         }
     }
 
+    #endregion
+
+    #region Gestione Layout Grafo & Interazione Hover
+
     /// <summary>
     /// Imposta la modalità di layout attiva, ricalcola le coordinate di tutti i nodi e aggiorna il canvas del grafo.
     /// </summary>
@@ -3077,6 +3123,10 @@ public partial class MainWindow : Window
         HoverSelectionCheckIcon.IsVisible = newValue;
         SettingsService.Instance.Update(s => s.EnableHoverSelection = newValue);
     }
+
+    #endregion
+
+    #region Integrazione VCS (Git & SVN)
 
     /// <summary>
     /// Aggiorna la visibilità, icona e testo dell'indicatore del branch VCS (Git o SVN) nella barra di stato.
@@ -3207,6 +3257,10 @@ public partial class MainWindow : Window
         }
     }
 
+    #endregion
+
+    #region Sistema di Aggiornamento Software
+
     /// <summary>
     /// Esegue il controllo automatico degli aggiornamenti software in background all'avvio dell'applicazione.
     /// </summary>
@@ -3292,9 +3346,9 @@ public partial class MainWindow : Window
         UpdateService.Instance.OpenDownloadPage(_availableUpdate?.DownloadUrl);
     }
 
-    // =========================================================================
-    // Gestione Visibilità Pannelli Sinistro (Explorer) e Destro (Inspector)
-    // =========================================================================
+    #endregion
+
+    #region Visibilità Pannelli, Scorciatoie da Tastiera & Manutenzione
 
     private void OnMainWindowKeyDown(object? sender, KeyEventArgs e)
     {
@@ -3428,6 +3482,10 @@ public partial class MainWindow : Window
         _graph?.Queries?.ClearCache();
         StatusText.Text = LocalizationService.Instance.Get("Status_CacheCleared", count);
     }
+
+    #endregion
+
+    #region Localizzazione & Aggiornamento UI
 
     private void UpdateLocalizedUI()
     {
@@ -3677,8 +3735,6 @@ public partial class MainWindow : Window
         // Overlay Caricamento
         LoadingCancelButton.Content = loc["Loading_Cancel"];
 
-
-
         // Refresh dynamic strings in Grid and Status
         UpdateStatsBar();
         ApplyGridFilters();
@@ -3695,6 +3751,8 @@ public partial class MainWindow : Window
             }
         }
     }
+
+    #endregion
 }
 
 /// <summary>
