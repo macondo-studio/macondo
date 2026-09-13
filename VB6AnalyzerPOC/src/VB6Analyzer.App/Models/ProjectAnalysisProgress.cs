@@ -1,4 +1,6 @@
-namespace Macondo.App.Services;
+using System;
+
+namespace Macondo.App.Models;
 
 /// <summary>
 /// Rappresenta lo stato di avanzamento durante l'analisi di un progetto o cartella VB6.

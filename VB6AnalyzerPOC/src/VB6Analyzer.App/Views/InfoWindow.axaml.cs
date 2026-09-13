@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Macondo.App.Models;
 using Macondo.App.Services;
 
 namespace Macondo.App.Views;

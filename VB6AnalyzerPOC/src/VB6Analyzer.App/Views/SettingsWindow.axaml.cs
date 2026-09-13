@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using System.Collections.Generic;
 using System.Linq;
+using Macondo.App.Models;
 using Macondo.App.Services;
 
 namespace Macondo.App.Views;

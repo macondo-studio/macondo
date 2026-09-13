@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Macondo.Semantic.Impact;
 using Macondo.Semantic.Model;
 
-namespace Macondo.App.Services;
+namespace Macondo.App.Models;
 
 /// <summary>
 /// Snapshot completo del progetto analizzato salvato nella cache locale (%APPDATA%\Macondo\cache\).

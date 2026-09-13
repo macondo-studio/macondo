@@ -2,17 +2,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Macondo.App.Models;
 
 namespace Macondo.App.Services;
-
-/// <summary>
-/// Informazioni su un branch Git del repository.
-/// </summary>
-public sealed class GitBranchInfo
-{
-    public required string Name { get; init; }
-    public bool IsCurrent { get; init; }
-}
 
 /// <summary>
 /// Servizio per il rilevamento e la gestione delle operazioni Git di base (branch corrente, lista branch, checkout).

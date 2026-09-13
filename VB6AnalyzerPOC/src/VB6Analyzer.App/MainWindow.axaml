@@ -351,7 +351,7 @@
                                              SelectionMode="Single"
                                              SelectionChanged="OnGitBranchSelected">
                                         <ListBox.ItemTemplate>
-                                            <DataTemplate DataType="services:VcsBranchInfo">
+                                            <DataTemplate DataType="models:VcsBranchInfo">
                                                 <Grid ColumnDefinitions="Auto,*,Auto" Margin="2">
                                                     <PathIcon Grid.Column="0" Data="{StaticResource IconVcsBranch}" Width="11" Height="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
                                                     <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />

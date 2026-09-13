@@ -5,29 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Macondo.App.Models;
 
 namespace Macondo.App.Services;
-
-/// <summary>
-/// Informazioni su un branch o percorso di switch SVN (Subversion).
-/// </summary>
-public sealed class SvnBranchInfo
-{
-    /// <summary>
-    /// Nome leggibile per l'interfaccia (es. 'trunk', 'feature-auth', 'tags/v1.0').
-    /// </summary>
-    public required string Name { get; init; }
-
-    /// <summary>
-    /// Percorso relativo o URL per 'svn switch' (es. '^/trunk', '^/branches/feature-auth').
-    /// </summary>
-    public required string TargetUrl { get; init; }
-
-    /// <summary>
-    /// Indica se questo è il branch/percorso attualmente attivo nel working copy.
-    /// </summary>
-    public bool IsCurrent { get; init; }
-}
 
 /// <summary>
 /// Servizio per il rilevamento e la gestione delle operazioni SVN (Subversion) di base (branch corrente, lista branch, svn switch).

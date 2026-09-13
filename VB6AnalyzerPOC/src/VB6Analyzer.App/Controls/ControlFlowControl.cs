@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Macondo.App.Models;
 using Macondo.App.Services;
 using Macondo.Semantic.Analytics.ControlFlow;
 

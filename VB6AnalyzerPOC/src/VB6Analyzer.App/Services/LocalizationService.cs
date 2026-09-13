@@ -1,10 +1,6 @@
-namespace Macondo.App.Services;
+using Macondo.App.Models;
 
-public enum AppLanguage
-{
-    Italian,
-    English
-}
+namespace Macondo.App.Services;
 
 public sealed class LocalizationService
 {

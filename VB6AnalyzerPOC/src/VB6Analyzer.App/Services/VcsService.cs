@@ -2,44 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Macondo.App.Models;
 
 namespace Macondo.App.Services;
-
-/// <summary>
-/// Tipologia di Version Control System rilevato per il progetto.
-/// </summary>
-public enum VcsType
-{
-    None,
-    Git,
-    Svn
-}
-
-/// <summary>
-/// Informazioni unificate su un branch / tag / percorso VCS (Git o SVN).
-/// </summary>
-public sealed class VcsBranchInfo
-{
-    /// <summary>
-    /// Nome del branch da visualizzare nell'interfaccia (es. 'main', 'trunk', 'feature/login').
-    /// </summary>
-    public required string Name { get; init; }
-
-    /// <summary>
-    /// Bersaglio per il comando di checkout o switch (nome branch Git o target URL SVN).
-    /// </summary>
-    public required string Target { get; init; }
-
-    /// <summary>
-    /// Indica se questo è il branch correntemente attivo.
-    /// </summary>
-    public bool IsCurrent { get; init; }
-
-    /// <summary>
-    /// Sistema VCS di provenienza (Git o SVN).
-    /// </summary>
-    public VcsType VcsType { get; init; }
-}
 
 /// <summary>
 /// Servizio unificato di gestione Version Control (Git e Subversion/SVN).

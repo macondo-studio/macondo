@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="using:Macondo.App.Models"
         xmlns:services="using:Macondo.App.Services"
         x:Class="Macondo.App.Views.SettingsWindow"
         Title="Impostazioni"
@@ -374,7 +375,7 @@
                         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                             <ItemsControl x:Name="ShortcutsList">
                                 <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="services:ShortcutItem">
+                                    <DataTemplate DataType="models:ShortcutItem">
                                         <Border Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
                                                 BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
                                                 BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,6">

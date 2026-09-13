@@ -1,4 +1,4 @@
-namespace Macondo.App.Services;
+namespace Macondo.App.Models;
 
 /// <summary>
 /// Modello serializzabile per la memorizzazione delle impostazioni e preferenze utente.
