@@ -70,6 +70,9 @@ public sealed class DsmControl : Control
         ClipToBounds = true;
     }
 
+    /// <summary>
+    /// Ripristina lo zoom e il panning della matrice DSM ai valori di default.
+    /// </summary>
     public void ResetView()
     {
         _scale = 1.0;
@@ -78,6 +81,9 @@ public sealed class DsmControl : Control
         InvalidateVisual();
     }
 
+    /// <summary>
+    /// Applica i pennelli e i colori del tema corrente (sfondo, griglia, celle con dipendenze circolari o normali, etichette).
+    /// </summary>
     public void ApplyTheme(ThemeDefinition theme)
     {
         if (Color.TryParse(theme.GraphBackground, out var bgCol))

@@ -113,6 +113,16 @@ public sealed class CallGraphQueries
         return paths;
     }
 
+    /// <summary>
+    /// Esegue la ricerca in profondità (DFS) con backtracking per individuare tutti i cammini aciclici tra il nodo corrente e la destinazione.
+    /// </summary>
+    /// <param name="current">Nodo/routine corrente nella ricorsione DFS.</param>
+    /// <param name="target">Nodo/routine di arrivo cercato.</param>
+    /// <param name="currentPath">Lista ordinata dei simboli che formano il cammino parziale attivo.</param>
+    /// <param name="visitedOnPath">Insieme dei nodi attualmente nel cammino per evitare cicli infiniti.</param>
+    /// <param name="results">Collezione dei cammini completi individuati.</param>
+    /// <param name="maxDepth">Profondità massima di risalita/discesa ammessa.</param>
+    /// <param name="cancellationToken">Token per la cancellazione dell'operazione.</param>
     private void DfsFindPaths(
         Symbol current,
         Symbol target,
@@ -124,30 +134,37 @@ public sealed class CallGraphQueries
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        // Limite di sicurezza: arresta la ricerca al raggiungimento di 50 cammini distinti
         if (results.Count >= 50)
             return;
 
+        // Se il nodo corrente coincide con la destinazione cercata, registra il cammino completo
         if (current.Id == target.Id)
         {
             results.Add(new CallPath(currentPath));
             return;
         }
 
+        // Potatura dei rami che superano la profondità massima consentita
         if (currentPath.Count > maxDepth)
             return;
 
+        // Esplora ricorsivamente tutti i chiamati diretti del nodo corrente
         var callees = GetDirectCallees(current);
         foreach (var callee in callees)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Backtracking: evita cicli infiniti visitando solo nodi non presenti nel cammino attivo
             if (!visitedOnPath.Contains(callee.Id))
             {
                 visitedOnPath.Add(callee.Id);
                 currentPath.Add(callee);
 
+                // Ricorsione in profondità
                 DfsFindPaths(callee, target, currentPath, visitedOnPath, results, maxDepth, cancellationToken);
 
+                // Ripristino dello stato (Backtracking)
                 currentPath.RemoveAt(currentPath.Count - 1);
                 visitedOnPath.Remove(callee.Id);
             }
@@ -168,6 +185,7 @@ public sealed class CallGraphQueries
             .Where(s => s.Kind is SymbolKind.Method or SymbolKind.Property)
             .ToList();
 
+        // Inizializza tutti i nodi come White (non ancora visitati)
         var state = new Dictionary<Guid, NodeColor>();
         foreach (var sym in routineSymbols)
             state[sym.Id] = NodeColor.White;
@@ -175,6 +193,7 @@ public sealed class CallGraphQueries
         var cycles = new List<CallCycle>();
         var path = new List<Symbol>();
 
+        // Esegue la DFS da ogni nodo non ancora visitato
         foreach (var sym in routineSymbols)
         {
             if (state[sym.Id] == NodeColor.White)
@@ -186,15 +205,27 @@ public sealed class CallGraphQueries
         return cycles;
     }
 
+    /// <summary>
+    /// Visita ricorsiva in profondità (DFS a 3 colori) per identificare back-edge e cicli nel Call Graph.
+    /// </summary>
+    /// <param name="current">Nodo corrente in esame.</param>
+    /// <param name="state">Mappa di colorazione dei nodi: <c>White</c> (non visitato), <c>Gray</c> (in elaborazione nello stack), <c>Black</c> (completamente esplorato).</param>
+    /// <param name="path">Sequenza corrente dei nodi nel ramo di visita.</param>
+    /// <param name="cycles">Lista dei cicli di chiamata rilevati.</param>
+    /// <remarks>
+    /// Un arco verso un nodo marcato <c>Gray</c> rappresenta un back-edge che chiude un ciclo di chiamate o ricorsione.
+    /// </remarks>
     private void DfsDetectCycles(
         Symbol current,
         Dictionary<Guid, NodeColor> state,
         List<Symbol> path,
         List<CallCycle> cycles)
     {
+        // 1. Marca il nodo corrente come Gray (in elaborazione nello stack di ricorsione)
         state[current.Id] = NodeColor.Gray;
         path.Add(current);
 
+        // 2. Esplora le chiamate uscenti
         var callees = GetDirectCallees(current);
         foreach (var callee in callees)
         {
@@ -202,7 +233,7 @@ public sealed class CallGraphQueries
             {
                 if (calleeState == NodeColor.Gray)
                 {
-                    // Ciclo rilevato: estrae il segmento dal nodo che chiude il ciclo fino alla fine
+                    // Back-edge individuato: il nodo callee è già nello stack corrente (ciclo o ricorsione)
                     var cycleStartIndex = path.FindIndex(s => s.Id == callee.Id);
                     if (cycleStartIndex >= 0)
                     {
@@ -212,11 +243,13 @@ public sealed class CallGraphQueries
                 }
                 else if (calleeState == NodeColor.White)
                 {
+                    // Nodo non ancora esplorato: visita ricorsiva
                     DfsDetectCycles(callee, state, path, cycles);
                 }
             }
         }
 
+        // 3. Post-processing: rimuovi il nodo dal path e marcalo Black (visita del sottoalbero completata)
         path.RemoveAt(path.Count - 1);
         state[current.Id] = NodeColor.Black;
     }

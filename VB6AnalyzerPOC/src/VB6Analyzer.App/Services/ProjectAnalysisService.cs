@@ -13,16 +13,6 @@ namespace Macondo.App.Services;
 public static class ProjectAnalysisService
 {
     /// <summary>
-    /// Analizza tutti i file sorgente VB6 all'interno di una cartella.
-    /// </summary>
-    /// <param name="folderPath">Percorso della cartella contenente i file VB6.</param>
-    /// <param name="progress">Oggetto opzionale per la segnalazione dell'avanzamento in tempo reale.</param>
-    public static VisualCodeGraph AnalyzeFolder(string folderPath, IProgress<ProjectAnalysisProgress>? progress = null, CancellationToken cancellationToken = default)
-    {
-        return AnalyzePaths(new[] { folderPath }, progress, cancellationToken);
-    }
-
-    /// <summary>
     /// Analizza molteplici cartelle, file .vbp o file .vbg all'interno di un unico workspace semantico.
     /// </summary>
     public static VisualCodeGraph AnalyzePaths(IReadOnlyList<string> paths, IProgress<ProjectAnalysisProgress>? progress = null, CancellationToken cancellationToken = default)

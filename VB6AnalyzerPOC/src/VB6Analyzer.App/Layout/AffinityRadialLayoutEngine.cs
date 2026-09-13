@@ -15,6 +15,19 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
 
     void IGraphLayoutEngine.Apply(VisualCodeGraph graph) => Apply(graph);
 
+    /// <summary>
+    /// Calcola e applica le coordinate (X, Y) a tutti i nodi del grafo visuale disponendo i moduli su una circonferenza
+    /// ordinata per affinità di interazione reciproca (minimizzazione degli incroci centrali).
+    /// </summary>
+    /// <param name="graph">Il grafo visuale da posizionare.</param>
+    /// <remarks>
+    /// L'algoritmo:
+    /// <list type="number">
+    ///   <item><description>Calcola la matrice di affinità pesata tra coppie di container basandosi su chiamate (<c>3.0</c>), istanziazioni (<c>2.5</c>) e tipi usati (<c>1.5</c>).</description></item>
+    ///   <item><description>Determina l'ordine angolare ottimale risolvendo un cammino greedy (Nearest Neighbor / TSP euristico) per posizionare moduli fortemente accoppiati in posizioni angolari contigue.</description></item>
+    ///   <item><description>Posiziona i container lungo la circonferenza principale e distribuisce i membri interni su orbite satellitari attorno a ciascun modulo.</description></item>
+    /// </list>
+    /// </remarks>
     public static void Apply(VisualCodeGraph graph)
     {
         var projects = graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();

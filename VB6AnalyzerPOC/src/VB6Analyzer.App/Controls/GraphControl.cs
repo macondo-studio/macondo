@@ -434,6 +434,11 @@ public sealed class GraphControl : Control
         }
     }
 
+    /// <summary>
+    /// Restituisce la penna di rendering per il tipo di relazione specificato.
+    /// Distingue visivamente archi di chiamata (linea continua blu), gestione eventi (tratteggiata arancione),
+    /// istanziazione (tratteggiata ambra), uso tipo (puntinata verde smeraldo) o contenimento (grigio scuro/chiaro).
+    /// </summary>
     private IPen GetPenForEdgeKind(RelationshipKind kind) => kind switch
     {
         RelationshipKind.Calls => EdgeCallsPen,
@@ -443,6 +448,15 @@ public sealed class GraphControl : Control
         _ => _edgeContainsPen
     };
 
+    /// <summary>
+    /// Disegna la cuspide triangolare di una freccia direzionale orientata dal punto di origine al punto di destinazione.
+    /// Calcola il versore direzionale (ux, uy) e arresta la punta sul perimetro del nodo target tenendo conto del suo raggio.
+    /// </summary>
+    /// <param name="context">Il contesto di disegno di Avalonia.</param>
+    /// <param name="brush">Il pennello di riempimento della freccia.</param>
+    /// <param name="from">Coordinate a schermo del punto di partenza dell'arco.</param>
+    /// <param name="to">Coordinate a schermo del punto di arrivo (centro del nodo target).</param>
+    /// <param name="targetRadius">Raggio del nodo target a schermo, per evitare sovrapposizioni grafiche con il corpo del nodo.</param>
     private static void DrawArrowHead(DrawingContext context, IBrush? brush, Point from, Point to, double targetRadius)
     {
         if (brush == null) return;
@@ -473,6 +487,13 @@ public sealed class GraphControl : Control
         context.DrawGeometry(brush, null, geometry);
     }
 
+    /// <summary>
+    /// Determina il pennello di riempimento del nodo in base allo stato di interazione corrente:
+    /// 1. Modalità Blast Radius: gradiente di rischio (Rosso = Target, Arancione/Ambra/Giallo = Chiamanti per livello di profondità, Ciano = Form UI impattate).
+    /// 2. Modalità Callees: Oro per il nodo sorgente, Ciano per le routine chiamate, Slate per i relativi moduli.
+    /// 3. Modalità Callers: Oro per il nodo target, Ambra per i chiamanti, Slate per i relativi moduli.
+    /// 4. Modalità Normale: tavolozza semantica per SymbolKind (Form, Class, Module, Method, Property, Field, Constant, Type, Enum).
+    /// </summary>
     private IBrush GetNodeBrush(
         GraphNode node,
         bool isSelected,
@@ -768,6 +789,10 @@ public sealed class GraphControl : Control
         _isPanning = false;
     }
 
+    /// <summary>
+    /// Gestisce l'evento di doppio clic per implementare il progressive disclosure:
+    /// se il cursore si trova su un nodo container (Class, Form, Module, Type, Enum), ne alterna lo stato di espansione.
+    /// </summary>
     private void OnDoubleTapped(object? sender, TappedEventArgs e)
     {
         var graphPoint = ScreenToGraph(e.GetPosition(this));
@@ -800,6 +825,13 @@ public sealed class GraphControl : Control
         e.Handled = true;
     }
 
+    /// <summary>
+    /// Esegue il rilevamento del nodo sotto il cursore (Hit Testing) nello spazio coordinate del grafo.
+    /// Considera solo i nodi attualmente visibili, calcola la distanza euclidea al quadrato e adatta
+    /// la tolleranza di selezione (hit radius) in funzione del fattore di zoom corrente.
+    /// </summary>
+    /// <param name="graphPoint">Coordinate del puntatore convertite nello spazio cartesiano del grafo.</param>
+    /// <returns>Il <see cref="GraphNode"/> più vicino entro il raggio di tolleranza, oppure null.</returns>
     private GraphNode? HitTest(Point graphPoint)
     {
         var graph = Graph;
@@ -832,6 +864,9 @@ public sealed class GraphControl : Control
     // SELEZIONE ED EVIDENZIAZIONE CALLERS / CALLEES / BLAST RADIUS
     // =========================================================================
 
+    /// <summary>
+    /// Ripristina lo stato interno delle strutture dati di evidenziazione (chiamanti, chiamati, percorsi e blast radius).
+    /// </summary>
     private void ClearInternalHighlightState()
     {
         _callerNodeIds.Clear();
@@ -845,6 +880,11 @@ public sealed class GraphControl : Control
         _highlightedEdges.Clear();
     }
 
+    /// <summary>
+    /// Seleziona esplicitamente un nodo sul canvas, evidenziando i suoi archi e vicini diretti
+    /// e notificando i listener tramite l'evento <see cref="SelectionChanged"/>.
+    /// </summary>
+    /// <param name="node">Il nodo da selezionare, oppure null per deselezionare.</param>
     public void SelectNode(GraphNode? node)
     {
         _selectedNode = node;

@@ -237,6 +237,14 @@ public sealed class ControlFlowControl : Control
         }
     }
 
+    /// <summary>
+    /// Restituisce il pennello di sfondo e la penna per il contorno associati al tipo di blocco del Control Flow Graph:
+    /// - Entry: Verde (Punto di ingresso)
+    /// - Exit: Grigio scuro (Punto di uscita/Return)
+    /// - DecisionIf / DecisionSelect / LoopHeader: Ambra (Punto di decisione/Biforcazione)
+    /// - ExceptionHandler: Rosso/Scarlatto (Gestore errori On Error)
+    /// - Sequential: Sfondo standard
+    /// </summary>
     private (IBrush Bg, IPen Border) GetBlockStyling(ControlFlowBlockKind kind) => kind switch
     {
         ControlFlowBlockKind.Entry => (_entryBgBrush, new Pen(new SolidColorBrush(Color.Parse("#30A070")), 1.5)),
@@ -246,6 +254,9 @@ public sealed class ControlFlowControl : Control
         _ => (_blockBgBrush, new Pen(_blockBorderBrush, 1.0))
     };
 
+    /// <summary>
+    /// Disegna la freccia terminale di un arco di flusso orientato (True/False/Exception/Salto sequenziale).
+    /// </summary>
     private static void DrawArrowHead(DrawingContext context, Point tip, IBrush brush)
     {
         var geom = new StreamGeometry();

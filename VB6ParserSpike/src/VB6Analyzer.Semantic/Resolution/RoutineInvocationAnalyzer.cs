@@ -424,14 +424,18 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     /// </summary>
     private ResolutionResult ResolveImplicitCallStmt(VisualBasic6Parser.ImplicitCallStmt_InStmtContext context)
     {
-        // 1. Identificatore semplice o variabile (es. "cust", "Customer")
+        // ---------------------------------------------------------------------
+        // CASO 1: Identificatore semplice o variabile/funzione diretta (es. "ProcessData", "m_Count")
+        // ---------------------------------------------------------------------
         if (context.iCS_S_VariableOrProcedureCall() != null)
         {
             var name = context.iCS_S_VariableOrProcedureCall().ambiguousIdentifier().GetText();
             return CurrentScope.Resolve(name);
         }
 
-        // 2. Chiamata con parentesi (es. "GetCustomer(id)")
+        // ---------------------------------------------------------------------
+        // CASO 2: Chiamata con parentesi o argomenti (es. "GetCustomer(id, True)")
+        // ---------------------------------------------------------------------
         if (context.iCS_S_ProcedureOrArrayCall() != null)
         {
             var call = context.iCS_S_ProcedureOrArrayCall();
@@ -439,12 +443,15 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
             return CurrentScope.Resolve(name);
         }
 
-        // 3. Accesso a membri qualificati a catena (es. "a.b.c")
+        // ---------------------------------------------------------------------
+        // CASO 3: Accesso a membri qualificati a catena (es. "rs.Fields", "obj.Service.Execute()")
+        // ---------------------------------------------------------------------
         if (context.iCS_S_MembersCall() != null)
         {
             var membersCall = context.iCS_S_MembersCall();
             ResolutionResult currentResult;
 
+            // 3a. Risoluzione della radice della catena
             if (membersCall.iCS_S_VariableOrProcedureCall() != null)
             {
                 var baseName = membersCall.iCS_S_VariableOrProcedureCall().ambiguousIdentifier().GetText();
@@ -458,7 +465,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
             }
             else
             {
-                // .Member all'inizio -> blocco With
+                // Accesso relativo con punto iniziale (es. ".Name" all'interno di un blocco "With oggetto")
                 currentResult = CurrentScope.Resolve(".");
             }
 
@@ -467,7 +474,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
                 RecordCallSite(currentResult.TargetSymbol.Name, context.Start.Line, currentResult);
             }
 
-            // Risolve ogni segmento successivo della catena
+            // 3b. Risoluzione progressiva di ciascun membro successivo della catena (.Member1.Member2...)
             foreach (var memberCall in membersCall.iCS_S_MemberCall())
             {
                 var memberName = memberCall.iCS_S_VariableOrProcedureCall()?.ambiguousIdentifier().GetText()
@@ -476,6 +483,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
 
                 if (!string.IsNullOrEmpty(memberName))
                 {
+                    // Risolve il membro 'memberName' sul tipo semantico ricavato dal risultato precedente
                     currentResult = _symbolResolver.ResolveMemberOnTarget(currentResult, memberName);
                     if (currentResult.TargetSymbol != null && currentResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
                     {
@@ -504,10 +512,11 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Registra un call-site nella lista dei risultati evitando duplicazioni identiche.
+    /// Registra un call-site nella lista dei risultati evitando duplicazioni identiche sulla stessa riga.
     /// </summary>
     private void RecordCallSite(string callText, int line, ResolutionResult result)
     {
+        // Evita registrazioni duplicate dello stesso simbolo bersaglio sulla medesima riga di codice
         if (result.TargetSymbol != null)
         {
             if (_callSites.Any(c => c.Line == line &&

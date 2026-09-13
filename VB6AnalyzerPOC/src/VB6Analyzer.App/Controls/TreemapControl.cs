@@ -251,6 +251,14 @@ public sealed class TreemapControl : Control
         }
     }
 
+    /// <summary>
+    /// Restituisce il pennello cromatico in base al punteggio di complessità:
+    /// &lt;= 2.0: Verde scuro (Bassa)
+    /// &lt;= 4.5: Verde medio
+    /// &lt;= 7.0: Giallo ambra (Media)
+    /// &lt;= 11.0: Arancione (Alta)
+    /// > 11.0: Rosso intenso (Altissima complessità ciclomatica / Rischio)
+    /// </summary>
     private static IBrush GetComplexityBrush(double score)
     {
         if (score <= 2.0)
@@ -264,6 +272,9 @@ public sealed class TreemapControl : Control
         return new SolidColorBrush(Color.Parse("#961C2C")); // Rosso / Altissima complessità
     }
 
+    /// <summary>
+    /// Disegna la scheda informativa fluttuante (Hover Card) con il nome del nodo, il punteggio di metrica e le linee di codice / peso.
+    /// </summary>
     private void DrawHoverCard(DrawingContext context, TreemapItem item)
     {
         var titleFmt = new FormattedText(
@@ -340,6 +351,9 @@ public sealed class TreemapControl : Control
         }
     }
 
+    /// <summary>
+    /// Gestisce il doppio clic su un elemento non foglia (modulo o classe) per eseguire il drill-down gerarchico.
+    /// </summary>
     private void OnDoubleTapped(object? sender, TappedEventArgs e)
     {
         var pos = e.GetPosition(this);
@@ -352,6 +366,9 @@ public sealed class TreemapControl : Control
         }
     }
 
+    /// <summary>
+    /// Ricerca ricorsiva dell'elemento treemap foglia o container le cui coordinate racchiudono il punto (px, py).
+    /// </summary>
     private TreemapItem? FindItemAt(TreemapItem? current, double px, double py)
     {
         if (current == null || !current.Bounds.Contains(px, py)) return null;

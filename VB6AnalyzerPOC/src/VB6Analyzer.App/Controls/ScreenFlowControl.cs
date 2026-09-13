@@ -82,18 +82,27 @@ public sealed class ScreenFlowControl : Control
         InvalidateVisual();
     }
 
+    /// <summary>
+    /// Seleziona la schermata identificata dall'ID specificato e aggiorna il rendering.
+    /// </summary>
     public void SelectScreen(Guid screenId)
     {
         _selectedScreen = Graph?.FindScreen(screenId);
         InvalidateVisual();
     }
 
+    /// <summary>
+    /// Imposta la schermata selezionata e aggiorna il rendering.
+    /// </summary>
     public void SelectScreen(ScreenFlowNode? screen)
     {
         _selectedScreen = screen;
         InvalidateVisual();
     }
 
+    /// <summary>
+    /// Centra la vista del canvas sulla schermata specificata.
+    /// </summary>
     public void FocusOnScreen(Guid screenId)
     {
         var screen = Graph?.FindScreen(screenId);
@@ -107,6 +116,9 @@ public sealed class ScreenFlowControl : Control
         InvalidateVisual();
     }
 
+    /// <summary>
+    /// Applica un filtro di ricerca testuale o per lista di ID per evidenziare le schermate corrispondenti (e attenuare le altre).
+    /// </summary>
     public void SetSearchFilter(string? query, IEnumerable<Guid>? matchedScreenIds = null)
     {
         _searchQuery = string.IsNullOrWhiteSpace(query) ? null : query.Trim();
@@ -123,6 +135,9 @@ public sealed class ScreenFlowControl : Control
         InvalidateVisual();
     }
 
+    /// <summary>
+    /// Rimuove qualsiasi evidenziazione o filtro di ricerca attivo.
+    /// </summary>
     public void ClearHighlight()
     {
         _highlightedScreenIds.Clear();
@@ -131,6 +146,9 @@ public sealed class ScreenFlowControl : Control
         InvalidateVisual();
     }
 
+    /// <summary>
+    /// Verifica se una determinata schermata corrisponde al filtro di ricerca o alla selezione attiva.
+    /// </summary>
     public bool IsScreenMatchingSearch(ScreenFlowNode screen)
     {
         if (_highlightedScreenIds.Contains(screen.Id))
@@ -147,6 +165,9 @@ public sealed class ScreenFlowControl : Control
         return false;
     }
 
+    /// <summary>
+    /// Applica i pennelli e lo schema colori del tema attivo per card, transizioni ed etichette.
+    /// </summary>
     public void ApplyTheme(ThemeDefinition theme)
     {
         if (Color.TryParse(theme.GraphBackground, out var bgCol))

@@ -265,6 +265,9 @@ public sealed class SvnService
         });
     }
 
+    /// <summary>
+    /// Semplifica un URL relativo SVN (es. '^/branches/feature-x' -> 'feature-x', '^/trunk' -> 'trunk').
+    /// </summary>
     private static string SimplifySvnRelativeUrl(string relativeUrl)
     {
         var clean = relativeUrl.Trim();
@@ -287,6 +290,9 @@ public sealed class SvnService
         return clean;
     }
 
+    /// <summary>
+    /// Esegue un comando CLI Subversion ('svn') con timeout e cattura sincrona di stdout/stderr.
+    /// </summary>
     private static (int ExitCode, string StdOut, string StdErr) RunSvnCommand(string workingDir, string arguments, int timeoutMs = 4000)
     {
         try

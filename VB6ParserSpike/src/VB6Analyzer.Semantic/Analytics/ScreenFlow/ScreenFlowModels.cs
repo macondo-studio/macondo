@@ -75,12 +75,30 @@ public sealed class ScreenFlowGraph
 /// </summary>
 public static class ScreenFlowBuilder
 {
+    /// <summary>
+    /// Costruisce il grafo completo di navigazione e flusso delle schermate (<see cref="ScreenFlowGraph"/>) analizzando form, controlli visivi e transizioni semantiche.
+    /// </summary>
+    /// <param name="graph">Il <see cref="CodeGraph"/> semantico da cui estrarre i componenti UI e le relative interazioni.</param>
+    /// <returns>Il modello di navigazione pronto per il rendering con coordinate spaziali calcolate.</returns>
+    /// <remarks>
+    /// La costruzione avviene attraverso:
+    /// <list type="number">
+    ///   <item><description>Identificazione dei simboli di interfaccia grafica (<see cref="SymbolKind.Form"/>, <see cref="SymbolKind.UserControl"/> o classi con suffissi convenzionali View/Dialog/Window).</description></item>
+    ///   <item><description>Estrazione di controlli membri (campi) e gestori di eventi (metodi) di ciascuna schermata.</description></item>
+    ///   <item><description>Rilevamento delle relazioni semantiche tra diverse form (chiamate di apertura modale/non modale o istanziazioni) per creare le transizioni <see cref="ScreenFlowTransition"/>.</description></item>
+    ///   <item><description>Calcolo del layout a livelli (<see cref="LayoutScreenGraph"/>) a partire dalla schermata di avvio (<c>StartupScreen</c>) o con in-degree 0.</description></item>
+    /// </list>
+    /// </remarks>
     public static ScreenFlowGraph Build(CodeGraph graph)
     {
         var result = new ScreenFlowGraph();
         var symbolMap = graph.Symbols.ToDictionary(s => s.Id);
 
-        // 1. Individua tutti i simboli UI
+        // ---------------------------------------------------------------------
+        // PASSO 1: Individuazione di tutti i simboli di interfaccia utente.
+        // Identifichiamo direttamente Form e UserControl. In caso di assenza,
+        // cerchiamo classi con suffissi convenzionali (Form, Window, Dialog, View).
+        // ---------------------------------------------------------------------
         var uiSymbols = graph.Symbols
             .Where(s => s.Kind is SymbolKind.Form or SymbolKind.UserControl)
             .ToList();
@@ -96,7 +114,7 @@ public static class ScreenFlowBuilder
                 .ToList();
         }
 
-        // Mappa da id simbolo membro a id form contenitore
+        // Mappa da ID del simbolo membro (controllo UI o routine) a ID della form contenitrice
         var memberToScreenMap = new Dictionary<Guid, Guid>();
         var screensMap = new Dictionary<Guid, ScreenFlowNode>();
 
@@ -105,12 +123,14 @@ public static class ScreenFlowBuilder
             var sym = uiSymbols[i];
             var children = graph.GetChildren(sym.Id).ToList();
 
+            // Istanzia il nodo rappresentante la schermata UI
             var node = new ScreenFlowNode
             {
                 Id = sym.Id,
                 Name = sym.Name,
                 Title = sym.Name,
                 Kind = sym.Kind,
+                // Euristica per individuare la schermata iniziale: prima form incontrata o nome tipico (frmMain, MainForm)
                 IsStartupScreen = i == 0 || sym.Name.Equals("frmMain", StringComparison.OrdinalIgnoreCase) || sym.Name.Equals("MainForm", StringComparison.OrdinalIgnoreCase),
                 ControlsCount = children.Count(child => child.Kind == SymbolKind.Field),
                 EventHandlersCount = children.Count(child => child.Kind == SymbolKind.Method)
@@ -120,13 +140,16 @@ public static class ScreenFlowBuilder
             screensMap[sym.Id] = node;
             memberToScreenMap[sym.Id] = sym.Id;
 
+            // Associa tutti i controlli ed event handler figli alla schermata padre
             foreach (var child in children)
             {
                 memberToScreenMap[child.Id] = sym.Id;
             }
         }
 
-        // 2. Cerca transizioni (chiamate o istanziazioni tra Form diversi)
+        // ---------------------------------------------------------------------
+        // PASSO 2: Rilevamento delle transizioni tra schermate (chiamate o istanziazioni tra Form differenti).
+        // ---------------------------------------------------------------------
         foreach (var rel in graph.Relationships)
         {
             if (rel.Kind != RelationshipKind.Calls && 
@@ -147,11 +170,13 @@ public static class ScreenFlowBuilder
                 tgtScreenId = rel.TargetId;
             }
 
+            // Se la sorgente e la destinazione appartengono a due form distinte, registriamo la transizione
             if (srcScreenId != Guid.Empty && tgtScreenId != Guid.Empty && srcScreenId != tgtScreenId)
             {
                 symbolMap.TryGetValue(rel.SourceId, out var srcSym);
                 symbolMap.TryGetValue(rel.TargetId, out var tgtSym);
 
+                // Instantiates modella l'apertura non modale/istanza; Calls modella show modal o ShowDialog
                 var kind = rel.Kind == RelationshipKind.Instantiates 
                     ? ScreenTransitionKind.OpenModeless 
                     : ScreenTransitionKind.OpenModal;
@@ -168,6 +193,7 @@ public static class ScreenFlowBuilder
                         SourceScreenId = srcScreenId,
                         TargetScreenId = tgtScreenId,
                         TriggerRoutineName = srcSym?.Name ?? "Handler",
+                        // Estrae l'evento scatenante convenzionale (es. "cmdOpen_Click" -> "Click")
                         TriggerEventName = srcSym?.Name.Contains('_') == true ? srcSym.Name.Split('_').Last() : "Action",
                         TransitionKind = kind,
                         Description = $"{srcSym?.Name ?? "Event"} -> {tgtSym?.Name ?? "Screen"}"
@@ -176,21 +202,36 @@ public static class ScreenFlowBuilder
             }
         }
 
+        // ---------------------------------------------------------------------
+        // PASSO 3: Aggiornamento dei contatori di transizioni entranti e uscenti per ciascuna schermata.
+        // ---------------------------------------------------------------------
         foreach (var t in result.Transitions)
         {
             if (screensMap.TryGetValue(t.SourceScreenId, out var srcNode)) srcNode.OutgoingTransitionsCount++;
             if (screensMap.TryGetValue(t.TargetScreenId, out var tgtNode)) tgtNode.IncomingTransitionsCount++;
         }
 
+        // ---------------------------------------------------------------------
+        // PASSO 4: Calcolo del layout spaziale a livelli gerarchici.
+        // ---------------------------------------------------------------------
         LayoutScreenGraph(result);
 
         return result;
     }
 
+    /// <summary>
+    /// Calcola la disposizione a griglia/livelli orizzontali delle schermate UI sul canvas 2D.
+    /// </summary>
+    /// <param name="graph">Il grafo di navigazione da disporre spazialmente.</param>
+    /// <remarks>
+    /// Dispone al livello 0 la form principale di avvio (<c>StartupScreen</c>) o le schermate radice senza transizioni in ingresso,
+    /// e propaga i livelli verso destra tramite scansione BFS lungo le transizioni di navigazione.
+    /// </remarks>
     private static void LayoutScreenGraph(ScreenFlowGraph graph)
     {
         if (graph.Screens.Count == 0) return;
 
+        // 1. Inizializzazione: identifica le schermate di partenza (Startup form o con 0 chiamanti in ingresso)
         var levels = new Dictionary<int, List<ScreenFlowNode>>();
         var assigned = new HashSet<Guid>();
 
@@ -200,6 +241,7 @@ public static class ScreenFlowBuilder
         levels[0] = level0;
         foreach (var s in level0) assigned.Add(s.Id);
 
+        // 2. Propagazione a livelli orizzontali (BFS lungo le transizioni uscenti)
         int currentLevel = 0;
         while (assigned.Count < graph.Screens.Count && currentLevel < 10)
         {
@@ -216,6 +258,7 @@ public static class ScreenFlowBuilder
                 }
             }
 
+            // Fallback per schermate orfane o disconnesse
             if (nextLevel.Count == 0)
             {
                 var remaining = graph.Screens.Where(s => !assigned.Contains(s.Id)).Take(3).ToList();
@@ -230,6 +273,7 @@ public static class ScreenFlowBuilder
             levels[currentLevel] = nextLevel;
         }
 
+        // 3. Assegnazione coordinate 2D in pixel (Colonne per livello orizzontale, righe verticali)
         double colWidth = 260.0;
         double rowHeight = 150.0;
         double startX = 60.0;

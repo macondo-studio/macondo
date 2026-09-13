@@ -48,6 +48,12 @@ public sealed class TreemapItem
 /// </summary>
 public static class TreemapLayoutEngine
 {
+    /// <summary>
+    /// Esegue il calcolo geometrico del layout Squarified Treemap per l'elemento radice e tutta la sua gerarchia di figli.
+    /// </summary>
+    /// <param name="root">L'elemento radice della Treemap.</param>
+    /// <param name="targetBounds">I confini rettangolari disponibili sul canvas.</param>
+    /// <param name="padding">Margine di separazione in pixel tra i nodi e i relativi container.</param>
     public static void Layout(TreemapItem root, TreemapRect targetBounds, double padding = 3.0)
     {
         root.Bounds = targetBounds;
@@ -56,6 +62,12 @@ public static class TreemapLayoutEngine
         LayoutChildren(root, targetBounds, padding);
     }
 
+    /// <summary>
+    /// Suddivide l'area del nodo contenitore tra i suoi elementi figli diretti.
+    /// </summary>
+    /// <param name="parent">Il nodo genitore i cui figli devono essere disposti.</param>
+    /// <param name="bounds">I confini rettangolari assegnati al genitore.</param>
+    /// <param name="padding">Margine interno.</param>
     private static void LayoutChildren(TreemapItem parent, TreemapRect bounds, double padding)
     {
         if (parent.Children.Count == 0) return;
@@ -84,6 +96,18 @@ public static class TreemapLayoutEngine
         }
     }
 
+    /// <summary>
+    /// Funzione ricorsiva di tessellazione Squarified (Bruls, Huizing, van Wijk).
+    /// </summary>
+    /// <param name="items">Lista ordinata per peso decrescente degli elementi da posizionare.</param>
+    /// <param name="areas">Superfici proporzionali normalizzate corrispondenti a ciascun elemento.</param>
+    /// <param name="startIndex">Indice di partenza per la riga corrente.</param>
+    /// <param name="rect">Rettangolo rimanente da suddividere.</param>
+    /// <remarks>
+    /// L'algoritmo accumula elementi nella riga corrente fintanto che l'aspect ratio peggiore (<see cref="CalculateWorstRatio"/>)
+    /// migliora (si avvicina a 1.0). Quando l'aggiunta di un ulteriore elemento peggiorerebbe l'aspect ratio,
+    /// la riga viene finalizzata con <see cref="LayoutRow"/> e l'algoritmo procede ricorsivamente sul rettangolo residuo.
+    /// </remarks>
     private static void Squarify(
         List<TreemapItem> items,
         List<double> areas,
@@ -92,13 +116,17 @@ public static class TreemapLayoutEngine
     {
         if (startIndex >= items.Count || rect.Width <= 0 || rect.Height <= 0) return;
 
+        // Inizializza la riga corrente con il primo elemento disponibile
         int rowEnd = startIndex;
         var currentRow = new List<double> { areas[startIndex] };
         double rowSum = areas[startIndex];
+        // Determina il lato corto del rettangolo contenitore lungo cui impilare
         double sideLength = Math.Min(rect.Width, rect.Height);
 
+        // Calcola il peggior aspect ratio della riga iniziale
         double bestWorstRatio = CalculateWorstRatio(currentRow, rowSum, sideLength);
 
+        // Aggiunge elementi finché l'aspect ratio medio migliora o si avvicina a 1.0 (quadrato)
         for (int i = startIndex + 1; i < items.Count; i++)
         {
             double nextArea = areas[i];
@@ -106,6 +134,7 @@ public static class TreemapLayoutEngine
             double testSum = rowSum + nextArea;
             double testRatio = CalculateWorstRatio(testRow, testSum, sideLength);
 
+            // Se l'aggiunta del nuovo elemento riduce o mantiene l'allungamento dei rettangoli, accettalo nella riga
             if (testRatio <= bestWorstRatio)
             {
                 currentRow = testRow;
@@ -115,14 +144,24 @@ public static class TreemapLayoutEngine
             }
             else
             {
+                // L'aspect ratio comincia a degradare: chiudi la riga corrente
                 break;
             }
         }
 
+        // Posiziona geometricamente i rettangoli della riga consolidata e ricava lo spazio rimanente
         var remainingRect = LayoutRow(items, currentRow, startIndex, rowEnd, rowSum, rect);
+        // Ricorsione per impacchettare i restanti elementi nello spazio residuo
         Squarify(items, areas, rowEnd + 1, remainingRect);
     }
 
+    /// <summary>
+    /// Calcola il peggior aspect ratio (rapporto base/altezza o altezza/base) tra tutti i rettangoli di una riga di prova.
+    /// </summary>
+    /// <param name="row">Superfici dei rettangoli inclusi nella riga.</param>
+    /// <param name="rowSum">Somma totale delle superfici della riga.</param>
+    /// <param name="sideLength">Lunghezza del lato corto del rettangolo contenitore.</param>
+    /// <returns>Il massimo valore di aspect ratio (valori vicini a 1.0 indicano forme quadrate ottimali).</returns>
     private static double CalculateWorstRatio(List<double> row, double rowSum, double sideLength)
     {
         if (row.Count == 0 || rowSum <= 0 || sideLength <= 0) return double.MaxValue;
@@ -132,9 +171,20 @@ public static class TreemapLayoutEngine
         double maxArea = row.Max();
         double minArea = row.Min();
 
+        // Formula standard di Bruls-Huizing-van Wijk: max( (s^2 * max_area) / sum^2, sum^2 / (s^2 * min_area) )
         return Math.Max((sideSq * maxArea) / sumSq, sumSq / (sideSq * minArea));
     }
 
+    /// <summary>
+    /// Posiziona geometricamente i rettangoli della riga consolidata lungo il lato corto e restituisce l'area rimanente.
+    /// </summary>
+    /// <param name="items">Lista degli elementi.</param>
+    /// <param name="rowAreas">Aree degli elementi della riga.</param>
+    /// <param name="startIdx">Indice iniziale.</param>
+    /// <param name="endIdx">Indice finale.</param>
+    /// <param name="rowSum">Somma delle aree della riga.</param>
+    /// <param name="rect">Rettangolo di riferimento prima dell'inserimento della riga.</param>
+    /// <returns>Il sotto-rettangolo rimanente per le righe successive.</returns>
     private static TreemapRect LayoutRow(
         List<TreemapItem> items,
         List<double> rowAreas,
@@ -144,11 +194,13 @@ public static class TreemapLayoutEngine
         TreemapRect rect)
     {
         bool isHorizontal = rect.Width >= rect.Height;
+        // Calcola lo spessore della riga rispetto al lato lungo del rettangolo disponibile
         double rowBreadth = (isHorizontal ? rect.Height : rect.Width) > 0 
             ? rowSum / (isHorizontal ? rect.Height : rect.Width) 
             : 0;
 
         double offset = 0;
+        // Assegna le coordinate di ciascun rettangolo all'interno della riga
         for (int i = startIdx; i <= endIdx; i++)
         {
             double area = rowAreas[i - startIdx];
@@ -166,6 +218,7 @@ public static class TreemapLayoutEngine
             }
         }
 
+        // Restituisce l'area rettangolare residua tagliando via la riga appena posizionata
         if (isHorizontal)
         {
             return new TreemapRect(rect.X + rowBreadth, rect.Y, Math.Max(0, rect.Width - rowBreadth), rect.Height);
@@ -182,8 +235,14 @@ public static class TreemapLayoutEngine
 /// </summary>
 public static class TreemapModelBuilder
 {
+    /// <summary>
+    /// Costruisce l'albero gerarchico <see cref="TreemapItem"/> a due livelli (Progetto -&gt; Moduli -&gt; Membri) aggregando LOC e complessità.
+    /// </summary>
+    /// <param name="graph">Il CodeGraph da cui estrarre i simboli.</param>
+    /// <returns>Il nodo radice della Treemap pronto per il calcolo del layout.</returns>
     public static TreemapItem Build(CodeGraph graph)
     {
+        // 1. Nodo radice globale dell'intero progetto
         var root = new TreemapItem
         {
             Id = Guid.Empty,
@@ -193,6 +252,7 @@ public static class TreemapModelBuilder
             Depth = 0
         };
 
+        // 2. Raccoglie tutti i container primari (Classi, Form, Moduli, UserControl, UDT)
         var containers = graph.Symbols
             .Where(s => s.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type)
             .OrderBy(c => c.Name)
@@ -203,6 +263,7 @@ public static class TreemapModelBuilder
             containers = graph.Symbols.Where(s => s.Kind != SymbolKind.Project).ToList();
         }
 
+        // 3. Costruisce l'albero dei figli e calcola le metriche di peso (LOC stimate) e complessità
         foreach (var container in containers)
         {
             var containerItem = new TreemapItem
@@ -215,40 +276,48 @@ public static class TreemapModelBuilder
                 Parent = root
             };
 
-            foreach (var childSym in graph.GetChildren(container.Id))
-            {
-                double loc = Math.Max(5.0, childSym.Parameters.Count * 3.0 + 8.0);
-                int outgoingCalls = graph.Relationships.Count(r => r.SourceId == childSym.Id && r.Kind == RelationshipKind.Calls);
-                double complexity = 1.0 + outgoingCalls * 1.5;
+            var children = graph.GetChildren(container.Id)
+                .Where(c => c.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Field)
+                .ToList();
 
-                var childItem = new TreemapItem
+            if (children.Count > 0)
+            {
+                foreach (var child in children)
                 {
-                    Id = childSym.Id,
-                    Name = childSym.Name,
-                    QualifiedName = childSym.QualifiedName,
-                    Kind = childSym.Kind,
-                    Depth = 2,
-                    Value = loc,
-                    MetricScore = complexity,
-                    Parent = containerItem
-                };
-                containerItem.Children.Add(childItem);
-            }
+                    // Calcolo LOC o peso basato sulle righe di codice o complessità delle chiamate
+                    int lineCount = Math.Max(1, child.LineEnd - child.LineStart + 1);
+                    int callees = graph.Relationships.Count(r => r.SourceId == child.Id && r.Kind == RelationshipKind.Calls);
+                    double complexityScore = 1.0 + (callees * 1.5) + (child.Parameters.Count * 0.8);
 
-            if (containerItem.Children.Count == 0)
-            {
-                containerItem.Value = 20.0;
-                containerItem.MetricScore = 1.0;
+                    var childItem = new TreemapItem
+                    {
+                        Id = child.Id,
+                        Name = child.Name,
+                        QualifiedName = child.QualifiedName,
+                        Kind = child.Kind,
+                        Value = lineCount,
+                        MetricScore = complexityScore,
+                        Depth = 2,
+                        Parent = containerItem
+                    };
+
+                    containerItem.Children.Add(childItem);
+                }
+
+                containerItem.Value = containerItem.Children.Sum(c => c.Value);
+                containerItem.MetricScore = containerItem.Children.Average(c => c.MetricScore);
             }
             else
             {
-                containerItem.Value = containerItem.Children.Sum(c => c.Value);
-                containerItem.MetricScore = containerItem.Children.Average(c => c.MetricScore);
+                int lineCount = Math.Max(1, container.LineEnd - container.LineStart + 1);
+                containerItem.Value = lineCount;
+                containerItem.MetricScore = 1.0;
             }
 
             root.Children.Add(containerItem);
         }
 
+        // Aggrega i totali sulla radice
         root.Value = root.Children.Sum(c => c.Value);
         root.MetricScore = root.Children.Count > 0 ? root.Children.Average(c => c.MetricScore) : 1.0;
 

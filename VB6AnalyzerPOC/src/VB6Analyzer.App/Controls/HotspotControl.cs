@@ -204,6 +204,13 @@ public sealed class HotspotControl : Control
         }
     }
 
+    /// <summary>
+    /// Restituisce il pennello di riempimento associato allo score di rischio composito:
+    /// >= 75: Rosso (Critico / High Danger)
+    /// >= 50: Arancione (Alto)
+    /// >= 25: Blu (Medio)
+    /// &lt; 25: Verde (Basso / Safe)
+    /// </summary>
     private static IBrush GetRiskBrush(double riskScore)
     {
         if (riskScore >= 75) return new SolidColorBrush(Color.FromArgb(220, 240, 50, 60));
@@ -212,6 +219,10 @@ public sealed class HotspotControl : Control
         return new SolidColorBrush(Color.FromArgb(220, 50, 190, 110));
     }
 
+    /// <summary>
+    /// Disegna la scheda informativa fluttuante (Hover Card) contenente il nome qualificato dell'elemento,
+    /// lo score di rischio, la complessità ciclomatica, il churn/fan-in e il numero di chiamanti diretti.
+    /// </summary>
     private void DrawHoverCard(DrawingContext context, HotspotItem item)
     {
         var titleFmt = new FormattedText(
@@ -281,6 +292,10 @@ public sealed class HotspotControl : Control
         }
     }
 
+    /// <summary>
+    /// Esegue l'hit-testing cartesiano per individuare la bolla Hotspot sotto le coordinate del puntatore (px, py),
+    /// calcolando la distanza radiale rispetto al centro di ciascun punto proiettato.
+    /// </summary>
     private HotspotItem? FindItemAt(double px, double py)
     {
         if (Dataset == null || Dataset.Items.Count == 0) return null;

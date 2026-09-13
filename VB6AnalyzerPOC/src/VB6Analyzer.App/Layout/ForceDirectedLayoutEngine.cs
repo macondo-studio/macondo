@@ -14,6 +14,20 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
 
     void IGraphLayoutEngine.Apply(VisualCodeGraph graph) => Apply(graph);
 
+    /// <summary>
+    /// Calcola e applica le coordinate (X, Y) a tutti i nodi del grafo visuale mediante simulazione fisica di tipo Force-Directed (Fruchterman-Reingold).
+    /// </summary>
+    /// <param name="graph">Il grafo visuale da posizionare.</param>
+    /// <remarks>
+    /// Il processo di simulazione:
+    /// <list type="number">
+    ///   <item><description>Inizializza i nodi container su un cerchio preliminare per garantire stabilità.</description></item>
+    ///   <item><description>Ad ogni iterazione calcola forze repulsive elettrostatiche <c>k^2 / d</c> tra tutti i nodi per prevenire sovrapposizioni.</description></item>
+    ///   <item><description>Calcola forze attrattive elastiche <c>(d^2 / k) * peso</c> lungo gli archi di chiamata, istanziazione e dipendenza di tipo.</description></item>
+    ///   <item><description>Applica una forza di gravità centripeta verso l'origine <c>(0, 0)</c> per mantenere il grafo compatto.</description></item>
+    ///   <item><description>Sposta i nodi limitando l'escursione massima in base a un fattore di temperatura con raffreddamento esponenziale progressivo (simulated annealing).</description></item>
+    /// </list>
+    /// </remarks>
     public static void Apply(VisualCodeGraph graph)
     {
         var containers = graph.Nodes.Where(n => n.IsContainer).ToList();

@@ -336,6 +336,11 @@ public sealed class ImpactAnalyzer
     }
 
 
+    /// <summary>
+    /// Recupera tutti i simboli (campi, variabili, routine) che dichiarano o utilizzano direttamente il simbolo specificato come tipo (<c>USES_TYPE</c>).
+    /// </summary>
+    /// <param name="symbol">Il simbolo di tipo (Class, Form, UDT, Enum) da interrogare.</param>
+    /// <returns>La lista dei simboli dipendenti dal tipo.</returns>
     private IReadOnlyList<Symbol> GetTypeDependentsForSymbol(Symbol symbol)
     {
         return _graph.Relationships

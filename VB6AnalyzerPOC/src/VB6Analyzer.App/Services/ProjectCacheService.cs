@@ -269,6 +269,10 @@ public sealed class ProjectCacheService
         }
     }
 
+    /// <summary>
+    /// Ispeziona i file sorgente VB6 (.cls, .bas, .frm, .ctl) nella directory specificata per calcolare
+    /// il numero totale di file e l'ultimo timestamp di modifica UTC, utile a verificare lo stato di staleness della cache.
+    /// </summary>
     private static (int FileCount, DateTime LatestWriteUtc) GetFolderSourceStats(string folderPath)
     {
         var files = Directory.GetFiles(folderPath, "*.*", SearchOption.AllDirectories)

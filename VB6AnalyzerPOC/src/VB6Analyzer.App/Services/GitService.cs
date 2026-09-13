@@ -181,6 +181,9 @@ public sealed class GitService
         return (false, error);
     }
 
+    /// <summary>
+    /// Esegue un comando CLI 'git' con timeout di sicurezza (5s), catturando stdout e stderr in codifica UTF-8.
+    /// </summary>
     private static (int ExitCode, string StdOut, string StdErr) RunGitCommand(string workingDir, string arguments)
     {
         try
