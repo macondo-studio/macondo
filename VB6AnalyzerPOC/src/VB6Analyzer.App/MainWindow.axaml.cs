@@ -673,6 +673,12 @@ public partial class MainWindow : Window
             token.ThrowIfCancellationRequested();
             ApplyGraphToUI();
             StatusText.Text = loc["Status_FixturesLoaded"];
+
+            // Lampeggio icona sulla barra di Windows e notifica di sistema
+            WindowsNotificationService.NotifyAnalysisCompleted(
+                this,
+                loc["Notification_AnalysisCompleted_Title"],
+                loc.Get("Notification_FixturesCompleted_Message", _graph.Nodes.Count));
         }
         catch (OperationCanceledException)
         {
@@ -894,6 +900,12 @@ public partial class MainWindow : Window
                 SettingsService.Instance.Update(s => s.LastOpenedFolder = firstPath);
             }
             AddToRecentProjects(paths);
+
+            // Lampeggio icona sulla barra di Windows e notifica di sistema
+            WindowsNotificationService.NotifyAnalysisCompleted(
+                this,
+                loc["Notification_AnalysisCompleted_Title"],
+                loc.Get("Notification_AnalysisCompleted_Message", titleName, _graph.Nodes.Count));
         }
         catch (OperationCanceledException)
         {

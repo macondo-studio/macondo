@@ -250,6 +250,9 @@ public sealed class LocalizationService
         ["Loading_Cancel"] = "Annulla",
         ["Loading_Cancelling"] = "Annullamento in corso...",
         ["Status_AnalysisCancelled"] = "Analisi annullata dall'utente.",
+        ["Notification_AnalysisCompleted_Title"] = "Analisi VB6 completata",
+        ["Notification_AnalysisCompleted_Message"] = "L'analisi di '{0}' è terminata con successo ({1} nodi estratti).",
+        ["Notification_FixturesCompleted_Message"] = "L'analisi delle fixture VB6 è terminata con successo ({0} nodi estratti).",
 
         // Finestra Impostazioni
         ["Settings_Title"] = "Impostazioni",
@@ -648,6 +651,9 @@ public sealed class LocalizationService
         ["Loading_Cancel"] = "Cancel",
         ["Loading_Cancelling"] = "Cancelling...",
         ["Status_AnalysisCancelled"] = "Analysis cancelled by user.",
+        ["Notification_AnalysisCompleted_Title"] = "VB6 Analysis Completed",
+        ["Notification_AnalysisCompleted_Message"] = "Analysis of '{0}' completed successfully ({1} nodes detected).",
+        ["Notification_FixturesCompleted_Message"] = "VB6 fixtures analysis completed successfully ({0} nodes detected).",
 
         // Settings Window
         ["Settings_Title"] = "Settings",
