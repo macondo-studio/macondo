@@ -15,3 +15,7 @@ Ogni volta che l'utente richiede di aggiornare la versione del software, rilasci
 
 2. **Verifica Post-Aggiornamento**:
    - Eseguire sempre `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln` per confermare che la compilazione vada a buon fine con 0 errori.
+
+3. **Proposta Note di Rilascio per GitHub**:
+   - Proporre sempre all'utente il testo formattato in Markdown pronto da incollare nel campo "Describe this release" di GitHub (strutturato con What's New, Key Features, Bug Fixes / Improvements, stile formale e pulito SENZA emoji).
+

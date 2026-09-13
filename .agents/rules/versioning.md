@@ -15,3 +15,5 @@ Quando l'utente richiede di incrementare o aggiornare la versione di Macondo (es
    - `../macondo/it.html` (sito web italiano)
    - `../macondo/index.html` (sito web inglese)
 2. Ricompilare la soluzione con `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln` per verificare l'integrità.
+3. Proporre sempre il testo formattato in Markdown per il campo "Describe this release" su GitHub (senza emoji, pulito e formale).
+
