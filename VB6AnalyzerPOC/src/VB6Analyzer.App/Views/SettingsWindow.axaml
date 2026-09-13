@@ -349,6 +349,70 @@
                                         </Border>
                                     </Grid>
                                 </Border>
+
+                                <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,8" />
+
+                                <StackPanel Spacing="4" Margin="0,4,0,2">
+                                    <TextBlock x:Name="StartupHeaderTitle" Text="Comportamento all'avvio dell'applicazione" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                    <TextBlock x:Name="StartupHeaderSub" Text="Scegli l'azione da eseguire automaticamente all'apertura del software." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                                </StackPanel>
+
+                                <!-- Opzione 1: Solo se in cache (Default) -->
+                                <Border x:Name="CardStartupOnlyIfCached"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnSelectStartupOnlyIfCached">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconZap}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="StartupOnlyIfCachedTitle" Text="Solo se presente in cache (Consigliato)" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="StartupOnlyIfCachedDesc" Text="Ripristina istantaneamente l'ultimo progetto se presente in cache. Se assente, mostra la schermata iniziale senza bloccare l'interfaccia." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckStartupOnlyIfCached" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Opzione 2: Analizza sempre automaticamente -->
+                                <Border x:Name="CardStartupAlways"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnSelectStartupAlways">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconRefresh}" Width="16" Height="16" Foreground="#4AE8D0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="StartupAlwaysTitle" Text="Analizza sempre automaticamente" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="StartupAlwaysDesc" Text="Scansiona e analizza sempre l'ultimo progetto aperto da sorgenti, anche in assenza di cache." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckStartupAlways" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" IsVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Opzione 3: Mostra sempre schermata iniziale (Workspace vuoto) -->
+                                <Border x:Name="CardStartupEmpty"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnSelectStartupEmpty">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconHome}" Width="16" Height="16" Foreground="#A78BFA" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="StartupEmptyTitle" Text="Mostra sempre schermata iniziale" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="StartupEmptyDesc" Text="Avvia sempre l'applicazione su un'area di lavoro vuota pronta per una nuova selezione." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckStartupEmpty" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" IsVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
                             </StackPanel>
                         </StackPanel>
                     </ScrollViewer>

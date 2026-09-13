@@ -28,6 +28,7 @@ public partial class SettingsWindow : Window
         UpdateThemeSelection(ThemeService.Instance.CurrentTheme);
         UpdateLanguageSelection(LocalizationService.Instance.CurrentLanguage);
         UpdateBehaviorSelection(SettingsService.Instance.Settings.EnableHoverSelection);
+        UpdateStartupSelection(SettingsService.Instance.Settings.StartupMode);
         UpdateLocalizedTexts();
         SetSelectedNav(initialTab);
 
@@ -169,6 +170,9 @@ public partial class SettingsWindow : Window
             CardLangEnglish.BorderBrush = borderBrush;
 
             CardHoverSelection.BorderBrush = borderBrush;
+            CardStartupOnlyIfCached.BorderBrush = borderBrush;
+            CardStartupAlways.BorderBrush = borderBrush;
+            CardStartupEmpty.BorderBrush = borderBrush;
         }
 
         if (surfBrush != null)
@@ -183,6 +187,9 @@ public partial class SettingsWindow : Window
             CardLangEnglish.Background = surfBrush;
 
             CardHoverSelection.Background = surfBrush;
+            CardStartupOnlyIfCached.Background = surfBrush;
+            CardStartupAlways.Background = surfBrush;
+            CardStartupEmpty.Background = surfBrush;
         }
     }
 
@@ -221,6 +228,31 @@ public partial class SettingsWindow : Window
     private void UpdateBehaviorSelection(bool enabled)
     {
         CheckHoverSelection.IsVisible = enabled;
+    }
+
+    private void OnSelectStartupOnlyIfCached(object? sender, PointerPressedEventArgs e)
+    {
+        SettingsService.Instance.Update(s => s.StartupMode = StartupLoadMode.OnlyIfCached);
+        UpdateStartupSelection(StartupLoadMode.OnlyIfCached);
+    }
+
+    private void OnSelectStartupAlways(object? sender, PointerPressedEventArgs e)
+    {
+        SettingsService.Instance.Update(s => s.StartupMode = StartupLoadMode.AlwaysAnalyze);
+        UpdateStartupSelection(StartupLoadMode.AlwaysAnalyze);
+    }
+
+    private void OnSelectStartupEmpty(object? sender, PointerPressedEventArgs e)
+    {
+        SettingsService.Instance.Update(s => s.StartupMode = StartupLoadMode.EmptyWorkspace);
+        UpdateStartupSelection(StartupLoadMode.EmptyWorkspace);
+    }
+
+    private void UpdateStartupSelection(StartupLoadMode mode)
+    {
+        CheckStartupOnlyIfCached.IsVisible = mode == StartupLoadMode.OnlyIfCached;
+        CheckStartupAlways.IsVisible = mode == StartupLoadMode.AlwaysAnalyze;
+        CheckStartupEmpty.IsVisible = mode == StartupLoadMode.EmptyWorkspace;
     }
 
     // =========================================================================
@@ -269,6 +301,7 @@ public partial class SettingsWindow : Window
         UpdateThemeSelection(defaultSettings.Theme);
         UpdateLanguageSelection(defaultSettings.Language);
         UpdateBehaviorSelection(defaultSettings.EnableHoverSelection);
+        UpdateStartupSelection(defaultSettings.StartupMode);
         UpdateLocalizedTexts();
     }
 
@@ -317,6 +350,15 @@ public partial class SettingsWindow : Window
         BehaviorHeaderSub.Text = loc["Settings_Behavior_Sub"];
         HoverSelectionTitleText.Text = loc["Settings_HoverSelection_Title"];
         HoverSelectionSubText.Text = loc["Settings_HoverSelection_Sub"];
+
+        StartupHeaderTitle.Text = loc["Settings_StartupSection"];
+        StartupHeaderSub.Text = loc["Settings_StartupDesc"];
+        StartupOnlyIfCachedTitle.Text = loc["Settings_StartupOnlyIfCached"];
+        StartupOnlyIfCachedDesc.Text = loc["Settings_StartupOnlyIfCachedDesc"];
+        StartupAlwaysTitle.Text = loc["Settings_StartupAlways"];
+        StartupAlwaysDesc.Text = loc["Settings_StartupAlwaysDesc"];
+        StartupEmptyTitle.Text = loc["Settings_StartupEmpty"];
+        StartupEmptyDesc.Text = loc["Settings_StartupEmptyDesc"];
 
         ShortcutsHeaderTitle.Text = loc["Settings_Shortcuts_Header"];
         ShortcutsHeaderSub.Text = loc["Settings_Shortcuts_Sub"];

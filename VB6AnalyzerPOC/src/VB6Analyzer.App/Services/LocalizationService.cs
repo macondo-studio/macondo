@@ -409,7 +409,39 @@ public sealed class LocalizationService
         ["Status_Refreshed"] = "Progetto '{0}' ricaricato da disco ({1} file analizzati).",
         ["Status_CacheSaved"] = "Cache locale aggiornata per '{0}'.",
         ["Status_CacheCleared"] = "Cache locale dei progetti svuotata ({0} file eliminati).",
-        ["Status_SettingsReset"] = "Impostazioni e preferenze ripristinate ai valori predefiniti."
+        ["Status_SettingsReset"] = "Impostazioni e preferenze ripristinate ai valori predefiniti.",
+        ["Status_NoCachePending"] = "Nessuna cache per '{0}'. Clicca 'Analizza Ora' o premi F5 per analizzare i sorgenti.",
+        ["Status_StartupEmptyReady"] = "Pronto. Seleziona un progetto o una cartella per iniziare.",
+
+        // Schermata di Benvenuto (Welcome / Empty State View)
+        ["Welcome_Title"] = "Macondo - VB6 Code Analyzer",
+        ["Welcome_Subtitle"] = "Analisi semantica statica, grafo delle dipendenze e raggio d'impatto per progetti legacy Visual Basic 6.0",
+        ["Welcome_QuickStart"] = "Inizia Subito",
+        ["Welcome_OpenProject"] = "Apri Progetto o Gruppo...",
+        ["Welcome_OpenProjectDesc"] = "Seleziona file .vbp o file gruppo .vbg",
+        ["Welcome_OpenFolder"] = "Apri Cartella VB6...",
+        ["Welcome_OpenFolderDesc"] = "Scansiona un'intera cartella di codice sorgente",
+        ["Welcome_LoadFixtures"] = "Carica Fixture Demo",
+        ["Welcome_LoadFixturesDesc"] = "Esplora un set completo di classi e form di esempio",
+        ["Welcome_PendingTitle"] = "Ultimo Progetto Rilevato",
+        ["Welcome_PendingNoCache"] = "Nessuna snapshot in cache presente per questo progetto. Avvia l'analisi per esplorare il codice.",
+        ["Welcome_AnalyzeNow"] = "Analizza Ora",
+        ["Welcome_RecentProjects"] = "Progetti Recenti",
+        ["Welcome_NoRecent"] = "Nessun progetto recente disponibile.",
+        ["Welcome_CacheReady"] = "In Cache",
+        ["Welcome_CacheNeeded"] = "Analisi Richiesta",
+        ["Welcome_CacheReadyTooltip"] = "Snapshot in cache disponibile: caricamento istantaneo (0ms)",
+        ["Welcome_CacheNeededTooltip"] = "Nessuna cache presente: richiede scansione e analisi completa dei sorgenti",
+
+        // Impostazioni Avvio
+        ["Settings_StartupSection"] = "Comportamento all'avvio dell'applicazione",
+        ["Settings_StartupDesc"] = "Scegli l'azione da eseguire automaticamente all'apertura del software.",
+        ["Settings_StartupOnlyIfCached"] = "Solo se presente in cache (Consigliato)",
+        ["Settings_StartupOnlyIfCachedDesc"] = "Ripristina istantaneamente l'ultimo progetto se presente in cache. Se assente, mostra la schermata iniziale senza bloccare l'interfaccia.",
+        ["Settings_StartupAlways"] = "Analizza sempre automaticamente",
+        ["Settings_StartupAlwaysDesc"] = "Scansiona e analizza sempre l'ultimo progetto aperto da sorgenti, anche in assenza di cache.",
+        ["Settings_StartupEmpty"] = "Mostra sempre schermata iniziale",
+        ["Settings_StartupEmptyDesc"] = "Avvia sempre l'applicazione su un'area di lavoro vuota pronta per una nuova selezione."
     };
 
     private readonly Dictionary<string, string> _enStrings = new()
@@ -810,7 +842,39 @@ public sealed class LocalizationService
         ["Status_Refreshed"] = "Project '{0}' reloaded from disk ({1} files analyzed).",
         ["Status_CacheSaved"] = "Local cache updated for '{0}'.",
         ["Status_CacheCleared"] = "Local project cache cleared ({0} files deleted).",
-        ["Status_SettingsReset"] = "Settings and preferences restored to default values."
+        ["Status_SettingsReset"] = "Settings and preferences restored to default values.",
+        ["Status_NoCachePending"] = "No cache for '{0}'. Click 'Analyze Now' or press F5 to analyze sources.",
+        ["Status_StartupEmptyReady"] = "Ready. Select a project or folder to start.",
+
+        // Welcome / Empty State View
+        ["Welcome_Title"] = "Macondo - VB6 Code Analyzer",
+        ["Welcome_Subtitle"] = "Static semantic analysis, dependency graph, and blast radius impact for legacy Visual Basic 6.0 projects",
+        ["Welcome_QuickStart"] = "Quick Start",
+        ["Welcome_OpenProject"] = "Open Project or Group...",
+        ["Welcome_OpenProjectDesc"] = "Select .vbp project or .vbg group files",
+        ["Welcome_OpenFolder"] = "Open VB6 Folder...",
+        ["Welcome_OpenFolderDesc"] = "Scan an entire folder of source code",
+        ["Welcome_LoadFixtures"] = "Load Demo Fixtures",
+        ["Welcome_LoadFixturesDesc"] = "Explore a complete suite of sample forms and classes",
+        ["Welcome_PendingTitle"] = "Last Project Detected",
+        ["Welcome_PendingNoCache"] = "No cache snapshot found for this project. Start analysis to explore code.",
+        ["Welcome_AnalyzeNow"] = "⚡ Analyze Now",
+        ["Welcome_RecentProjects"] = "Recent Projects",
+        ["Welcome_NoRecent"] = "No recent projects available.",
+        ["Welcome_CacheReady"] = "Cached",
+        ["Welcome_CacheNeeded"] = "Analysis Required",
+        ["Welcome_CacheReadyTooltip"] = "Cache snapshot available: instant loading (0ms)",
+        ["Welcome_CacheNeededTooltip"] = "No cache found: requires full source scan and analysis",
+
+        // Startup Settings
+        ["Settings_StartupSection"] = "Application Startup Behavior",
+        ["Settings_StartupDesc"] = "Choose the action to perform automatically when the software starts.",
+        ["Settings_StartupOnlyIfCached"] = "Only if cached (Recommended)",
+        ["Settings_StartupOnlyIfCachedDesc"] = "Instantly restore the last project if a cache snapshot exists. If absent, show the welcome screen without freezing the UI.",
+        ["Settings_StartupAlways"] = "Always analyze automatically",
+        ["Settings_StartupAlwaysDesc"] = "Always scan and analyze the last opened project from disk sources, even if cache is missing.",
+        ["Settings_StartupEmpty"] = "Always show welcome screen",
+        ["Settings_StartupEmptyDesc"] = "Always start the application with an empty workspace ready for a new project."
     };
 
     private LocalizationService() { }

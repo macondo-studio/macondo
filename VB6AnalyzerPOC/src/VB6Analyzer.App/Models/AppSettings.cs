@@ -12,6 +12,9 @@ public sealed class AppSettings
     /// <summary>Lingua dell'interfaccia utente (Italiano o English).</summary>
     public AppLanguage Language { get; set; } = AppLanguage.Italian;
 
+    /// <summary>Comportamento di caricamento e analisi del progetto all'avvio dell'applicazione.</summary>
+    public StartupLoadMode StartupMode { get; set; } = StartupLoadMode.OnlyIfCached;
+
     /// <summary>Percorso dell'ultima cartella di progetto VB6 aperta con successo.</summary>
     public string? LastOpenedFolder { get; set; }
 
@@ -79,4 +82,19 @@ public sealed class RecentProjectItem
     public string DisplayName { get; set; } = string.Empty;
     public bool IsFolder { get; set; }
     public DateTime LastOpenedUtc { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>
+/// Modalità di gestione del caricamento e dell'analisi all'avvio dell'applicazione.
+/// </summary>
+public enum StartupLoadMode
+{
+    /// <summary>Ripristina automaticamente il progetto solo se è già presente uno snapshot in cache. Altrimenti mostra la schermata iniziale.</summary>
+    OnlyIfCached = 0,
+
+    /// <summary>Esegue sempre l'analisi automatica da disco dell'ultimo progetto aperto anche in assenza di cache.</summary>
+    AlwaysAnalyze = 1,
+
+    /// <summary>Non carica automaticamente alcun progetto all'avvio e mostra sempre la schermata iniziale (workspace vuoto).</summary>
+    EmptyWorkspace = 2
 }

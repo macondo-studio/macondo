@@ -454,17 +454,39 @@ public partial class MainWindow : Window
         // Ripristino Filtro di Rischio salvato
         RiskFilterComboBox.SelectedIndex = Math.Clamp(settings.DefaultRiskFilterIndex, 0, 4);
 
-        // Caricamento del Progetto: Ultima cartella aperta o Fixture reali di default (solo in Debug)
-        if (!string.IsNullOrEmpty(settings.LastOpenedFolder) && Directory.Exists(settings.LastOpenedFolder))
+        // Caricamento del Progetto: Gestione Intelligente in base a StartupMode
+        var startupMode = settings.StartupMode;
+        var lastFolder = settings.LastOpenedFolder;
+        var hasValidLastFolder = !string.IsNullOrEmpty(lastFolder) && Directory.Exists(lastFolder);
+
+        if (startupMode == StartupLoadMode.OnlyIfCached && hasValidLastFolder)
         {
-            _ = AnalyzeAndLoadFolderAsync(settings.LastOpenedFolder);
+            var isCached = ProjectCacheService.Instance.HasCache(lastFolder!);
+            if (isCached)
+            {
+                // Caricamento istantaneo da cache
+                _ = AnalyzeAndLoadFolderAsync(lastFolder!);
+            }
+            else
+            {
+                // Nessuna cache: mostra la schermata iniziale predisponendo il progetto in sospeso
+                _currentFolderPath = lastFolder;
+                _currentPaths = new List<string> { lastFolder! };
+                UpdateVcsBranchStatus(lastFolder);
+                ShowWelcomeScreen(pendingFolder: lastFolder);
+                StatusText.Text = LocalizationService.Instance.Get("Status_NoCachePending", Path.GetFileName(lastFolder!.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)));
+            }
         }
-#if DEBUG
+        else if (startupMode == StartupLoadMode.AlwaysAnalyze && hasValidLastFolder)
+        {
+            _ = AnalyzeAndLoadFolderAsync(lastFolder!);
+        }
         else
         {
-            LoadDefaultFixtures();
+            // EmptyWorkspace o nessun percorso recente salvato
+            ShowWelcomeScreen();
+            StatusText.Text = LocalizationService.Instance["Status_StartupEmptyReady"];
         }
-#endif
 
         // Controllo automatico aggiornamenti in background all'avvio
         _ = CheckForUpdatesOnStartupAsync();
@@ -961,6 +983,7 @@ public partial class MainWindow : Window
         });
 
         UpdateRecentProjectsMenu();
+        UpdateWelcomeView();
     }
 
     /// <summary>
@@ -1045,6 +1068,10 @@ public partial class MainWindow : Window
     private void ApplyGraphToUI(List<BlastRadiusGridRow>? precalculatedRows = null)
     {
         if (_graph is null) return;
+
+        // Mostra i Tab centrali di analisi e nasconde la Welcome View
+        WelcomePanel.IsVisible = false;
+        CentralTabControl.IsVisible = true;
 
         Layout.GraphLayoutManager.ApplyLayout(_graph, _currentLayoutMode);
         Graph.ClearHiddenProjects();
@@ -3485,6 +3512,7 @@ public partial class MainWindow : Window
         SetExplorerVisibility(true);
         SetInspectorVisibility(true);
         UpdateRecentProjectsMenu();
+        UpdateWelcomeView();
         StatusText.Text = LocalizationService.Instance["Status_SettingsReset"];
     }
 
@@ -3493,6 +3521,117 @@ public partial class MainWindow : Window
         var count = ProjectCacheService.Instance.ClearAllCache();
         _graph?.Queries?.ClearCache();
         StatusText.Text = LocalizationService.Instance.Get("Status_CacheCleared", count);
+        UpdateWelcomeView();
+    }
+
+    #endregion
+
+    #region Schermata di Benvenuto (Welcome View)
+
+    /// <summary>
+    /// Mostra la schermata iniziale di benvenuto nascondendo i tab di analisi del grafo.
+    /// </summary>
+    private void ShowWelcomeScreen(string? pendingFolder = null)
+    {
+        _graph = null;
+        CentralTabControl.IsVisible = false;
+        WelcomePanel.IsVisible = true;
+        ExplorerTree.ItemsSource = null;
+        ShowEmptyInspector();
+        UpdateStatsBar();
+        UpdateWelcomeView(pendingFolder);
+    }
+
+    /// <summary>
+    /// Aggiorna i contenuti dinamici della schermata di benvenuto (card di progetto in sospeso e lista recenti con badge cache).
+    /// </summary>
+    private void UpdateWelcomeView(string? pendingFolder = null)
+    {
+        var loc = LocalizationService.Instance;
+        var settings = SettingsService.Instance.Settings;
+
+        // 1. Gestione card progetto recente in sospeso (senza cache)
+        var targetPending = pendingFolder ?? (_graph == null && !string.IsNullOrEmpty(settings.LastOpenedFolder) && Directory.Exists(settings.LastOpenedFolder) && !ProjectCacheService.Instance.HasCache(settings.LastOpenedFolder) ? settings.LastOpenedFolder : null);
+
+        if (!string.IsNullOrEmpty(targetPending) && Directory.Exists(targetPending))
+        {
+            WelcomePendingCard.IsVisible = true;
+            WelcomePendingPathText.Text = targetPending;
+            WelcomePendingPathText.Tag = targetPending;
+            WelcomePendingTitleText.Text = loc.Get("Welcome_PendingTitle");
+            WelcomePendingBadgeText.Text = loc.Get("Welcome_CacheNeeded");
+            WelcomePendingDescText.Text = loc.Get("Welcome_PendingNoCache");
+            WelcomePendingAnalyzeButtonText.Text = loc.Get("Welcome_AnalyzeNow");
+        }
+        else
+        {
+            WelcomePendingCard.IsVisible = false;
+        }
+
+        // 2. Popolamento lista progetti recenti con calcolo dinamico dello stato cache
+        var recentItems = new List<WelcomeRecentItem>();
+        foreach (var recent in settings.RecentProjects)
+        {
+            var isFolder = recent.Paths.Count == 1 && Directory.Exists(recent.Paths[0]);
+            var isCached = isFolder && ProjectCacheService.Instance.HasCache(recent.Paths[0]);
+
+            var pathSummary = recent.Paths.Count == 1
+                ? recent.Paths[0]
+                : string.Join(", ", recent.Paths);
+
+            var badgeText = isCached ? loc["Welcome_CacheReady"] : loc["Welcome_CacheNeeded"];
+            var badgeBg = isCached ? "#1B4D3E" : "#3D2A10";
+            var badgeFg = isCached ? "#10B981" : "#FFB74D";
+            var badgeTooltip = isCached ? loc["Welcome_CacheReadyTooltip"] : loc["Welcome_CacheNeededTooltip"];
+
+            recentItems.Add(new WelcomeRecentItem
+            {
+                DisplayName = recent.DisplayName,
+                PathSummary = pathSummary,
+                LastOpenedText = recent.LastOpenedUtc.ToLocalTime().ToString("g"),
+                Paths = recent.Paths,
+                IsFolder = isFolder,
+                IsCached = isCached,
+                CacheBadgeText = badgeText,
+                CacheBadgeBackground = badgeBg,
+                CacheBadgeForeground = badgeFg,
+                CacheBadgeTooltip = badgeTooltip
+            });
+        }
+
+        WelcomeRecentItemsList.ItemsSource = recentItems;
+        WelcomeNoRecentText.IsVisible = recentItems.Count == 0;
+    }
+
+    private async void OnWelcomePendingAnalyzeClicked(object? sender, RoutedEventArgs e)
+    {
+        if (WelcomePendingPathText.Tag is string path && !string.IsNullOrEmpty(path) && Directory.Exists(path))
+        {
+            await AnalyzeAndLoadFolderAsync(path, forceReanalyze: true);
+        }
+    }
+
+    private async void OnWelcomeOpenProjectFilesClicked(object? sender, PointerPressedEventArgs e)
+    {
+        await OpenProjectFilesAsync();
+    }
+
+    private async void OnWelcomeOpenFolderClicked(object? sender, PointerPressedEventArgs e)
+    {
+        await OpenFolderAsync();
+    }
+
+    private void OnWelcomeLoadFixturesClicked(object? sender, PointerPressedEventArgs e)
+    {
+        LoadDefaultFixtures();
+    }
+
+    private async void OnWelcomeRecentItemPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is WelcomeRecentItem item && item.Paths.Count > 0)
+        {
+            await AnalyzeAndLoadPathsAsync(item.Paths);
+        }
     }
 
     #endregion
@@ -3502,6 +3641,24 @@ public partial class MainWindow : Window
     private void UpdateLocalizedUI()
     {
         var loc = LocalizationService.Instance;
+
+        // Schermata di Benvenuto
+        WelcomeHeaderTitle.Text = loc["Welcome_Title"];
+        WelcomeHeaderSub.Text = loc["Welcome_Subtitle"];
+        WelcomeQuickStartTitle.Text = loc["Welcome_QuickStart"];
+        WelcomeOpenProjectTitle.Text = loc["Welcome_OpenProject"];
+        WelcomeOpenProjectSub.Text = loc["Welcome_OpenProjectDesc"];
+        WelcomeOpenFolderTitle.Text = loc["Welcome_OpenFolder"];
+        WelcomeOpenFolderSub.Text = loc["Welcome_OpenFolderDesc"];
+        WelcomeLoadFixturesTitle.Text = loc["Welcome_LoadFixtures"];
+        WelcomeLoadFixturesSub.Text = loc["Welcome_LoadFixturesDesc"];
+        WelcomePendingTitleText.Text = loc["Welcome_PendingTitle"];
+        WelcomePendingBadgeText.Text = loc["Welcome_CacheNeeded"];
+        WelcomePendingDescText.Text = loc["Welcome_PendingNoCache"];
+        WelcomePendingAnalyzeButtonText.Text = loc["Welcome_AnalyzeNow"];
+        WelcomeRecentTitle.Text = loc["Welcome_RecentProjects"];
+        WelcomeNoRecentText.Text = loc["Welcome_NoRecent"];
+        UpdateWelcomeView();
 
         // Menu File
         FileMenu.Header = loc["Menu_File"];
