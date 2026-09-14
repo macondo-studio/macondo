@@ -1,14 +1,14 @@
 ﻿{
-    "version":  "1.1.0",
+    "version":  "1.1.1",
     "title":  {
-                  "it":  "Macondo v1.1.0",
-                  "en":  "Macondo v1.1.0"
+                  "it":  "Macondo v1.1.1",
+                  "en":  "Macondo v1.1.1"
               },
     "releaseNotes":  {
-                         "it":  "Macondo v1.1.0 - Welcome Screen \u0026 Avvio Intelligente da Cache.\n- Nuova Schermata Iniziale (Welcome View) con accesso rapido e cronologia recenti\n- Badge dinamico di stato cache (In cache / Analisi richiesta) per ogni progetto\n- Avvio ottimizzato: caricamento automatico solo se presente in cache, zero freeze su cartelle di grandi dimensioni\n- Nuove preferenze di avvio configurabili (Solo se in cache, Analizza sempre, Mostra sempre schermata iniziale)\n- Miglioramenti di stabilità e rifinitura interfaccia",
-                         "en":  "Macondo v1.1.0 - Welcome Screen \u0026 Smart Cached Startup.\n- New interactive Welcome View with quick actions and recent projects history\n- Dynamic cache status badges (Cached / Analysis Required) on recent projects\n- Optimized startup: instant loading when cached, zero freeze on large project directories\n- New configurable startup preferences (Only if cached, Always analyze, Always show welcome screen)\n- UI refinements and stability improvements"
+                         "it":  "Supporto per numeri di riga legacy VB6 e maggiore resilienza nel parsing ed estrazione del CodeGraph.",
+                         "en":  "Support for legacy VB6 line numbers and enhanced resilience in CodeGraph parsing and semantic extraction."
                      },
     "downloadUrl":  "https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe",
-    "publishedAt":  "2026-09-13T20:07:23Z",
+    "publishedAt":  "2026-09-14T19:45:40Z",
     "isMandatory":  false
 }
