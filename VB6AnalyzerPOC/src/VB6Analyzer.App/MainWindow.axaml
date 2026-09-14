@@ -1,4 +1,4 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:Macondo.App.Controls"
         xmlns:models="using:Macondo.App.Models"
@@ -548,7 +548,7 @@
                     <TreeView x:Name="ExplorerTree" SelectionChanged="OnExplorerSelectionChanged" DoubleTapped="OnExplorerDoubleTapped">
                         <TreeView.ItemTemplate>
                             <TreeDataTemplate DataType="models:ExplorerTreeItem" ItemsSource="{Binding Children}">
-                                <Grid ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,1" Background="Transparent" ToolTip.Tip="{Binding ToolTipText}">
+                                <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="0,1" Background="Transparent" ToolTip.Tip="{Binding ToolTipText}">
                                     <!-- CheckBox visibilità solo per i nodi progetto nel workspace multi-progetto -->
                                     <CheckBox Grid.Column="0"
                                               IsVisible="{Binding IsProjectRoot}"
@@ -559,19 +559,39 @@
                                               Click="OnExplorerProjectCheckBoxClick"
                                               CommandParameter="{Binding}" />
 
+                                    <!-- Badge Tipologia (PRJ, FRM, MOD, CLS, M, P, F, C, ecc.) -->
                                     <Border Grid.Column="1"
                                             Background="{Binding BadgeBackground}"
                                             CornerRadius="3"
                                             Padding="4,1"
-                                            Margin="0,0,6,0"
+                                            Margin="0,0,5,0"
                                             VerticalAlignment="Center">
                                         <TextBlock Text="{Binding KindBadge}"
                                                    FontSize="9"
                                                    FontWeight="Bold"
                                                    Foreground="{Binding BadgeForeground}" />
                                     </Border>
-                                    <TextBlock Grid.Column="2" Text="{Binding DisplayText}" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                                    <Button Grid.Column="3"
+
+                                    <!-- Badge Accessibilità (Pub, Priv, Frnd, Glob) a sinistra del nome -->
+                                    <Border Grid.Column="2"
+                                            IsVisible="{Binding HasAccessibility}"
+                                            Background="{Binding AccessibilityBackground}"
+                                            CornerRadius="3"
+                                            Padding="4,1"
+                                            Margin="0,0,6,0"
+                                            VerticalAlignment="Center"
+                                            ToolTip.Tip="{Binding AccessibilityTooltip}">
+                                        <TextBlock Text="{Binding AccessibilityText}"
+                                                   FontSize="9"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{Binding AccessibilityForeground}" />
+                                    </Border>
+
+                                    <!-- Nome del Simbolo -->
+                                    <TextBlock Grid.Column="3" Text="{Binding DisplayText}" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+
+                                    <!-- Pulsante Apertura File Sorgente -->
+                                    <Button Grid.Column="4"
                                             IsVisible="{Binding HasFile}"
                                             Background="Transparent"
                                             BorderThickness="0"

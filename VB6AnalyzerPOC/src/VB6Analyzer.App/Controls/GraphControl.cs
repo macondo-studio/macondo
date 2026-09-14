@@ -622,6 +622,7 @@ public sealed class GraphControl : Control
     /// Progressive disclosure e filtraggio per livelli/categorie:
     /// - I container principali (Project, Form, Class, Module, UserControl) sono sempre presenti nello scheletro architetturale.
     /// - I membri figli e le tipologie sono visibili solo se il relativo container è espanso E la rispettiva categoria è abilitata nel filtro.
+    /// - Quando un container o un suo membro è selezionato o espanso, tutti i membri di quel container sono resi visibili indipendentemente dal filtro di dettaglio.
     /// - In modalità Blast Radius o Callees/Callers, i nodi impattati e il percorso di chiamata vengono forzati visibili.
     /// </summary>
     private HashSet<Guid> ComputeVisibleNodeIds(VisualCodeGraph graph)
@@ -644,10 +645,17 @@ public sealed class GraphControl : Control
                 continue;
             }
 
+            // Un membro è forzato visibile se:
+            // 1. È nel raggio di blast radius o nei percorsi di chiamata calcolati
+            // 2. È il nodo attualmente selezionato
+            // 3. È un membro del container attualmente selezionato o condivide il container con il membro selezionato
+            var isChildOfSelected = _selectedNode != null && (node.ParentId == _selectedNode.Id || (_selectedNode.ParentId.HasValue && node.ParentId == _selectedNode.ParentId));
+
             var isForcedVisible = _blastRadiusDepths.ContainsKey(node.Id) ||
                                   _calleeNodeIds.Contains(node.Id) ||
                                   _callerNodeIds.Contains(node.Id) ||
-                                  _selectedNode?.Id == node.Id;
+                                  _selectedNode?.Id == node.Id ||
+                                  isChildOfSelected;
 
             // Verifica se la categoria del simbolo è abilitata nel filtro attivo
             var isCategoryEnabled = node.Kind switch
@@ -660,6 +668,7 @@ public sealed class GraphControl : Control
                 _ => true
             };
 
+            // Se la categoria non è abilitata nel filtro e il nodo non è forzato/selezionato, non mostrarlo
             if (!isCategoryEnabled && !isForcedVisible)
             {
                 continue;
@@ -895,6 +904,19 @@ public sealed class GraphControl : Control
         if (node is not null && Graph is { } graph)
         {
             _highlightedNodeIds.Add(node.Id);
+
+            if (node.IsContainer)
+            {
+                node.IsExpanded = true;
+            }
+            else if (node.ParentId.HasValue)
+            {
+                var parent = graph.GetNode(node.ParentId.Value);
+                if (parent is not null)
+                {
+                    parent.IsExpanded = true;
+                }
+            }
 
             foreach (var edge in graph.Edges)
             {

@@ -651,7 +651,9 @@ public partial class MainWindow : Window
             UpdateVcsBranchStatus(null);
             StatusText.Text = loc["Status_FakeGraphGenerating"];
             _graph = await Task.Run(() => Generation.FakeGraphGenerator.Generate(seed: Environment.TickCount), token);
+#if !DEBUG
             token.ThrowIfCancellationRequested();
+#endif
             ApplyGraphToUI();
             StatusText.Text = loc["Status_FakeGraphGenerated"];
         }
@@ -692,7 +694,9 @@ public partial class MainWindow : Window
             UpdateVcsBranchStatus(null);
             StatusText.Text = loc["Loading_FixturesSub"];
             _graph = await Task.Run(() => ProjectAnalysisService.LoadDefaultFixtures(progress, token), token);
+#if !DEBUG
             token.ThrowIfCancellationRequested();
+#endif
             ApplyGraphToUI();
             StatusText.Text = loc["Status_FixturesLoaded"];
 
@@ -860,11 +864,15 @@ public partial class MainWindow : Window
             if (!forceReanalyze && paths.Count == 1 && Directory.Exists(firstPath))
             {
                 var cachedSnapshot = await ProjectCacheService.Instance.TryLoadSnapshotAsync(firstPath);
+#if !DEBUG
                 token.ThrowIfCancellationRequested();
+#endif
                 if (cachedSnapshot != null)
                 {
                     var (cachedGraph, cachedRows) = await Task.Run(() => ProjectCacheService.Instance.RestoreGraphAndRows(cachedSnapshot), token);
+#if !DEBUG
                     token.ThrowIfCancellationRequested();
+#endif
                     _graph = cachedGraph;
                     _currentFolderPath = firstPath;
                     _currentPaths = paths.ToList();
@@ -899,7 +907,9 @@ public partial class MainWindow : Window
 
             StatusText.Text = loc.Get("Status_AnalyzingSources", paths.Count);
             _graph = await Task.Run(() => ProjectAnalysisService.AnalyzePaths(paths, progress, token), token);
+#if !DEBUG
             token.ThrowIfCancellationRequested();
+#endif
             _currentFolderPath = firstPath;
             _currentPaths = paths.ToList();
             if (Directory.Exists(firstPath)) UpdateVcsBranchStatus(firstPath);

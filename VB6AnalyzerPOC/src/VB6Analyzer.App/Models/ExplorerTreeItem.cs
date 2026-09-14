@@ -38,6 +38,12 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
         }
     }
 
+    public string? AccessibilityText { get; init; }
+    public string? AccessibilityBackground { get; init; }
+    public string? AccessibilityForeground { get; init; }
+    public string? AccessibilityTooltip { get; init; }
+    public bool HasAccessibility => !string.IsNullOrEmpty(AccessibilityText);
+
     public string? FilePath { get; init; }
     public int LineStart { get; init; }
     public int LineEnd { get; init; }
@@ -164,6 +170,7 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
     private static ExplorerTreeItem Build(VisualCodeGraph graph, GraphNode node, string? projectFolderPath = null)
     {
         var (badge, bg, fg) = GetBadgeInfo(node.Kind);
+        var (accText, accBg, accFg, accTip) = GetAccessibilityInfo(node.SemanticSymbol?.Accessibility, node.Kind);
         var nodeFilePath = ResolvePath(node.SemanticSymbol?.FilePath, projectFolderPath);
 
         var item = new ExplorerTreeItem
@@ -175,6 +182,10 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
             KindBadge = badge,
             BadgeBackground = bg,
             BadgeForeground = fg,
+            AccessibilityText = accText,
+            AccessibilityBackground = accBg,
+            AccessibilityForeground = accFg,
+            AccessibilityTooltip = accTip,
             FilePath = nodeFilePath,
             LineStart = node.SemanticSymbol?.LineStart ?? 0,
             LineEnd = node.SemanticSymbol?.LineEnd ?? 0
@@ -194,6 +205,10 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
                     KindBadge = childItem.KindBadge,
                     BadgeBackground = childItem.BadgeBackground,
                     BadgeForeground = childItem.BadgeForeground,
+                    AccessibilityText = childItem.AccessibilityText,
+                    AccessibilityBackground = childItem.AccessibilityBackground,
+                    AccessibilityForeground = childItem.AccessibilityForeground,
+                    AccessibilityTooltip = childItem.AccessibilityTooltip,
                     FilePath = item.FilePath,
                     LineStart = childItem.LineStart,
                     LineEnd = childItem.LineEnd
@@ -203,6 +218,30 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
         }
 
         return item;
+    }
+
+    public static (string? Text, string? Background, string? Foreground, string? Tooltip) GetAccessibilityInfo(Accessibility? accessibility, SymbolKind kind)
+    {
+        // Visualizza il tag di accessibilità per routine, proprietà, campi, costanti, tipi, enum ed eventi
+        if (accessibility == null) return (null, null, null, null);
+
+        var acc = accessibility.Value;
+        if (acc == Accessibility.Default)
+        {
+            // In VB6 le routine (Sub, Function, Property) senza specificatore esplicito sono Public di default
+            if (kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
+                return ("Pub", "#1C3328", "#4ADE80", "Visibilità: Public (Default)");
+            return (null, null, null, null);
+        }
+
+        return acc switch
+        {
+            Accessibility.Public => ("Pub", "#1C3328", "#4ADE80", "Visibilità: Public"),
+            Accessibility.Private => ("Priv", "#382024", "#F87171", "Visibilità: Private"),
+            Accessibility.Friend => ("Frnd", "#382D14", "#FBBF24", "Visibilità: Friend"),
+            Accessibility.Global => ("Glob", "#1C2D3D", "#60A5FA", "Visibilità: Global"),
+            _ => (null, null, null, null)
+        };
     }
 
     public static string? ResolvePath(string? filePath, string? baseFolder)
