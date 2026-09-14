@@ -25,8 +25,11 @@ La soluzione è suddivisa in tre componenti modulari (.NET 8):
 ```
 Vb6Analyzer/
 ├── README.md                                 # Questo file (panoramica globale e guida LLM)
-├── VB6Analyzer-Project.md                    # Charter e specifiche architetturali complete
-├── publish-single-file.ps1                   # Script di build per release EXE standalone
+├── scripts/                                  # Script di automazione (bump version, publish, test suite)
+│   ├── bump-and-publish.ps1                  # Pipeline completa: bump versione e pubblicazione EXE
+│   ├── bump-version.ps1                      # Aggiornamento atomico versione SemVer
+│   ├── publish-single-file.ps1               # Compilazione ed esportazione EXE standalone
+│   └── run-tests.ps1                         # Esecuzione automatica test suite xUnit
 │
 ├── VB6AnalyzerPOC/                           # Frontend Desktop Desktop UI (Avalonia 11)
 │   ├── README.md                             # Documentazione specifica della UI
@@ -165,7 +168,11 @@ Opzioni disponibili:
 ### Pubblicazione EXE Standalone (Single-File)
 Per generare l'eseguibile unico autonomo per Windows x64:
 ```powershell
-.\publish-single-file.ps1
+.\scripts\publish-single-file.ps1
+```
+Oppure per eseguire l'aggiornamento di versione e la pubblicazione in un unico comando:
+```powershell
+.\scripts\bump-and-publish.ps1 -NewVersion "1.2.0" -NotesIt "Descrizione release IT" -NotesEn "Release notes EN"
 ```
 L'eseguibile generato sarà disponibile in `publish/win-x64/Macondo.exe`.
 
