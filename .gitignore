@@ -23,3 +23,5 @@ Desktop.ini
 .DS_Store
 /VB6AnalyzerPOC/.vs/CopilotSnapshots
 /publish
+/SampleLegacyApp
+SampleLegacyApp.zip
