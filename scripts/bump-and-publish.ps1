@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Esegue in sequenza l'aggiornamento di versione (bump-version) e la generazione dell'eseguibile unico (publish-single-file).
 
@@ -75,10 +75,11 @@ if (-not (Test-Path $bumpScript)) {
     exit 1
 }
 
+$global:LASTEXITCODE = 0
 & $bumpScript -NewVersion $NewVersion -NotesIt $NotesIt -NotesEn $NotesEn
-if ($LASTEXITCODE -ne 0) {
+if (-not $? -or $global:LASTEXITCODE -ne 0) {
     Write-Host "`n[BLOCCO PIPELINE] Errore durante l'aggiornamento della versione." -ForegroundColor Red
-    exit $LASTEXITCODE
+    exit 1
 }
 
 # 2. Pubblicazione Singolo Eseguibile
@@ -88,10 +89,11 @@ if (-not (Test-Path $publishScript)) {
     exit 1
 }
 
+$global:LASTEXITCODE = 0
 & $publishScript
-if ($LASTEXITCODE -ne 0) {
+if (-not $? -or $global:LASTEXITCODE -ne 0) {
     Write-Host "`n[BLOCCO PIPELINE] Errore durante la pubblicazione del pacchetto." -ForegroundColor Red
-    exit $LASTEXITCODE
+    exit 1
 }
 
 $outputExe = Join-Path $workspaceRoot "publish\win-x64\Macondo.exe"
