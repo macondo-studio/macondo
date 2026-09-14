@@ -148,78 +148,84 @@ attributeStmt
     : ATTRIBUTE WS implicitCallStmt_InStmt WS? EQ WS? literal (WS? COMMA WS? literal)*
     ;
 
+lineNumber
+    : INTEGERLITERAL COLON?
+    ;
+
 block
     : blockStmt (NEWLINE+ WS? blockStmt)*
     ;
 
 blockStmt
-    : appActivateStmt
-    | attributeStmt
-    | beepStmt
-    | chDirStmt
-    | chDriveStmt
-    | closeStmt
-    | constStmt
-    | dateStmt
-    | deleteSettingStmt
-    | deftypeStmt
-    | doLoopStmt
-    | endStmt
-    | eraseStmt
-    | errorStmt
-    | exitStmt
-    | explicitCallStmt
-    | filecopyStmt
-    | forEachStmt
-    | forNextStmt
-    | getStmt
-    | goSubStmt
-    | goToStmt
-    | ifThenElseStmt
-    | implementsStmt
-    | inputStmt
-    | killStmt
-    | letStmt
-    | lineInputStmt
-    | lineLabel
-    | loadStmt
-    | lockStmt
-    | lsetStmt
-    | macroIfThenElseStmt
-    | midStmt
-    | mkdirStmt
-    | nameStmt
-    | onErrorStmt
-    | onGoToStmt
-    | onGoSubStmt
-    | openStmt
-    | printStmt
-    | putStmt
-    | raiseEventStmt
-    | randomizeStmt
-    | redimStmt
-    | resetStmt
-    | resumeStmt
-    | returnStmt
-    | rmdirStmt
-    | rsetStmt
-    | savepictureStmt
-    | saveSettingStmt
-    | seekStmt
-    | selectCaseStmt
-    | sendkeysStmt
-    | setattrStmt
-    | setStmt
-    | stopStmt
-    | timeStmt
-    | unloadStmt
-    | unlockStmt
-    | variableStmt
-    | whileWendStmt
-    | widthStmt
-    | withStmt
-    | writeStmt
-    | implicitCallStmt_InBlock
+    : ((lineNumber | ambiguousIdentifier COLON) WS?)? (
+        appActivateStmt
+        | attributeStmt
+        | beepStmt
+        | chDirStmt
+        | chDriveStmt
+        | closeStmt
+        | constStmt
+        | dateStmt
+        | deleteSettingStmt
+        | deftypeStmt
+        | doLoopStmt
+        | endStmt
+        | eraseStmt
+        | errorStmt
+        | exitStmt
+        | explicitCallStmt
+        | filecopyStmt
+        | forEachStmt
+        | forNextStmt
+        | getStmt
+        | goSubStmt
+        | goToStmt
+        | ifThenElseStmt
+        | implementsStmt
+        | inputStmt
+        | killStmt
+        | letStmt
+        | lineInputStmt
+        | lineLabel
+        | loadStmt
+        | lockStmt
+        | lsetStmt
+        | macroIfThenElseStmt
+        | midStmt
+        | mkdirStmt
+        | nameStmt
+        | onErrorStmt
+        | onGoToStmt
+        | onGoSubStmt
+        | openStmt
+        | printStmt
+        | putStmt
+        | raiseEventStmt
+        | randomizeStmt
+        | redimStmt
+        | resetStmt
+        | resumeStmt
+        | returnStmt
+        | rmdirStmt
+        | rsetStmt
+        | savepictureStmt
+        | saveSettingStmt
+        | seekStmt
+        | selectCaseStmt
+        | sendkeysStmt
+        | setattrStmt
+        | setStmt
+        | stopStmt
+        | timeStmt
+        | unloadStmt
+        | unlockStmt
+        | variableStmt
+        | whileWendStmt
+        | widthStmt
+        | withStmt
+        | writeStmt
+        | implicitCallStmt_InBlock
+    )
     ;
 
 // statements ----------------------------------
@@ -284,9 +290,9 @@ deleteSettingStmt
     ;
 
 doLoopStmt
-    : DO NEWLINE+ (block NEWLINE+)? LOOP
-    | DO WS (WHILE | UNTIL) WS valueStmt NEWLINE+ ( block NEWLINE+)? LOOP
-    | DO NEWLINE+ (block NEWLINE+)? LOOP WS (WHILE | UNTIL) WS valueStmt
+    : DO NEWLINE+ (block NEWLINE+)? (lineNumber WS)? LOOP
+    | DO WS (WHILE | UNTIL) WS valueStmt NEWLINE+ (block NEWLINE+)? (lineNumber WS)? LOOP
+    | DO NEWLINE+ (block NEWLINE+)? (lineNumber WS)? LOOP WS (WHILE | UNTIL) WS valueStmt
     ;
 
 endStmt
@@ -326,7 +332,7 @@ filecopyStmt
     ;
 
 forEachStmt
-    : FOR WS EACH WS ambiguousIdentifier typeHint? WS IN WS valueStmt NEWLINE+ (block NEWLINE+)? NEXT (
+    : FOR WS EACH WS ambiguousIdentifier typeHint? WS IN WS valueStmt NEWLINE+ (block NEWLINE+)? (lineNumber WS)? NEXT (
         WS ambiguousIdentifier
     )?
     ;
@@ -334,13 +340,13 @@ forEachStmt
 forNextStmt
     : FOR WS iCS_S_VariableOrProcedureCall typeHint? (WS asTypeClause)? WS? EQ WS? valueStmt WS TO WS valueStmt (
         WS STEP WS valueStmt
-    )? NEWLINE+ (block NEWLINE+)? NEXT (WS ambiguousIdentifier typeHint?)?
+    )? NEWLINE+ (block NEWLINE+)? (lineNumber WS)? NEXT (WS ambiguousIdentifier typeHint?)?
     ;
 
 functionStmt
     : (visibility WS)? (STATIC WS)? FUNCTION WS ambiguousIdentifier (WS? argList)? (
         WS asTypeClause
-    )? NEWLINE+ (block NEWLINE+)? END_FUNCTION
+    )? NEWLINE+ (block NEWLINE+)? (lineNumber WS)? END_FUNCTION
     ;
 
 getStmt
@@ -357,11 +363,11 @@ goToStmt
 
 ifThenElseStmt
     : IF WS ifConditionStmt WS THEN WS blockStmt (WS ELSE WS blockStmt)? # inlineIfThenElse
-    | ifBlockStmt ifElseIfBlockStmt* ifElseBlockStmt? END_IF             # blockIfThenElse
+    | ifBlockStmt ifElseIfBlockStmt* ifElseBlockStmt? (lineNumber WS)? END_IF # blockIfThenElse
     ;
 
 ifBlockStmt
-    : IF WS ifConditionStmt WS THEN NEWLINE+ (block NEWLINE+)?
+    : (lineNumber WS)? IF WS ifConditionStmt WS THEN NEWLINE+ (block NEWLINE+)?
     ;
 
 ifConditionStmt
@@ -369,11 +375,11 @@ ifConditionStmt
     ;
 
 ifElseIfBlockStmt
-    : ELSEIF WS ifConditionStmt WS THEN (WS | NEWLINE)+ (block NEWLINE+)?
+    : (lineNumber WS)? ELSEIF WS ifConditionStmt WS THEN (WS | NEWLINE)+ (block NEWLINE+)?
     ;
 
 ifElseBlockStmt
-    : ELSE NEWLINE+ (block NEWLINE+)?
+    : (lineNumber WS)? ELSE NEWLINE+ (block NEWLINE+)?
     ;
 
 implementsStmt
@@ -397,7 +403,7 @@ lineInputStmt
     ;
 
 loadStmt
-    : LOAD WS valueStmt
+    : LOAD WS (argsCall | valueStmt)
     ;
 
 lockStmt
@@ -473,19 +479,19 @@ printStmt
 propertyGetStmt
     : (visibility WS)? (STATIC WS)? PROPERTY_GET WS ambiguousIdentifier typeHint? (WS? argList)? (
         WS asTypeClause
-    )? NEWLINE+ (block NEWLINE+)? END_PROPERTY
+    )? NEWLINE+ (block NEWLINE+)? (lineNumber WS)? END_PROPERTY
     ;
 
 propertySetStmt
     : (visibility WS)? (STATIC WS)? PROPERTY_SET WS ambiguousIdentifier (WS? argList)? NEWLINE+ (
         block NEWLINE+
-    )? END_PROPERTY
+    )? (lineNumber WS)? END_PROPERTY
     ;
 
 propertyLetStmt
     : (visibility WS)? (STATIC WS)? PROPERTY_LET WS ambiguousIdentifier (WS? argList)? NEWLINE+ (
         block NEWLINE+
-    )? END_PROPERTY
+    )? (lineNumber WS)? END_PROPERTY
     ;
 
 putStmt
@@ -541,11 +547,11 @@ seekStmt
     ;
 
 selectCaseStmt
-    : SELECT WS CASE WS valueStmt NEWLINE+ sC_Case* WS? END_SELECT
+    : (lineNumber WS)? SELECT WS CASE WS valueStmt NEWLINE+ sC_Case* WS? (lineNumber WS)? END_SELECT
     ;
 
 sC_Case
-    : CASE WS sC_Cond WS? (COLON? NEWLINE* | NEWLINE+) (block NEWLINE+)?
+    : (lineNumber WS)? CASE WS sC_Cond WS? (COLON? NEWLINE* | NEWLINE+) (block NEWLINE+)?
     ;
 
 // ELSE first, so that it is not interpreted as a variable call
@@ -579,7 +585,7 @@ stopStmt
 subStmt
     : (visibility WS)? (STATIC WS)? SUB WS ambiguousIdentifier (WS? argList)? NEWLINE+ (
         block NEWLINE+
-    )? END_SUB
+    )? (lineNumber WS)? END_SUB
     ;
 
 timeStmt
@@ -599,7 +605,7 @@ typeOfStmt
     ;
 
 unloadStmt
-    : UNLOAD WS valueStmt
+    : UNLOAD WS (argsCall | valueStmt)
     ;
 
 unlockStmt
@@ -647,7 +653,7 @@ variableSubStmt
     ;
 
 whileWendStmt
-    : WHILE WS valueStmt NEWLINE+ block* NEWLINE* WEND
+    : (lineNumber WS)? WHILE WS valueStmt NEWLINE+ (block NEWLINE+)? (lineNumber WS)? WEND
     ;
 
 widthStmt
@@ -655,7 +661,7 @@ widthStmt
     ;
 
 withStmt
-    : WITH WS (NEW WS)? implicitCallStmt_InStmt NEWLINE+ (block NEWLINE+)? END_WITH
+    : (lineNumber WS)? WITH WS (NEW WS)? implicitCallStmt_InStmt NEWLINE+ (block NEWLINE+)? (lineNumber WS)? END_WITH
     ;
 
 writeStmt
@@ -822,6 +828,7 @@ letterrange
 
 lineLabel
     : ambiguousIdentifier COLON
+    | INTEGERLITERAL COLON?
     ;
 
 literal

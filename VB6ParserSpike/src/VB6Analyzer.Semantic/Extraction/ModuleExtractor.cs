@@ -1,4 +1,4 @@
-﻿using Antlr4.Runtime;
+using Antlr4.Runtime;
 using Macondo.Parser.Diagnostics;
 using Macondo.Parser.Grammar;
 using Macondo.Semantic.Model;
@@ -87,30 +87,28 @@ public static class ModuleExtractor
         // 5. Avvia il parsing dalla regola principale 'startRule'
         var tree = parser.startRule();
 
-        // Se ci sono errori sintattici bloccanti, interrompe l'estrazione e segnala gli errori
-        if (errors.Count > 0)
+        // Aggiorna la riga finale del modulo in base all'ultimo token dell'albero se disponibile
+        if (tree?.Stop?.Line is int stopLine and > 0)
         {
-            return new ModuleExtractionResult
-            {
-                ModuleSymbol = moduleSymbol,
-                ParseErrors = errors,
-                LikelyEventHandlerNames = Array.Empty<string>(),
-                ParseTree = null
-            };
+            moduleSymbol.LineEnd = stopLine;
         }
 
-        // Aggiorna la riga finale del modulo in base all'ultimo token dell'albero
-        moduleSymbol.LineEnd = tree.Stop?.Line ?? 1;
-
         // 6. Esegue il SymbolExtractor sul parse tree per estrarre routine, proprietà, variabili, costanti, ecc.
-        var extractor = new SymbolExtractor(graph, moduleSymbol, filePath);
-        extractor.Visit(tree);
+        // Esecuzione resiliente (best-effort): estrae comunque tutti i simboli validi dal parse tree anche
+        // in presenza di errori sintattici su singole istruzioni.
+        var likelyEventHandlers = Array.Empty<string>();
+        if (tree != null)
+        {
+            var extractor = new SymbolExtractor(graph, moduleSymbol, filePath);
+            extractor.Visit(tree);
+            likelyEventHandlers = extractor.LikelyEventHandlerNames.ToArray();
+        }
 
         return new ModuleExtractionResult
         {
             ModuleSymbol = moduleSymbol,
             ParseErrors = errors,
-            LikelyEventHandlerNames = extractor.LikelyEventHandlerNames,
+            LikelyEventHandlerNames = likelyEventHandlers,
             ParseTree = tree
         };
     }

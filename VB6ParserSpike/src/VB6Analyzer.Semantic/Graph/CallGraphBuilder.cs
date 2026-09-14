@@ -41,7 +41,7 @@ public sealed class CallGraphBuilder
         // 1. Genera le relazioni CALLS e INSTANTIATES attraversando gli AST delle routine
         foreach (var extraction in extractionResults)
         {
-            if (!extraction.Success || extraction.ParseTree == null)
+            if (extraction.ParseTree == null)
                 continue;
 
             var analyzer = new RoutineInvocationAnalyzer(_symbolResolver, extraction.ModuleSymbol);
