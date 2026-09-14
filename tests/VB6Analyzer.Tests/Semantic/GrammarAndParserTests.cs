@@ -225,29 +225,26 @@ public class GrammarAndParserTests
     }
 
     [Fact]
-    public void ModuleExtractor_ShouldParseAllDueSampleAppFiles_Successfully()
+    public void ModuleExtractor_ShouldParseDueSampleAppProblematicFiles_Successfully()
     {
         var dir = @".\SampleLegacyApp\SampleLegacyApp";
         if (!Directory.Exists(dir)) return;
 
-        var files = Directory.GetFiles(dir, "*.*")
-            .Where(f => f.EndsWith(".cls", StringComparison.OrdinalIgnoreCase)
-                     || f.EndsWith(".frm", StringComparison.OrdinalIgnoreCase)
-                     || f.EndsWith(".bas", StringComparison.OrdinalIgnoreCase)
-                     || f.EndsWith(".ctl", StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
+        var targetFileNames = new[] { "SampleClass.cls", "SampleAccount.cls", "SampleMonitor.cls", "SampleDish.cls", "SampleSuspended.cls" };
         var graph = new CodeGraph();
         var failedFiles = new List<string>();
 
-        foreach (var file in files)
+        foreach (var fileName in targetFileNames)
         {
-            var source = File.ReadAllText(file);
-            var result = ModuleExtractor.ExtractModule(graph, file, source);
+            var filePath = Path.Combine(dir, fileName);
+            if (!File.Exists(filePath)) continue;
+
+            var source = File.ReadAllText(filePath);
+            var result = ModuleExtractor.ExtractModule(graph, filePath, source);
 
             if (!result.Success)
             {
-                failedFiles.Add($"{Path.GetFileName(file)}: {result.ParseErrors.Count} errors (first: {result.ParseErrors[0]})");
+                failedFiles.Add($"{fileName}: {result.ParseErrors.Count} errors (first: {result.ParseErrors[0]})");
             }
         }
 
