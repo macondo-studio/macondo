@@ -19,3 +19,8 @@ Ogni volta che l'utente richiede di aggiornare la versione del software, rilasci
 3. **Proposta Note di Rilascio per GitHub**:
    - Proporre sempre all'utente il testo formattato in Markdown pronto da incollare nel campo "Describe this release" di GitHub (strutturato con What's New, Key Features, Bug Fixes / Improvements, stile formale e pulito SENZA emoji).
 
+## Esecuzione dei Test Unitari
+- **NON eseguire mai i test (`VB6Analyzer.Tests` / `dotnet test`)** durante le iterazioni e modifiche ordinarie di sviluppo.
+- L'esecuzione dei test sarà effettuata o richiesta dall'utente unicamente prima di una pubblicazione/rilascio.
+- Per la verifica ordinaria del codice, limitarsi alla compilazione rapida con `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln`.
+

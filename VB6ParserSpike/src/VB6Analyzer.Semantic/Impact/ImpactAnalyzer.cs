@@ -41,7 +41,9 @@ public sealed class ImpactAnalyzer
     /// <param name="cancellationToken">Token opzionale per annullare l'analisi.</param>
     public ImpactReport AnalyzeSymbolImpact(Symbol target, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
+#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
+#endif
 
         if (target.Kind is SymbolKind.Method or SymbolKind.Property)
         {
@@ -80,7 +82,9 @@ public sealed class ImpactAnalyzer
     /// </summary>
     private ImpactReport AnalyzeRoutineImpact(Symbol routine, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
+#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
+#endif
 
         var directCallers = _queries.GetDirectCallers(routine).ToList();
         var indirectCallers = new List<ImpactedCaller>();
@@ -109,7 +113,9 @@ public sealed class ImpactAnalyzer
 
         while (queue.Count > 0)
         {
+#if !DEBUG
             cancellationToken.ThrowIfCancellationRequested();
+#endif
 
             var (current, depth) = queue.Dequeue();
 
@@ -174,7 +180,9 @@ public sealed class ImpactAnalyzer
 
         foreach (var root in rootCallers)
         {
+#if !DEBUG
             cancellationToken.ThrowIfCancellationRequested();
+#endif
             var rootPaths = _queries.FindExecutionPaths(root, routine, maxDepth, cancellationToken);
             executionPathsList.AddRange(rootPaths);
         }
@@ -207,7 +215,9 @@ public sealed class ImpactAnalyzer
     /// </summary>
     private ImpactReport AnalyzeTypeImpact(Symbol typeSymbol, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
+#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
+#endif
 
         var members = _graph.GetChildren(typeSymbol.Id).ToList();
         var directCallersSet = new HashSet<Guid>();
@@ -221,7 +231,9 @@ public sealed class ImpactAnalyzer
         // 1. Aggrega l'impatto di tutti i metodi/proprietà membri del tipo
         foreach (var member in members.Where(m => m.Kind is SymbolKind.Method or SymbolKind.Property))
         {
+#if !DEBUG
             cancellationToken.ThrowIfCancellationRequested();
+#endif
 
             var memberReport = AnalyzeRoutineImpact(member, maxDepth, cancellationToken);
 

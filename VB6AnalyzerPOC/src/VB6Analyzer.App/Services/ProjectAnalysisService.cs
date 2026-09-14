@@ -17,7 +17,9 @@ public static class ProjectAnalysisService
     /// </summary>
     public static VisualCodeGraph AnalyzePaths(IReadOnlyList<string> paths, IProgress<ProjectAnalysisProgress>? progress = null, CancellationToken cancellationToken = default)
     {
+#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
+#endif
         var projects = ProjectDescriptor.DiscoverFromPaths(paths);
         if (projects.Count == 0)
         {
@@ -34,7 +36,9 @@ public static class ProjectAnalysisService
     /// </summary>
     public static VisualCodeGraph AnalyzeProjects(IReadOnlyList<ProjectDescriptor> projects, IProgress<ProjectAnalysisProgress>? progress = null, CancellationToken cancellationToken = default)
     {
+#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
+#endif
         var totalFiles = projects.Sum(p => p.SourceFiles.Count);
         var semanticGraph = new Semantic.Model.CodeGraph();
         var extractionResults = new List<ModuleExtractionResult>(totalFiles);
@@ -43,7 +47,9 @@ public static class ProjectAnalysisService
         // 1. Registra i simboli radice di ciascun Progetto
         foreach (var proj in projects)
         {
+#if !DEBUG
             cancellationToken.ThrowIfCancellationRequested();
+#endif
             var projSymbol = new Symbol
             {
                 Id = proj.Id,
@@ -76,12 +82,16 @@ public static class ProjectAnalysisService
         // 2. Estrazione AST e simboli per ciascun file di ciascun progetto
         foreach (var proj in projects)
         {
+#if !DEBUG
             cancellationToken.ThrowIfCancellationRequested();
+#endif
             var projSymbol = projectSymbols[proj.Id];
 
             foreach (var file in proj.SourceFiles)
             {
+#if !DEBUG
                 cancellationToken.ThrowIfCancellationRequested();
+#endif
                 var fileName = Path.GetFileName(file);
                 if (File.Exists(file))
                 {
@@ -113,7 +123,9 @@ public static class ProjectAnalysisService
         }
 
         // 3. Risoluzione globale dei tipi (TypeResolver) su tutto il Workspace
+#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
+#endif
         progress?.Report(new ProjectAnalysisProgress
         {
             CurrentFileIndex = totalFiles,
@@ -127,7 +139,9 @@ public static class ProjectAnalysisService
         typeResolver.ResolveAllTypes();
 
         // 4. Risoluzione simboli e costruzione del Call Graph cross-project
+#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
+#endif
         progress?.Report(new ProjectAnalysisProgress
         {
             CurrentFileIndex = totalFiles,
@@ -142,7 +156,9 @@ public static class ProjectAnalysisService
         callGraphBuilder.BuildGraph(extractionResults);
 
         // 5. Adattamento al modello visuale per Avalonia
+#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
+#endif
         progress?.Report(new ProjectAnalysisProgress
         {
             CurrentFileIndex = totalFiles,
@@ -163,7 +179,9 @@ public static class ProjectAnalysisService
     /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere l'analisi in corso.</param>
     public static VisualCodeGraph LoadDefaultFixtures(IProgress<ProjectAnalysisProgress>? progress = null, CancellationToken cancellationToken = default)
     {
+#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
+#endif
         var baseDir = AppContext.BaseDirectory;
         var candidates = new[]
         {
