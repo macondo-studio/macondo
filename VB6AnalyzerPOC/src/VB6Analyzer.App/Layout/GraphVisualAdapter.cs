@@ -96,7 +96,8 @@ public static class GraphVisualAdapter
             if (node.Kind != SymbolKind.Project && node.ParentId == null)
             {
                 if (node.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module
-                                 or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum)
+                                 or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum
+                                 or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
                 {
                     node.ParentId = defaultProjectNode.Id;
                     visualGraph.Edges.Add(new GraphEdge

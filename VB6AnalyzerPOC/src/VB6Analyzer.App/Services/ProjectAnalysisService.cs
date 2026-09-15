@@ -42,6 +42,7 @@ public static class ProjectAnalysisService
         var totalFiles = projects.Sum(p => p.SourceFiles.Count);
         var semanticGraph = new Semantic.Model.CodeGraph();
         var extractionResults = new List<ModuleExtractionResult>(totalFiles);
+        var csharpResults = new List<CSharpExtractionResult>(totalFiles);
         var projectSymbols = new Dictionary<Guid, Symbol>();
 
         // 1. Registra i simboli radice di ciascun Progetto
@@ -56,7 +57,7 @@ public static class ProjectAnalysisService
                 Kind = SymbolKind.Project,
                 Name = proj.Name,
                 QualifiedName = proj.Name,
-                FilePath = proj.VbpPath ?? proj.FolderPath,
+                FilePath = proj.ProjectFilePath ?? proj.FolderPath,
                 LineStart = 1,
                 LineEnd = 1
             };
@@ -93,19 +94,39 @@ public static class ProjectAnalysisService
                 cancellationToken.ThrowIfCancellationRequested();
 #endif
                 var fileName = Path.GetFileName(file);
+                var fileExtension = Path.GetExtension(file);
+
                 if (File.Exists(file))
                 {
                     var source = File.ReadAllText(file);
-                    var result = ModuleExtractor.ExtractModule(semanticGraph, file, source);
-                    extractionResults.Add(result);
 
-                    // Collega il modulo al proprio progetto tramite relazione CONTAINS
-                    semanticGraph.AddContains(projSymbol, result.ModuleSymbol);
-
-                    // Imposta il QualifiedName con il prefisso del progetto se non già presente
-                    if (projects.Count > 1)
+                    if (string.Equals(fileExtension, ".cs", StringComparison.OrdinalIgnoreCase))
                     {
-                        result.ModuleSymbol.QualifiedName = $"{proj.Name}.{result.ModuleSymbol.Name}";
+                        var csResult = CSharpExtractor.ExtractCSharpFile(semanticGraph, file, source);
+                        csharpResults.Add(csResult);
+
+                        foreach (var topSym in csResult.TopLevelSymbols)
+                        {
+                            semanticGraph.AddContains(projSymbol, topSym);
+                            if (projects.Count > 1 && !topSym.QualifiedName.StartsWith(proj.Name + ".", StringComparison.OrdinalIgnoreCase))
+                            {
+                                topSym.QualifiedName = $"{proj.Name}.{topSym.QualifiedName}";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var result = ModuleExtractor.ExtractModule(semanticGraph, file, source);
+                        extractionResults.Add(result);
+
+                        // Collega il modulo al proprio progetto tramite relazione CONTAINS
+                        semanticGraph.AddContains(projSymbol, result.ModuleSymbol);
+
+                        // Imposta il QualifiedName con il prefisso del progetto se non già presente
+                        if (projects.Count > 1)
+                        {
+                            result.ModuleSymbol.QualifiedName = $"{proj.Name}.{result.ModuleSymbol.Name}";
+                        }
                     }
                 }
 
@@ -153,7 +174,7 @@ public static class ProjectAnalysisService
 
         var symbolResolver = new SymbolResolver(semanticGraph, typeResolver);
         var callGraphBuilder = new CallGraphBuilder(semanticGraph, symbolResolver);
-        callGraphBuilder.BuildGraph(extractionResults);
+        callGraphBuilder.BuildGraph(extractionResults, csharpResults);
 
         // 5. Adattamento al modello visuale per Avalonia
 #if !DEBUG

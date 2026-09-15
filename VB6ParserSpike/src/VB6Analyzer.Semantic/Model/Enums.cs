@@ -40,7 +40,19 @@ public enum SymbolKind
     Type,
 
     /// <summary>Evento dichiarato in una classe o UserControl (Event ...).</summary>
-    Event
+    Event,
+
+    /// <summary>Interfaccia (interface IFoo).</summary>
+    Interface,
+
+    /// <summary>Struttura (struct Point).</summary>
+    Struct,
+
+    /// <summary>Record (record Person).</summary>
+    Record,
+
+    /// <summary>Namespace di raggruppamento logico.</summary>
+    Namespace
 }
 
 /// <summary>
@@ -102,24 +114,36 @@ public enum ResolutionConfidence
 }
 
 /// <summary>
-/// Livelli di visibilità e modificatori di accesso dei simboli in VB6.
+/// Livelli di visibilità e modificatori di accesso dei simboli in VB6 e C#.
 /// </summary>
 public enum Accessibility
 {
     /// <summary>Accessibilità predefinita implicita (Private per membri di classe/form, Public per membri di moduli .bas).</summary>
     Default,
 
-    /// <summary>Accessibile solo all'interno del modulo/classe corrente ('Private').</summary>
+    /// <summary>Accessibile solo all'interno del modulo/classe corrente ('Private' / 'private').</summary>
     Private,
 
-    /// <summary>Accessibile pubblicamente all'intero progetto o dall'esterno ('Public').</summary>
+    /// <summary>Accessibile pubblicamente all'intero progetto o dall'esterno ('Public' / 'public').</summary>
     Public,
 
-    /// <summary>Accessibile a tutti i moduli all'interno dello stesso progetto/componente, ma non all'esterno ('Friend').</summary>
+    /// <summary>Accessibile a tutti i moduli all'interno dello stesso progetto/componente ('Friend').</summary>
     Friend,
 
     /// <summary>Dichiarazione a livello globale per moduli standard legacy ('Global').</summary>
-    Global
+    Global,
+
+    /// <summary>Accessibile dalla classe corrente e dalle classi derivate ('protected').</summary>
+    Protected,
+
+    /// <summary>Accessibile all'interno dello stesso assembly ('internal').</summary>
+    Internal,
+
+    /// <summary>Accessibile all'interno dello stesso assembly o dalle classi derivate ('protected internal').</summary>
+    ProtectedInternal,
+
+    /// <summary>Accessibile solo dalle classi derivate all'interno dello stesso assembly ('private protected').</summary>
+    PrivateProtected
 }
 
 /// <summary>

@@ -94,6 +94,42 @@ public sealed class CodeGraph
     }
 
     /// <summary>
+    /// Aggiunge una relazione di ereditarietà (INHERITS) da una classe/tipo derivato verso la classe base.
+    /// </summary>
+    public void AddInherits(Symbol derivedType, Symbol baseType, int? line = null)
+    {
+        if (Relationships.Any(r => r.Kind == RelationshipKind.Inherits && r.SourceId == derivedType.Id && r.TargetId == baseType.Id))
+            return;
+
+        Relationships.Add(new Relationship
+        {
+            SourceId = derivedType.Id,
+            TargetId = baseType.Id,
+            Kind = RelationshipKind.Inherits,
+            Line = line,
+            Confidence = ResolutionConfidence.Exact
+        });
+    }
+
+    /// <summary>
+    /// Aggiunge una relazione di implementazione di interfaccia (IMPLEMENTS) tra una classe/struttura e l'interfaccia.
+    /// </summary>
+    public void AddImplements(Symbol implementingType, Symbol interfaceType, int? line = null)
+    {
+        if (Relationships.Any(r => r.Kind == RelationshipKind.Implements && r.SourceId == implementingType.Id && r.TargetId == interfaceType.Id))
+            return;
+
+        Relationships.Add(new Relationship
+        {
+            SourceId = implementingType.Id,
+            TargetId = interfaceType.Id,
+            Kind = RelationshipKind.Implements,
+            Line = line,
+            Confidence = ResolutionConfidence.Exact
+        });
+    }
+
+    /// <summary>
     /// Aggiunge una relazione di dipendenza di tipo (USES_TYPE) da un simbolo verso il tipo utilizzato.
     /// </summary>
     /// <param name="source">Il simbolo che dichiara o usa il tipo (variabile, routine, modulo).</param>

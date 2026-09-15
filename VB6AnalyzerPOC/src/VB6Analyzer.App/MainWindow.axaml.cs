@@ -786,7 +786,19 @@ public partial class MainWindow : Window
             AllowMultiple = true,
             FileTypeFilter = new[]
             {
-                new FilePickerFileType(loc["Open_FileTypeProjects"])
+                new FilePickerFileType(loc["Open_FileTypeSupportedProjects"])
+                {
+                    Patterns = new[] { "*.vbp", "*.vbg", "*.csproj", "*.sln", "*.cs" }
+                },
+                new FilePickerFileType(loc["Open_FileTypeCSharpProjects"])
+                {
+                    Patterns = new[] { "*.csproj", "*.sln" }
+                },
+                new FilePickerFileType(loc["Open_FileTypeCSharpSources"])
+                {
+                    Patterns = new[] { "*.cs" }
+                },
+                new FilePickerFileType(loc["Open_FileTypeVB6Projects"])
                 {
                     Patterns = new[] { "*.vbp", "*.vbg" }
                 },

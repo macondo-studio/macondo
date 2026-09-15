@@ -33,6 +33,9 @@ public sealed class SymbolResolver
     /// <summary>Scope di progetto globale condiviso.</summary>
     public ProjectScope ProjectScope => _projectScope;
 
+    /// <summary>Motore di risoluzione dei tipi associato.</summary>
+    public TypeResolver TypeResolver => _typeResolver;
+
     /// <summary>
     /// Inizializza il SymbolResolver per il grafo specificato.
     /// </summary>

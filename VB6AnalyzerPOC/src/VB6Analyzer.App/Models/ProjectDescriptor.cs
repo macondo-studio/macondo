@@ -9,16 +9,19 @@ public sealed class ProjectDescriptor
     public required string Name { get; init; }
     public required string FolderPath { get; init; }
     public string? VbpPath { get; init; }
+    public string? CsprojPath { get; init; }
+    public string? ProjectFilePath => VbpPath ?? CsprojPath;
     public List<string> SourceFiles { get; init; } = new();
 
     /// <summary>
-    /// Ispeziona un insieme di percorsi (cartelle, file .vbp o file .vbg) e restituisce
-    /// i descrittori di tutti i progetti VB6 individuati.
+    /// Ispeziona un insieme di percorsi (cartelle, file .vbp, .vbg, .csproj, .sln o file sorgente)
+    /// e restituisce i descrittori di tutti i progetti individuati.
     /// </summary>
     public static List<ProjectDescriptor> DiscoverFromPaths(IEnumerable<string> paths)
     {
         var descriptors = new List<ProjectDescriptor>();
         var seenFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var seenProjectFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var rawPath in paths)
         {
@@ -38,18 +41,70 @@ public sealed class ProjectDescriptor
                             descriptors.Add(vbgProj);
                     }
                 }
+                else if (ext == ".sln")
+                {
+                    // Visual Studio Solution file
+                    var slnProjects = ParseSlnFile(fullPath);
+                    foreach (var slnProj in slnProjects)
+                    {
+                        var key = slnProj.ProjectFilePath ?? slnProj.FolderPath;
+                        if (seenProjectFiles.Add(key))
+                            descriptors.Add(slnProj);
+                    }
+                }
                 else if (ext == ".vbp")
                 {
-                    var proj = ParseVbpFile(fullPath);
-                    if (seenFolders.Add(proj.FolderPath))
+                    if (seenProjectFiles.Add(fullPath))
+                    {
+                        var proj = ParseVbpFile(fullPath);
                         descriptors.Add(proj);
+                    }
+                }
+                else if (ext == ".csproj")
+                {
+                    if (seenProjectFiles.Add(fullPath))
+                    {
+                        var proj = ParseCsprojFile(fullPath);
+                        descriptors.Add(proj);
+                    }
+                }
+                else if (ext is ".cs" or ".cls" or ".bas" or ".frm" or ".ctl")
+                {
+                    // File singolo
+                    var folder = Path.GetDirectoryName(fullPath) ?? "";
+                    var fileName = Path.GetFileNameWithoutExtension(fullPath);
+                    descriptors.Add(new ProjectDescriptor
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = fileName,
+                        FolderPath = folder,
+                        VbpPath = ext != ".cs" ? null : null,
+                        CsprojPath = null,
+                        SourceFiles = new List<string> { fullPath }
+                    });
                 }
             }
             else if (Directory.Exists(fullPath))
             {
                 if (!seenFolders.Add(fullPath)) continue;
 
-                // 1. Cerca file .vbg (Visual Basic Group) nella cartella
+                // 1. Cerca file .sln o .vbg nella cartella principale
+                var slnFiles = Directory.GetFiles(fullPath, "*.sln", SearchOption.TopDirectoryOnly);
+                if (slnFiles.Length > 0)
+                {
+                    foreach (var slnFile in slnFiles)
+                    {
+                        var slnProjects = ParseSlnFile(slnFile);
+                        foreach (var slnProj in slnProjects)
+                        {
+                            var key = slnProj.ProjectFilePath ?? slnProj.FolderPath;
+                            if (seenProjectFiles.Add(key))
+                                descriptors.Add(slnProj);
+                        }
+                    }
+                    if (descriptors.Count > 0) continue;
+                }
+
                 var vbgFiles = Directory.GetFiles(fullPath, "*.vbg", SearchOption.TopDirectoryOnly);
                 if (vbgFiles.Length > 0)
                 {
@@ -62,40 +117,45 @@ public sealed class ProjectDescriptor
                                 descriptors.Add(vbgProj);
                         }
                     }
-                    continue;
+                    if (descriptors.Count > 0) continue;
                 }
 
-                // 2. Cerca file .vbp nella cartella o sottocartelle
+                // 2. Cerca file .csproj o .vbp nella cartella o sottocartelle
+                var csprojFiles = Directory.GetFiles(fullPath, "*.csproj", SearchOption.AllDirectories)
+                    .Where(f => !IsInIgnoredFolder(f))
+                    .ToArray();
+
                 var vbpFiles = Directory.GetFiles(fullPath, "*.vbp", SearchOption.AllDirectories);
-                if (vbpFiles.Length > 0)
+
+                if (csprojFiles.Length > 0 || vbpFiles.Length > 0)
                 {
+                    foreach (var csprojFile in csprojFiles)
+                    {
+                        if (seenProjectFiles.Add(csprojFile))
+                        {
+                            descriptors.Add(ParseCsprojFile(csprojFile));
+                        }
+                    }
+
                     foreach (var vbpFile in vbpFiles)
                     {
-                        var parsed = ParseVbpFile(vbpFile);
-                        if (seenFolders.Add(vbpFile))
+                        if (seenProjectFiles.Add(vbpFile))
                         {
-                            descriptors.Add(parsed);
+                            descriptors.Add(ParseVbpFile(vbpFile));
                         }
                     }
                 }
                 else
                 {
-                    // 3. Nessun file .vbp/.vbg: verifica se ci sono sottocartelle con file VB6
-                    var subDirs = Directory.GetDirectories(fullPath);
+                    // 3. Nessun file di progetto (.csproj/.vbp/.sln/.vbg): scansione dei file sorgente
+                    var subDirs = Directory.GetDirectories(fullPath).Where(d => !IsInIgnoredFolder(d)).ToArray();
                     var foundInSubDirs = false;
 
                     if (subDirs.Length > 0)
                     {
                         foreach (var subDir in subDirs)
                         {
-                            var subFiles = Directory.GetFiles(subDir, "*.*", SearchOption.AllDirectories)
-                                .Where(f => f.EndsWith(".cls", StringComparison.OrdinalIgnoreCase) ||
-                                            f.EndsWith(".bas", StringComparison.OrdinalIgnoreCase) ||
-                                            f.EndsWith(".frm", StringComparison.OrdinalIgnoreCase) ||
-                                            f.EndsWith(".ctl", StringComparison.OrdinalIgnoreCase))
-                                .OrderBy(f => Path.GetFileName(f))
-                                .ToList();
-
+                            var subFiles = GetAllSourceFilesInDirectory(subDir);
                             if (subFiles.Count > 0)
                             {
                                 foundInSubDirs = true;
@@ -103,9 +163,10 @@ public sealed class ProjectDescriptor
                                 descriptors.Add(new ProjectDescriptor
                                 {
                                     Id = Guid.NewGuid(),
-                                    Name = string.IsNullOrEmpty(subName) ? "VB6 Project" : subName,
+                                    Name = string.IsNullOrEmpty(subName) ? "Source Project" : subName,
                                     FolderPath = subDir,
                                     VbpPath = null,
+                                    CsprojPath = null,
                                     SourceFiles = subFiles
                                 });
                             }
@@ -115,28 +176,117 @@ public sealed class ProjectDescriptor
                     if (!foundInSubDirs)
                     {
                         var folderName = Path.GetFileName(fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-                        var files = Directory.GetFiles(fullPath, "*.*", SearchOption.AllDirectories)
-                            .Where(f => f.EndsWith(".cls", StringComparison.OrdinalIgnoreCase) ||
-                                        f.EndsWith(".bas", StringComparison.OrdinalIgnoreCase) ||
-                                        f.EndsWith(".frm", StringComparison.OrdinalIgnoreCase) ||
-                                        f.EndsWith(".ctl", StringComparison.OrdinalIgnoreCase))
-                            .OrderBy(f => Path.GetFileName(f))
-                            .ToList();
+                        var files = GetAllSourceFilesInDirectory(fullPath);
 
-                        descriptors.Add(new ProjectDescriptor
+                        if (files.Count > 0)
                         {
-                            Id = Guid.NewGuid(),
-                            Name = string.IsNullOrEmpty(folderName) ? "VB6 Project" : folderName,
-                            FolderPath = fullPath,
-                            VbpPath = null,
-                            SourceFiles = files
-                        });
+                            descriptors.Add(new ProjectDescriptor
+                            {
+                                Id = Guid.NewGuid(),
+                                Name = string.IsNullOrEmpty(folderName) ? "Source Project" : folderName,
+                                FolderPath = fullPath,
+                                VbpPath = null,
+                                CsprojPath = null,
+                                SourceFiles = files
+                            });
+                        }
                     }
                 }
             }
         }
 
         return descriptors;
+    }
+
+    private static List<string> GetAllSourceFilesInDirectory(string dir)
+    {
+        if (!Directory.Exists(dir)) return new List<string>();
+
+        return Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories)
+            .Where(f => !IsInIgnoredFolder(f) &&
+                        (f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
+                         f.EndsWith(".cls", StringComparison.OrdinalIgnoreCase) ||
+                         f.EndsWith(".bas", StringComparison.OrdinalIgnoreCase) ||
+                         f.EndsWith(".frm", StringComparison.OrdinalIgnoreCase) ||
+                         f.EndsWith(".ctl", StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(f => Path.GetFileName(f))
+            .ToList();
+    }
+
+    private static bool IsInIgnoredFolder(string path)
+    {
+        var parts = path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        return parts.Any(p => p.Equals("bin", StringComparison.OrdinalIgnoreCase) ||
+                              p.Equals("obj", StringComparison.OrdinalIgnoreCase) ||
+                              p.Equals(".git", StringComparison.OrdinalIgnoreCase) ||
+                              p.Equals(".vs", StringComparison.OrdinalIgnoreCase) ||
+                              p.Equals(".idea", StringComparison.OrdinalIgnoreCase) ||
+                              p.Equals("node_modules", StringComparison.OrdinalIgnoreCase));
+    }
+
+    public static ProjectDescriptor ParseCsprojFile(string csprojPath)
+    {
+        var folder = Path.GetDirectoryName(csprojPath) ?? "";
+        var fileNameWithoutExt = Path.GetFileNameWithoutExtension(csprojPath);
+        var projName = fileNameWithoutExt;
+
+        var sourceFiles = Directory.GetFiles(folder, "*.cs", SearchOption.AllDirectories)
+            .Where(f => !IsInIgnoredFolder(f))
+            .OrderBy(f => Path.GetFileName(f))
+            .ToList();
+
+        return new ProjectDescriptor
+        {
+            Id = Guid.NewGuid(),
+            Name = projName,
+            FolderPath = folder,
+            CsprojPath = csprojPath,
+            SourceFiles = sourceFiles
+        };
+    }
+
+    public static List<ProjectDescriptor> ParseSlnFile(string slnPath)
+    {
+        var result = new List<ProjectDescriptor>();
+        var slnFolder = Path.GetDirectoryName(slnPath) ?? "";
+
+        if (File.Exists(slnPath))
+        {
+            var lines = File.ReadAllLines(slnPath);
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+                if (trimmed.StartsWith("Project(", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Esempio: Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyApp", "src\MyApp\MyApp.csproj", "{...}"
+                    var eqIdx = trimmed.IndexOf('=');
+                    if (eqIdx > 0)
+                    {
+                        var right = trimmed[(eqIdx + 1)..].Trim();
+                        var parts = right.Split(',');
+                        if (parts.Length >= 2)
+                        {
+                            var relPath = parts[1].Trim(' ', '"', '\'');
+                            var absPath = Path.IsPathRooted(relPath) ? relPath : Path.GetFullPath(Path.Combine(slnFolder, relPath));
+                            if (File.Exists(absPath))
+                            {
+                                var ext = Path.GetExtension(absPath).ToLowerInvariant();
+                                if (ext == ".csproj")
+                                {
+                                    result.Add(ParseCsprojFile(absPath));
+                                }
+                                else if (ext == ".vbp")
+                                {
+                                    result.Add(ParseVbpFile(absPath));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 
     private static ProjectDescriptor ParseVbpFile(string vbpPath)

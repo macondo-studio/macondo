@@ -38,17 +38,20 @@ public sealed class TypeInfo
 /// </summary>
 public sealed class TypeResolver
 {
-    /// <summary>Insieme dei tipi primitivi VB6 predefiniti (case-insensitive).</summary>
+    /// <summary>Insieme dei tipi primitivi VB6 e C# predefiniti (case-insensitive).</summary>
     private static readonly HashSet<string> PrimitiveTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         "Boolean", "Byte", "Integer", "Long", "Single", "Double",
-        "Currency", "Date", "String", "Collection"
+        "Currency", "Date", "String", "Collection",
+        "bool", "byte", "sbyte", "char", "decimal", "double", "float",
+        "int", "uint", "nint", "nuint", "long", "ulong", "short", "ushort",
+        "string", "object", "dynamic", "void", "Task", "ValueTask"
     };
 
     /// <summary>Tipi a binding dinamico / late binding in VB6.</summary>
     private static readonly HashSet<string> DynamicTypes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Object", "Variant"
+        "Object", "Variant", "dynamic"
     };
 
     private readonly CodeGraph _graph;
@@ -64,12 +67,13 @@ public sealed class TypeResolver
     {
         _graph = graph;
 
-        // Costruisce l'indice dei tipi utente (Class, Form, UserControl, Type UDT, Enum) presenti nel grafo.
+        // Costruisce l'indice dei tipi utente (Class, Form, UserControl, Type UDT, Enum, Interface, Struct, Record) presenti nel grafo.
         foreach (var symbol in _graph.Symbols)
         {
-            if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum)
+            if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum
+                            or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
             {
-                // In VB6 i tipi utente sono accessibili per nome semplice o qualificato (es. "Customer" o "ProjectA.Customer")
+                // I tipi utente sono accessibili per nome semplice o qualificato
                 _userTypesByName[symbol.Name] = symbol;
                 if (!string.IsNullOrEmpty(symbol.QualifiedName) && !symbol.QualifiedName.Equals(symbol.Name, StringComparison.OrdinalIgnoreCase))
                 {

@@ -238,7 +238,10 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
         {
             Accessibility.Public => ("Pub", "#1C3328", "#4ADE80", "Visibilità: Public"),
             Accessibility.Private => ("Priv", "#382024", "#F87171", "Visibilità: Private"),
-            Accessibility.Friend => ("Frnd", "#382D14", "#FBBF24", "Visibilità: Friend"),
+            Accessibility.Friend or Accessibility.Internal => ("Int", "#382D14", "#FBBF24", "Visibilità: Internal / Friend"),
+            Accessibility.Protected => ("Prot", "#2A2A48", "#A78BFA", "Visibilità: Protected"),
+            Accessibility.ProtectedInternal => ("ProtInt", "#382D14", "#FBBF24", "Visibilità: Protected Internal"),
+            Accessibility.PrivateProtected => ("PrivProt", "#382024", "#F87171", "Visibilità: Private Protected"),
             Accessibility.Global => ("Glob", "#1C2D3D", "#60A5FA", "Visibilità: Global"),
             _ => (null, null, null, null)
         };
@@ -261,6 +264,9 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
     {
         SymbolKind.Project => ("PRJ", "#2A2A3E", "#A0A0B8"),
         SymbolKind.Class => ("CLS", "#163348", "#4AE8D0"),
+        SymbolKind.Interface => ("INT", "#1C3328", "#4ADE80"),
+        SymbolKind.Record => ("REC", "#382D14", "#E5C07B"),
+        SymbolKind.Struct => ("STR", "#1C3330", "#56B6C2"),
         SymbolKind.Form => ("FRM", "#163830", "#50E3C2"),
         SymbolKind.Module => ("BAS", "#3D3014", "#F5A623"),
         SymbolKind.UserControl => ("CTL", "#352044", "#C678DD"),
@@ -271,6 +277,7 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
         SymbolKind.Type => ("TYP", "#1C3330", "#56B6C2"),
         SymbolKind.Enum => ("ENM", "#1E303D", "#61AFEF"),
         SymbolKind.Event => ("EVT", "#382D14", "#E5C07B"),
+        SymbolKind.Namespace => ("NS", "#2A2A3E", "#A0A0B8"),
         _ => ("•", "#222230", "#8A8A9E")
     };
 
@@ -279,9 +286,12 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
         SymbolKind.Form => 1,
         SymbolKind.Module => 2,
         SymbolKind.Class => 3,
-        SymbolKind.UserControl => 4,
-        SymbolKind.Type => 5,
-        SymbolKind.Enum => 6,
+        SymbolKind.Interface => 4,
+        SymbolKind.Record => 5,
+        SymbolKind.Struct => 6,
+        SymbolKind.UserControl => 7,
+        SymbolKind.Type => 8,
+        SymbolKind.Enum => 9,
         _ => 100 + (int)kind
     };
 
@@ -293,6 +303,9 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
             SymbolKind.Form => loc["Explorer_Group_Forms"],
             SymbolKind.Module => loc["Explorer_Group_Modules"],
             SymbolKind.Class => loc["Explorer_Group_Classes"],
+            SymbolKind.Interface => loc["Explorer_Group_Interfaces"],
+            SymbolKind.Record => loc["Explorer_Group_Records"],
+            SymbolKind.Struct => loc["Explorer_Group_Structs"],
             SymbolKind.UserControl => loc["Explorer_Group_UserControls"],
             SymbolKind.Type => loc["Explorer_Group_Types"],
             SymbolKind.Enum => loc["Explorer_Group_Enums"],

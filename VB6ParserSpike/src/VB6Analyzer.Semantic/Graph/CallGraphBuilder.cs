@@ -32,13 +32,14 @@ public sealed class CallGraphBuilder
     }
 
     /// <summary>
-    /// Costruisce tutte le relazioni semantiche (CALLS, INSTANTIATES, USES_TYPE) nel CodeGraph
-    /// per tutti i moduli parsati passati come input.
+    /// Costruisce tutte le relazioni semantiche (CALLS, INSTANTIATES, USES_TYPE, INHERITS, IMPLEMENTS) nel CodeGraph
+    /// per tutti i moduli VB6 e file C# parsati.
     /// </summary>
-    /// <param name="extractionResults">Elenco dei risultati di estrazione dei moduli contenenti gli AST.</param>
-    public void BuildGraph(IEnumerable<ModuleExtractionResult> extractionResults)
+    /// <param name="extractionResults">Elenco dei risultati di estrazione dei moduli VB6 contenenti gli AST.</param>
+    /// <param name="csharpResults">Elenco opzionale dei risultati di estrazione dei file sorgente C#.</param>
+    public void BuildGraph(IEnumerable<ModuleExtractionResult> extractionResults, IEnumerable<CSharpExtractionResult>? csharpResults = null)
     {
-        // 1. Genera le relazioni CALLS e INSTANTIATES attraversando gli AST delle routine
+        // 1. Genera le relazioni CALLS e INSTANTIATES attraversando gli AST delle routine VB6
         foreach (var extraction in extractionResults)
         {
             if (extraction.ParseTree == null)
@@ -68,6 +69,70 @@ public sealed class CallGraphBuilder
                 {
                     var sourceSymbol = FindEnclosingRoutine(extraction.ModuleSymbol, inst.EnclosingRoutineName) ?? extraction.ModuleSymbol;
                     _graph.AddInstantiates(sourceSymbol, inst.TargetClassSymbol, inst.Line, inst.Confidence);
+                }
+            }
+        }
+
+        // 1b. Genera relazioni semantiche per i risultati C# (CALLS, INSTANTIATES, INHERITS, IMPLEMENTS)
+        if (csharpResults != null)
+        {
+            foreach (var csResult in csharpResults)
+            {
+                // Invocazioni C# (CALLS)
+                foreach (var callSite in csResult.CallSites)
+                {
+                    Symbol? targetMethod = null;
+
+                    if (!string.IsNullOrEmpty(callSite.ReceiverExpressionText))
+                    {
+                        var receiverType = _symbolResolver.TypeResolver.ResolveType(callSite.ReceiverExpressionText).UserTypeSymbol;
+                        if (receiverType != null)
+                        {
+                            targetMethod = _graph.GetChildren(receiverType.Id)
+                                .FirstOrDefault(s => s.Kind is SymbolKind.Method or SymbolKind.Property &&
+                                                    string.Equals(s.Name, callSite.InvokedMethodName, StringComparison.OrdinalIgnoreCase));
+                        }
+                    }
+
+                    if (targetMethod == null)
+                    {
+                        // Cerca tra i simboli dei tipi racchiudenti o nel grafo
+                        targetMethod = _graph.Symbols
+                            .FirstOrDefault(s => s.Kind is SymbolKind.Method or SymbolKind.Property &&
+                                                string.Equals(s.Name, callSite.InvokedMethodName, StringComparison.OrdinalIgnoreCase));
+                    }
+
+                    if (targetMethod != null)
+                    {
+                        _graph.AddCalls(callSite.CallerSymbol, targetMethod, callSite.Line, ResolutionConfidence.Exact);
+                    }
+                }
+
+                // Istanziazioni C# (INSTANTIATES)
+                foreach (var inst in csResult.Instantiations)
+                {
+                    var targetType = _symbolResolver.TypeResolver.ResolveType(inst.TargetTypeName).UserTypeSymbol;
+                    if (targetType != null)
+                    {
+                        _graph.AddInstantiates(inst.SourceSymbol, targetType, inst.Line, ResolutionConfidence.Exact);
+                    }
+                }
+
+                // Ereditarietà e Interfacce C# (INHERITS, IMPLEMENTS)
+                foreach (var inh in csResult.Inheritances)
+                {
+                    var baseType = _symbolResolver.TypeResolver.ResolveType(inh.BaseOrInterfaceTypeName).UserTypeSymbol;
+                    if (baseType != null)
+                    {
+                        if (baseType.Kind == SymbolKind.Interface)
+                        {
+                            _graph.AddImplements(inh.DerivedTypeSymbol, baseType, inh.Line);
+                        }
+                        else
+                        {
+                            _graph.AddInherits(inh.DerivedTypeSymbol, baseType, inh.Line);
+                        }
+                    }
                 }
             }
         }
