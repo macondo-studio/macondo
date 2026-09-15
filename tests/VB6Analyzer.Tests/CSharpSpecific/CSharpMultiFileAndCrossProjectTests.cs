@@ -126,7 +126,7 @@ public class CSharpMultiFileAndCrossProjectTests
         var implementsRel = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.Implements && r.SourceId == sqlRepoClass.Id && r.TargetId == iface.Id);
         implementsRel.Should().NotBeNull("SqlOrderRepository should IMPLEMENT IRepository across files");
 
-        var getByIdMethod = graph.Symbols.First(s => s.Name == "GetById");
+        var getByIdMethod = graph.GetChildren(sqlRepoClass.Id).First(s => s.Name == "GetById");
         var logAccessMethod = graph.Symbols.First(s => s.Name == "LogAccess");
         var callsLog = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.Calls && r.SourceId == getByIdMethod.Id && r.TargetId == logAccessMethod.Id);
         callsLog.Should().NotBeNull("GetById calling base class method LogAccess across files should generate CALLS relationship");
