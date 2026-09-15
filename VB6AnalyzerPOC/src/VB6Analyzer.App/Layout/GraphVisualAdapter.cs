@@ -28,6 +28,11 @@ public static class GraphVisualAdapter
             Queries = new CallGraphQueries(semanticGraph)
         };
 
+        if (semanticGraph.Symbols.Count == 0)
+        {
+            return visualGraph;
+        }
+
         // 1. Mappa tutti i simboli semantici in GraphNode
         var nodesBySymbolId = new Dictionary<Guid, GraphNode>();
         var projectNodes = new List<GraphNode>();
