@@ -159,9 +159,9 @@ public sealed class ImpactAnalyzer
             .DistinctBy(c => c.Id)
             .ToList();
 
-        // Se la routine stessa risiede in una Form o UserControl, include il suo container tra i componenti impattati
+        // Se la routine stessa risiede in un container (Form, Classe, Modulo, UserControl), include il suo container tra i componenti impattati
         var routineContainer = FindEnclosingContainer(routine);
-        if (routineContainer != null && routineContainer.Kind is SymbolKind.Form or SymbolKind.UserControl && !affectedContainers.Any(c => c.Id == routineContainer.Id))
+        if (routineContainer != null && !affectedContainers.Any(c => c.Id == routineContainer.Id))
         {
             affectedContainers.Add(routineContainer);
         }
