@@ -101,6 +101,13 @@ public sealed class LocalizationService
         ["Inspector_Tooltip_OpenFile"] = "Apri file sorgente originale",
         ["Inspector_Tooltip_OpenFolder"] = "Mostra file nella cartella di sistema",
 
+        // Menu Contestuale Nodo Grafo
+        ["Ctx_Node_ExportMarkdown"] = "Esporta MD",
+        ["Ctx_Node_ExportJson"] = "Esporta JSON",
+        ["Ctx_Node_BlastRadius"] = "Blast Radius",
+        ["Ctx_Node_ShowCallers"] = "Mostra Callers",
+        ["Ctx_Node_ShowCallees"] = "Mostra Callees",
+
         // Inspector & Blast Radius
         ["Inspector_Title"] = "Symbol Inspector & Blast Radius",
         ["Tooltip_HideInspector"] = "Nascondi Symbol Inspector (Ctrl+I)",
@@ -533,6 +540,13 @@ public sealed class LocalizationService
         ["Explorer_PathCopied"] = "Path copied to clipboard: {0}",
         ["Inspector_Tooltip_OpenFile"] = "Open original source file",
         ["Inspector_Tooltip_OpenFolder"] = "Show file in system folder",
+
+        // Graph Node Context Menu
+        ["Ctx_Node_ExportMarkdown"] = "Export MD",
+        ["Ctx_Node_ExportJson"] = "Export JSON",
+        ["Ctx_Node_BlastRadius"] = "Blast Radius",
+        ["Ctx_Node_ShowCallers"] = "Show Callers",
+        ["Ctx_Node_ShowCallees"] = "Show Callees",
 
         // Inspector & Blast Radius
         ["Inspector_Title"] = "Symbol Inspector & Blast Radius",

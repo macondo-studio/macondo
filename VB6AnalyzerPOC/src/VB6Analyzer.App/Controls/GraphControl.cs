@@ -219,6 +219,8 @@ public sealed class GraphControl : Control
 
     // Stato di selezione ed evidenziazione
     private GraphNode? _selectedNode;
+    /// <summary>Nodo attualmente selezionato nel grafo.</summary>
+    public GraphNode? SelectedNode => _selectedNode;
     private readonly HashSet<Guid> _highlightedNodeIds = new();
     private readonly HashSet<Guid> _callerNodeIds = new();
     private readonly HashSet<Guid> _calleeNodeIds = new();
@@ -841,7 +843,7 @@ public sealed class GraphControl : Control
     /// </summary>
     /// <param name="graphPoint">Coordinate del puntatore convertite nello spazio cartesiano del grafo.</param>
     /// <returns>Il <see cref="GraphNode"/> più vicino entro il raggio di tolleranza, oppure null.</returns>
-    private GraphNode? HitTest(Point graphPoint)
+    public GraphNode? HitTest(Point graphPoint)
     {
         var graph = Graph;
         if (graph is null) return null;
@@ -868,6 +870,11 @@ public sealed class GraphControl : Control
 
         return best;
     }
+
+    /// <summary>
+    /// Rileva il nodo posizionato sotto le coordinate a schermo specificate.
+    /// </summary>
+    public GraphNode? GetNodeAtScreenPos(Point screenPoint) => HitTest(ScreenToGraph(screenPoint));
 
     // =========================================================================
     // SELEZIONE ED EVIDENZIAZIONE CALLERS / CALLEES / BLAST RADIUS

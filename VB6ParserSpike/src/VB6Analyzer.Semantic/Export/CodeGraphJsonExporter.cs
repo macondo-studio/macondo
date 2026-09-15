@@ -31,6 +31,91 @@ public static class CodeGraphJsonExporter
     }
 
     /// <summary>
+    /// Esporta il context slice di un singolo simbolo e delle sue relazioni inbound/outbound in formato JSON.
+    /// </summary>
+    public static string ExportSliceToJson(CodeGraph graph, Symbol rootSymbol, bool indented = true)
+    {
+        var symbolLookup = graph.Symbols.ToDictionary(s => s.Id);
+
+        var incomingCalls = graph.Relationships
+            .Where(r => r.TargetId == rootSymbol.Id && r.Kind is RelationshipKind.Calls or RelationshipKind.UsesType or RelationshipKind.Instantiates)
+            .Select(r => new
+            {
+                kind = r.Kind.ToString(),
+                sourceId = r.SourceId,
+                sourceName = symbolLookup.GetValueOrDefault(r.SourceId)?.QualifiedName ?? symbolLookup.GetValueOrDefault(r.SourceId)?.Name ?? "Unknown",
+                sourceKind = symbolLookup.GetValueOrDefault(r.SourceId)?.Kind.ToString(),
+                filePath = symbolLookup.GetValueOrDefault(r.SourceId)?.FilePath,
+                line = r.Line,
+                confidence = r.Confidence.ToString()
+            })
+            .ToList();
+
+        var outgoing = graph.Relationships
+            .Where(r => r.SourceId == rootSymbol.Id && r.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.UsesType)
+            .Select(r => new
+            {
+                kind = r.Kind.ToString(),
+                targetId = r.TargetId,
+                targetName = symbolLookup.GetValueOrDefault(r.TargetId)?.QualifiedName ?? symbolLookup.GetValueOrDefault(r.TargetId)?.Name ?? "Unknown",
+                targetKind = symbolLookup.GetValueOrDefault(r.TargetId)?.Kind.ToString(),
+                filePath = symbolLookup.GetValueOrDefault(r.TargetId)?.FilePath,
+                line = r.Line,
+                confidence = r.Confidence.ToString()
+            })
+            .ToList();
+
+        var children = graph.Relationships
+            .Where(r => r.SourceId == rootSymbol.Id && r.Kind == RelationshipKind.Contains)
+            .Select(r => symbolLookup.GetValueOrDefault(r.TargetId))
+            .Where(s => s != null)
+            .Select(s => new
+            {
+                id = s!.Id,
+                name = s.Name,
+                qualifiedName = s.QualifiedName,
+                kind = s.Kind.ToString(),
+                accessibility = s.Accessibility.ToString(),
+                returnType = s.ReturnType,
+                lineStart = s.LineStart,
+                lineEnd = s.LineEnd
+            })
+            .ToList();
+
+        var sliceObj = new
+        {
+            symbol = new
+            {
+                id = rootSymbol.Id,
+                name = rootSymbol.Name,
+                qualifiedName = rootSymbol.QualifiedName,
+                kind = rootSymbol.Kind.ToString(),
+                accessibility = rootSymbol.Accessibility.ToString(),
+                filePath = rootSymbol.FilePath,
+                lineStart = rootSymbol.LineStart,
+                lineEnd = rootSymbol.LineEnd,
+                declaredTypeName = rootSymbol.DeclaredTypeName,
+                returnType = rootSymbol.ReturnType,
+                isStatic = rootSymbol.IsStatic,
+                parameters = rootSymbol.Parameters.Select(p => new
+                {
+                    name = p.Name,
+                    type = p.DeclaredTypeName,
+                    isByRef = p.IsByRef,
+                    isByVal = p.IsByVal,
+                    isOptional = p.IsOptional,
+                    defaultValue = p.DefaultValue
+                })
+            },
+            inbound = incomingCalls,
+            outbound = outgoing,
+            children = children
+        };
+
+        return JsonSerializer.Serialize(sliceObj, indented ? DefaultOptions : CompactOptions);
+    }
+
+    /// <summary>
     /// Converte il <see cref="CodeGraph"/> in un DTO strutturato.
     /// </summary>
     private static CodeGraphDto ExportToDto(CodeGraph graph)

@@ -75,6 +75,9 @@ public partial class MainWindow : Window
         ExplorerTree.AddHandler(InputElement.PointerPressedEvent, OnExplorerTreePointerPressed, RoutingStrategies.Tunnel);
         ExplorerTree.AddHandler(Control.ContextRequestedEvent, OnExplorerTreeContextRequested, RoutingStrategies.Tunnel);
 
+        // Canvas del Grafo: menu contestuale su clic destro sopra i nodi
+        Graph.AddHandler(Control.ContextRequestedEvent, OnGraphContextRequested, RoutingStrategies.Tunnel);
+
         // Pulsanti Dialog Aggiornamento Software
         UpdateLaterButton.Click += (_, _) => DismissUpdateModal();
         UpdateNowButton.Click += (_, _) => ApplyUpdateAndOpenDownload();
@@ -1485,7 +1488,7 @@ public partial class MainWindow : Window
     /// Calcola ed evidenzia il Blast Radius per il nodo selezionato in modo asincrono con loading overlay.
     /// Se il risultato è già in cache, viene applicato all'istante senza mostrare l'overlay.
     /// </summary>
-    private async void OnBlastRadiusClicked()
+    private async void OnBlastRadiusClicked(object? sender = null, RoutedEventArgs? e = null)
     {
         var loc = LocalizationService.Instance;
         if (_selectedNode?.SemanticSymbol is null || _graph?.Queries is null)
@@ -1533,7 +1536,7 @@ public partial class MainWindow : Window
     /// <summary>
     /// Evidenzia sul grafo tutte le routine e classi chiamate dalla routine/container selezionato (callees).
     /// </summary>
-    private void OnShowCalleesClicked()
+    private void OnShowCalleesClicked(object? sender = null, RoutedEventArgs? e = null)
     {
         var loc = LocalizationService.Instance;
         if (_selectedNode is null)
@@ -1558,7 +1561,7 @@ public partial class MainWindow : Window
     /// <summary>
     /// Evidenzia sul grafo tutti i chiamanti della routine/container selezionato (callers).
     /// </summary>
-    private void OnShowCallersClicked()
+    private void OnShowCallersClicked(object? sender = null, RoutedEventArgs? e = null)
     {
         var loc = LocalizationService.Instance;
         if (_selectedNode is null)
@@ -1801,6 +1804,113 @@ public partial class MainWindow : Window
 
         return ExplorerTree.SelectedItem as ExplorerTreeItem;
     }
+
+    #region Menu Contestuale Nodi del Grafo
+
+    private void OnGraphContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        var hitNode = e.TryGetPosition(Graph, out var screenPos)
+            ? Graph.GetNodeAtScreenPos(screenPos)
+            : Graph.SelectedNode ?? _selectedNode;
+
+        // Se nessun nodo è presente sotto il cursore del mouse, non aprire il menu contestuale
+        if (hitNode == null)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        // Seleziona esplicitamente il nodo su cui è stato fatto clic destro
+        Graph.SelectNode(hitNode);
+
+        if (GraphContainerGrid.Resources.TryGetResource("GraphNodeContextMenu", null, out var res) && res is ContextMenu menu)
+        {
+            menu.DataContext = hitNode;
+            menu.PlacementTarget = Graph;
+            menu.Open(Graph);
+            e.Handled = true;
+        }
+    }
+
+    private async void OnNodeExportMarkdownClicked(object? sender, RoutedEventArgs e) => await ExportLlmSliceAsync();
+
+    private async void OnNodeExportJsonClicked(object? sender, RoutedEventArgs e) => await ExportNodeJsonAsync();
+
+    /// <summary>
+    /// Esporta i dettagli del nodo e delle sue relazioni inbound/outbound in formato JSON (.json).
+    /// </summary>
+    private async Task ExportNodeJsonAsync(GraphNode? node = null)
+    {
+        node ??= Graph.SelectedNode ?? _selectedNode;
+        if (node == null)
+        {
+            StatusText.Text = LocalizationService.Instance["Status_NoSymbolSelected"];
+            return;
+        }
+
+        var semGraph = _graph?.SemanticGraph;
+        var symbol = node.SemanticSymbol;
+
+        string json;
+        if (semGraph != null && symbol != null)
+        {
+            json = CodeGraphJsonExporter.ExportSliceToJson(semGraph, symbol, indented: true);
+        }
+        else
+        {
+            var filePath = symbol?.FilePath;
+            var lineStart = symbol?.LineStart ?? 0;
+            var lineEnd = symbol?.LineEnd ?? 0;
+            var childCount = _graph != null ? _graph.GetChildren(node.Id).Count() : 0;
+
+            var nodeData = new
+            {
+                id = node.Id,
+                name = node.Name,
+                qualifiedName = node.QualifiedName,
+                kind = node.Kind.ToString(),
+                projectName = node.ProjectName,
+                filePath = filePath,
+                lineStart = lineStart,
+                lineEnd = lineEnd,
+                isContainer = node.IsContainer,
+                childCount = childCount
+            };
+            json = System.Text.Json.JsonSerializer.Serialize(nodeData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        }
+
+        var defaultName = !string.IsNullOrEmpty(node.QualifiedName)
+            ? $"{node.QualifiedName}_node.json"
+            : $"{node.Name}_node.json";
+
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = LocalizationService.Instance["Ctx_Node_ExportJson"],
+            DefaultExtension = "json",
+            SuggestedFileName = defaultName,
+            FileTypeChoices = new[]
+            {
+                new FilePickerFileType("JSON Node Data (*.json)") { Patterns = new[] { "*.json" } }
+            }
+        });
+
+        if (file == null) return;
+
+        try
+        {
+            await using var stream = await file.OpenWriteAsync();
+            await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
+            await writer.WriteAsync(json);
+
+            StatusText.Text = LocalizationService.Instance.Get("Status_ExportSuccess", file.Name);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorExportJson", ex.Message);
+        }
+    }
+
+    #endregion
 
     private void OpenOriginalFile(string? filePath, int line = 0)
     {
@@ -3071,24 +3181,51 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Salva su file Markdown (.md) il Context Slice per il simbolo selezionato.
+    /// Salva su file Markdown (.md) il Context Slice per il simbolo/nodo selezionato.
     /// </summary>
-    private async Task ExportLlmSliceAsync()
+    private async Task ExportLlmSliceAsync(GraphNode? targetNode = null)
     {
+        var node = targetNode ?? Graph.SelectedNode ?? _selectedNode;
         var semGraph = _graph?.SemanticGraph;
-        var symbol = _selectedNode?.SemanticSymbol;
+        var symbol = node?.SemanticSymbol;
 
-        if (semGraph == null || symbol == null)
+        if (node == null)
         {
             StatusText.Text = LocalizationService.Instance["Status_NoSymbolSelected"];
             return;
         }
 
+        string markdown;
+        if (semGraph != null && symbol != null)
+        {
+            markdown = CodeGraphMarkdownExporter.ExportSlice(semGraph, symbol);
+        }
+        else
+        {
+            var filePath = symbol?.FilePath;
+            var lineStart = symbol?.LineStart ?? 0;
+            var lineEnd = symbol?.LineEnd ?? 0;
+            var childCount = _graph != null ? _graph.GetChildren(node.Id).Count() : 0;
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"# Symbol: {node.Name} ({node.Kind})");
+            sb.AppendLine($"- **Qualified Name**: {node.QualifiedName}");
+            if (!string.IsNullOrEmpty(node.ProjectName)) sb.AppendLine($"- **Project**: {node.ProjectName}");
+            if (!string.IsNullOrEmpty(filePath)) sb.AppendLine($"- **File**: {filePath}");
+            if (lineStart > 0) sb.AppendLine($"- **Lines**: {lineStart}-{lineEnd}");
+            if (node.IsContainer) sb.AppendLine($"- **Container**: Yes ({childCount} members)");
+            markdown = sb.ToString();
+        }
+
+        var defaultName = !string.IsNullOrEmpty(node.QualifiedName)
+            ? $"{node.QualifiedName}_slice.md"
+            : $"{node.Name}_slice.md";
+
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = LocalizationService.Instance["Menu_ExportSlice"],
             DefaultExtension = "md",
-            SuggestedFileName = $"{symbol.QualifiedName}_slice.md",
+            SuggestedFileName = defaultName,
             FileTypeChoices = new[]
             {
                 new FilePickerFileType("Markdown Context Slice (*.md)") { Patterns = new[] { "*.md" } }
@@ -3099,10 +3236,9 @@ public partial class MainWindow : Window
 
         try
         {
-            var slice = CodeGraphMarkdownExporter.ExportSlice(semGraph, symbol);
             await using var stream = await file.OpenWriteAsync();
             await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
-            await writer.WriteAsync(slice);
+            await writer.WriteAsync(markdown);
 
             StatusText.Text = LocalizationService.Instance.Get("Status_ExportSuccess", file.Name);
         }
@@ -3753,12 +3889,17 @@ public partial class MainWindow : Window
         // Ricerca
         SearchBox.Watermark = loc["Search_Watermark"];
 
-        // Explorer & Inspector
+        // Explorer & Inspector & Context Menus
         ExplorerTitleText.Text = loc["Explorer_Title"];
         InspectorTitleText.Text = loc["Inspector_Title"];
         CtxExplorerOpenFile.Header = loc["Explorer_OpenOriginalFile"];
         CtxExplorerOpenFolder.Header = loc["Explorer_OpenContainingFolder"];
         CtxExplorerCopyPath.Header = loc["Explorer_CopyFilePath"];
+        CtxNodeExportMarkdown.Header = loc["Ctx_Node_ExportMarkdown"];
+        CtxNodeExportJson.Header = loc["Ctx_Node_ExportJson"];
+        CtxNodeBlastRadius.Header = loc["Ctx_Node_BlastRadius"];
+        CtxNodeShowCallers.Header = loc["Ctx_Node_ShowCallers"];
+        CtxNodeShowCallees.Header = loc["Ctx_Node_ShowCallees"];
         ToolTip.SetTip(InspectorOpenFileButton, loc["Inspector_Tooltip_OpenFile"]);
         ToolTip.SetTip(InspectorOpenFolderButton, loc["Inspector_Tooltip_OpenFolder"]);
         if (_graph is not null)

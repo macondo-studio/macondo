@@ -1,4 +1,4 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:Macondo.App.Controls"
         xmlns:models="using:Macondo.App.Models"
@@ -851,7 +851,39 @@
                             <TextBlock x:Name="GraphTabHeader" Text="Vista Grafo" VerticalAlignment="Center" />
                         </StackPanel>
                     </TabItem.Header>
-                    <Grid>
+                    <Grid x:Name="GraphContainerGrid">
+                        <Grid.Resources>
+                            <!-- Menu Contestuale Tasto Destro sui Nodi del Grafo -->
+                            <ContextMenu x:Key="GraphNodeContextMenu">
+                                <MenuItem x:Name="CtxNodeExportMarkdown" Header="Esporta MD" Click="OnNodeExportMarkdownClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconMarkdown}" Width="12" Height="12" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="CtxNodeExportJson" Header="Esporta JSON" Click="OnNodeExportJsonClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconExport}" Width="12" Height="12" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator />
+                                <MenuItem x:Name="CtxNodeBlastRadius" Header="Blast Radius" Click="OnBlastRadiusClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconBlastRadius}" Width="12" Height="12" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="CtxNodeShowCallers" Header="Mostra Callers" Click="OnShowCallersClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconCallers}" Width="12" Height="12" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="CtxNodeShowCallees" Header="Mostra Callees" Click="OnShowCalleesClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconCallees}" Width="12" Height="12" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </Grid.Resources>
+
                         <!-- Canvas del Grafo -->
                         <controls:GraphControl x:Name="Graph" SelectionChanged="OnGraphSelectionChanged" />
 
