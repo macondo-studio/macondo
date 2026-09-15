@@ -10,6 +10,9 @@ namespace Macondo.Tests.Vb6Specific;
 
 public class Vb6GrammarAndParserTests
 {
+    /// <summary>
+    /// Verifica che il lexer e parser ANTLR4 eseguano il parsing di una Sub VB6 standard senza generare errori di sintassi.
+    /// </summary>
     [Fact]
     public void Parser_ShouldParseSimpleSub_WithoutErrors()
     {
@@ -38,6 +41,9 @@ public class Vb6GrammarAndParserTests
         tree.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica la corretta gestione del carattere di continuazione riga (' _') su istruzioni e stringhe multilinea.
+    /// </summary>
     [Fact]
     public void Parser_ShouldHandleLineContinuation_Successfully()
     {
@@ -68,6 +74,9 @@ public class Vb6GrammarAndParserTests
         tree.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica che il CollectingErrorListener intercetti e memorizzi tutti gli errori sintattici in presenza di codice malformato.
+    /// </summary>
     [Fact]
     public void Parser_ShouldCollectSyntaxErrors_WhenCodeIsMalformed()
     {
@@ -94,6 +103,9 @@ public class Vb6GrammarAndParserTests
         errors.Should().NotBeEmpty();
     }
 
+    /// <summary>
+    /// Verifica il parsing di blocchi 'With ... End With' e definizioni di Property Get/Let/Set.
+    /// </summary>
     [Fact]
     public void Parser_ShouldParseWithBlocksAndProperties()
     {
@@ -128,6 +140,9 @@ public class Vb6GrammarAndParserTests
         tree.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica il supporto per numeri di riga numerici legacy (es. '10 On Error GoTo Errore') ed etichette prima delle istruzioni.
+    /// </summary>
     [Fact]
     public void Parser_ShouldSupportNumericLineNumbers_AndLabelsBeforeStatements()
     {
@@ -162,6 +177,9 @@ public class Vb6GrammarAndParserTests
         tree.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica il parsing dell'istruzione Load/Unload con argomenti multipli o espressioni.
+    /// </summary>
     [Fact]
     public void Parser_ShouldSupportLoadWithMultipleArguments()
     {
@@ -190,6 +208,9 @@ public class Vb6GrammarAndParserTests
         tree.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica il parsing delle dichiarazioni Win32 API ('Declare Function/Sub ... Lib ... Alias ...').
+    /// </summary>
     [Fact]
     public void Parser_ShouldSupportWin32DeclareStatements_WithLibAndAlias()
     {
@@ -216,6 +237,9 @@ public class Vb6GrammarAndParserTests
         tree.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica il supporto per identificatori racchiusi tra parentesi quadre (bracketed identifiers, es. '[Date]', '[Select]').
+    /// </summary>
     [Fact]
     public void Parser_ShouldSupportBracketedIdentifiers()
     {
@@ -246,6 +270,9 @@ public class Vb6GrammarAndParserTests
         tree.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica il supporto per istruzioni multiple separate da due punti (':') sulla stessa riga di codice.
+    /// </summary>
     [Fact]
     public void Parser_ShouldSupportMultiStatementOnSingleLine_WithColon()
     {
@@ -275,6 +302,9 @@ public class Vb6GrammarAndParserTests
         tree.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica il parsing di dichiarazioni di eventi ('Public Event ...') e istruzioni 'RaiseEvent'.
+    /// </summary>
     [Fact]
     public void Parser_ShouldSupportEventDeclarationAndRaiseEvent()
     {
@@ -304,6 +334,9 @@ public class Vb6GrammarAndParserTests
         tree.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica il parsing di direttive di compilazione condizionale ('#If ... #Else ... #End If').
+    /// </summary>
     [Fact]
     public void Parser_ShouldSupportConditionalCompilationDirectives()
     {
@@ -339,6 +372,9 @@ public class Vb6GrammarAndParserTests
         tree.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica la gestione di doppi apici escapati all'interno di stringhe letterali VB6 (es. '""John Doe""').
+    /// </summary>
     [Fact]
     public void Parser_ShouldSupportEscapedQuotesInStringLiterals()
     {
@@ -367,6 +403,9 @@ public class Vb6GrammarAndParserTests
         tree.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica il parsing della clausola 'Implements InterfaceName' a livello di modulo di classe.
+    /// </summary>
     [Fact]
     public void Parser_ShouldSupportImplementsStatement()
     {
@@ -396,6 +435,9 @@ public class Vb6GrammarAndParserTests
         tree.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica l'estrazione semantica completa del file di classe reale SampleClass.cls del progetto SampleLegacyApp.
+    /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractSampleClassCls_WithAllMethods()
     {
@@ -429,6 +471,9 @@ public class Vb6GrammarAndParserTests
         localAddRiga.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica che i file sorgente critici del progetto reale SampleLegacyApp vengano parsati con successo senza errori sintattici.
+    /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldParseDueSampleAppProblematicFiles_Successfully()
     {

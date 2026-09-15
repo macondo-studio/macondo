@@ -6,6 +6,10 @@ namespace Macondo.Tests.Vb6Specific;
 
 public class Vb6ProjectDiscoveryTests
 {
+    /// <summary>
+    /// Verifica che ProjectDescriptor.DiscoverFromPaths scansioni ricorsivamente una cartella fisica
+    /// e raggruppi tutti i sorgenti VB6 (.bas, .cls, .frm) in un descrittore di progetto.
+    /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldDiscoverFromDirectory_WithVb6Files()
     {
@@ -39,6 +43,10 @@ public class Vb6ProjectDiscoveryTests
         }
     }
 
+    /// <summary>
+    /// Verifica l'estrazione del nome progetto e dei percorsi dei file sorgente dichiarati
+    /// all'interno di un file di progetto VB6 (.vbp).
+    /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldDiscoverFromVbpFile()
     {
@@ -78,6 +86,9 @@ public class Vb6ProjectDiscoveryTests
         }
     }
 
+    /// <summary>
+    /// Verifica il parsing di file di gruppo Visual Basic (.vbg) contenenti molteplici riferimenti a progetti .vbp.
+    /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldDiscoverFromVbgGroupFile()
     {

@@ -7,6 +7,9 @@ namespace Macondo.Tests.Common.App;
 
 public class VcsServiceTests
 {
+    /// <summary>
+    /// Verifica che VcsService individui la presenza di un repository Git tramite la cartella '.git'.
+    /// </summary>
     [Fact]
     public void VcsService_ShouldDetectGitRepository()
     {
@@ -29,6 +32,9 @@ public class VcsServiceTests
         }
     }
 
+    /// <summary>
+    /// Verifica che VcsService individui la presenza di un repository SVN (Subversion) tramite la cartella '.svn'.
+    /// </summary>
     [Fact]
     public void VcsService_ShouldDetectSvnRepository()
     {
@@ -51,6 +57,9 @@ public class VcsServiceTests
         }
     }
 
+    /// <summary>
+    /// Verifica che percorsi nulli, vuoti o non esistenti restituiscano VcsType.None senza eccezioni.
+    /// </summary>
     [Theory]
     [InlineData(null)]
     [InlineData("")]

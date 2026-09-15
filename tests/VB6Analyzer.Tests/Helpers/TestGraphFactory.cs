@@ -60,4 +60,40 @@ public static class TestGraphFactory
 
         return (graph, result);
     }
+
+    public static (CodeGraph Graph, CSharpExtractionResult Result) CreateAndAnalyzeCSharpSource(string fileName, string sourceText)
+    {
+        var graph = new CodeGraph();
+        var result = CSharpExtractor.ExtractCSharpFile(graph, fileName, sourceText);
+
+        var typeResolver = new TypeResolver(graph);
+        typeResolver.ResolveAllTypes();
+        var symbolResolver = new SymbolResolver(graph, typeResolver);
+
+        var builder = new CallGraphBuilder(graph, symbolResolver);
+        builder.BuildGraph(Array.Empty<ModuleExtractionResult>(), new[] { result });
+
+        return (graph, result);
+    }
+
+    public static (CodeGraph Graph, List<CSharpExtractionResult> Results) CreateAndAnalyzeCSharpSources(params (string FileName, string SourceText)[] sources)
+    {
+        var graph = new CodeGraph();
+        var results = new List<CSharpExtractionResult>();
+
+        foreach (var (fileName, sourceText) in sources)
+        {
+            var res = CSharpExtractor.ExtractCSharpFile(graph, fileName, sourceText);
+            results.Add(res);
+        }
+
+        var typeResolver = new TypeResolver(graph);
+        typeResolver.ResolveAllTypes();
+        var symbolResolver = new SymbolResolver(graph, typeResolver);
+
+        var builder = new CallGraphBuilder(graph, symbolResolver);
+        builder.BuildGraph(Array.Empty<ModuleExtractionResult>(), results);
+
+        return (graph, results);
+    }
 }

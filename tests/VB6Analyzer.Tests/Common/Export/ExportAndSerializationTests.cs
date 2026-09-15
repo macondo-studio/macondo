@@ -8,6 +8,9 @@ namespace Macondo.Tests.Common.Export;
 
 public class ExportAndSerializationTests
 {
+    /// <summary>
+    /// Verifica che CodeGraphMarkdownExporter generi un documento Markdown formattato non vuoto per l'intero grafo.
+    /// </summary>
     [Fact]
     public void MarkdownExporter_ShouldGenerateNonEmptyReport()
     {
@@ -22,6 +25,9 @@ public class ExportAndSerializationTests
         markdown.Should().Contain("# CodeBase Knowledge Graph");
     }
 
+    /// <summary>
+    /// Verifica l'esportazione Markdown di un sotto-grafo / fetta (Slice) focalizzato su una specifica routine.
+    /// </summary>
     [Fact]
     public void MarkdownExporter_ShouldExportSliceForSymbol()
     {
@@ -38,6 +44,10 @@ public class ExportAndSerializationTests
         slice.Should().Contain(routine!.Name);
     }
 
+    /// <summary>
+    /// Verifica il round-trip di serializzazione ed esportazione/importazione JSON del CodeGraph,
+    /// confermando la perfetta corrispondenza di simboli, ID, kind e relazioni.
+    /// </summary>
     [Fact]
     public void JsonExporter_ShouldRoundtripSerializeAndDeserializeIdentically()
     {
@@ -65,6 +75,10 @@ public class ExportAndSerializationTests
         }
     }
 
+    /// <summary>
+    /// Verifica che la serializzazione JSON conservi integralmente tutti i metadati avanzati dei simboli:
+    /// parametri, ByVal/ByRef, valori di default, accessibilità (es. Friend), flag static e righe di codice.
+    /// </summary>
     [Fact]
     public void JsonExporter_ShouldPreserveSymbolMetadata_ParametersAccessibilityFlags()
     {

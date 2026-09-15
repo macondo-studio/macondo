@@ -8,6 +8,10 @@ namespace Macondo.Tests.Common.App;
 
 public class LocalizationParityTests
 {
+    /// <summary>
+    /// Verifica la parità esatta 1:1 di tutte le chiavi di localizzazione tra il dizionario italiano e quello inglese,
+    /// prevenendo errori di traduzione mancante nell'interfaccia utente.
+    /// </summary>
     [Fact]
     public void Localization_ShouldHaveExactKeyParity_BetweenItalianAndEnglish()
     {
@@ -32,6 +36,10 @@ public class LocalizationParityTests
         missingInIt.Should().BeEmpty("All English localization keys must also exist in Italian dictionary");
     }
 
+    /// <summary>
+    /// Verifica che il metodo LocalizationService.Get formatti correttamente i parametri posizionali ({0}, {1}...)
+    /// sia in lingua italiana che in lingua inglese.
+    /// </summary>
     [Fact]
     public void Localization_Get_ShouldReturnFormattedString_WhenKeyExists()
     {
@@ -48,6 +56,9 @@ public class LocalizationParityTests
         enText.Should().Contain("20");
     }
 
+    /// <summary>
+    /// Verifica il meccanismo di fallback che restituisce la chiave stessa come stringa se la chiave richiesta non esiste.
+    /// </summary>
     [Fact]
     public void Localization_Get_ShouldFallbackToKey_WhenKeyDoesNotExist()
     {

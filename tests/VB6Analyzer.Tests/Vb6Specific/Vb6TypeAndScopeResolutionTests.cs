@@ -10,6 +10,10 @@ namespace Macondo.Tests.Vb6Specific;
 
 public class Vb6TypeAndScopeResolutionTests
 {
+    /// <summary>
+    /// Verifica che TypeResolver individui e risolva i tipi di classe definiti dall'utente (.cls)
+    /// utilizzati come tipi di variabile o parametri in altri moduli, generando relazioni USES_TYPE.
+    /// </summary>
     [Fact]
     public void TypeResolver_ShouldResolveClassTypesAcrossModules()
     {
@@ -47,6 +51,10 @@ public class Vb6TypeAndScopeResolutionTests
         usesTypeRels.Should().Contain(r => r.TargetId == customerSymbol.Id);
     }
 
+    /// <summary>
+    /// Verifica la gerarchia di visibilità degli scope (LocalScope -> ModuleScope -> ProjectScope),
+    /// confermando che una variabile locale con lo stesso nome offuschi (shadowing) il campo di modulo.
+    /// </summary>
     [Fact]
     public void SymbolResolver_ShouldResolveLocalVariableBeforeModuleField()
     {
@@ -79,6 +87,9 @@ public class Vb6TypeAndScopeResolutionTests
         resolved.TargetTypeName.Should().Be("String"); // local string shadows module integer
     }
 
+    /// <summary>
+    /// Verifica la risoluzione implicita dei membri all'interno di blocchi 'With targetObject ... .Method() ... End With'.
+    /// </summary>
     [Fact]
     public void SymbolResolver_ShouldResolveWithBlockImplicitTarget()
     {
@@ -115,6 +126,9 @@ public class Vb6TypeAndScopeResolutionTests
         callRel.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifica la totale insensibilità alle maiuscole/minuscole (case-insensitivity) nelle ricerche di scope e simboli VB6.
+    /// </summary>
     [Fact]
     public void SymbolResolver_ShouldSupportCaseInsensitiveLookups()
     {
@@ -153,6 +167,10 @@ public class Vb6TypeAndScopeResolutionTests
         resLower.TargetSymbol.Should().Be(resUpper.TargetSymbol);
     }
 
+    /// <summary>
+    /// Verifica che routine pubbliche dichiarate in moduli standard (.bas) siano risolvibili a livello globale
+    /// da qualsiasi classe o form senza necessità di qualificare il nome del modulo.
+    /// </summary>
     [Fact]
     public void SymbolResolver_ShouldResolveGlobalFunctionsFromStandardModules()
     {
@@ -185,6 +203,9 @@ public class Vb6TypeAndScopeResolutionTests
         callRel.Should().NotBeNull("Public routines in standard .bas modules should be globally callable without module qualifier");
     }
 
+    /// <summary>
+    /// Verifica la risoluzione semantica di chiamate concatenate tra oggetti (es. m_Order.Customer.Save).
+    /// </summary>
     [Fact]
     public void SymbolResolver_ShouldResolveChainedMemberAccess()
     {

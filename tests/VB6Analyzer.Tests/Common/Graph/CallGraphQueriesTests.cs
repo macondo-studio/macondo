@@ -7,6 +7,9 @@ namespace Macondo.Tests.Common.Graph;
 
 public class CallGraphQueriesTests
 {
+    /// <summary>
+    /// Verifies that CallGraphQueries correctly returns direct incoming callers and direct outgoing callees for target methods.
+    /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldReturnDirectCallersAndCallees()
     {
@@ -31,6 +34,9 @@ public class CallGraphQueriesTests
         directCallees.Should().NotBeEmpty();
     }
 
+    /// <summary>
+    /// Verifies that CallGraphQueries identifies classes instantiated within a specific routine body.
+    /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldReturnInstantiatedClasses()
     {
@@ -48,3 +54,4 @@ public class CallGraphQueriesTests
         instantiated.Should().NotBeEmpty();
     }
 }
+

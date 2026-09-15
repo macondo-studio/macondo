@@ -8,6 +8,9 @@ namespace Macondo.Tests.Common.Graph;
 
 public class PathAndCycleDetectionTests
 {
+    /// <summary>
+    /// Verifies that CallGraphQueries finds all directional execution paths between a source routine and target callee.
+    /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldFindExecutionPathsBetweenRoutines()
     {
@@ -34,6 +37,9 @@ public class PathAndCycleDetectionTests
         }
     }
 
+    /// <summary>
+    /// Verifies that cycle detection correctly discovers circular call chains within the code graph.
+    /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldDetectCyclesInCallGraph()
     {
@@ -49,6 +55,9 @@ public class PathAndCycleDetectionTests
         cycles.Should().NotBeEmpty("Cycles from 14_CallCycles.cls fixture should be detected");
     }
 
+    /// <summary>
+    /// Verifies that FindExecutionPaths returns an empty collection when no call path exists between two disconnected routines.
+    /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldReturnEmptyPathList_WhenTargetIsUnreachable()
     {
@@ -67,3 +76,4 @@ public class PathAndCycleDetectionTests
         paths.Should().BeEmpty();
     }
 }
+

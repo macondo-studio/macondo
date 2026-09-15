@@ -8,6 +8,10 @@ namespace Macondo.Tests.Vb6Specific;
 
 public class Vb6SymbolExtractionTests
 {
+    /// <summary>
+    /// Verifica che ModuleExtractor estragga correttamente routine Sub e Function VB6, inclusi parametri
+    /// per valore/riferimento (ByVal/ByRef), parametri opzionali e tipi di ritorno.
+    /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractSubAndFunctionSymbols()
     {
@@ -50,6 +54,9 @@ public class Vb6SymbolExtractionTests
         calcSym.ReturnType.Should().Be("Double");
     }
 
+    /// <summary>
+    /// Verifica l'estrazione delle proprietà VB6 nelle varianti Property Get, Property Let e Property Set.
+    /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractProperties_GetLetSet()
     {
@@ -81,6 +88,9 @@ public class Vb6SymbolExtractionTests
         fieldSym!.Kind.Should().Be(SymbolKind.Field);
     }
 
+    /// <summary>
+    /// Verifica l'estrazione di costanti ('Public/Private Const') ed enumerazioni ('Enum ... End Enum') con i rispettivi membri.
+    /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractConstantsAndEnums()
     {
@@ -116,6 +126,9 @@ public class Vb6SymbolExtractionTests
         enumMembers.Select(m => m.Name).Should().Contain(new[] { "Pending", "Approved", "Cancelled" });
     }
 
+    /// <summary>
+    /// Verifica che i membri di modulo vengano collegati al modulo contenitore tramite relazioni CONTAINS.
+    /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractContainsRelationships()
     {
@@ -138,6 +151,9 @@ public class Vb6SymbolExtractionTests
         containsRels.Should().HaveCount(2);
     }
 
+    /// <summary>
+    /// Verifica l'estrazione di strutture UDT ('Type ... End Type') con campi primitivi e array a dimensione fissa.
+    /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractUserDefinedTypes_UDT_WithMembersAndArrays()
     {
@@ -173,6 +189,9 @@ public class Vb6SymbolExtractionTests
         addrField!.IsArray.Should().BeTrue();
     }
 
+    /// <summary>
+    /// Verifica l'estrazione dei controlli UI definiti nell'header descrittivo delle form VB6 (.frm).
+    /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractFormControls_FromFrmHeader()
     {
@@ -209,6 +228,9 @@ public class Vb6SymbolExtractionTests
         controls.Should().Contain(c => c.Name == "txtUsername" && c.DeclaredTypeName == "VB.TextBox");
     }
 
+    /// <summary>
+    /// Verifica la marcatura dei flag IsNewInstance (per 'Dim ... As New') e IsArray (per buffer e array).
+    /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldCaptureIsNewInstance_AndIsArrayFlags()
     {
@@ -239,6 +261,9 @@ public class Vb6SymbolExtractionTests
         numbersSym!.IsArray.Should().BeTrue();
     }
 
+    /// <summary>
+    /// Verifica l'estrazione di procedure e variabili dichiarate con modificatore Static in VB6.
+    /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldCaptureStaticProceduresAndVariables()
     {
@@ -265,6 +290,9 @@ public class Vb6SymbolExtractionTests
         hitCount!.IsStatic.Should().BeTrue();
     }
 
+    /// <summary>
+    /// Verifica l'individuazione euristica dei gestori di eventi UI in base alle convenzioni di denominazione (es. 'cmdSubmit_Click', 'Form_Load').
+    /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldDetectLikelyEventHandlerNamingConventions()
     {

@@ -76,6 +76,10 @@ public class GraphNodeVisibilityTests
         return (control, graph, container, method, prop, otherContainer);
     }
 
+    /// <summary>
+    /// Verifica che con il filtro "Solo Contenitori" attivo e nessun nodo selezionato, vengano visualizzati
+    /// unicamente i moduli/classi contenitori e nascosti tutti i metodi e le proprietà interne.
+    /// </summary>
     [Fact]
     public void ContainersOnlyFilter_WithoutSelection_ShouldOnlyShowContainers()
     {
@@ -90,6 +94,10 @@ public class GraphNodeVisibilityTests
         visibleCount.Should().Be(2, "Solo i due moduli container devono essere visibili inizialmente");
     }
 
+    /// <summary>
+    /// Verifica che cliccando/selezionando un nodo container (modulo o classe) sotto il filtro "Solo Contenitori",
+    /// il container si espanda automaticamente rendendo visibili tutti i suoi metodi e proprietà figli.
+    /// </summary>
     [Fact]
     public void ContainersOnlyFilter_WhenContainerSelected_ShouldShowAllItsMethodsAndProperties()
     {
@@ -110,6 +118,10 @@ public class GraphNodeVisibilityTests
         visibleCount.Should().Be(4, "Tutti i metodi e le proprietà del modulo cliccato devono essere mostrati");
     }
 
+    /// <summary>
+    /// Verifica che selezionando un metodo interno di un modulo, il container genitore si espanda
+    /// mantenendo visibili sia il metodo selezionato sia i membri fratelli (sibling members).
+    /// </summary>
     [Fact]
     public void ContainersOnlyFilter_WhenChildMethodSelected_ShouldKeepContainerAndSiblingMembersVisible()
     {

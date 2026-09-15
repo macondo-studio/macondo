@@ -8,6 +8,9 @@ namespace Macondo.Tests.Common.Analytics;
 
 public class ScreenFlowTests
 {
+    /// <summary>
+    /// Verifica l'estrazione delle schermate (Form e UserControl) e delle relative transizioni di navigazione dal grafo.
+    /// </summary>
     [Fact]
     public void ScreenFlow_ShouldExtractScreensAndTransitions_FromGraph()
     {
@@ -22,6 +25,9 @@ public class ScreenFlowTests
         screenFlow.Screens.Should().NotBeEmpty();
     }
 
+    /// <summary>
+    /// Verifica la corretta differenziazione tra transizioni modali (OpenModal via chiamate) e non modali (OpenModeless via istanziazioni).
+    /// </summary>
     [Fact]
     public void ScreenFlow_ShouldDifferentiateModalAndModelessTransitions()
     {
@@ -57,6 +63,10 @@ public class ScreenFlowTests
         modelessTrans.TransitionKind.Should().Be(ScreenTransitionKind.OpenModeless);
     }
 
+    /// <summary>
+    /// Verifica l'identificazione della schermata di avvio (Startup Screen) e l'assegnazione
+    /// di coordinate gerarchiche a livelli (Layered Coordinates) da sinistra verso destra.
+    /// </summary>
     [Fact]
     public void ScreenFlow_ShouldAssignStartupScreen_AndLayeredCoordinates()
     {

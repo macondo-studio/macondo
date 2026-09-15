@@ -10,6 +10,9 @@ namespace Macondo.Tests.Common.App;
 
 public class SettingsAndCacheTests
 {
+    /// <summary>
+    /// Verifica la serializzazione e deserializzazione JSON corretta dell'oggetto AppSettings (Lingua, Tema, preferenze).
+    /// </summary>
     [Fact]
     public void AppSettings_ShouldSerializeAndDeserializeCorrectly()
     {
@@ -34,6 +37,10 @@ public class SettingsAndCacheTests
         deserialized.LastOpenedFolder.Should().Be(@"C:\Fake\Path\Project");
     }
 
+    /// <summary>
+    /// Verifica che ProjectCacheService ripristini fedelmente il VisualCodeGraph, le coordinate dei nodi
+    /// e le righe della griglia del Blast Radius a partire da uno snapshot serializzato su cache.
+    /// </summary>
     [Fact]
     public void ProjectCacheSnapshot_ShouldRestoreVisualGraphAndRows()
     {

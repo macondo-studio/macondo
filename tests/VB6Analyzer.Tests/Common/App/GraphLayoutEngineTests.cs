@@ -41,6 +41,10 @@ public class GraphLayoutEngineTests
         return graph;
     }
 
+    /// <summary>
+    /// Verifica che tutti i motori di layout (StandardRadial, AffinityRadial, ClusteredIslands, ForceDirected)
+    /// gestiscano grafi vuoti senza generare eccezioni.
+    /// </summary>
     [Theory]
     [InlineData(GraphLayoutMode.StandardRadial)]
     [InlineData(GraphLayoutMode.AffinityRadial)]
@@ -54,6 +58,10 @@ public class GraphLayoutEngineTests
         act.Should().NotThrow();
     }
 
+    /// <summary>
+    /// Verifica che i motori di layout posizionino correttamente un grafo composto da un singolo nodo,
+    /// producendo coordinate numeriche finite e non nulle.
+    /// </summary>
     [Theory]
     [InlineData(GraphLayoutMode.StandardRadial)]
     [InlineData(GraphLayoutMode.AffinityRadial)]
@@ -72,6 +80,9 @@ public class GraphLayoutEngineTests
         double.IsInfinity(graph.Nodes[0].Y).Should().BeFalse();
     }
 
+    /// <summary>
+    /// Verifica che per grafi multi-nodo vengano generate coordinate (X, Y) valide e non degenerate (non NaN, non Infinity).
+    /// </summary>
     [Theory]
     [InlineData(GraphLayoutMode.StandardRadial)]
     [InlineData(GraphLayoutMode.AffinityRadial)]
@@ -92,6 +103,9 @@ public class GraphLayoutEngineTests
         }
     }
 
+    /// <summary>
+    /// Verifica che il layout a isole raggruppate (ClusteredIslands) gestisca componenti connesse disgiunte (isole separate).
+    /// </summary>
     [Fact]
     public void LayoutEngines_ShouldHandleDisconnectedIslands()
     {

@@ -6,6 +6,9 @@ namespace Macondo.Tests.Common.App;
 
 public class UpdateServiceTests
 {
+    /// <summary>
+    /// Verifica che la proprietà UpdateService.CurrentVersion sia formattata come una stringa SemVer valida (X.Y.Z).
+    /// </summary>
     [Fact]
     public void CurrentVersion_ShouldBeValidSemVer()
     {
@@ -14,6 +17,9 @@ public class UpdateServiceTests
         UpdateService.CurrentVersionString.Should().MatchRegex(@"^\d+\.\d+\.\d+$");
     }
 
+    /// <summary>
+    /// Verifica che la comparazione semantica tra versioni (SemVer) identifichi correttamente se una versione remota è più recente.
+    /// </summary>
     [Theory]
     [InlineData("1.0.0", false)]
     [InlineData("1.1.0", false)]

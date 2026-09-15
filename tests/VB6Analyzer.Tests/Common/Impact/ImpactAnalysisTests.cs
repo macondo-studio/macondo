@@ -9,6 +9,9 @@ namespace Macondo.Tests.Common.Impact;
 
 public class ImpactAnalysisTests
 {
+    /// <summary>
+    /// Verifies that ImpactAnalyzer computes the routine blast radius including direct callers, affected classes, and elevated risk level.
+    /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldCalculateRoutineBlastRadius()
     {
@@ -30,6 +33,9 @@ public class ImpactAnalysisTests
         impact.RiskLevel.Should().NotBe(ImpactRiskLevel.Low);
     }
 
+    /// <summary>
+    /// Verifies that ImpactAnalyzer computes type-level blast radius identifying affected consumer classes.
+    /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldCalculateTypeBlastRadius()
     {
@@ -50,6 +56,9 @@ public class ImpactAnalysisTests
         classImpact.AffectedClasses.Should().NotBeEmpty();
     }
 
+    /// <summary>
+    /// Verifies that ImpactAnalyzer respects the maxDepth throttling parameter when traversing caller chains.
+    /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldThrottleByMaxDepth()
     {
@@ -80,6 +89,9 @@ public class ImpactAnalysisTests
         impactDepth3.IndirectCallers.Should().HaveCount(2); // b and a
     }
 
+    /// <summary>
+    /// Verifies that analyzing an isolated symbol with zero callers yields empty caller lists, depth zero, and Low risk level.
+    /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldHandleIsolatedSymbolsWithZeroCallers()
     {
@@ -101,6 +113,9 @@ public class ImpactAnalysisTests
         impact.RiskLevel.Should().Be(ImpactRiskLevel.Low);
     }
 
+    /// <summary>
+    /// Verifies that ImpactAnalyzer computes impact for field and constant symbols tracking containing modules and type dependents.
+    /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldCalculateFieldAndConstantImpact()
     {
@@ -125,3 +140,4 @@ public class ImpactAnalysisTests
         impact.TypeDependents.Should().Contain(d => d.Id == userMethod.Id);
     }
 }
+
