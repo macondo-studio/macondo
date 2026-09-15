@@ -4,7 +4,7 @@ using Macondo.App.Models;
 using Macondo.Semantic.Model;
 using Xunit;
 
-namespace Macondo.Tests.App;
+namespace Macondo.Tests.Common.App;
 
 public class GraphLayoutEngineTests
 {
@@ -89,6 +89,31 @@ public class GraphLayoutEngineTests
             node.Y.Should().NotBe(double.NaN);
             double.IsInfinity(node.X).Should().BeFalse();
             double.IsInfinity(node.Y).Should().BeFalse();
+        }
+    }
+
+    [Fact]
+    public void LayoutEngines_ShouldHandleDisconnectedIslands()
+    {
+        // Arrange: 2 separate clusters with no edges between them
+        var graph = new VisualCodeGraph();
+        var nodeA1 = new GraphNode { Id = Guid.NewGuid(), Name = "A1", QualifiedName = "ModA.A1", Kind = SymbolKind.Module };
+        var nodeA2 = new GraphNode { Id = Guid.NewGuid(), Name = "A2", QualifiedName = "ModA.A2", Kind = SymbolKind.Method };
+        var nodeB1 = new GraphNode { Id = Guid.NewGuid(), Name = "B1", QualifiedName = "ModB.B1", Kind = SymbolKind.Module };
+        var nodeB2 = new GraphNode { Id = Guid.NewGuid(), Name = "B2", QualifiedName = "ModB.B2", Kind = SymbolKind.Method };
+
+        graph.Nodes.AddRange(new[] { nodeA1, nodeA2, nodeB1, nodeB2 });
+        graph.Edges.Add(new GraphEdge { SourceId = nodeA1.Id, TargetId = nodeA2.Id, Kind = RelationshipKind.Calls });
+        graph.Edges.Add(new GraphEdge { SourceId = nodeB1.Id, TargetId = nodeB2.Id, Kind = RelationshipKind.Calls });
+
+        // Act & Assert
+        var act = () => GraphLayoutManager.ApplyLayout(graph, GraphLayoutMode.ClusteredIslands);
+        act.Should().NotThrow();
+
+        foreach (var node in graph.Nodes)
+        {
+            node.X.Should().NotBe(double.NaN);
+            node.Y.Should().NotBe(double.NaN);
         }
     }
 }

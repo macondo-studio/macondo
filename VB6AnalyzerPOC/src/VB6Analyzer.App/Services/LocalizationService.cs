@@ -9,7 +9,7 @@ public sealed class LocalizationService
 
     public event EventHandler<AppLanguage>? LanguageChanged;
 
-    public AppLanguage CurrentLanguage { get; private set; } = AppLanguage.Italian;
+    public AppLanguage CurrentLanguage { get; private set; } = DetectSystemLanguage();
 
     private readonly Dictionary<string, string> _itStrings = new()
     {
@@ -63,6 +63,7 @@ public sealed class LocalizationService
         ["Layout_ClusteredIslands"] = "Cluster a Isole (Sottosistemi)",
         ["Layout_ForceDirected"] = "Force-Directed (Fisica a Molle)",
         ["Menu_HoverSelection"] = "Selezione al Passaggio del Mouse (Hover)",
+        ["Menu_ToggleTabLabels"] = "Mostra etichette schede",
         ["HUD_LayoutLabel"] = "Layout:",
         ["Status_LayoutApplied"] = "Applicato layout '{0}' al grafo.",
 
@@ -104,6 +105,13 @@ public sealed class LocalizationService
         ["Inspector_Tooltip_OpenFile"] = "Apri file sorgente originale",
         ["Inspector_Tooltip_OpenFolder"] = "Mostra file nella cartella di sistema",
 
+        // Menu Contestuale Nodo Grafo
+        ["Ctx_Node_ExportMarkdown"] = "Esporta MD",
+        ["Ctx_Node_ExportJson"] = "Esporta JSON",
+        ["Ctx_Node_BlastRadius"] = "Blast Radius",
+        ["Ctx_Node_ShowCallers"] = "Mostra Callers",
+        ["Ctx_Node_ShowCallees"] = "Mostra Callees",
+
         // Inspector & Blast Radius
         ["Inspector_Title"] = "Symbol Inspector & Blast Radius",
         ["Tooltip_HideInspector"] = "Nascondi Symbol Inspector (Ctrl+I)",
@@ -117,6 +125,13 @@ public sealed class LocalizationService
         ["Tab_ScreenFlow"] = "Flusso Schermate",
         ["Tab_ControlFlow"] = "Control Flow (CFG)",
         ["Tab_BlastRadiusGrid"] = "Griglia Blast Radius",
+        ["Tab_GraphView_Tip"] = "Vista Grafo Semantico",
+        ["Tab_DsmMatrix_Tip"] = "Matrice DSM (Dependency Structure Matrix)",
+        ["Tab_TreemapMetrics_Tip"] = "Treemap Metriche di Codice",
+        ["Tab_RiskHotspots_Tip"] = "Matrice Hotspot di Rischio",
+        ["Tab_ScreenFlow_Tip"] = "Flusso Schermate e Navigazione Form",
+        ["Tab_ControlFlow_Tip"] = "Control Flow Graph (CFG) a blocchi",
+        ["Tab_BlastRadiusGrid_Tip"] = "Griglia e Matrice Blast Radius",
 
         // Treemap Metriche
         ["Treemap_Placeholder"] = "Nessuna Treemap calcolata. Carica un progetto per visualizzare la mappa delle metriche.",
@@ -242,6 +257,8 @@ public sealed class LocalizationService
         ["Loading_NodeAnalysisSub"] = "Esplorazione chiamanti e dipendenze per '{0}'",
         ["Loading_AnalyzeProjectTitle"] = "Analisi del progetto VB6...",
         ["Loading_AnalyzeProjectSub"] = "Scansione ed estrazione da '{0}'...",
+        ["Loading_ExportTitle"] = "Esportazione in corso...",
+        ["Loading_ExportSub"] = "Generazione e salvataggio di '{0}' in corso...",
         ["Loading_FixturesTitle"] = "Caricamento fixture VB6...",
         ["Loading_FixturesSub"] = "Analisi semantica dei moduli fixture in corso...",
         ["Loading_ParsingFile"] = "Analisi ed estrazione: {0}",
@@ -251,6 +268,14 @@ public sealed class LocalizationService
         ["Loading_FilesProgressFormat"] = "{0} / {1} file ({2}%)",
         ["Loading_NodesExtractedFormat"] = "{0} nodi rilevati",
         ["Loading_Cancel"] = "Annulla",
+
+        // Modale Conferma Esportazione
+        ["Export_ModalTitle"] = "Esportazione Completata!",
+        ["Export_ModalSubtitle"] = "Il file è stato generato e salvato correttamente su disco.",
+        ["Export_ModalFileLabel"] = "File:",
+        ["Export_ModalPathLabel"] = "Percorso:",
+        ["Export_ModalOpenFolder"] = "Mostra nella cartella",
+        ["Export_ModalOk"] = "OK",
         ["Loading_Cancelling"] = "Annullamento in corso...",
         ["Status_AnalysisCancelled"] = "Analisi annullata dall'utente.",
         ["Notification_AnalysisCompleted_Title"] = "Analisi VB6 completata",
@@ -277,7 +302,7 @@ public sealed class LocalizationService
         ["Theme_LightModern_Desc"] = "Tema chiaro ad alto contrasto per ambienti diurni con accento cobalto.",
         ["Settings_Language_Header"] = "Seleziona Lingua Interfaccia",
         ["Settings_Language_Sub"] = "La lingua selezionata verrà applicata immediatamente a tutti i menu e comandi.",
-        ["Lang_Italian_Title"] = "Italiano (Predefinito)",
+        ["Lang_Italian_Title"] = "Italiano",
         ["Lang_Italian_Desc"] = "Interfaccia, menu e documentazione in lingua italiana.",
         ["Lang_English_Title"] = "English",
         ["Lang_English_Desc"] = "Interfaccia completa in inglese, menu e terminologia di analisi.",
@@ -285,6 +310,8 @@ public sealed class LocalizationService
         ["Settings_Behavior_Sub"] = "Personalizza il comportamento del puntatore del mouse e della vista grafo.",
         ["Settings_HoverSelection_Title"] = "Selezione al passaggio del mouse (Hover)",
         ["Settings_HoverSelection_Sub"] = "Seleziona e ispeziona automaticamente i nodi quando il cursore vi passa sopra.",
+        ["Settings_TabLabels_Title"] = "Mostra etichette schede di visualizzazione",
+        ["Settings_TabLabels_Sub"] = "Mostra o nascondi il testo accanto alle icone nei tab centrali (Vista Grafo, Treemap, Flow...).",
         ["Settings_Shortcuts_Header"] = "Catalogo Scorciatoie da Tastiera",
         ["Settings_Shortcuts_Sub"] = "Tutte le combinazioni di tasti per navigare rapidamente nel codice e nel grafo.",
         ["Settings_Shortcuts_Search"] = "Cerca scorciatoia...",
@@ -503,6 +530,7 @@ public sealed class LocalizationService
         ["Layout_ClusteredIslands"] = "Clustered Islands (Subsystems)",
         ["Layout_ForceDirected"] = "Force-Directed (Physics)",
         ["Menu_HoverSelection"] = "Hover Node Selection",
+        ["Menu_ToggleTabLabels"] = "Show Tab Labels",
         ["HUD_LayoutLabel"] = "Layout:",
         ["Status_LayoutApplied"] = "Applied '{0}' layout to graph.",
 
@@ -544,6 +572,13 @@ public sealed class LocalizationService
         ["Inspector_Tooltip_OpenFile"] = "Open original source file",
         ["Inspector_Tooltip_OpenFolder"] = "Show file in system folder",
 
+        // Graph Node Context Menu
+        ["Ctx_Node_ExportMarkdown"] = "Export MD",
+        ["Ctx_Node_ExportJson"] = "Export JSON",
+        ["Ctx_Node_BlastRadius"] = "Blast Radius",
+        ["Ctx_Node_ShowCallers"] = "Show Callers",
+        ["Ctx_Node_ShowCallees"] = "Show Callees",
+
         // Inspector & Blast Radius
         ["Inspector_Title"] = "Symbol Inspector & Blast Radius",
         ["Tooltip_HideInspector"] = "Hide Symbol Inspector (Ctrl+I)",
@@ -557,6 +592,13 @@ public sealed class LocalizationService
         ["Tab_ScreenFlow"] = "Screen Flow",
         ["Tab_ControlFlow"] = "Control Flow (CFG)",
         ["Tab_BlastRadiusGrid"] = "Blast Radius Grid",
+        ["Tab_GraphView_Tip"] = "Semantic Graph View",
+        ["Tab_DsmMatrix_Tip"] = "DSM Matrix (Dependency Structure Matrix)",
+        ["Tab_TreemapMetrics_Tip"] = "Code Metrics Treemap",
+        ["Tab_RiskHotspots_Tip"] = "Risk Hotspots Matrix",
+        ["Tab_ScreenFlow_Tip"] = "Screen Flow & Form Navigation",
+        ["Tab_ControlFlow_Tip"] = "Control Flow Graph (CFG)",
+        ["Tab_BlastRadiusGrid_Tip"] = "Blast Radius Grid & Risk Matrix",
 
         // Treemap Metrics
         ["Treemap_Placeholder"] = "No Treemap calculated. Load a project to view the metrics map.",
@@ -681,16 +723,26 @@ public sealed class LocalizationService
         ["Loading_NodeAnalysisTitle"] = "Analyzing node in progress...",
         ["Loading_NodeAnalysisSub"] = "Exploring callers and dependencies for '{0}'",
         ["Loading_AnalyzeProjectTitle"] = "Analyzing VB6 Project...",
-        ["Loading_AnalyzeProjectSub"] = "Scanning and extracting from '{0}'...",
+        ["Loading_AnalyzeProjectSub"] = "Scanning and extracting symbols from '{0}'...",
+        ["Loading_ExportTitle"] = "Exporting in progress...",
+        ["Loading_ExportSub"] = "Generating and saving '{0}'...",
         ["Loading_FixturesTitle"] = "Loading VB6 Fixtures...",
-        ["Loading_FixturesSub"] = "Semantic analysis of fixture modules in progress...",
-        ["Loading_ParsingFile"] = "Parsing & extracting: {0}",
-        ["Loading_ResolvingTypes"] = "Resolving global types...",
-        ["Loading_BuildingCallGraph"] = "Building Call Graph and relationships...",
-        ["Loading_GeneratingVisualGraph"] = "Generating visual graph and layout...",
+        ["Loading_FixturesSub"] = "Parsing fixture modules...",
+        ["Loading_ParsingFile"] = "Parsing and extracting: {0}",
+        ["Loading_ResolvingTypes"] = "Resolving global types across files...",
+        ["Loading_BuildingCallGraph"] = "Building Call Graph relationships...",
+        ["Loading_GeneratingVisualGraph"] = "Generating visual graph layout...",
         ["Loading_FilesProgressFormat"] = "{0} / {1} files ({2}%)",
         ["Loading_NodesExtractedFormat"] = "{0} nodes detected",
         ["Loading_Cancel"] = "Cancel",
+
+        // Export Confirmation Modal
+        ["Export_ModalTitle"] = "Export Completed Successfully!",
+        ["Export_ModalSubtitle"] = "The file has been generated and saved to disk.",
+        ["Export_ModalFileLabel"] = "File:",
+        ["Export_ModalPathLabel"] = "Path:",
+        ["Export_ModalOpenFolder"] = "Show in Folder",
+        ["Export_ModalOk"] = "OK",
         ["Loading_Cancelling"] = "Cancelling...",
         ["Status_AnalysisCancelled"] = "Analysis cancelled by user.",
         ["Notification_AnalysisCompleted_Title"] = "VB6 Analysis Completed",
@@ -725,6 +777,8 @@ public sealed class LocalizationService
         ["Settings_Behavior_Sub"] = "Customize mouse pointer behavior and graph canvas interaction.",
         ["Settings_HoverSelection_Title"] = "Hover Node Selection",
         ["Settings_HoverSelection_Sub"] = "Automatically select and inspect nodes when hovering with the mouse cursor.",
+        ["Settings_TabLabels_Title"] = "Show visualization tab labels",
+        ["Settings_TabLabels_Sub"] = "Show or hide text labels next to icons in the main visualization tabs (Graph View, Treemap, Flow...).",
         ["Settings_Shortcuts_Header"] = "Keyboard Shortcuts Catalog",
         ["Settings_Shortcuts_Sub"] = "All key combinations for rapid navigation and analysis.",
         ["Settings_Shortcuts_Search"] = "Search shortcut...",
@@ -922,4 +976,40 @@ public sealed class LocalizationService
     };
 
     public string this[string key] => Get(key);
+
+    /// <summary>
+    /// Rileva automaticamente la lingua da impostare in base alla lingua e impostazioni regionali di sistema.
+    /// Se la lingua di sistema o interfaccia utente è l'italiano ("it"), restituisce AppLanguage.Italian.
+    /// Per qualsiasi altra lingua, restituisce AppLanguage.English come standard internazionale predefinito.
+    /// </summary>
+    public static AppLanguage DetectSystemLanguage()
+    {
+        try
+        {
+            if (IsItalianCulture(System.Globalization.CultureInfo.CurrentUICulture))
+                return AppLanguage.Italian;
+
+            if (IsItalianCulture(System.Globalization.CultureInfo.InstalledUICulture))
+                return AppLanguage.Italian;
+
+            if (IsItalianCulture(System.Globalization.CultureInfo.CurrentCulture))
+                return AppLanguage.Italian;
+        }
+        catch
+        {
+            // Tolleranza ad eccezioni su ambienti o permessi restrittivi
+        }
+
+        return AppLanguage.English;
+    }
+
+    /// <summary>
+    /// Determina se una specifica cultura appartiene alla lingua italiana.
+    /// </summary>
+    public static bool IsItalianCulture(System.Globalization.CultureInfo? culture)
+    {
+        if (culture == null) return false;
+        return string.Equals(culture.TwoLetterISOLanguageName, "it", StringComparison.OrdinalIgnoreCase) ||
+               culture.Name.StartsWith("it", StringComparison.OrdinalIgnoreCase);
+    }
 }

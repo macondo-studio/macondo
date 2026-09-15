@@ -6,7 +6,7 @@ using Macondo.Semantic.Impact;
 using Macondo.Semantic.Model;
 using Xunit;
 
-namespace Macondo.Tests.App;
+namespace Macondo.Tests.Common.App;
 
 public class SettingsAndCacheTests
 {

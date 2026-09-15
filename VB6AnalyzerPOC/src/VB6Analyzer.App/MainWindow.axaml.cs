@@ -75,6 +75,9 @@ public partial class MainWindow : Window
         ExplorerTree.AddHandler(InputElement.PointerPressedEvent, OnExplorerTreePointerPressed, RoutingStrategies.Tunnel);
         ExplorerTree.AddHandler(Control.ContextRequestedEvent, OnExplorerTreeContextRequested, RoutingStrategies.Tunnel);
 
+        // Canvas del Grafo: menu contestuale su clic destro sopra i nodi
+        Graph.AddHandler(Control.ContextRequestedEvent, OnGraphContextRequested, RoutingStrategies.Tunnel);
+
         // Pulsanti Dialog Aggiornamento Software
         UpdateLaterButton.Click += (_, _) => DismissUpdateModal();
         UpdateNowButton.Click += (_, _) => ApplyUpdateAndOpenDownload();
@@ -133,6 +136,7 @@ public partial class MainWindow : Window
         BlastRadiusMenuItem.Command = new ActionCommand(() => OnBlastRadiusClicked());
         ShowCallersMenuItem.Command = new ActionCommand(() => OnShowCallersClicked());
         ShowCalleesMenuItem.Command = new ActionCommand(() => OnShowCalleesClicked());
+        ToggleTabLabelsMenuItem.Command = new ActionCommand(() => ToggleTabLabels());
         ClearHighlightMenuItem.Command = new ActionCommand(() =>
         {
             Graph.ClearHighlightMode();
@@ -147,6 +151,7 @@ public partial class MainWindow : Window
         LayoutAffinityMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.AffinityRadial);
         LayoutIslandsMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.ClusteredIslands);
         LayoutForceMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.ForceDirected);
+        ToggleTabLabelsMenuItem.Click += (_, _) => ToggleTabLabels();
         BlastRadiusMenuItem.Click += (_, _) => OnBlastRadiusClicked();
         ShowCallersMenuItem.Click += (_, _) => OnShowCallersClicked();
         ShowCalleesMenuItem.Click += (_, _) => OnShowCalleesClicked();
@@ -442,6 +447,7 @@ public partial class MainWindow : Window
         {
             Graph.EnableHoverSelection = s.EnableHoverSelection;
             HoverSelectionCheckIcon.IsVisible = s.EnableHoverSelection;
+            ApplyTabLabelsVisibility(s.ShowTabLabels);
         };
 
         // Applica i valori salvati prima del rendering iniziale
@@ -449,6 +455,7 @@ public partial class MainWindow : Window
         LocalizationService.Instance.SetLanguage(settings.Language);
         Graph.EnableHoverSelection = settings.EnableHoverSelection;
         HoverSelectionCheckIcon.IsVisible = settings.EnableHoverSelection;
+        ApplyTabLabelsVisibility(settings.ShowTabLabels);
         UpdateLocalizedUI();
 
         // Ripristino Filtro di Rischio salvato
@@ -1497,7 +1504,7 @@ public partial class MainWindow : Window
     /// Calcola ed evidenzia il Blast Radius per il nodo selezionato in modo asincrono con loading overlay.
     /// Se il risultato è già in cache, viene applicato all'istante senza mostrare l'overlay.
     /// </summary>
-    private async void OnBlastRadiusClicked()
+    private async void OnBlastRadiusClicked(object? sender = null, RoutedEventArgs? e = null)
     {
         var loc = LocalizationService.Instance;
         if (_selectedNode?.SemanticSymbol is null || _graph?.Queries is null)
@@ -1545,7 +1552,7 @@ public partial class MainWindow : Window
     /// <summary>
     /// Evidenzia sul grafo tutte le routine e classi chiamate dalla routine/container selezionato (callees).
     /// </summary>
-    private void OnShowCalleesClicked()
+    private void OnShowCalleesClicked(object? sender = null, RoutedEventArgs? e = null)
     {
         var loc = LocalizationService.Instance;
         if (_selectedNode is null)
@@ -1570,7 +1577,7 @@ public partial class MainWindow : Window
     /// <summary>
     /// Evidenzia sul grafo tutti i chiamanti della routine/container selezionato (callers).
     /// </summary>
-    private void OnShowCallersClicked()
+    private void OnShowCallersClicked(object? sender = null, RoutedEventArgs? e = null)
     {
         var loc = LocalizationService.Instance;
         if (_selectedNode is null)
@@ -1813,6 +1820,123 @@ public partial class MainWindow : Window
 
         return ExplorerTree.SelectedItem as ExplorerTreeItem;
     }
+
+    #region Menu Contestuale Nodi del Grafo
+
+    private void OnGraphContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        var hitNode = e.TryGetPosition(Graph, out var screenPos)
+            ? Graph.GetNodeAtScreenPos(screenPos)
+            : Graph.SelectedNode ?? _selectedNode;
+
+        // Se nessun nodo è presente sotto il cursore del mouse, non aprire il menu contestuale
+        if (hitNode == null)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        // Seleziona esplicitamente il nodo su cui è stato fatto clic destro
+        Graph.SelectNode(hitNode);
+
+        if (GraphContainerGrid.Resources.TryGetResource("GraphNodeContextMenu", null, out var res) && res is ContextMenu menu)
+        {
+            menu.DataContext = hitNode;
+            menu.PlacementTarget = Graph;
+            menu.Open(Graph);
+            e.Handled = true;
+        }
+    }
+
+    private async void OnNodeExportMarkdownClicked(object? sender, RoutedEventArgs e) => await ExportLlmSliceAsync();
+
+    private async void OnNodeExportJsonClicked(object? sender, RoutedEventArgs e) => await ExportNodeJsonAsync();
+
+    /// <summary>
+    /// Esporta i dettagli del nodo e delle sue relazioni inbound/outbound in formato JSON (.json).
+    /// </summary>
+    private async Task ExportNodeJsonAsync(GraphNode? node = null)
+    {
+        node ??= Graph.SelectedNode ?? _selectedNode;
+        if (node == null)
+        {
+            StatusText.Text = LocalizationService.Instance["Status_NoSymbolSelected"];
+            return;
+        }
+
+        var semGraph = _graph?.SemanticGraph;
+        var symbol = node.SemanticSymbol;
+
+        string json;
+        if (semGraph != null && symbol != null)
+        {
+            json = CodeGraphJsonExporter.ExportSliceToJson(semGraph, symbol, indented: true);
+        }
+        else
+        {
+            var filePath = symbol?.FilePath;
+            var lineStart = symbol?.LineStart ?? 0;
+            var lineEnd = symbol?.LineEnd ?? 0;
+            var childCount = _graph != null ? _graph.GetChildren(node.Id).Count() : 0;
+
+            var nodeData = new
+            {
+                id = node.Id,
+                name = node.Name,
+                qualifiedName = node.QualifiedName,
+                kind = node.Kind.ToString(),
+                projectName = node.ProjectName,
+                filePath = filePath,
+                lineStart = lineStart,
+                lineEnd = lineEnd,
+                isContainer = node.IsContainer,
+                childCount = childCount
+            };
+            json = System.Text.Json.JsonSerializer.Serialize(nodeData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        }
+
+        var defaultName = !string.IsNullOrEmpty(node.QualifiedName)
+            ? $"{node.QualifiedName}_node.json"
+            : $"{node.Name}_node.json";
+
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = LocalizationService.Instance["Ctx_Node_ExportJson"],
+            DefaultExtension = "json",
+            SuggestedFileName = defaultName,
+            FileTypeChoices = new[]
+            {
+                new FilePickerFileType("JSON Node Data (*.json)") { Patterns = new[] { "*.json" } }
+            }
+        });
+
+        if (file == null) return;
+
+        var loc = LocalizationService.Instance;
+        ShowLoading(loc["Loading_ExportTitle"], loc.Get("Loading_ExportSub", file.Name), canCancel: false);
+        await Task.Delay(16);
+
+        try
+        {
+            await using var stream = await file.OpenWriteAsync();
+            await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
+            await writer.WriteAsync(json);
+
+            var fullPath = file.TryGetLocalPath() ?? file.Path?.LocalPath ?? file.Name;
+            StatusText.Text = loc.Get("Status_ExportSuccess", file.Name);
+            ShowExportSuccessModal(file.Name, fullPath);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = loc.Get("Status_ErrorExportJson", ex.Message);
+        }
+        finally
+        {
+            HideLoading();
+        }
+    }
+
+    #endregion
 
     private void OpenOriginalFile(string? filePath, int line = 0)
     {
@@ -2942,18 +3066,28 @@ public partial class MainWindow : Window
 
         if (file == null) return;
 
+        var loc = LocalizationService.Instance;
+        ShowLoading(loc["Loading_ExportTitle"], loc.Get("Loading_ExportSub", file.Name), canCancel: false);
+        await Task.Delay(16);
+
         try
         {
-            var markdown = CodeGraphMarkdownExporter.Export(semGraph);
+            var markdown = await Task.Run(() => CodeGraphMarkdownExporter.Export(semGraph));
             await using var stream = await file.OpenWriteAsync();
             await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
             await writer.WriteAsync(markdown);
 
-            StatusText.Text = LocalizationService.Instance.Get("Status_ExportSuccess", file.Name);
+            var fullPath = file.TryGetLocalPath() ?? file.Path?.LocalPath ?? file.Name;
+            StatusText.Text = loc.Get("Status_ExportSuccess", file.Name);
+            ShowExportSuccessModal(file.Name, fullPath);
         }
         catch (Exception ex)
         {
-            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorExportMarkdown", ex.Message);
+            StatusText.Text = loc.Get("Status_ErrorExportMarkdown", ex.Message);
+        }
+        finally
+        {
+            HideLoading();
         }
     }
 
@@ -2986,18 +3120,28 @@ public partial class MainWindow : Window
 
         if (file == null) return;
 
+        var loc = LocalizationService.Instance;
+        ShowLoading(loc["Loading_ExportTitle"], loc.Get("Loading_ExportSub", file.Name), canCancel: false);
+        await Task.Delay(16);
+
         try
         {
-            var json = CodeGraphJsonExporter.ExportToJson(semGraph, indented: true);
+            var json = await Task.Run(() => CodeGraphJsonExporter.ExportToJson(semGraph, indented: true));
             await using var stream = await file.OpenWriteAsync();
             await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
             await writer.WriteAsync(json);
 
-            StatusText.Text = LocalizationService.Instance.Get("Status_ExportSuccess", file.Name);
+            var fullPath = file.TryGetLocalPath() ?? file.Path?.LocalPath ?? file.Name;
+            StatusText.Text = loc.Get("Status_ExportSuccess", file.Name);
+            ShowExportSuccessModal(file.Name, fullPath);
         }
         catch (Exception ex)
         {
-            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorExportJson", ex.Message);
+            StatusText.Text = loc.Get("Status_ErrorExportJson", ex.Message);
+        }
+        finally
+        {
+            HideLoading();
         }
     }
 
@@ -3083,24 +3227,29 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Salva su file Markdown (.md) il Context Slice per il simbolo selezionato.
+    /// Salva su file Markdown (.md) il Context Slice per il simbolo/nodo selezionato.
     /// </summary>
-    private async Task ExportLlmSliceAsync()
+    private async Task ExportLlmSliceAsync(GraphNode? targetNode = null)
     {
+        var node = targetNode ?? Graph.SelectedNode ?? _selectedNode;
         var semGraph = _graph?.SemanticGraph;
-        var symbol = _selectedNode?.SemanticSymbol;
+        var symbol = node?.SemanticSymbol;
 
-        if (semGraph == null || symbol == null)
+        if (node == null)
         {
             StatusText.Text = LocalizationService.Instance["Status_NoSymbolSelected"];
             return;
         }
 
+        var defaultName = !string.IsNullOrEmpty(node.QualifiedName)
+            ? $"{node.QualifiedName}_slice.md"
+            : $"{node.Name}_slice.md";
+
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = LocalizationService.Instance["Menu_ExportSlice"],
             DefaultExtension = "md",
-            SuggestedFileName = $"{symbol.QualifiedName}_slice.md",
+            SuggestedFileName = defaultName,
             FileTypeChoices = new[]
             {
                 new FilePickerFileType("Markdown Context Slice (*.md)") { Patterns = new[] { "*.md" } }
@@ -3109,19 +3258,86 @@ public partial class MainWindow : Window
 
         if (file == null) return;
 
+        var loc = LocalizationService.Instance;
+        ShowLoading(loc["Loading_ExportTitle"], loc.Get("Loading_ExportSub", file.Name), canCancel: false);
+        await Task.Delay(16);
+
         try
         {
-            var slice = CodeGraphMarkdownExporter.ExportSlice(semGraph, symbol);
+            string markdown;
+            if (semGraph != null && symbol != null)
+            {
+                markdown = await Task.Run(() => CodeGraphMarkdownExporter.ExportSlice(semGraph, symbol));
+            }
+            else
+            {
+                var filePath = symbol?.FilePath;
+                var lineStart = symbol?.LineStart ?? 0;
+                var lineEnd = symbol?.LineEnd ?? 0;
+                var childCount = _graph != null ? _graph.GetChildren(node.Id).Count() : 0;
+
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine($"# Symbol: {node.Name} ({node.Kind})");
+                sb.AppendLine($"- **Qualified Name**: {node.QualifiedName}");
+                if (!string.IsNullOrEmpty(node.ProjectName)) sb.AppendLine($"- **Project**: {node.ProjectName}");
+                if (!string.IsNullOrEmpty(filePath)) sb.AppendLine($"- **File**: {filePath}");
+                if (lineStart > 0) sb.AppendLine($"- **Lines**: {lineStart}-{lineEnd}");
+                if (node.IsContainer) sb.AppendLine($"- **Container**: Yes ({childCount} members)");
+                markdown = sb.ToString();
+            }
+
             await using var stream = await file.OpenWriteAsync();
             await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
-            await writer.WriteAsync(slice);
+            await writer.WriteAsync(markdown);
 
-            StatusText.Text = LocalizationService.Instance.Get("Status_ExportSuccess", file.Name);
+            var fullPath = file.TryGetLocalPath() ?? file.Path?.LocalPath ?? file.Name;
+            StatusText.Text = loc.Get("Status_ExportSuccess", file.Name);
+            ShowExportSuccessModal(file.Name, fullPath);
         }
         catch (Exception ex)
         {
-            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorSaveSlice", ex.Message);
+            StatusText.Text = loc.Get("Status_ErrorSaveSlice", ex.Message);
         }
+        finally
+        {
+            HideLoading();
+        }
+    }
+
+    private string? _lastExportedFilePath;
+
+    /// <summary>
+    /// Mostra il popup modale di conferma per l'esportazione completata con successo.
+    /// </summary>
+    private void ShowExportSuccessModal(string fileName, string fullPath)
+    {
+        var loc = LocalizationService.Instance;
+        _lastExportedFilePath = fullPath;
+
+        ExportSuccessModalTitle.Text = loc["Export_ModalTitle"];
+        ExportSuccessModalSubtitle.Text = loc["Export_ModalSubtitle"];
+        ExportSuccessFileLabel.Text = loc["Export_ModalFileLabel"];
+        ExportSuccessPathLabel.Text = loc["Export_ModalPathLabel"];
+        ExportSuccessFileName.Text = fileName;
+        ExportSuccessFilePath.Text = fullPath;
+        ExportSuccessOpenFolderButton.Content = loc["Export_ModalOpenFolder"];
+        ExportSuccessCloseButton.Content = loc["Export_ModalOk"];
+
+        ExportSuccessOverlay.IsVisible = true;
+    }
+
+    private void OnExportSuccessCloseClicked(object? sender, RoutedEventArgs e)
+    {
+        ExportSuccessOverlay.IsVisible = false;
+    }
+
+    private void OnExportSuccessOpenFolderClicked(object? sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(_lastExportedFilePath))
+        {
+            OpenContainingFolder(_lastExportedFilePath);
+        }
+        ExportSuccessOverlay.IsVisible = false;
     }
 
     #endregion
@@ -3183,6 +3399,36 @@ public partial class MainWindow : Window
         Graph.EnableHoverSelection = newValue;
         HoverSelectionCheckIcon.IsVisible = newValue;
         SettingsService.Instance.Update(s => s.EnableHoverSelection = newValue);
+    }
+
+    /// <summary>
+    /// Attiva o disattiva la visualizzazione delle etichette testuali nelle schede di visualizzazione centrali.
+    /// </summary>
+    private void OnToggleTabLabelsClicked(object? sender, RoutedEventArgs e)
+    {
+        ToggleTabLabels();
+    }
+
+    private void ToggleTabLabels()
+    {
+        var newValue = !SettingsService.Instance.Settings.ShowTabLabels;
+        SettingsService.Instance.Update(s => s.ShowTabLabels = newValue);
+        ApplyTabLabelsVisibility(newValue);
+    }
+
+    private void ApplyTabLabelsVisibility(bool showLabels)
+    {
+        GraphTabHeader.IsVisible = showLabels;
+        DsmTabHeader.IsVisible = showLabels;
+        TreemapTabHeader.IsVisible = showLabels;
+        HotspotTabHeader.IsVisible = showLabels;
+        ScreenFlowTabHeader.IsVisible = showLabels;
+        ControlFlowTabHeader.IsVisible = showLabels;
+        GridTabHeader.IsVisible = showLabels;
+        if (TabLabelsCheckIcon != null)
+        {
+            TabLabelsCheckIcon.IsVisible = showLabels;
+        }
     }
 
     #endregion
@@ -3721,6 +3967,7 @@ public partial class MainWindow : Window
         LayoutIslandsMenuItem.Header = loc["Layout_ClusteredIslands"];
         LayoutForceMenuItem.Header = loc["Layout_ForceDirected"];
         ToggleHoverSelectionMenuItem.Header = loc["Menu_HoverSelection"];
+        ToggleTabLabelsMenuItem.Header = loc["Menu_ToggleTabLabels"];
 
         // Menu Analisi
         AnalysisMenu.Header = loc["Menu_Analysis"];
@@ -3765,12 +4012,17 @@ public partial class MainWindow : Window
         // Ricerca
         SearchBox.Watermark = loc["Search_Watermark"];
 
-        // Explorer & Inspector
+        // Explorer & Inspector & Context Menus
         ExplorerTitleText.Text = loc["Explorer_Title"];
         InspectorTitleText.Text = loc["Inspector_Title"];
         CtxExplorerOpenFile.Header = loc["Explorer_OpenOriginalFile"];
         CtxExplorerOpenFolder.Header = loc["Explorer_OpenContainingFolder"];
         CtxExplorerCopyPath.Header = loc["Explorer_CopyFilePath"];
+        CtxNodeExportMarkdown.Header = loc["Ctx_Node_ExportMarkdown"];
+        CtxNodeExportJson.Header = loc["Ctx_Node_ExportJson"];
+        CtxNodeBlastRadius.Header = loc["Ctx_Node_BlastRadius"];
+        CtxNodeShowCallers.Header = loc["Ctx_Node_ShowCallers"];
+        CtxNodeShowCallees.Header = loc["Ctx_Node_ShowCallees"];
         ToolTip.SetTip(InspectorOpenFileButton, loc["Inspector_Tooltip_OpenFile"]);
         ToolTip.SetTip(InspectorOpenFolderButton, loc["Inspector_Tooltip_OpenFolder"]);
         if (_graph is not null)
@@ -3786,6 +4038,14 @@ public partial class MainWindow : Window
         ScreenFlowTabHeader.Text = loc["Tab_ScreenFlow"];
         ControlFlowTabHeader.Text = loc["Tab_ControlFlow"];
         GridTabHeader.Text = loc["Tab_BlastRadiusGrid"];
+
+        ToolTip.SetTip(GraphTabItem, loc["Tab_GraphView_Tip"]);
+        ToolTip.SetTip(DsmTabItem, loc["Tab_DsmMatrix_Tip"]);
+        ToolTip.SetTip(TreemapTabItem, loc["Tab_TreemapMetrics_Tip"]);
+        ToolTip.SetTip(HotspotTabItem, loc["Tab_RiskHotspots_Tip"]);
+        ToolTip.SetTip(ScreenFlowTabItem, loc["Tab_ScreenFlow_Tip"]);
+        ToolTip.SetTip(ControlFlowTabItem, loc["Tab_ControlFlow_Tip"]);
+        ToolTip.SetTip(GridTabItem, loc["Tab_BlastRadiusGrid_Tip"]);
 
         Dsm.InvalidateVisual();
         Treemap.InvalidateVisual();
@@ -3921,6 +4181,17 @@ public partial class MainWindow : Window
             UpdateModalNotes.Text = _availableUpdate.GetReleaseNotes(loc.CurrentLanguage == AppLanguage.Italian ? "it" : "en");
             UpdateLaterButton.Content = loc["Update_ButtonLater"];
             UpdateNowButton.Content = loc["Update_ButtonNow"];
+        }
+
+        // Overlay Conferma Esportazione (se visibile)
+        if (ExportSuccessOverlay.IsVisible)
+        {
+            ExportSuccessModalTitle.Text = loc["Export_ModalTitle"];
+            ExportSuccessModalSubtitle.Text = loc["Export_ModalSubtitle"];
+            ExportSuccessFileLabel.Text = loc["Export_ModalFileLabel"];
+            ExportSuccessPathLabel.Text = loc["Export_ModalPathLabel"];
+            ExportSuccessOpenFolderButton.Content = loc["Export_ModalOpenFolder"];
+            ExportSuccessCloseButton.Content = loc["Export_ModalOk"];
         }
 
         // Overlay Caricamento

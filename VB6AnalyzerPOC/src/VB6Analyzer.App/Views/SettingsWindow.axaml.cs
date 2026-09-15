@@ -28,6 +28,7 @@ public partial class SettingsWindow : Window
         UpdateThemeSelection(ThemeService.Instance.CurrentTheme);
         UpdateLanguageSelection(LocalizationService.Instance.CurrentLanguage);
         UpdateBehaviorSelection(SettingsService.Instance.Settings.EnableHoverSelection);
+        UpdateTabLabelsSelection(SettingsService.Instance.Settings.ShowTabLabels);
         UpdateStartupSelection(SettingsService.Instance.Settings.StartupMode);
         UpdateLocalizedTexts();
         SetSelectedNav(initialTab);
@@ -170,6 +171,7 @@ public partial class SettingsWindow : Window
             CardLangEnglish.BorderBrush = borderBrush;
 
             CardHoverSelection.BorderBrush = borderBrush;
+            CardShowTabLabels.BorderBrush = borderBrush;
             CardStartupOnlyIfCached.BorderBrush = borderBrush;
             CardStartupAlways.BorderBrush = borderBrush;
             CardStartupEmpty.BorderBrush = borderBrush;
@@ -187,6 +189,7 @@ public partial class SettingsWindow : Window
             CardLangEnglish.Background = surfBrush;
 
             CardHoverSelection.Background = surfBrush;
+            CardShowTabLabels.Background = surfBrush;
             CardStartupOnlyIfCached.Background = surfBrush;
             CardStartupAlways.Background = surfBrush;
             CardStartupEmpty.Background = surfBrush;
@@ -228,6 +231,19 @@ public partial class SettingsWindow : Window
     private void UpdateBehaviorSelection(bool enabled)
     {
         CheckHoverSelection.IsVisible = enabled;
+    }
+
+    private void OnToggleTabLabelsSetting(object? sender, PointerPressedEventArgs e)
+    {
+        var current = SettingsService.Instance.Settings.ShowTabLabels;
+        var updated = !current;
+        SettingsService.Instance.Update(s => s.ShowTabLabels = updated);
+        UpdateTabLabelsSelection(updated);
+    }
+
+    private void UpdateTabLabelsSelection(bool enabled)
+    {
+        CheckShowTabLabels.IsVisible = enabled;
     }
 
     private void OnSelectStartupOnlyIfCached(object? sender, PointerPressedEventArgs e)
@@ -301,6 +317,7 @@ public partial class SettingsWindow : Window
         UpdateThemeSelection(defaultSettings.Theme);
         UpdateLanguageSelection(defaultSettings.Language);
         UpdateBehaviorSelection(defaultSettings.EnableHoverSelection);
+        UpdateTabLabelsSelection(defaultSettings.ShowTabLabels);
         UpdateStartupSelection(defaultSettings.StartupMode);
         UpdateLocalizedTexts();
     }
@@ -350,6 +367,8 @@ public partial class SettingsWindow : Window
         BehaviorHeaderSub.Text = loc["Settings_Behavior_Sub"];
         HoverSelectionTitleText.Text = loc["Settings_HoverSelection_Title"];
         HoverSelectionSubText.Text = loc["Settings_HoverSelection_Sub"];
+        TabLabelsTitleText.Text = loc["Settings_TabLabels_Title"];
+        TabLabelsSubText.Text = loc["Settings_TabLabels_Sub"];
 
         StartupHeaderTitle.Text = loc["Settings_StartupSection"];
         StartupHeaderSub.Text = loc["Settings_StartupDesc"];

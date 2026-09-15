@@ -2,7 +2,7 @@ using FluentAssertions;
 using Macondo.App.Services;
 using Xunit;
 
-namespace Macondo.Tests.App;
+namespace Macondo.Tests.Common.App;
 
 public class UpdateServiceTests
 {

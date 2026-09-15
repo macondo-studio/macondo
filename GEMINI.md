@@ -24,3 +24,7 @@ Ogni volta che l'utente richiede di aggiornare la versione del software, rilasci
 - L'esecuzione dei test sarà effettuata o richiesta dall'utente unicamente prima di una pubblicazione/rilascio.
 - Per la verifica ordinaria del codice, limitarsi alla compilazione rapida con `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln`.
 
+## Release Note per ogni Modifica
+- **Per ogni modifica o funzionalità richiesta dall'utente**, fornire sempre al termine della risposta una **release note di una sola frase in lingua inglese**, chiara, sintetica e formale.
+
+

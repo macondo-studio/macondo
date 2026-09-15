@@ -4,7 +4,7 @@ using Macondo.Semantic.Model;
 using Macondo.Tests.Helpers;
 using Xunit;
 
-namespace Macondo.Tests.Semantic;
+namespace Macondo.Tests.Common.Export;
 
 public class ExportAndSerializationTests
 {
@@ -63,5 +63,52 @@ public class ExportAndSerializationTests
             reloadedSym.Kind.Should().Be(sym.Kind);
             reloadedSym.QualifiedName.Should().Be(sym.QualifiedName);
         }
+    }
+
+    [Fact]
+    public void JsonExporter_ShouldPreserveSymbolMetadata_ParametersAccessibilityFlags()
+    {
+        // Arrange: Custom graph with detailed symbols
+        var graph = new CodeGraph();
+        var method = new Symbol
+        {
+            Id = Guid.NewGuid(),
+            Name = "CalculateRisk",
+            QualifiedName = "Analytics.CalculateRisk",
+            FilePath = "Analytics.cls",
+            Kind = SymbolKind.Method,
+            Accessibility = Accessibility.Friend,
+            ReturnType = "Double",
+            IsStatic = true,
+            LineStart = 10,
+            LineEnd = 45
+        };
+        method.Parameters.Add(new ParameterSymbol
+        {
+            Name = "factor",
+            DeclaredTypeName = "Double",
+            IsByVal = true,
+            IsOptional = true,
+            DefaultValue = "1.0",
+            Line = 10
+        });
+
+        graph.Symbols.Add(method);
+
+        // Act
+        var json = CodeGraphJsonExporter.ExportToJson(graph, indented: true);
+        var restored = CodeGraphJsonExporter.ImportFromJson(json);
+
+        // Assert
+        var restoredMethod = restored.FindSymbolById(method.Id);
+        restoredMethod.Should().NotBeNull();
+        restoredMethod!.Accessibility.Should().Be(Accessibility.Friend);
+        restoredMethod.ReturnType.Should().Be("Double");
+        restoredMethod.IsStatic.Should().BeTrue();
+        restoredMethod.Parameters.Should().HaveCount(1);
+        restoredMethod.Parameters[0].Name.Should().Be("factor");
+        restoredMethod.Parameters[0].IsByVal.Should().BeTrue();
+        restoredMethod.Parameters[0].IsOptional.Should().BeTrue();
+        restoredMethod.Parameters[0].DefaultValue.Should().Be("1.0");
     }
 }

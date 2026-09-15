@@ -1,4 +1,4 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:Macondo.App.Controls"
         xmlns:models="using:Macondo.App.Models"
@@ -159,6 +159,11 @@
                             <MenuItem x:Name="ToggleHoverSelectionMenuItem" Header="Selezione al Passaggio del Mouse" Click="OnToggleHoverSelectionClicked">
                                 <MenuItem.Icon>
                                     <PathIcon x:Name="HoverSelectionCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="ToggleTabLabelsMenuItem" Header="Mostra etichette schede" Click="OnToggleTabLabelsClicked">
+                                <MenuItem.Icon>
+                                    <PathIcon x:Name="TabLabelsCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
                                 </MenuItem.Icon>
                             </MenuItem>
                         </MenuItem>
@@ -844,14 +849,46 @@
                 </TabControl.Styles>
 
                 <!-- TAB 1: Canvas Interattivo del Grafo con Floating HUD -->
-                <TabItem>
+                <TabItem x:Name="GraphTabItem" ToolTip.Tip="Vista Grafo Semantico">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconGraph}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="GraphTabHeader" Text="Vista Grafo" VerticalAlignment="Center" />
                         </StackPanel>
                     </TabItem.Header>
-                    <Grid>
+                    <Grid x:Name="GraphContainerGrid">
+                        <Grid.Resources>
+                            <!-- Menu Contestuale Tasto Destro sui Nodi del Grafo -->
+                            <ContextMenu x:Key="GraphNodeContextMenu">
+                                <MenuItem x:Name="CtxNodeExportMarkdown" Header="Esporta MD" Click="OnNodeExportMarkdownClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconMarkdown}" Width="12" Height="12" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="CtxNodeExportJson" Header="Esporta JSON" Click="OnNodeExportJsonClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconExport}" Width="12" Height="12" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator />
+                                <MenuItem x:Name="CtxNodeBlastRadius" Header="Blast Radius" Click="OnBlastRadiusClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconBlastRadius}" Width="12" Height="12" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="CtxNodeShowCallers" Header="Mostra Callers" Click="OnShowCallersClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconCallers}" Width="12" Height="12" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="CtxNodeShowCallees" Header="Mostra Callees" Click="OnShowCalleesClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconCallees}" Width="12" Height="12" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </Grid.Resources>
+
                         <!-- Canvas del Grafo -->
                         <controls:GraphControl x:Name="Graph" SelectionChanged="OnGraphSelectionChanged" />
 
@@ -1153,7 +1190,7 @@
                 </TabItem>
 
                 <!-- TAB 2: Matrice di Dipendenza (DSM) -->
-                <TabItem>
+                <TabItem x:Name="DsmTabItem" ToolTip.Tip="Matrice DSM (Dependency Structure Matrix)">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconMatrix}" Width="13" Height="13" VerticalAlignment="Center" />
@@ -1166,7 +1203,7 @@
                 </TabItem>
 
                 <!-- TAB 3: Treemap Gerarchica delle Metriche -->
-                <TabItem>
+                <TabItem x:Name="TreemapTabItem" ToolTip.Tip="Treemap Metriche di Codice">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconTreemap}" Width="13" Height="13" VerticalAlignment="Center" />
@@ -1179,7 +1216,7 @@
                 </TabItem>
 
                 <!-- TAB 4: Matrice Hotspot di Rischio (Complexity vs Churn) -->
-                <TabItem>
+                <TabItem x:Name="HotspotTabItem" ToolTip.Tip="Matrice Hotspot di Rischio">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconHotspot}" Width="13" Height="13" VerticalAlignment="Center" />
@@ -1192,7 +1229,7 @@
                 </TabItem>
 
                 <!-- TAB 5: Flusso Navigazione Form & UI -->
-                <TabItem>
+                <TabItem x:Name="ScreenFlowTabItem" ToolTip.Tip="Flusso Schermate e Navigazione Form">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconScreenFlow}" Width="13" Height="13" VerticalAlignment="Center" />
@@ -1205,7 +1242,7 @@
                 </TabItem>
 
                 <!-- TAB 6: Control Flow Graph (CFG) a livello di Routine -->
-                <TabItem>
+                <TabItem x:Name="ControlFlowTabItem" ToolTip.Tip="Control Flow Graph (CFG) a blocchi">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconControlFlow}" Width="13" Height="13" VerticalAlignment="Center" />
@@ -1218,7 +1255,7 @@
                 </TabItem>
 
                 <!-- TAB 7: Griglia Risultati Blast Radius & Matrice di Rischio -->
-                <TabItem>
+                <TabItem x:Name="GridTabItem" ToolTip.Tip="Griglia e Matrice Blast Radius">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconTable}" Width="13" Height="13" VerticalAlignment="Center" />
@@ -1755,6 +1792,64 @@
                                 BorderThickness="0"
                                 CornerRadius="4"
                                 FontSize="12" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Overlay Modale Conferma Esportazione Completata -->
+        <Grid x:Name="ExportSuccessOverlay" Grid.Row="0" Grid.RowSpan="4"
+              Background="#75101018"
+              IsVisible="False"
+              ZIndex="997">
+            <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="28,24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Width="520"
+                    MinWidth="420"
+                    MaxWidth="640"
+                    BoxShadow="0 12 36 0 #80000000">
+                <StackPanel Spacing="16">
+                    <!-- Header con Icona Check e Titoli -->
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Grid.Column="0" Width="42" Height="42" CornerRadius="8" Background="#22C55E" Opacity="0.15" VerticalAlignment="Center" Margin="0,0,14,0" />
+                        <PathIcon Grid.Column="0" Data="{StaticResource IconCheck}" Width="20" Height="20" Foreground="#22C55E" VerticalAlignment="Center" Margin="0,0,14,0" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock x:Name="ExportSuccessModalTitle" Text="Esportazione Completata con Successo!" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                            <TextBlock x:Name="ExportSuccessModalSubtitle" Text="Il file è stato salvato correttamente su disco." FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Dettagli File Esportato -->
+                    <Border Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                            BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="12,10">
+                        <StackPanel Spacing="6">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock x:Name="ExportSuccessFileLabel" Text="File:" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" Width="70" />
+                                <TextBlock x:Name="ExportSuccessFileName" Grid.Column="1" Text="codegraph.json" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock x:Name="ExportSuccessPathLabel" Text="Percorso:" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" Width="70" />
+                                <TextBlock x:Name="ExportSuccessFilePath" Grid.Column="1" Text="C:\...\codegraph.json" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Barra Pulsanti Azione -->
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <Button x:Name="ExportSuccessOpenFolderButton" Grid.Column="1" Content="Mostra nella cartella" Click="OnExportSuccessOpenFolderClicked"
+                                Padding="14,6" Margin="0,0,8,0" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimaryBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}" BorderThickness="1" CornerRadius="4" FontSize="12" Cursor="Hand" />
+                        <Button x:Name="ExportSuccessCloseButton" Grid.Column="2" Content="OK" Click="OnExportSuccessCloseClicked"
+                                Padding="20,6" Background="{DynamicResource ThemeAccentBrush}" Foreground="White"
+                                BorderThickness="0" CornerRadius="4" FontSize="12" FontWeight="SemiBold" Cursor="Hand" />
                     </Grid>
                 </StackPanel>
             </Border>
