@@ -4,7 +4,7 @@ using Macondo.App.Models;
 using Macondo.Semantic.Model;
 using Xunit;
 
-namespace Macondo.Tests.App;
+namespace Macondo.Tests.Common.App;
 
 public class GraphNodeVisibilityTests
 {

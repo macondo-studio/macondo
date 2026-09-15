@@ -6,9 +6,9 @@ using Macondo.Semantic.Extraction;
 using Macondo.Semantic.Model;
 using Xunit;
 
-namespace Macondo.Tests.Semantic;
+namespace Macondo.Tests.Vb6Specific;
 
-public class GrammarAndParserTests
+public class Vb6GrammarAndParserTests
 {
     [Fact]
     public void Parser_ShouldParseSimpleSub_WithoutErrors()
@@ -191,6 +191,212 @@ public class GrammarAndParserTests
     }
 
     [Fact]
+    public void Parser_ShouldSupportWin32DeclareStatements_WithLibAndAlias()
+    {
+        // Arrange
+        var code = """
+            Private Declare Function GetTickCount Lib "kernel32" () As Long
+            Public Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByRef hpvDest As Any, ByVal hpvSource As Long, ByVal cbCopy As Long)
+            """;
+
+        var errors = new List<string>();
+        var lexer = new VisualBasic6Lexer(new AntlrInputStream(code));
+        lexer.RemoveErrorListeners();
+        lexer.AddErrorListener(new CollectingErrorListener(errors));
+
+        var parser = new VisualBasic6Parser(new CommonTokenStream(lexer));
+        parser.RemoveErrorListeners();
+        parser.AddErrorListener(new CollectingErrorListener(errors));
+
+        // Act
+        var tree = parser.startRule();
+
+        // Assert
+        errors.Should().BeEmpty("Win32 API Declare Function/Sub statements should parse without errors");
+        tree.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Parser_ShouldSupportBracketedIdentifiers()
+    {
+        // Arrange
+        var code = """
+            Public Sub TestKeywordsAsIdentifiers()
+                Dim [Date] As String
+                Dim [Select] As Integer
+                [Date] = "2026-09-15"
+                [Select] = 42
+            End Sub
+            """;
+
+        var errors = new List<string>();
+        var lexer = new VisualBasic6Lexer(new AntlrInputStream(code));
+        lexer.RemoveErrorListeners();
+        lexer.AddErrorListener(new CollectingErrorListener(errors));
+
+        var parser = new VisualBasic6Parser(new CommonTokenStream(lexer));
+        parser.RemoveErrorListeners();
+        parser.AddErrorListener(new CollectingErrorListener(errors));
+
+        // Act
+        var tree = parser.startRule();
+
+        // Assert
+        errors.Should().BeEmpty("Bracketed reserved words should parse cleanly as identifiers");
+        tree.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Parser_ShouldSupportMultiStatementOnSingleLine_WithColon()
+    {
+        // Arrange
+        var code = """
+            Public Sub MultiStatements()
+                Dim a As Long: Dim b As Long: Dim c As Long
+                a = 1: b = 2: c = a + b
+                a = a + 1: b = b + 1: c = c + 1
+            End Sub
+            """;
+
+        var errors = new List<string>();
+        var lexer = new VisualBasic6Lexer(new AntlrInputStream(code));
+        lexer.RemoveErrorListeners();
+        lexer.AddErrorListener(new CollectingErrorListener(errors));
+
+        var parser = new VisualBasic6Parser(new CommonTokenStream(lexer));
+        parser.RemoveErrorListeners();
+        parser.AddErrorListener(new CollectingErrorListener(errors));
+
+        // Act
+        var tree = parser.startRule();
+
+        // Assert
+        errors.Should().BeEmpty("Multiple statements separated by colons on a single line should parse without errors");
+        tree.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Parser_ShouldSupportEventDeclarationAndRaiseEvent()
+    {
+        // Arrange
+        var code = """
+            Public Event DataChanged(ByVal newId As Long, ByVal status As String)
+
+            Public Sub TriggerEvent(ByVal id As Long)
+                RaiseEvent DataChanged(id, "Success")
+            End Sub
+            """;
+
+        var errors = new List<string>();
+        var lexer = new VisualBasic6Lexer(new AntlrInputStream(code));
+        lexer.RemoveErrorListeners();
+        lexer.AddErrorListener(new CollectingErrorListener(errors));
+
+        var parser = new VisualBasic6Parser(new CommonTokenStream(lexer));
+        parser.RemoveErrorListeners();
+        parser.AddErrorListener(new CollectingErrorListener(errors));
+
+        // Act
+        var tree = parser.startRule();
+
+        // Assert
+        errors.Should().BeEmpty("Event declarations and RaiseEvent statements should parse without errors");
+        tree.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Parser_ShouldSupportConditionalCompilationDirectives()
+    {
+        // Arrange
+        var code = """
+            #If Win32 Then
+            Public Sub ProcessData()
+                Dim x As Long
+                x = 100
+            End Sub
+            #Else
+            Public Sub ProcessData()
+                Dim x As Integer
+                x = 50
+            End Sub
+            #End If
+            """;
+
+        var errors = new List<string>();
+        var lexer = new VisualBasic6Lexer(new AntlrInputStream(code));
+        lexer.RemoveErrorListeners();
+        lexer.AddErrorListener(new CollectingErrorListener(errors));
+
+        var parser = new VisualBasic6Parser(new CommonTokenStream(lexer));
+        parser.RemoveErrorListeners();
+        parser.AddErrorListener(new CollectingErrorListener(errors));
+
+        // Act
+        var tree = parser.startRule();
+
+        // Assert
+        errors.Should().BeEmpty("Conditional compilation directives (#If...#Else...#End If) should be parsed cleanly");
+        tree.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Parser_ShouldSupportEscapedQuotesInStringLiterals()
+    {
+        // Arrange
+        var code = """"
+            Public Sub TestQuotes()
+                Dim sql As String
+                sql = "SELECT * FROM Users WHERE Name = ""John Doe"""
+            End Sub
+            """";
+
+        var errors = new List<string>();
+        var lexer = new VisualBasic6Lexer(new AntlrInputStream(code));
+        lexer.RemoveErrorListeners();
+        lexer.AddErrorListener(new CollectingErrorListener(errors));
+
+        var parser = new VisualBasic6Parser(new CommonTokenStream(lexer));
+        parser.RemoveErrorListeners();
+        parser.AddErrorListener(new CollectingErrorListener(errors));
+
+        // Act
+        var tree = parser.startRule();
+
+        // Assert
+        errors.Should().BeEmpty("String literals with escaped double quotes should parse cleanly");
+        tree.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Parser_ShouldSupportImplementsStatement()
+    {
+        // Arrange
+        var code = """
+            Implements IOrderProcessor
+
+            Private Sub IOrderProcessor_Process()
+                ' Interface implementation
+            End Sub
+            """;
+
+        var errors = new List<string>();
+        var lexer = new VisualBasic6Lexer(new AntlrInputStream(code));
+        lexer.RemoveErrorListeners();
+        lexer.AddErrorListener(new CollectingErrorListener(errors));
+
+        var parser = new VisualBasic6Parser(new CommonTokenStream(lexer));
+        parser.RemoveErrorListeners();
+        parser.AddErrorListener(new CollectingErrorListener(errors));
+
+        // Act
+        var tree = parser.startRule();
+
+        // Assert
+        errors.Should().BeEmpty("Implements statements at module level should parse without errors");
+        tree.Should().NotBeNull();
+    }
+
+    [Fact]
     public void ModuleExtractor_ShouldExtractSampleClassCls_WithAllMethods()
     {
         var path = @".\SampleLegacyApp\SampleLegacyApp\SampleClass.cls";
@@ -211,7 +417,6 @@ public class GrammarAndParserTests
         var comandaSymbol = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Class && s.Name == "SampleClass");
         comandaSymbol.Should().NotBeNull();
 
-        // Verifichiamo che i metodi interni di SampleClass (es. local_AddRow, GetTotale, ecc.) siano estratti nel grafo
         var childIds = graph.Relationships
             .Where(r => r.SourceId == comandaSymbol!.Id && r.Kind == RelationshipKind.Contains)
             .Select(r => r.TargetId)

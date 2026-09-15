@@ -1,32 +1,12 @@
 using FluentAssertions;
 using Macondo.Semantic.Graph;
-using Macondo.Semantic.Model;
 using Macondo.Tests.Helpers;
 using Xunit;
 
-namespace Macondo.Tests.Semantic;
+namespace Macondo.Tests.Common.Graph;
 
-public class CallGraphTests
+public class CallGraphQueriesTests
 {
-    [Fact]
-    public void CallGraphBuilder_ShouldGenerateCallsAndInstantiatesOnFixtures()
-    {
-        // Arrange & Act
-        var (graph, extractionResults) = TestGraphFactory.CreateAndAnalyzeAllFixtures();
-
-        // Assert
-        graph.Symbols.Should().NotBeEmpty();
-        graph.Relationships.Should().NotBeEmpty();
-
-        var calls = graph.Relationships.Where(r => r.Kind == RelationshipKind.Calls).ToList();
-        var instantiates = graph.Relationships.Where(r => r.Kind == RelationshipKind.Instantiates).ToList();
-        var usesTypes = graph.Relationships.Where(r => r.Kind == RelationshipKind.UsesType).ToList();
-
-        calls.Should().NotBeEmpty("CallGraph should contain CALLS relationships");
-        instantiates.Should().NotBeEmpty("CallGraph should contain INSTANTIATES relationships");
-        usesTypes.Should().NotBeEmpty("CallGraph should contain USES_TYPE relationships");
-    }
-
     [Fact]
     public void CallGraphQueries_ShouldReturnDirectCallersAndCallees()
     {

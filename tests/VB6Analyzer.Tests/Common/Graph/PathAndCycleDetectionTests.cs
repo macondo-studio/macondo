@@ -1,9 +1,10 @@
 using FluentAssertions;
 using Macondo.Semantic.Graph;
+using Macondo.Semantic.Model;
 using Macondo.Tests.Helpers;
 using Xunit;
 
-namespace Macondo.Tests.Semantic;
+namespace Macondo.Tests.Common.Graph;
 
 public class PathAndCycleDetectionTests
 {
@@ -45,7 +46,24 @@ public class PathAndCycleDetectionTests
 
         // Assert
         cycles.Should().NotBeNull();
-        // 14_CallCycles.cls contains mutual recursion (e.g. CycleA -> CycleB -> CycleC -> CycleA)
         cycles.Should().NotBeEmpty("Cycles from 14_CallCycles.cls fixture should be detected");
+    }
+
+    [Fact]
+    public void CallGraphQueries_ShouldReturnEmptyPathList_WhenTargetIsUnreachable()
+    {
+        // Arrange
+        var graph = new CodeGraph();
+        var routineA = new Symbol { Id = Guid.NewGuid(), Name = "A", QualifiedName = "Mod.A", FilePath = "Mod.bas", Kind = SymbolKind.Method };
+        var routineB = new Symbol { Id = Guid.NewGuid(), Name = "B", QualifiedName = "Mod.B", FilePath = "Mod.bas", Kind = SymbolKind.Method };
+
+        graph.Symbols.AddRange(new[] { routineA, routineB });
+        var queries = new CallGraphQueries(graph);
+
+        // Act
+        var paths = queries.FindExecutionPaths(routineA, routineB);
+
+        // Assert
+        paths.Should().BeEmpty();
     }
 }
