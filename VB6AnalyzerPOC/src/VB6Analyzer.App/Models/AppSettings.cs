@@ -69,6 +69,9 @@ public sealed class AppSettings
     /// <summary>Indica se abilitare la selezione/ispezione automatica dei nodi al passaggio del cursore del mouse (Hover).</summary>
     public bool EnableHoverSelection { get; set; } = true;
 
+    /// <summary>Indica se mostrare i nomi testuali accanto alle icone nelle schede di visualizzazione centrali (Vista Grafo, DSM, Treemap...).</summary>
+    public bool ShowTabLabels { get; set; } = true;
+
     /// <summary>Elenco degli ultimi progetti o cartelle analizzati (massimo 10 elementi).</summary>
     public List<RecentProjectItem> RecentProjects { get; set; } = new();
 }

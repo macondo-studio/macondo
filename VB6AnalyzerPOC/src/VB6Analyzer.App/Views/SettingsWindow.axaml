@@ -350,6 +350,25 @@
                                     </Grid>
                                 </Border>
 
+                                <!-- Card Mostra Etichette Schede -->
+                                <Border x:Name="CardShowTabLabels"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="16" Cursor="Hand" PointerPressed="OnToggleTabLabelsSetting">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconTable}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabLabelsTitleText" Text="Mostra etichette schede di visualizzazione" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabLabelsSubText" Text="Mostra o nascondi il testo accanto alle icone nei tab centrali (Vista Grafo, Treemap, Flow...)." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckShowTabLabels" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
                                 <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,8" />
 
                                 <StackPanel Spacing="4" Margin="0,4,0,2">

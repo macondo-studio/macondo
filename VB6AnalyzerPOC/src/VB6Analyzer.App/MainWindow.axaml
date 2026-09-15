@@ -161,6 +161,11 @@
                                     <PathIcon x:Name="HoverSelectionCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem x:Name="ToggleTabLabelsMenuItem" Header="Mostra etichette schede" Click="OnToggleTabLabelsClicked">
+                                <MenuItem.Icon>
+                                    <PathIcon x:Name="TabLabelsCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                         </MenuItem>
                         <MenuItem x:Name="AnalysisMenu" Header="_Analisi">
                             <MenuItem x:Name="BlastRadiusMenuItem" Header="Calcola Blast Radius" InputGesture="F5">
@@ -844,7 +849,7 @@
                 </TabControl.Styles>
 
                 <!-- TAB 1: Canvas Interattivo del Grafo con Floating HUD -->
-                <TabItem>
+                <TabItem x:Name="GraphTabItem" ToolTip.Tip="Vista Grafo Semantico">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconGraph}" Width="13" Height="13" VerticalAlignment="Center" />
@@ -1185,7 +1190,7 @@
                 </TabItem>
 
                 <!-- TAB 2: Matrice di Dipendenza (DSM) -->
-                <TabItem>
+                <TabItem x:Name="DsmTabItem" ToolTip.Tip="Matrice DSM (Dependency Structure Matrix)">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconMatrix}" Width="13" Height="13" VerticalAlignment="Center" />
@@ -1198,7 +1203,7 @@
                 </TabItem>
 
                 <!-- TAB 3: Treemap Gerarchica delle Metriche -->
-                <TabItem>
+                <TabItem x:Name="TreemapTabItem" ToolTip.Tip="Treemap Metriche di Codice">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconTreemap}" Width="13" Height="13" VerticalAlignment="Center" />
@@ -1211,7 +1216,7 @@
                 </TabItem>
 
                 <!-- TAB 4: Matrice Hotspot di Rischio (Complexity vs Churn) -->
-                <TabItem>
+                <TabItem x:Name="HotspotTabItem" ToolTip.Tip="Matrice Hotspot di Rischio">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconHotspot}" Width="13" Height="13" VerticalAlignment="Center" />
@@ -1224,7 +1229,7 @@
                 </TabItem>
 
                 <!-- TAB 5: Flusso Navigazione Form & UI -->
-                <TabItem>
+                <TabItem x:Name="ScreenFlowTabItem" ToolTip.Tip="Flusso Schermate e Navigazione Form">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconScreenFlow}" Width="13" Height="13" VerticalAlignment="Center" />
@@ -1237,7 +1242,7 @@
                 </TabItem>
 
                 <!-- TAB 6: Control Flow Graph (CFG) a livello di Routine -->
-                <TabItem>
+                <TabItem x:Name="ControlFlowTabItem" ToolTip.Tip="Control Flow Graph (CFG) a blocchi">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconControlFlow}" Width="13" Height="13" VerticalAlignment="Center" />
@@ -1250,7 +1255,7 @@
                 </TabItem>
 
                 <!-- TAB 7: Griglia Risultati Blast Radius & Matrice di Rischio -->
-                <TabItem>
+                <TabItem x:Name="GridTabItem" ToolTip.Tip="Griglia e Matrice Blast Radius">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <PathIcon Data="{StaticResource IconTable}" Width="13" Height="13" VerticalAlignment="Center" />

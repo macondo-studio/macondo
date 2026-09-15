@@ -63,6 +63,7 @@ public sealed class LocalizationService
         ["Layout_ClusteredIslands"] = "Cluster a Isole (Sottosistemi)",
         ["Layout_ForceDirected"] = "Force-Directed (Fisica a Molle)",
         ["Menu_HoverSelection"] = "Selezione al Passaggio del Mouse (Hover)",
+        ["Menu_ToggleTabLabels"] = "Mostra etichette schede",
         ["HUD_LayoutLabel"] = "Layout:",
         ["Status_LayoutApplied"] = "Applicato layout '{0}' al grafo.",
 
@@ -121,6 +122,13 @@ public sealed class LocalizationService
         ["Tab_ScreenFlow"] = "Flusso Schermate",
         ["Tab_ControlFlow"] = "Control Flow (CFG)",
         ["Tab_BlastRadiusGrid"] = "Griglia Blast Radius",
+        ["Tab_GraphView_Tip"] = "Vista Grafo Semantico",
+        ["Tab_DsmMatrix_Tip"] = "Matrice DSM (Dependency Structure Matrix)",
+        ["Tab_TreemapMetrics_Tip"] = "Treemap Metriche di Codice",
+        ["Tab_RiskHotspots_Tip"] = "Matrice Hotspot di Rischio",
+        ["Tab_ScreenFlow_Tip"] = "Flusso Schermate e Navigazione Form",
+        ["Tab_ControlFlow_Tip"] = "Control Flow Graph (CFG) a blocchi",
+        ["Tab_BlastRadiusGrid_Tip"] = "Griglia e Matrice Blast Radius",
 
         // Treemap Metriche
         ["Treemap_Placeholder"] = "Nessuna Treemap calcolata. Carica un progetto per visualizzare la mappa delle metriche.",
@@ -299,6 +307,8 @@ public sealed class LocalizationService
         ["Settings_Behavior_Sub"] = "Personalizza il comportamento del puntatore del mouse e della vista grafo.",
         ["Settings_HoverSelection_Title"] = "Selezione al passaggio del mouse (Hover)",
         ["Settings_HoverSelection_Sub"] = "Seleziona e ispeziona automaticamente i nodi quando il cursore vi passa sopra.",
+        ["Settings_TabLabels_Title"] = "Mostra etichette schede di visualizzazione",
+        ["Settings_TabLabels_Sub"] = "Mostra o nascondi il testo accanto alle icone nei tab centrali (Vista Grafo, Treemap, Flow...).",
         ["Settings_Shortcuts_Header"] = "Catalogo Scorciatoie da Tastiera",
         ["Settings_Shortcuts_Sub"] = "Tutte le combinazioni di tasti per navigare rapidamente nel codice e nel grafo.",
         ["Settings_Shortcuts_Search"] = "Cerca scorciatoia...",
@@ -513,6 +523,7 @@ public sealed class LocalizationService
         ["Layout_ClusteredIslands"] = "Clustered Islands (Subsystems)",
         ["Layout_ForceDirected"] = "Force-Directed (Physics)",
         ["Menu_HoverSelection"] = "Hover Node Selection",
+        ["Menu_ToggleTabLabels"] = "Show Tab Labels",
         ["HUD_LayoutLabel"] = "Layout:",
         ["Status_LayoutApplied"] = "Applied '{0}' layout to graph.",
 
@@ -571,6 +582,13 @@ public sealed class LocalizationService
         ["Tab_ScreenFlow"] = "Screen Flow",
         ["Tab_ControlFlow"] = "Control Flow (CFG)",
         ["Tab_BlastRadiusGrid"] = "Blast Radius Grid",
+        ["Tab_GraphView_Tip"] = "Semantic Graph View",
+        ["Tab_DsmMatrix_Tip"] = "DSM Matrix (Dependency Structure Matrix)",
+        ["Tab_TreemapMetrics_Tip"] = "Code Metrics Treemap",
+        ["Tab_RiskHotspots_Tip"] = "Risk Hotspots Matrix",
+        ["Tab_ScreenFlow_Tip"] = "Screen Flow & Form Navigation",
+        ["Tab_ControlFlow_Tip"] = "Control Flow Graph (CFG)",
+        ["Tab_BlastRadiusGrid_Tip"] = "Blast Radius Grid & Risk Matrix",
 
         // Treemap Metrics
         ["Treemap_Placeholder"] = "No Treemap calculated. Load a project to view the metrics map.",
@@ -749,6 +767,8 @@ public sealed class LocalizationService
         ["Settings_Behavior_Sub"] = "Customize mouse pointer behavior and graph canvas interaction.",
         ["Settings_HoverSelection_Title"] = "Hover Node Selection",
         ["Settings_HoverSelection_Sub"] = "Automatically select and inspect nodes when hovering with the mouse cursor.",
+        ["Settings_TabLabels_Title"] = "Show visualization tab labels",
+        ["Settings_TabLabels_Sub"] = "Show or hide text labels next to icons in the main visualization tabs (Graph View, Treemap, Flow...).",
         ["Settings_Shortcuts_Header"] = "Keyboard Shortcuts Catalog",
         ["Settings_Shortcuts_Sub"] = "All key combinations for rapid navigation and analysis.",
         ["Settings_Shortcuts_Search"] = "Search shortcut...",

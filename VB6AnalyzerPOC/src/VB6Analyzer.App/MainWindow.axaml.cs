@@ -136,6 +136,7 @@ public partial class MainWindow : Window
         BlastRadiusMenuItem.Command = new ActionCommand(() => OnBlastRadiusClicked());
         ShowCallersMenuItem.Command = new ActionCommand(() => OnShowCallersClicked());
         ShowCalleesMenuItem.Command = new ActionCommand(() => OnShowCalleesClicked());
+        ToggleTabLabelsMenuItem.Command = new ActionCommand(() => ToggleTabLabels());
         ClearHighlightMenuItem.Command = new ActionCommand(() =>
         {
             Graph.ClearHighlightMode();
@@ -150,6 +151,7 @@ public partial class MainWindow : Window
         LayoutAffinityMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.AffinityRadial);
         LayoutIslandsMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.ClusteredIslands);
         LayoutForceMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.ForceDirected);
+        ToggleTabLabelsMenuItem.Click += (_, _) => ToggleTabLabels();
         BlastRadiusMenuItem.Click += (_, _) => OnBlastRadiusClicked();
         ShowCallersMenuItem.Click += (_, _) => OnShowCallersClicked();
         ShowCalleesMenuItem.Click += (_, _) => OnShowCalleesClicked();
@@ -445,6 +447,7 @@ public partial class MainWindow : Window
         {
             Graph.EnableHoverSelection = s.EnableHoverSelection;
             HoverSelectionCheckIcon.IsVisible = s.EnableHoverSelection;
+            ApplyTabLabelsVisibility(s.ShowTabLabels);
         };
 
         // Applica i valori salvati prima del rendering iniziale
@@ -452,6 +455,7 @@ public partial class MainWindow : Window
         LocalizationService.Instance.SetLanguage(settings.Language);
         Graph.EnableHoverSelection = settings.EnableHoverSelection;
         HoverSelectionCheckIcon.IsVisible = settings.EnableHoverSelection;
+        ApplyTabLabelsVisibility(settings.ShowTabLabels);
         UpdateLocalizedUI();
 
         // Ripristino Filtro di Rischio salvato
@@ -3385,6 +3389,36 @@ public partial class MainWindow : Window
         SettingsService.Instance.Update(s => s.EnableHoverSelection = newValue);
     }
 
+    /// <summary>
+    /// Attiva o disattiva la visualizzazione delle etichette testuali nelle schede di visualizzazione centrali.
+    /// </summary>
+    private void OnToggleTabLabelsClicked(object? sender, RoutedEventArgs e)
+    {
+        ToggleTabLabels();
+    }
+
+    private void ToggleTabLabels()
+    {
+        var newValue = !SettingsService.Instance.Settings.ShowTabLabels;
+        SettingsService.Instance.Update(s => s.ShowTabLabels = newValue);
+        ApplyTabLabelsVisibility(newValue);
+    }
+
+    private void ApplyTabLabelsVisibility(bool showLabels)
+    {
+        GraphTabHeader.IsVisible = showLabels;
+        DsmTabHeader.IsVisible = showLabels;
+        TreemapTabHeader.IsVisible = showLabels;
+        HotspotTabHeader.IsVisible = showLabels;
+        ScreenFlowTabHeader.IsVisible = showLabels;
+        ControlFlowTabHeader.IsVisible = showLabels;
+        GridTabHeader.IsVisible = showLabels;
+        if (TabLabelsCheckIcon != null)
+        {
+            TabLabelsCheckIcon.IsVisible = showLabels;
+        }
+    }
+
     #endregion
 
     #region Integrazione VCS (Git & SVN)
@@ -3921,6 +3955,7 @@ public partial class MainWindow : Window
         LayoutIslandsMenuItem.Header = loc["Layout_ClusteredIslands"];
         LayoutForceMenuItem.Header = loc["Layout_ForceDirected"];
         ToggleHoverSelectionMenuItem.Header = loc["Menu_HoverSelection"];
+        ToggleTabLabelsMenuItem.Header = loc["Menu_ToggleTabLabels"];
 
         // Menu Analisi
         AnalysisMenu.Header = loc["Menu_Analysis"];
@@ -3991,6 +4026,14 @@ public partial class MainWindow : Window
         ScreenFlowTabHeader.Text = loc["Tab_ScreenFlow"];
         ControlFlowTabHeader.Text = loc["Tab_ControlFlow"];
         GridTabHeader.Text = loc["Tab_BlastRadiusGrid"];
+
+        ToolTip.SetTip(GraphTabItem, loc["Tab_GraphView_Tip"]);
+        ToolTip.SetTip(DsmTabItem, loc["Tab_DsmMatrix_Tip"]);
+        ToolTip.SetTip(TreemapTabItem, loc["Tab_TreemapMetrics_Tip"]);
+        ToolTip.SetTip(HotspotTabItem, loc["Tab_RiskHotspots_Tip"]);
+        ToolTip.SetTip(ScreenFlowTabItem, loc["Tab_ScreenFlow_Tip"]);
+        ToolTip.SetTip(ControlFlowTabItem, loc["Tab_ControlFlow_Tip"]);
+        ToolTip.SetTip(GridTabItem, loc["Tab_BlastRadiusGrid_Tip"]);
 
         Dsm.InvalidateVisual();
         Treemap.InvalidateVisual();
