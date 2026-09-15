@@ -293,7 +293,7 @@
                                     <Grid ColumnDefinitions="Auto,*,Auto">
                                         <TextBlock Grid.Column="0" Text="🇮🇹" FontSize="26" VerticalAlignment="Center" Margin="0,0,16,0" />
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock x:Name="LangItalianTitle" Text="Italiano (Predefinito)" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="LangItalianTitle" Text="Italiano" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                             <TextBlock x:Name="LangItalianDesc" Text="Interfaccia, menu e documentazione in lingua italiana." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
                                         </StackPanel>
                                         <Border Grid.Column="2" x:Name="CheckLangItalian" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">

@@ -9,7 +9,7 @@ public sealed class LocalizationService
 
     public event EventHandler<AppLanguage>? LanguageChanged;
 
-    public AppLanguage CurrentLanguage { get; private set; } = AppLanguage.Italian;
+    public AppLanguage CurrentLanguage { get; private set; } = DetectSystemLanguage();
 
     private readonly Dictionary<string, string> _itStrings = new()
     {
@@ -274,7 +274,7 @@ public sealed class LocalizationService
         ["Theme_LightModern_Desc"] = "Tema chiaro ad alto contrasto per ambienti diurni con accento cobalto.",
         ["Settings_Language_Header"] = "Seleziona Lingua Interfaccia",
         ["Settings_Language_Sub"] = "La lingua selezionata verrà applicata immediatamente a tutti i menu e comandi.",
-        ["Lang_Italian_Title"] = "Italiano (Predefinito)",
+        ["Lang_Italian_Title"] = "Italiano",
         ["Lang_Italian_Desc"] = "Interfaccia, menu e documentazione in lingua italiana.",
         ["Lang_English_Title"] = "English",
         ["Lang_English_Desc"] = "Interfaccia completa in inglese, menu e terminologia di analisi.",
@@ -908,4 +908,40 @@ public sealed class LocalizationService
     };
 
     public string this[string key] => Get(key);
+
+    /// <summary>
+    /// Rileva automaticamente la lingua da impostare in base alla lingua e impostazioni regionali di sistema.
+    /// Se la lingua di sistema o interfaccia utente è l'italiano ("it"), restituisce AppLanguage.Italian.
+    /// Per qualsiasi altra lingua, restituisce AppLanguage.English come standard internazionale predefinito.
+    /// </summary>
+    public static AppLanguage DetectSystemLanguage()
+    {
+        try
+        {
+            if (IsItalianCulture(System.Globalization.CultureInfo.CurrentUICulture))
+                return AppLanguage.Italian;
+
+            if (IsItalianCulture(System.Globalization.CultureInfo.InstalledUICulture))
+                return AppLanguage.Italian;
+
+            if (IsItalianCulture(System.Globalization.CultureInfo.CurrentCulture))
+                return AppLanguage.Italian;
+        }
+        catch
+        {
+            // Tolleranza ad eccezioni su ambienti o permessi restrittivi
+        }
+
+        return AppLanguage.English;
+    }
+
+    /// <summary>
+    /// Determina se una specifica cultura appartiene alla lingua italiana.
+    /// </summary>
+    public static bool IsItalianCulture(System.Globalization.CultureInfo? culture)
+    {
+        if (culture == null) return false;
+        return string.Equals(culture.TwoLetterISOLanguageName, "it", StringComparison.OrdinalIgnoreCase) ||
+               culture.Name.StartsWith("it", StringComparison.OrdinalIgnoreCase);
+    }
 }

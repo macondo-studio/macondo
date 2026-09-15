@@ -9,8 +9,8 @@ public sealed class AppSettings
     /// <summary>Tema grafico selezionato dall'utente.</summary>
     public AppTheme Theme { get; set; } = AppTheme.DarkModern;
 
-    /// <summary>Lingua dell'interfaccia utente (Italiano o English).</summary>
-    public AppLanguage Language { get; set; } = AppLanguage.Italian;
+    /// <summary>Lingua dell'interfaccia utente (Italiano o English, rilevata automaticamente dalla lingua di sistema se non personalizzata).</summary>
+    public AppLanguage Language { get; set; } = Services.LocalizationService.DetectSystemLanguage();
 
     /// <summary>Comportamento di caricamento e analisi del progetto all'avvio dell'applicazione.</summary>
     public StartupLoadMode StartupMode { get; set; } = StartupLoadMode.OnlyIfCached;
