@@ -53,6 +53,21 @@ function updateReleaseDates() {
   });
 }
 
+function initLanguageSwitcher() {
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const href = btn.getAttribute('href') || '';
+      try {
+        if (href.indexOf('it.html') !== -1 || href.indexOf('privacy-it.html') !== -1) {
+          localStorage.setItem('macondo_lang', 'it');
+        } else if (href.indexOf('index.html') !== -1 || href.indexOf('privacy.html') !== -1) {
+          localStorage.setItem('macondo_lang', 'en');
+        }
+      } catch (_) {}
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Set current year dynamically
   const yearEl = document.getElementById('current-year');
@@ -60,5 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     yearEl.textContent = new Date().getFullYear();
   }
 
+  initLanguageSwitcher();
   fetchVersion();
 });
+

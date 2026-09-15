@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8">
@@ -14,6 +14,19 @@
   <link rel="alternate" hreflang="it" href="https://macondo-studio.com/it.html">
   <link rel="alternate" hreflang="en" href="https://macondo-studio.com/">
   <link rel="alternate" hreflang="x-default" href="https://macondo-studio.com/">
+
+  <!-- Auto Language Preference Check -->
+  <script>
+    (function() {
+      try {
+        var pref = localStorage.getItem('macondo_lang');
+        if (pref === 'en') {
+          var target = window.location.pathname.indexOf('privacy-it.html') !== -1 ? 'privacy.html' : 'index.html';
+          window.location.replace(target + window.location.search + window.location.hash);
+        }
+      } catch (e) {}
+    })();
+  </script>
 
   <!-- Open Graph / Facebook / LinkedIn -->
   <meta property="og:type" content="website">

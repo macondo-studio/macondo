@@ -13,6 +13,19 @@
   <link rel="alternate" hreflang="it" href="https://macondo-studio.com/privacy-it.html">
   <link rel="alternate" hreflang="x-default" href="https://macondo-studio.com/privacy.html">
 
+  <!-- Auto Language Detection -->
+  <script>
+    (function() {
+      try {
+        var pref = localStorage.getItem('macondo_lang');
+        var isIt = pref ? (pref === 'it') : ((navigator.languages && navigator.languages.some(function(l) { return l.toLowerCase().startsWith('it'); })) || (navigator.language || '').toLowerCase().startsWith('it'));
+        if (isIt) {
+          window.location.replace('privacy-it.html' + window.location.search + window.location.hash);
+        }
+      } catch (e) {}
+    })();
+  </script>
+
   <!-- Open Graph / Facebook / LinkedIn -->
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://macondo-studio.com/privacy.html">
