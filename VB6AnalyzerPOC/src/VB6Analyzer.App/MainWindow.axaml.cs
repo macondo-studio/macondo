@@ -1896,17 +1896,27 @@ public partial class MainWindow : Window
 
         if (file == null) return;
 
+        var loc = LocalizationService.Instance;
+        ShowLoading(loc["Loading_ExportTitle"], loc.Get("Loading_ExportSub", file.Name), canCancel: false);
+        await Task.Delay(16);
+
         try
         {
             await using var stream = await file.OpenWriteAsync();
             await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
             await writer.WriteAsync(json);
 
-            StatusText.Text = LocalizationService.Instance.Get("Status_ExportSuccess", file.Name);
+            var fullPath = file.TryGetLocalPath() ?? file.Path?.LocalPath ?? file.Name;
+            StatusText.Text = loc.Get("Status_ExportSuccess", file.Name);
+            ShowExportSuccessModal(file.Name, fullPath);
         }
         catch (Exception ex)
         {
-            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorExportJson", ex.Message);
+            StatusText.Text = loc.Get("Status_ErrorExportJson", ex.Message);
+        }
+        finally
+        {
+            HideLoading();
         }
     }
 
@@ -3040,18 +3050,28 @@ public partial class MainWindow : Window
 
         if (file == null) return;
 
+        var loc = LocalizationService.Instance;
+        ShowLoading(loc["Loading_ExportTitle"], loc.Get("Loading_ExportSub", file.Name), canCancel: false);
+        await Task.Delay(16);
+
         try
         {
-            var markdown = CodeGraphMarkdownExporter.Export(semGraph);
+            var markdown = await Task.Run(() => CodeGraphMarkdownExporter.Export(semGraph));
             await using var stream = await file.OpenWriteAsync();
             await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
             await writer.WriteAsync(markdown);
 
-            StatusText.Text = LocalizationService.Instance.Get("Status_ExportSuccess", file.Name);
+            var fullPath = file.TryGetLocalPath() ?? file.Path?.LocalPath ?? file.Name;
+            StatusText.Text = loc.Get("Status_ExportSuccess", file.Name);
+            ShowExportSuccessModal(file.Name, fullPath);
         }
         catch (Exception ex)
         {
-            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorExportMarkdown", ex.Message);
+            StatusText.Text = loc.Get("Status_ErrorExportMarkdown", ex.Message);
+        }
+        finally
+        {
+            HideLoading();
         }
     }
 
@@ -3084,18 +3104,28 @@ public partial class MainWindow : Window
 
         if (file == null) return;
 
+        var loc = LocalizationService.Instance;
+        ShowLoading(loc["Loading_ExportTitle"], loc.Get("Loading_ExportSub", file.Name), canCancel: false);
+        await Task.Delay(16);
+
         try
         {
-            var json = CodeGraphJsonExporter.ExportToJson(semGraph, indented: true);
+            var json = await Task.Run(() => CodeGraphJsonExporter.ExportToJson(semGraph, indented: true));
             await using var stream = await file.OpenWriteAsync();
             await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
             await writer.WriteAsync(json);
 
-            StatusText.Text = LocalizationService.Instance.Get("Status_ExportSuccess", file.Name);
+            var fullPath = file.TryGetLocalPath() ?? file.Path?.LocalPath ?? file.Name;
+            StatusText.Text = loc.Get("Status_ExportSuccess", file.Name);
+            ShowExportSuccessModal(file.Name, fullPath);
         }
         catch (Exception ex)
         {
-            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorExportJson", ex.Message);
+            StatusText.Text = loc.Get("Status_ErrorExportJson", ex.Message);
+        }
+        finally
+        {
+            HideLoading();
         }
     }
 
@@ -3195,28 +3225,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        string markdown;
-        if (semGraph != null && symbol != null)
-        {
-            markdown = CodeGraphMarkdownExporter.ExportSlice(semGraph, symbol);
-        }
-        else
-        {
-            var filePath = symbol?.FilePath;
-            var lineStart = symbol?.LineStart ?? 0;
-            var lineEnd = symbol?.LineEnd ?? 0;
-            var childCount = _graph != null ? _graph.GetChildren(node.Id).Count() : 0;
-
-            var sb = new System.Text.StringBuilder();
-            sb.AppendLine($"# Symbol: {node.Name} ({node.Kind})");
-            sb.AppendLine($"- **Qualified Name**: {node.QualifiedName}");
-            if (!string.IsNullOrEmpty(node.ProjectName)) sb.AppendLine($"- **Project**: {node.ProjectName}");
-            if (!string.IsNullOrEmpty(filePath)) sb.AppendLine($"- **File**: {filePath}");
-            if (lineStart > 0) sb.AppendLine($"- **Lines**: {lineStart}-{lineEnd}");
-            if (node.IsContainer) sb.AppendLine($"- **Container**: Yes ({childCount} members)");
-            markdown = sb.ToString();
-        }
-
         var defaultName = !string.IsNullOrEmpty(node.QualifiedName)
             ? $"{node.QualifiedName}_slice.md"
             : $"{node.Name}_slice.md";
@@ -3234,18 +3242,86 @@ public partial class MainWindow : Window
 
         if (file == null) return;
 
+        var loc = LocalizationService.Instance;
+        ShowLoading(loc["Loading_ExportTitle"], loc.Get("Loading_ExportSub", file.Name), canCancel: false);
+        await Task.Delay(16);
+
         try
         {
+            string markdown;
+            if (semGraph != null && symbol != null)
+            {
+                markdown = await Task.Run(() => CodeGraphMarkdownExporter.ExportSlice(semGraph, symbol));
+            }
+            else
+            {
+                var filePath = symbol?.FilePath;
+                var lineStart = symbol?.LineStart ?? 0;
+                var lineEnd = symbol?.LineEnd ?? 0;
+                var childCount = _graph != null ? _graph.GetChildren(node.Id).Count() : 0;
+
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine($"# Symbol: {node.Name} ({node.Kind})");
+                sb.AppendLine($"- **Qualified Name**: {node.QualifiedName}");
+                if (!string.IsNullOrEmpty(node.ProjectName)) sb.AppendLine($"- **Project**: {node.ProjectName}");
+                if (!string.IsNullOrEmpty(filePath)) sb.AppendLine($"- **File**: {filePath}");
+                if (lineStart > 0) sb.AppendLine($"- **Lines**: {lineStart}-{lineEnd}");
+                if (node.IsContainer) sb.AppendLine($"- **Container**: Yes ({childCount} members)");
+                markdown = sb.ToString();
+            }
+
             await using var stream = await file.OpenWriteAsync();
             await using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
             await writer.WriteAsync(markdown);
 
-            StatusText.Text = LocalizationService.Instance.Get("Status_ExportSuccess", file.Name);
+            var fullPath = file.TryGetLocalPath() ?? file.Path?.LocalPath ?? file.Name;
+            StatusText.Text = loc.Get("Status_ExportSuccess", file.Name);
+            ShowExportSuccessModal(file.Name, fullPath);
         }
         catch (Exception ex)
         {
-            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorSaveSlice", ex.Message);
+            StatusText.Text = loc.Get("Status_ErrorSaveSlice", ex.Message);
         }
+        finally
+        {
+            HideLoading();
+        }
+    }
+
+    private string? _lastExportedFilePath;
+
+    /// <summary>
+    /// Mostra il popup modale di conferma per l'esportazione completata con successo.
+    /// </summary>
+    private void ShowExportSuccessModal(string fileName, string fullPath)
+    {
+        var loc = LocalizationService.Instance;
+        _lastExportedFilePath = fullPath;
+
+        ExportSuccessModalTitle.Text = loc["Export_ModalTitle"];
+        ExportSuccessModalSubtitle.Text = loc["Export_ModalSubtitle"];
+        ExportSuccessFileLabel.Text = loc["Export_ModalFileLabel"];
+        ExportSuccessPathLabel.Text = loc["Export_ModalPathLabel"];
+        ExportSuccessFileName.Text = fileName;
+        ExportSuccessFilePath.Text = fullPath;
+        ExportSuccessOpenFolderButton.Content = loc["Export_ModalOpenFolder"];
+        ExportSuccessCloseButton.Content = loc["Export_ModalOk"];
+
+        ExportSuccessOverlay.IsVisible = true;
+    }
+
+    private void OnExportSuccessCloseClicked(object? sender, RoutedEventArgs e)
+    {
+        ExportSuccessOverlay.IsVisible = false;
+    }
+
+    private void OnExportSuccessOpenFolderClicked(object? sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(_lastExportedFilePath))
+        {
+            OpenContainingFolder(_lastExportedFilePath);
+        }
+        ExportSuccessOverlay.IsVisible = false;
     }
 
     #endregion
@@ -4050,6 +4126,17 @@ public partial class MainWindow : Window
             UpdateModalNotes.Text = _availableUpdate.GetReleaseNotes(loc.CurrentLanguage == AppLanguage.Italian ? "it" : "en");
             UpdateLaterButton.Content = loc["Update_ButtonLater"];
             UpdateNowButton.Content = loc["Update_ButtonNow"];
+        }
+
+        // Overlay Conferma Esportazione (se visibile)
+        if (ExportSuccessOverlay.IsVisible)
+        {
+            ExportSuccessModalTitle.Text = loc["Export_ModalTitle"];
+            ExportSuccessModalSubtitle.Text = loc["Export_ModalSubtitle"];
+            ExportSuccessFileLabel.Text = loc["Export_ModalFileLabel"];
+            ExportSuccessPathLabel.Text = loc["Export_ModalPathLabel"];
+            ExportSuccessOpenFolderButton.Content = loc["Export_ModalOpenFolder"];
+            ExportSuccessCloseButton.Content = loc["Export_ModalOk"];
         }
 
         // Overlay Caricamento

@@ -1791,5 +1791,63 @@
                 </StackPanel>
             </Border>
         </Grid>
+
+        <!-- Overlay Modale Conferma Esportazione Completata -->
+        <Grid x:Name="ExportSuccessOverlay" Grid.Row="0" Grid.RowSpan="4"
+              Background="#75101018"
+              IsVisible="False"
+              ZIndex="997">
+            <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="28,24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Width="520"
+                    MinWidth="420"
+                    MaxWidth="640"
+                    BoxShadow="0 12 36 0 #80000000">
+                <StackPanel Spacing="16">
+                    <!-- Header con Icona Check e Titoli -->
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Grid.Column="0" Width="42" Height="42" CornerRadius="8" Background="#22C55E" Opacity="0.15" VerticalAlignment="Center" Margin="0,0,14,0" />
+                        <PathIcon Grid.Column="0" Data="{StaticResource IconCheck}" Width="20" Height="20" Foreground="#22C55E" VerticalAlignment="Center" Margin="0,0,14,0" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock x:Name="ExportSuccessModalTitle" Text="Esportazione Completata con Successo!" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                            <TextBlock x:Name="ExportSuccessModalSubtitle" Text="Il file è stato salvato correttamente su disco." FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Dettagli File Esportato -->
+                    <Border Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                            BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="12,10">
+                        <StackPanel Spacing="6">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock x:Name="ExportSuccessFileLabel" Text="File:" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" Width="70" />
+                                <TextBlock x:Name="ExportSuccessFileName" Grid.Column="1" Text="codegraph.json" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock x:Name="ExportSuccessPathLabel" Text="Percorso:" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" Width="70" />
+                                <TextBlock x:Name="ExportSuccessFilePath" Grid.Column="1" Text="C:\...\codegraph.json" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Barra Pulsanti Azione -->
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <Button x:Name="ExportSuccessOpenFolderButton" Grid.Column="1" Content="Mostra nella cartella" Click="OnExportSuccessOpenFolderClicked"
+                                Padding="14,6" Margin="0,0,8,0" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimaryBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}" BorderThickness="1" CornerRadius="4" FontSize="12" Cursor="Hand" />
+                        <Button x:Name="ExportSuccessCloseButton" Grid.Column="2" Content="OK" Click="OnExportSuccessCloseClicked"
+                                Padding="20,6" Background="{DynamicResource ThemeAccentBrush}" Foreground="White"
+                                BorderThickness="0" CornerRadius="4" FontSize="12" FontWeight="SemiBold" Cursor="Hand" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>
