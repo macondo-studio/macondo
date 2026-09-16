@@ -72,21 +72,10 @@ if (Test-Path $updateServicePath) {
     Write-Host "      -> CurrentVersion: ($major, $minor, $patch), CurrentVersionString: `"$NewVersion`"" -ForegroundColor Green
 }
 
-# 3. Aggiornamento MainWindow.axaml (Fallback placeholder)
-$mainWindowAxamlPath = Join-Path $workspaceRoot "VB6AnalyzerPOC\src\VB6Analyzer.App\MainWindow.axaml"
-if (Test-Path $mainWindowAxamlPath) {
-    Write-Host "[3/5] Aggiornamento $mainWindowAxamlPath..." -ForegroundColor Yellow
-    $axamlContent = Get-Content $mainWindowAxamlPath -Raw -Encoding UTF8
-    
-    $axamlContent = [regex]::Replace($axamlContent, 'attuale: \d+\.\d+\.\d+', "attuale: $NewVersion")
-    Set-Content $mainWindowAxamlPath -Value $axamlContent -Encoding UTF8 -NoNewline
-    Write-Host "      -> Placeholder finestra aggiornato ad attuale: $NewVersion" -ForegroundColor Green
-}
-
-# 4. Aggiornamento macondo/version.json (Sito Web / Manifesto)
+# 3. Aggiornamento macondo/version.json (Sito Web / Manifesto)
 $versionJsonPath = Join-Path $macondoWebRoot "version.json"
 if (Test-Path $versionJsonPath) {
-    Write-Host "[4/5] Aggiornamento $versionJsonPath..." -ForegroundColor Yellow
+    Write-Host "[3/4] Aggiornamento $versionJsonPath..." -ForegroundColor Yellow
     $jsonObj = Get-Content $versionJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
     
     $jsonObj.version = $NewVersion
@@ -106,10 +95,10 @@ if (Test-Path $versionJsonPath) {
     Write-Host "      -> version.json impostato a v$NewVersion con timestamp UTC" -ForegroundColor Green
 }
 
-# 5. Aggiornamento macondo/it.html & macondo/index.html
+# 4. Aggiornamento macondo/it.html & macondo/index.html
 $itHtmlPath = Join-Path $macondoWebRoot "it.html"
 if (Test-Path $itHtmlPath) {
-    Write-Host "[5/5] Aggiornamento $itHtmlPath e index.html..." -ForegroundColor Yellow
+    Write-Host "[4/4] Aggiornamento $itHtmlPath e index.html..." -ForegroundColor Yellow
     $itHtml = Get-Content $itHtmlPath -Raw -Encoding UTF8
     $itHtml = [regex]::Replace($itHtml, '"softwareVersion":\s*"[^"]+"', "`"softwareVersion`": `"$NewVersion`"")
     $itHtml = [regex]::Replace($itHtml, 'Macondo v\d+\.\d+\.\d+ per Windows', "Macondo v$NewVersion per Windows")

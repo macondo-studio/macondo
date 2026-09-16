@@ -1745,7 +1745,7 @@
                         <PathIcon Grid.Column="0" Data="{StaticResource IconUpdate}" Width="20" Height="20" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" Margin="0,0,14,0" />
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                             <TextBlock x:Name="UpdateModalTitle" Text="Nuovo Aggiornamento Disponibile!" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                            <TextBlock x:Name="UpdateModalSubtitle" Text="Versione 1.2.0 disponibile (attuale: 1.2.0)" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                            <TextBlock x:Name="UpdateModalSubtitle" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
                         </StackPanel>
                     </Grid>
 
