@@ -126,7 +126,7 @@ public partial class MainWindow : Window
         ExitMenuItem.Click += (_, _) => Close();
 
         // Menu Bar Superiore - Visualizza & Analisi
-        ResetViewMenuItem.Command = new ActionCommand(() => Graph.ResetView());
+        ResetViewMenuItem.Command = new ActionCommand(() => ResetGraphView());
         ExpandAllMenuItem.Command = new ActionCommand(() => SetAllExpanded(true));
         CollapseAllMenuItem.Command = new ActionCommand(() => SetAllExpanded(false));
         LayoutStandardMenuItem.Command = new ActionCommand(() => SetLayoutMode(Layout.GraphLayoutMode.StandardRadial));
@@ -144,7 +144,7 @@ public partial class MainWindow : Window
             StatusText.Text = LocalizationService.Instance["Menu_ClearHighlight"];
         });
 
-        ResetViewMenuItem.Click += (_, _) => Graph.ResetView();
+        ResetViewMenuItem.Click += (_, _) => ResetGraphView();
         ExpandAllMenuItem.Click += (_, _) => SetAllExpanded(true);
         CollapseAllMenuItem.Click += (_, _) => SetAllExpanded(false);
         LayoutStandardMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.StandardRadial);
@@ -163,7 +163,7 @@ public partial class MainWindow : Window
         };
                 
         // Toolbar Azioni Rapide
-        ResetViewButton.Click += (_, _) => Graph.ResetView();
+        ResetViewButton.Click += (_, _) => ResetGraphView();
         ExpandAllButton.Click += (_, _) => SetAllExpanded(true);
         CollapseAllButton.Click += (_, _) => SetAllExpanded(false);
         RefreshProjectButton.Click += async (_, _) => await RefreshCurrentProjectAsync();
@@ -1104,7 +1104,7 @@ public partial class MainWindow : Window
         }
 
         Graph.Graph = _graph;
-        Graph.ResetView();
+        ResetGraphView();
         Graph.SelectNode(null);
 
         ExplorerTree.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds) };
@@ -3351,12 +3351,30 @@ public partial class MainWindow : Window
             Graph.InvalidateVisual();
             if (resetView)
             {
-                Graph.ResetView();
+                ResetGraphView();
             }
         }
 
         SettingsService.Instance.Update(s => s.PreferredLayout = mode);
         StatusText.Text = LocalizationService.Instance.Get("Status_LayoutApplied", GetLocalizedLayoutName(mode));
+    }
+
+    /// <summary>
+    /// Ripristina la visualizzazione del grafo impostando lo zoom al 100% e centrando la vista
+    /// sul primo sottoprogetto visibile/selezionato (oppure al centro del canvas se non presente).
+    /// </summary>
+    private void ResetGraphView()
+    {
+        Graph.ResetView();
+        if (_graph != null)
+        {
+            var targetProject = _graph.Nodes.FirstOrDefault(n => n.Kind == SymbolKind.Project && Graph.IsProjectVisible(n.Id))
+                                ?? _graph.Nodes.FirstOrDefault(n => n.Kind == SymbolKind.Project);
+            if (targetProject != null)
+            {
+                Graph.FocusOnNode(targetProject.Id);
+            }
+        }
     }
 
     private string GetLocalizedLayoutName(Layout.GraphLayoutMode mode) => mode switch
