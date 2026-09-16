@@ -154,6 +154,9 @@ public sealed class GraphControl : Control
     /// <summary>Sollevato quando cambia la visibilità di un progetto nel grafo.</summary>
     public event EventHandler<Guid>? ProjectVisibilityChanged;
 
+    /// <summary>Sollevato quando l'utente termina lo spostamento/trascinamento di un nodo con il mouse.</summary>
+    public event EventHandler? NodeMoved;
+
     /// <summary>Verifica se un progetto è visibile nel grafo.</summary>
     public bool IsProjectVisible(Guid projectId) => !_hiddenProjectIds.Contains(projectId);
 
@@ -211,10 +214,13 @@ public sealed class GraphControl : Control
     private double _offsetX;
     private double _offsetY;
 
-    // Stato di interazione puntatore
+    // Stato di interazione puntatore e trascinamento nodi
     private Point _pointerDownScreenPos;
     private bool _isPointerDown;
     private bool _isPanning;
+    private bool _isNodeDragging;
+    private GraphNode? _draggedNode;
+    private Point _lastDragGraphPos;
     private const double PanThreshold = 4.0;
 
     // Stato di selezione ed evidenziazione
@@ -716,8 +722,37 @@ public sealed class GraphControl : Control
     }
 
     // =========================================================================
-    // GESTIONE INPUT PUNTATORE (Pan, Zoom, Clic, Doppio Clic)
+    // GESTIONE INPUT PUNTATORE (Pan, Zoom, Drag Nodi, Clic, Doppio Clic)
     // =========================================================================
+
+    /// <summary>
+    /// Sposta un nodo e ricorsivamente tutti i suoi nodi discendenti (figli diretti e indiretti) dello stesso vettore delta.
+    /// </summary>
+    private void MoveNodeAndDescendants(GraphNode rootNode, double deltaX, double deltaY)
+    {
+        if (Graph is null || (deltaX == 0 && deltaY == 0)) return;
+
+        rootNode.X += deltaX;
+        rootNode.Y += deltaY;
+
+        var visited = new HashSet<Guid> { rootNode.Id };
+        var queue = new Queue<Guid>();
+        queue.Enqueue(rootNode.Id);
+
+        while (queue.Count > 0)
+        {
+            var currentId = queue.Dequeue();
+            foreach (var child in Graph.GetChildren(currentId))
+            {
+                if (visited.Add(child.Id))
+                {
+                    child.X += deltaX;
+                    child.Y += deltaY;
+                    queue.Enqueue(child.Id);
+                }
+            }
+        }
+    }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
@@ -727,7 +762,21 @@ public sealed class GraphControl : Control
 
         _isPointerDown = true;
         _isPanning = false;
+        _isNodeDragging = false;
+        _draggedNode = null;
         _pointerDownScreenPos = e.GetPosition(this);
+
+        if (point.Properties.IsLeftButtonPressed)
+        {
+            var graphPoint = ScreenToGraph(_pointerDownScreenPos);
+            var hit = HitTest(graphPoint);
+            if (hit != null)
+            {
+                _draggedNode = hit;
+                _lastDragGraphPos = graphPoint;
+            }
+        }
+
         e.Pointer.Capture(this);
         Focus();
     }
@@ -737,19 +786,45 @@ public sealed class GraphControl : Control
         base.OnPointerMoved(e);
         if (_isPointerDown)
         {
-            var current = e.GetPosition(this);
-            var dx = current.X - _pointerDownScreenPos.X;
-            var dy = current.Y - _pointerDownScreenPos.Y;
+            var currentScreen = e.GetPosition(this);
+            var screenDx = currentScreen.X - _pointerDownScreenPos.X;
+            var screenDy = currentScreen.Y - _pointerDownScreenPos.Y;
+            var screenDistSq = screenDx * screenDx + screenDy * screenDy;
 
-            if (!_isPanning && (Math.Abs(dx) > PanThreshold || Math.Abs(dy) > PanThreshold))
-                _isPanning = true;
-
-            if (_isPanning)
+            if (_draggedNode != null)
             {
-                _offsetX += dx;
-                _offsetY += dy;
-                _pointerDownScreenPos = current;
-                InvalidateVisual();
+                if (!_isNodeDragging && screenDistSq > PanThreshold * PanThreshold)
+                {
+                    _isNodeDragging = true;
+                }
+
+                if (_isNodeDragging)
+                {
+                    var currentGraphPos = ScreenToGraph(currentScreen);
+                    var deltaX = currentGraphPos.X - _lastDragGraphPos.X;
+                    var deltaY = currentGraphPos.Y - _lastDragGraphPos.Y;
+
+                    MoveNodeAndDescendants(_draggedNode, deltaX, deltaY);
+                    _lastDragGraphPos = currentGraphPos;
+                    InvalidateVisual();
+                }
+            }
+            else
+            {
+                if (!_isPanning && screenDistSq > PanThreshold * PanThreshold)
+                {
+                    _isPanning = true;
+                }
+
+                if (_isPanning)
+                {
+                    var dx = currentScreen.X - _pointerDownScreenPos.X;
+                    var dy = currentScreen.Y - _pointerDownScreenPos.Y;
+                    _offsetX += dx;
+                    _offsetY += dy;
+                    _pointerDownScreenPos = currentScreen;
+                    InvalidateVisual();
+                }
             }
         }
         else if (EnableHoverSelection)
@@ -781,7 +856,10 @@ public sealed class GraphControl : Control
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
-        Cursor = Cursor.Default;
+        if (!_isPointerDown)
+        {
+            Cursor = Cursor.Default;
+        }
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
@@ -789,15 +867,35 @@ public sealed class GraphControl : Control
         base.OnPointerReleased(e);
         e.Pointer.Capture(null);
 
-        if (_isPointerDown && !_isPanning)
+        if (_isPointerDown)
         {
-            var graphPoint = ScreenToGraph(e.GetPosition(this));
-            var hit = HitTest(graphPoint);
-            SelectNode(hit);
+            if (_draggedNode != null)
+            {
+                if (!_isNodeDragging)
+                {
+                    SelectNode(_draggedNode);
+                }
+                else
+                {
+                    if (_selectedNode?.Id != _draggedNode.Id)
+                    {
+                        SelectNode(_draggedNode);
+                    }
+                    NodeMoved?.Invoke(this, EventArgs.Empty);
+                }
+            }
+            else if (!_isPanning)
+            {
+                var graphPoint = ScreenToGraph(e.GetPosition(this));
+                var hit = HitTest(graphPoint);
+                SelectNode(hit);
+            }
         }
 
         _isPointerDown = false;
         _isPanning = false;
+        _isNodeDragging = false;
+        _draggedNode = null;
     }
 
     /// <summary>
