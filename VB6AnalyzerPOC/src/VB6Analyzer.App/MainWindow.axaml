@@ -1254,7 +1254,85 @@
                     </Grid>
                 </TabItem>
 
-                <!-- TAB 7: Griglia Risultati Blast Radius & Matrice di Rischio -->
+                <!-- TAB 7: Diagramma di Martin (Main Sequence: A vs I) -->
+                <TabItem x:Name="MartinTabItem" ToolTip.Tip="Diagramma di Martin (Abstractness vs Instability)">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconMartin}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="MartinTabHeader" Text="Metriche Martin" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:MartinMetricsControl x:Name="MartinMetrics" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 8: Dead Code & Raggiungibilità Entry Point -->
+                <TabItem x:Name="DeadCodeTabItem" ToolTip.Tip="Analisi Dead Code e Componenti Orfani">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconDeadCode}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="DeadCodeTabHeader" Text="Dead Code &amp; Orfani" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:DeadCodeControl x:Name="DeadCode" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 9: Matrice di Stato Condiviso (Global & Shared State Matrix) -->
+                <TabItem x:Name="SharedStateTabItem" ToolTip.Tip="Matrice di Stato Globale Condiviso e Mutazioni">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconSharedState}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="SharedStateTabHeader" Text="Stato Condiviso" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:SharedStateControl x:Name="SharedState" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 10: Temporal Coupling & Co-Change Matrix -->
+                <TabItem x:Name="TemporalCouplingTabItem" ToolTip.Tip="Temporal Coupling e Co-Modifiche VCS">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconTemporalCoupling}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="TemporalCouplingTabHeader" Text="Temporal Coupling" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:TemporalCouplingControl x:Name="TemporalCoupling" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 11: Flussi Architetturali (Chord Diagram / Layered Flow) -->
+                <TabItem x:Name="ArchitecturalFlowTabItem" ToolTip.Tip="Flussi Architetturali e Diagramma Chord">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconFlow}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="ArchitecturalFlowTabHeader" Text="Flussi Architetturali" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:ArchitecturalFlowControl x:Name="ArchitecturalFlow" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 12: Mappa Urbana 3D / Isometrica (CodeCity) -->
+                <TabItem x:Name="CodeCityTabItem" ToolTip.Tip="Mappa CodeCity 3D / Isometrica Polimetrica">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconCity}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="CodeCityTabHeader" Text="CodeCity 3D" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:CodeCityControl x:Name="CodeCity" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 13: Griglia Risultati Blast Radius & Matrice di Rischio -->
                 <TabItem x:Name="GridTabItem" ToolTip.Tip="Griglia e Matrice Blast Radius">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">

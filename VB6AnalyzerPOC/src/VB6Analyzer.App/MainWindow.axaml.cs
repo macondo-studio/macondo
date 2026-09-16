@@ -14,10 +14,16 @@ using System.Threading.Tasks;
 using Macondo.App.Models;
 using Macondo.App.Services;
 using Macondo.App.Views;
+using Macondo.Semantic.Analytics.ArchitecturalFlow;
+using Macondo.Semantic.Analytics.CodeCity;
 using Macondo.Semantic.Analytics.ControlFlow;
+using Macondo.Semantic.Analytics.DeadCode;
 using Macondo.Semantic.Analytics.Dsm;
 using Macondo.Semantic.Analytics.Hotspots;
+using Macondo.Semantic.Analytics.Martin;
 using Macondo.Semantic.Analytics.ScreenFlow;
+using Macondo.Semantic.Analytics.SharedState;
+using Macondo.Semantic.Analytics.TemporalCoupling;
 using Macondo.Semantic.Analytics.Treemap;
 using Macondo.Semantic.Export;
 using Macondo.Semantic.Impact;
@@ -346,6 +352,83 @@ public partial class MainWindow : Window
             if (block != null)
             {
                 StatusText.Text = LocalizationService.Instance.Get("Status_CfgBlock", block.BlockKind, block.Title);
+            }
+        };
+
+        MartinMetrics.ItemSelected += (_, item) =>
+        {
+            if (item != null && _graph != null)
+            {
+                var targetNode = _graph.GetNode(item.Id);
+                if (targetNode != null) SelectAndFocusGraphNode(targetNode);
+            }
+        };
+
+        DeadCode.ItemSelected += (_, item) =>
+        {
+            if (item != null && _graph != null)
+            {
+                var targetNode = _graph.GetNode(item.Id);
+                if (targetNode != null) SelectAndFocusGraphNode(targetNode);
+            }
+        };
+
+        DeadCode.ItemDoubleTapped += (_, item) =>
+        {
+            if (item != null)
+            {
+                OpenOriginalFile(item.FilePath, item.LineStart);
+            }
+        };
+
+        SharedState.VariableSelected += (_, item) =>
+        {
+            if (item != null && _graph != null)
+            {
+                var targetNode = _graph.GetNode(item.VariableId);
+                if (targetNode != null) SelectAndFocusGraphNode(targetNode);
+            }
+        };
+
+        SharedState.AccessorDoubleTapped += (_, acc) =>
+        {
+            if (acc != null && !string.IsNullOrEmpty(acc.FilePath))
+            {
+                OpenOriginalFile(acc.FilePath, acc.Line);
+            }
+        };
+
+        TemporalCoupling.PairDoubleTapped += (_, pair) =>
+        {
+            if (pair != null && !string.IsNullOrEmpty(pair.FileA))
+            {
+                OpenOriginalFile(pair.FileA, 1);
+            }
+        };
+
+        ArchitecturalFlow.NodeSelected += (_, node) =>
+        {
+            if (node != null && _graph != null)
+            {
+                var targetNode = _graph.GetNode(node.Id);
+                if (targetNode != null) SelectAndFocusGraphNode(targetNode);
+            }
+        };
+
+        CodeCity.BuildingSelected += (_, b) =>
+        {
+            if (b != null && _graph != null)
+            {
+                var targetNode = _graph.GetNode(b.Id);
+                if (targetNode != null) SelectAndFocusGraphNode(targetNode);
+            }
+        };
+
+        CodeCity.BuildingDoubleTapped += (_, b) =>
+        {
+            if (b != null && !string.IsNullOrEmpty(b.FilePath))
+            {
+                OpenOriginalFile(b.FilePath, 1);
             }
         };
 
@@ -1374,6 +1457,13 @@ public partial class MainWindow : Window
         Treemap.RootItem = TreemapModelBuilder.Build(targetGraph);
         Hotspot.Dataset = HotspotAnalyzer.Analyze(targetGraph);
         ScreenFlow.Graph = ScreenFlowBuilder.Build(targetGraph);
+        MartinMetrics.Dataset = MartinMetricsCalculator.Analyze(targetGraph);
+        DeadCode.Dataset = DeadCodeAnalyzer.Analyze(targetGraph);
+        SharedState.Dataset = SharedStateAnalyzer.Analyze(targetGraph);
+        var commitChangelists = GitService.Instance.GetCommitFileChangelists(_currentFolderPath);
+        TemporalCoupling.Dataset = TemporalCouplingAnalyzer.Analyze(commitChangelists, targetGraph, _currentFolderPath);
+        ArchitecturalFlow.Dataset = ArchitecturalFlowAnalyzer.Analyze(targetGraph);
+        CodeCity.Dataset = CodeCityBuilder.Build(targetGraph);
     }
 
     /// <summary>
@@ -2168,12 +2258,60 @@ public partial class MainWindow : Window
                 () => CentralTabControl.SelectedIndex = 5),
 
             new AppSearchTarget(
+                isEn ? "View: Martin Metrics" : "Vista: Metriche Martin",
+                isEn ? "Abstractness vs Instability scatter plot and Main Sequence analysis" : "Diagramma di Martin (Astrattezza vs Instabilità e Sequenza Principale)",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "martin", "metriche martin", "abstractness", "instability", "astrattezza", "instabilita", "main sequence", "sofferenza", "pain" },
+                () => CentralTabControl.SelectedIndex = 6),
+
+            new AppSearchTarget(
+                isEn ? "View: Dead Code & Orphans" : "Vista: Dead Code & Orfani",
+                isEn ? "Dead code detection, unreachable routines and orphan components" : "Analisi codice morto, routine non raggiungibili e componenti orfani",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "dead code", "orfani", "orphans", "codice morto", "unreachable", "non raggiungibile", "inutilizzato" },
+                () => CentralTabControl.SelectedIndex = 7),
+
+            new AppSearchTarget(
+                isEn ? "View: Shared State" : "Vista: Stato Condiviso",
+                isEn ? "Global and shared mutable state matrix, readers/writers and mutation risk" : "Matrice stato globale condiviso, lettori/scrittori e rischio mutazioni cross-module",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "shared state", "stato condiviso", "variabili globali", "static", "mutazioni", "global", "side effects" },
+                () => CentralTabControl.SelectedIndex = 8),
+
+            new AppSearchTarget(
+                isEn ? "View: Temporal Coupling" : "Vista: Temporal Coupling",
+                isEn ? "VCS commit co-change history, Jaccard similarity and hidden couplings" : "Analisi co-modifiche storiche da commit Git, indice Jaccard e accoppiamenti nascosti",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "temporal coupling", "co-change", "git", "commit", "jaccard", "hidden coupling", "accoppiamento temporale" },
+                () => CentralTabControl.SelectedIndex = 9),
+
+            new AppSearchTarget(
+                isEn ? "View: Architectural Flow" : "Vista: Flussi Architetturali",
+                isEn ? "Module-to-module Chord diagram, call volumes and architectural layer boundaries" : "Diagramma Chord delle chiamate tra moduli, volumi di flusso e violazioni di layer",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "flussi", "flow", "chord", "sankey", "layer", "architettura", "volumi", "chiamate", "architectural flow" },
+                () => CentralTabControl.SelectedIndex = 10),
+
+            new AppSearchTarget(
+                isEn ? "View: CodeCity 3D" : "Vista: CodeCity 3D",
+                isEn ? "3D / Isometric 2.5D polymetric city map (Building size = LOC, Height = Complexity)" : "Mappa urbana 3D/2.5D polimetrica (Dimensione base = LOC, Altezza = Complessità)",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "codecity", "city", "citta", "3d", "isometric", "isometria", "edifici", "polimetrica", "urban" },
+                () => CentralTabControl.SelectedIndex = 11),
+
+            new AppSearchTarget(
                 isEn ? "View: Blast Radius Grid" : "Vista: Griglia Blast Radius",
                 isEn ? "Tabular impact assessment and blast radius details" : "Tabella di analisi impatto e raggio d'azione per le modifiche",
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "blast radius", "impatto", "griglia", "tabella", "modifiche", "impact" },
-                () => CentralTabControl.SelectedIndex = 6),
+                () => CentralTabControl.SelectedIndex = 12),
 
             // --- GUIDA & INFORMAZIONI ---
             new AppSearchTarget(
@@ -2698,7 +2836,7 @@ public partial class MainWindow : Window
 
     private void OnCentralTabSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (e.Source == CentralTabControl && CentralTabControl.SelectedIndex == 6 && _selectedNode != null)
+        if (e.Source == CentralTabControl && CentralTabControl.SelectedItem == GridTabItem && _selectedNode != null)
         {
             var matchingRow = _allBlastRadiusRows.FirstOrDefault(r => r.NodeId == _selectedNode.Id);
             if (matchingRow != null && BlastRadiusDataGrid.SelectedItem != matchingRow)
@@ -3042,6 +3180,12 @@ public partial class MainWindow : Window
         Hotspot.ApplyTheme(theme);
         ScreenFlow.ApplyTheme(theme);
         ControlFlow.ApplyTheme(theme);
+        MartinMetrics.ApplyTheme(theme);
+        DeadCode.ApplyTheme(theme);
+        SharedState.ApplyTheme(theme);
+        TemporalCoupling.ApplyTheme(theme);
+        ArchitecturalFlow.ApplyTheme(theme);
+        CodeCity.ApplyTheme(theme);
     }
 
     #endregion
@@ -3579,6 +3723,12 @@ public partial class MainWindow : Window
         HotspotTabHeader.IsVisible = showLabels;
         ScreenFlowTabHeader.IsVisible = showLabels;
         ControlFlowTabHeader.IsVisible = showLabels;
+        MartinTabHeader.IsVisible = showLabels;
+        DeadCodeTabHeader.IsVisible = showLabels;
+        SharedStateTabHeader.IsVisible = showLabels;
+        TemporalCouplingTabHeader.IsVisible = showLabels;
+        ArchitecturalFlowTabHeader.IsVisible = showLabels;
+        CodeCityTabHeader.IsVisible = showLabels;
         GridTabHeader.IsVisible = showLabels;
         if (TabLabelsCheckIcon != null)
         {
@@ -4192,6 +4342,12 @@ public partial class MainWindow : Window
         HotspotTabHeader.Text = loc["Tab_RiskHotspots"];
         ScreenFlowTabHeader.Text = loc["Tab_ScreenFlow"];
         ControlFlowTabHeader.Text = loc["Tab_ControlFlow"];
+        MartinTabHeader.Text = loc["Tab_MartinMetrics"];
+        DeadCodeTabHeader.Text = loc["Tab_DeadCode"];
+        SharedStateTabHeader.Text = loc["Tab_SharedState"];
+        TemporalCouplingTabHeader.Text = loc["Tab_TemporalCoupling"];
+        ArchitecturalFlowTabHeader.Text = loc["Tab_ArchitecturalFlow"];
+        CodeCityTabHeader.Text = loc["Tab_CodeCity"];
         GridTabHeader.Text = loc["Tab_BlastRadiusGrid"];
 
         ToolTip.SetTip(GraphTabItem, loc["Tab_GraphView_Tip"]);
@@ -4200,6 +4356,12 @@ public partial class MainWindow : Window
         ToolTip.SetTip(HotspotTabItem, loc["Tab_RiskHotspots_Tip"]);
         ToolTip.SetTip(ScreenFlowTabItem, loc["Tab_ScreenFlow_Tip"]);
         ToolTip.SetTip(ControlFlowTabItem, loc["Tab_ControlFlow_Tip"]);
+        ToolTip.SetTip(MartinTabItem, loc["Tab_MartinMetrics_Tip"]);
+        ToolTip.SetTip(DeadCodeTabItem, loc["Tab_DeadCode_Tip"]);
+        ToolTip.SetTip(SharedStateTabItem, loc["Tab_SharedState_Tip"]);
+        ToolTip.SetTip(TemporalCouplingTabItem, loc["Tab_TemporalCoupling_Tip"]);
+        ToolTip.SetTip(ArchitecturalFlowTabItem, loc["Tab_ArchitecturalFlow_Tip"]);
+        ToolTip.SetTip(CodeCityTabItem, loc["Tab_CodeCity_Tip"]);
         ToolTip.SetTip(GridTabItem, loc["Tab_BlastRadiusGrid_Tip"]);
 
         Dsm.InvalidateVisual();
@@ -4207,6 +4369,9 @@ public partial class MainWindow : Window
         Hotspot.InvalidateVisual();
         ScreenFlow.InvalidateVisual();
         ControlFlow.InvalidateVisual();
+        MartinMetrics.InvalidateVisual();
+        ArchitecturalFlow.InvalidateVisual();
+        CodeCity.InvalidateVisual();
 
         // Project Explorer Toolbar
         ExplorerProjectsSelectAllButton.Content = loc["HUD_SelectAll"];

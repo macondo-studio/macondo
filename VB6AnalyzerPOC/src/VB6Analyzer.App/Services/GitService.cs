@@ -150,6 +150,49 @@ public sealed class GitService
     }
 
     /// <summary>
+    /// Estrae l'elenco dei file modificati per ciascun commit recente (fino a maxCommits) per l'analisi di Temporal Coupling.
+    /// </summary>
+    public List<List<string>> GetCommitFileChangelists(string? folderPath, int maxCommits = 300)
+    {
+        var root = FindGitRoot(folderPath);
+        if (root == null) return new List<List<string>>();
+
+        var (exitCode, stdout, _) = RunGitCommand(root, $"log -n {maxCommits} --name-only --pretty=format:--COMMIT--");
+        if (exitCode != 0 || string.IsNullOrWhiteSpace(stdout))
+            return new List<List<string>>();
+
+        var result = new List<List<string>>();
+        var lines = stdout.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+        List<string>? currentCommitFiles = null;
+
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+            if (string.IsNullOrEmpty(trimmed)) continue;
+
+            if (trimmed == "--COMMIT--")
+            {
+                if (currentCommitFiles != null && currentCommitFiles.Count > 0)
+                {
+                    result.Add(currentCommitFiles);
+                }
+                currentCommitFiles = new List<string>();
+            }
+            else if (currentCommitFiles != null)
+            {
+                currentCommitFiles.Add(trimmed);
+            }
+        }
+
+        if (currentCommitFiles != null && currentCommitFiles.Count > 0)
+        {
+            result.Add(currentCommitFiles);
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// Esegue il checkout asincrono del branch specificato.
     /// Restituisce Success = true se completato, altrimenti Success = false con il messaggio di errore di Git.
     /// </summary>
