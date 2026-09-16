@@ -75,8 +75,9 @@ public partial class MainWindow : Window
         ExplorerTree.AddHandler(InputElement.PointerPressedEvent, OnExplorerTreePointerPressed, RoutingStrategies.Tunnel);
         ExplorerTree.AddHandler(Control.ContextRequestedEvent, OnExplorerTreeContextRequested, RoutingStrategies.Tunnel);
 
-        // Canvas del Grafo: menu contestuale su clic destro sopra i nodi
+        // Canvas del Grafo: menu contestuale su clic destro sopra i nodi e tracking movimenti
         Graph.AddHandler(Control.ContextRequestedEvent, OnGraphContextRequested, RoutingStrategies.Tunnel);
+        Graph.NodeMoved += (_, _) => OnGraphNodeMoved();
 
         // Pulsanti Dialog Aggiornamento Software
         UpdateLaterButton.Click += (_, _) => DismissUpdateModal();
@@ -129,10 +130,10 @@ public partial class MainWindow : Window
         ResetViewMenuItem.Command = new ActionCommand(() => ResetGraphView());
         ExpandAllMenuItem.Command = new ActionCommand(() => SetAllExpanded(true));
         CollapseAllMenuItem.Command = new ActionCommand(() => SetAllExpanded(false));
-        LayoutStandardMenuItem.Command = new ActionCommand(() => SetLayoutMode(Layout.GraphLayoutMode.StandardRadial));
-        LayoutAffinityMenuItem.Command = new ActionCommand(() => SetLayoutMode(Layout.GraphLayoutMode.AffinityRadial));
-        LayoutIslandsMenuItem.Command = new ActionCommand(() => SetLayoutMode(Layout.GraphLayoutMode.ClusteredIslands));
-        LayoutForceMenuItem.Command = new ActionCommand(() => SetLayoutMode(Layout.GraphLayoutMode.ForceDirected));
+        LayoutStandardMenuItem.Command = new ActionCommand(() => RequestSetLayoutMode(Layout.GraphLayoutMode.StandardRadial));
+        LayoutAffinityMenuItem.Command = new ActionCommand(() => RequestSetLayoutMode(Layout.GraphLayoutMode.AffinityRadial));
+        LayoutIslandsMenuItem.Command = new ActionCommand(() => RequestSetLayoutMode(Layout.GraphLayoutMode.ClusteredIslands));
+        LayoutForceMenuItem.Command = new ActionCommand(() => RequestSetLayoutMode(Layout.GraphLayoutMode.ForceDirected));
         BlastRadiusMenuItem.Command = new ActionCommand(() => OnBlastRadiusClicked());
         ShowCallersMenuItem.Command = new ActionCommand(() => OnShowCallersClicked());
         ShowCalleesMenuItem.Command = new ActionCommand(() => OnShowCalleesClicked());
@@ -147,10 +148,10 @@ public partial class MainWindow : Window
         ResetViewMenuItem.Click += (_, _) => ResetGraphView();
         ExpandAllMenuItem.Click += (_, _) => SetAllExpanded(true);
         CollapseAllMenuItem.Click += (_, _) => SetAllExpanded(false);
-        LayoutStandardMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.StandardRadial);
-        LayoutAffinityMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.AffinityRadial);
-        LayoutIslandsMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.ClusteredIslands);
-        LayoutForceMenuItem.Click += (_, _) => SetLayoutMode(Layout.GraphLayoutMode.ForceDirected);
+        LayoutStandardMenuItem.Click += (_, _) => RequestSetLayoutMode(Layout.GraphLayoutMode.StandardRadial);
+        LayoutAffinityMenuItem.Click += (_, _) => RequestSetLayoutMode(Layout.GraphLayoutMode.AffinityRadial);
+        LayoutIslandsMenuItem.Click += (_, _) => RequestSetLayoutMode(Layout.GraphLayoutMode.ClusteredIslands);
+        LayoutForceMenuItem.Click += (_, _) => RequestSetLayoutMode(Layout.GraphLayoutMode.ForceDirected);
         ToggleTabLabelsMenuItem.Click += (_, _) => ToggleTabLabels();
         BlastRadiusMenuItem.Click += (_, _) => OnBlastRadiusClicked();
         ShowCallersMenuItem.Click += (_, _) => OnShowCallersClicked();
@@ -427,6 +428,9 @@ public partial class MainWindow : Window
                 s.ShowConstants = Graph.ShowConstants;
                 s.ShowTypesAndEnums = Graph.ShowTypesAndEnums;
             });
+
+            // Salvataggio sincrono immediato di eventuali modifiche pendenti al layout dei nodi
+            FlushPendingLayoutChangesSync();
         };
 
         // Servizi Reattivi: Localizzazione & Temi con Auto-Save
@@ -853,6 +857,7 @@ public partial class MainWindow : Window
     {
         if (paths.Count == 0) return;
 
+        FlushPendingLayoutChangesSync();
         var loc = LocalizationService.Instance;
         var firstPath = paths[0];
         var titleName = paths.Count == 1 
@@ -884,7 +889,8 @@ public partial class MainWindow : Window
                     _currentFolderPath = firstPath;
                     _currentPaths = paths.ToList();
                     UpdateVcsBranchStatus(firstPath);
-                    ApplyGraphToUI(cachedRows);
+                    ApplyGraphToUI(cachedRows, applyAutomaticLayout: false);
+                    _hasUserMovedNodes = cachedSnapshot.HasCustomUserLayout;
 
                     // Salva l'ultima cartella aperta nelle impostazioni e aggiunge ai recenti
                     SettingsService.Instance.Update(s => s.LastOpenedFolder = firstPath);
@@ -1080,9 +1086,10 @@ public partial class MainWindow : Window
 
     /// <summary>
     /// Aggiorna tutti i componenti della UI (Grafo, Explorer, Status) con il nuovo CodeGraph.
-    /// Se precalculatedRows è fornito (es. da cache), la griglia Blast Radius viene popolata istantaneamente.
+    /// Se precalculatedRows è fornito (es. da cache), la griglia Blast Radius viene popolata istantaneamente
+    /// e le coordinate personalizzate salvate non vengono sovrascritte se applyAutomaticLayout è false.
     /// </summary>
-    private void ApplyGraphToUI(List<BlastRadiusGridRow>? precalculatedRows = null)
+    private void ApplyGraphToUI(List<BlastRadiusGridRow>? precalculatedRows = null, bool applyAutomaticLayout = true)
     {
         if (_graph is null) return;
 
@@ -1090,7 +1097,11 @@ public partial class MainWindow : Window
         WelcomePanel.IsVisible = false;
         CentralTabControl.IsVisible = true;
 
-        Layout.GraphLayoutManager.ApplyLayout(_graph, _currentLayoutMode);
+        if (applyAutomaticLayout)
+        {
+            Layout.GraphLayoutManager.ApplyLayout(_graph, _currentLayoutMode);
+        }
+        _hasUserMovedNodes = false;
         Graph.ClearHiddenProjects();
 
         // Se sono presenti più progetti, pre-seleziona solo il primo progetto (nascondendo tutti gli altri)
@@ -2770,7 +2781,7 @@ public partial class MainWindow : Window
             // Salva in background nella cache persistente se stiamo analizzando una cartella su disco
             if (!string.IsNullOrEmpty(_currentFolderPath) && _graph != null)
             {
-                _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _graph, _allBlastRadiusRows);
+                _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _graph, _allBlastRadiusRows, _hasUserMovedNodes);
             }
         }
         catch (Exception ex)
@@ -3332,12 +3343,77 @@ public partial class MainWindow : Window
 
     #region Gestione Layout Grafo & Interazione Hover
 
+    private bool _hasUserMovedNodes;
+    private Layout.GraphLayoutMode? _pendingLayoutMode;
+
+    /// <summary>
+    /// Invocato quando l'utente sposta/trascina manualmente un nodo nel canvas del grafo con il mouse.
+    /// </summary>
+    private void OnGraphNodeMoved()
+    {
+        _hasUserMovedNodes = true;
+        ScheduleLayoutAutoSave();
+    }
+
+    /// <summary>
+    /// Richiede il cambio di layout del grafo. Se l'utente ha spostato almeno un nodo manualmente,
+    /// mostra prima una modale di conferma per avvertire che le posizioni dei nodi spostati andranno perse.
+    /// </summary>
+    private void RequestSetLayoutMode(Layout.GraphLayoutMode mode, bool resetView = true)
+    {
+        if (_graph is null || mode == _currentLayoutMode)
+        {
+            SetLayoutMode(mode, resetView);
+            return;
+        }
+
+        if (_hasUserMovedNodes)
+        {
+            _pendingLayoutMode = mode;
+            ShowLayoutConfirmModal();
+            return;
+        }
+
+        SetLayoutMode(mode, resetView);
+    }
+
+    private void ShowLayoutConfirmModal()
+    {
+        var loc = LocalizationService.Instance;
+        LayoutConfirmModalTitle.Text = loc["Layout_ConfirmTitle"];
+        LayoutConfirmModalSubtitle.Text = loc["Layout_ConfirmMessage"];
+        LayoutConfirmCancelButton.Content = loc["Layout_ConfirmCancel"];
+        LayoutConfirmApplyButton.Content = loc["Layout_ConfirmApply"];
+        LayoutConfirmOverlay.IsVisible = true;
+    }
+
+    private void OnLayoutConfirmCancelClicked(object? sender, RoutedEventArgs e)
+    {
+        LayoutConfirmOverlay.IsVisible = false;
+        _pendingLayoutMode = null;
+        // Ripristina l'indice selezionato nella ComboBox senza scatenare nuovo evento
+        LayoutComboBox.SelectedIndex = (int)_currentLayoutMode;
+    }
+
+    private void OnLayoutConfirmApplyClicked(object? sender, RoutedEventArgs e)
+    {
+        LayoutConfirmOverlay.IsVisible = false;
+        if (_pendingLayoutMode.HasValue)
+        {
+            var mode = _pendingLayoutMode.Value;
+            _pendingLayoutMode = null;
+            _hasUserMovedNodes = false;
+            SetLayoutMode(mode, resetView: true);
+        }
+    }
+
     /// <summary>
     /// Imposta la modalità di layout attiva, ricalcola le coordinate di tutti i nodi e aggiorna il canvas del grafo.
     /// </summary>
     private void SetLayoutMode(Layout.GraphLayoutMode mode, bool resetView = true)
     {
         _currentLayoutMode = mode;
+        _hasUserMovedNodes = false;
         var targetIndex = (int)mode;
 
         if (LayoutComboBox.SelectedIndex != targetIndex)
@@ -3353,10 +3429,71 @@ public partial class MainWindow : Window
             {
                 ResetGraphView();
             }
+            ScheduleLayoutAutoSave();
         }
 
         SettingsService.Instance.Update(s => s.PreferredLayout = mode);
         StatusText.Text = LocalizationService.Instance.Get("Status_LayoutApplied", GetLocalizedLayoutName(mode));
+    }
+
+    private DispatcherTimer? _layoutSaveDebounceTimer;
+    private bool _hasUnsavedLayoutChanges;
+
+    /// <summary>
+    /// Pianifica il salvataggio asincrono debounced delle coordinate dei nodi in cache (1.5s di inattività).
+    /// </summary>
+    private void ScheduleLayoutAutoSave()
+    {
+        if (string.IsNullOrEmpty(_currentFolderPath) || _graph is null)
+            return;
+
+        _hasUnsavedLayoutChanges = true;
+
+        if (_layoutSaveDebounceTimer is null)
+        {
+            _layoutSaveDebounceTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(1500)
+            };
+            _layoutSaveDebounceTimer.Tick += OnLayoutSaveDebounceTick;
+        }
+
+        _layoutSaveDebounceTimer.Stop();
+        _layoutSaveDebounceTimer.Start();
+    }
+
+    private void OnLayoutSaveDebounceTick(object? sender, EventArgs e)
+    {
+        _layoutSaveDebounceTimer?.Stop();
+        FlushPendingLayoutChanges();
+    }
+
+    /// <summary>
+    /// Esegue il salvataggio asincrono in background delle modifiche geometriche al layout su disco.
+    /// </summary>
+    private void FlushPendingLayoutChanges()
+    {
+        if (!_hasUnsavedLayoutChanges || string.IsNullOrEmpty(_currentFolderPath) || _graph is null)
+            return;
+
+        _hasUnsavedLayoutChanges = false;
+        var folder = _currentFolderPath;
+        var graph = _graph;
+        var hasMoved = _hasUserMovedNodes;
+        _ = Task.Run(async () => await ProjectCacheService.Instance.UpdateLayoutSnapshotAsync(folder, graph, hasMoved));
+    }
+
+    /// <summary>
+    /// Salva immediatamente e in modo sincrono le coordinate geometriche dei nodi su disco (es. alla chiusura o cambio progetto).
+    /// </summary>
+    private void FlushPendingLayoutChangesSync()
+    {
+        _layoutSaveDebounceTimer?.Stop();
+        if (!_hasUnsavedLayoutChanges || string.IsNullOrEmpty(_currentFolderPath) || _graph is null)
+            return;
+
+        _hasUnsavedLayoutChanges = false;
+        ProjectCacheService.Instance.UpdateLayoutSnapshotSync(_currentFolderPath, _graph, _hasUserMovedNodes);
     }
 
     /// <summary>
@@ -3392,7 +3529,7 @@ public partial class MainWindow : Window
         var mode = (Layout.GraphLayoutMode)LayoutComboBox.SelectedIndex;
         if (mode != _currentLayoutMode)
         {
-            SetLayoutMode(mode, resetView: true);
+            RequestSetLayoutMode(mode, resetView: true);
         }
     }
 
@@ -4202,6 +4339,12 @@ public partial class MainWindow : Window
 
         // Overlay Caricamento
         LoadingCancelButton.Content = loc["Loading_Cancel"];
+
+        // Overlay Conferma Cambio Layout
+        LayoutConfirmModalTitle.Text = loc["Layout_ConfirmTitle"];
+        LayoutConfirmModalSubtitle.Text = loc["Layout_ConfirmMessage"];
+        LayoutConfirmCancelButton.Content = loc["Layout_ConfirmCancel"];
+        LayoutConfirmApplyButton.Content = loc["Layout_ConfirmApply"];
 
         // Refresh dynamic strings in Grid and Status
         UpdateStatsBar();

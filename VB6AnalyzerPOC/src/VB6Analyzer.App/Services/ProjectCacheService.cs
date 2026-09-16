@@ -159,7 +159,7 @@ public sealed class ProjectCacheService
     /// <summary>
     /// Salva in background uno snapshot completo di cache per la cartella analizzata.
     /// </summary>
-    public async Task SaveSnapshotAsync(string folderPath, VisualCodeGraph graph, IReadOnlyList<BlastRadiusGridRow> rows)
+    public async Task SaveSnapshotAsync(string folderPath, VisualCodeGraph graph, IReadOnlyList<BlastRadiusGridRow> rows, bool hasCustomUserLayout = false)
     {
         if (graph.SemanticGraph is null || !Directory.Exists(folderPath))
             return;
@@ -179,6 +179,7 @@ public sealed class ProjectCacheService
                 FileCount = fileCount,
                 Symbols = graph.SemanticGraph.Symbols,
                 Relationships = graph.SemanticGraph.Relationships,
+                HasCustomUserLayout = hasCustomUserLayout,
                 LayoutNodes = graph.Nodes.Select(n => new NodeLayoutSnapshot
                 {
                     Id = n.Id,
@@ -217,6 +218,89 @@ public sealed class ProjectCacheService
         catch
         {
             // Il fallimento di una scrittura cache non deve mai bloccare l'interfaccia utente
+        }
+    }
+
+    /// <summary>
+    /// Aggiorna in background solo le coordinate geometriche del layout nello snapshot di cache esistente su disco.
+    /// </summary>
+    public async Task UpdateLayoutSnapshotAsync(string folderPath, VisualCodeGraph graph, bool hasCustomUserLayout = false)
+    {
+        if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath) || graph is null)
+            return;
+
+        try
+        {
+            var cacheFile = GetCacheFilePath(folderPath);
+            if (!File.Exists(cacheFile))
+                return;
+
+            ProjectCacheSnapshot? snapshot;
+            await using (var stream = File.OpenRead(cacheFile))
+            {
+                snapshot = await JsonSerializer.DeserializeAsync<ProjectCacheSnapshot>(stream, _jsonOptions);
+            }
+
+            if (snapshot is null) return;
+
+            snapshot.HasCustomUserLayout = hasCustomUserLayout;
+            snapshot.LayoutNodes = graph.Nodes.Select(n => new NodeLayoutSnapshot
+            {
+                Id = n.Id,
+                X = n.X,
+                Y = n.Y,
+                IsExpanded = n.IsExpanded
+            }).ToList();
+
+            var tempFile = cacheFile + ".tmp";
+            await using (var fs = new FileStream(tempFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+            {
+                await JsonSerializer.SerializeAsync(fs, snapshot, _jsonOptions);
+            }
+
+            File.Move(tempFile, cacheFile, overwrite: true);
+        }
+        catch
+        {
+            // Tolleranza agli errori in background
+        }
+    }
+
+    /// <summary>
+    /// Versione sincrona per il salvataggio immediato delle coordinate del layout alla chiusura dell'applicazione.
+    /// </summary>
+    public void UpdateLayoutSnapshotSync(string folderPath, VisualCodeGraph graph, bool hasCustomUserLayout = false)
+    {
+        if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath) || graph is null)
+            return;
+
+        try
+        {
+            var cacheFile = GetCacheFilePath(folderPath);
+            if (!File.Exists(cacheFile))
+                return;
+
+            var json = File.ReadAllText(cacheFile);
+            var snapshot = JsonSerializer.Deserialize<ProjectCacheSnapshot>(json, _jsonOptions);
+            if (snapshot is null) return;
+
+            snapshot.HasCustomUserLayout = hasCustomUserLayout;
+            snapshot.LayoutNodes = graph.Nodes.Select(n => new NodeLayoutSnapshot
+            {
+                Id = n.Id,
+                X = n.X,
+                Y = n.Y,
+                IsExpanded = n.IsExpanded
+            }).ToList();
+
+            var tempFile = cacheFile + ".tmp";
+            var updatedJson = JsonSerializer.Serialize(snapshot, _jsonOptions);
+            File.WriteAllText(tempFile, updatedJson);
+            File.Move(tempFile, cacheFile, overwrite: true);
+        }
+        catch
+        {
+            // Tolleranza agli errori
         }
     }
 

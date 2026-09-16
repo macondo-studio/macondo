@@ -39,6 +39,9 @@ public sealed class ProjectCacheSnapshot
     /// <summary>Coordinate geometriche (X, Y) e stato di espansione per ogni nodo del grafo visuale.</summary>
     public List<NodeLayoutSnapshot> LayoutNodes { get; set; } = new();
 
+    /// <summary>Indica se l'utente ha personalizzato manualmente la posizione dei nodi con il mouse.</summary>
+    public bool HasCustomUserLayout { get; set; }
+
     /// <summary>Righe precalcolate per la tabella del Blast Radius.</summary>
     public List<BlastRadiusRowSnapshot> BlastRadiusRows { get; set; } = new();
 }
