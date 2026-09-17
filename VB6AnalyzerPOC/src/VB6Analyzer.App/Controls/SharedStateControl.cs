@@ -34,10 +34,10 @@ public sealed class SharedVariableGridRow
 
     public string RiskBadgeText => Item.MutationRisk switch
     {
-        ImpactRiskLevel.Critical => "Critico",
-        ImpactRiskLevel.High => "Alto",
-        ImpactRiskLevel.Medium => "Medio",
-        _ => "Basso"
+        ImpactRiskLevel.Critical => LocalizationService.Instance["SharedState_Risk_Critical"],
+        ImpactRiskLevel.High => LocalizationService.Instance["SharedState_Risk_High"],
+        ImpactRiskLevel.Medium => LocalizationService.Instance["SharedState_Risk_Medium"],
+        _ => LocalizationService.Instance["SharedState_Risk_Low"]
     };
 
     public string RiskBadgeBackground => Item.MutationRisk switch
@@ -82,9 +82,9 @@ public sealed class SharedAccessorGridRow
 
     public string AccessBadgeText => Accessor.AccessKind switch
     {
-        SharedStateAccessKind.Write => "Scrittura",
-        SharedStateAccessKind.ReadWrite => "Lettura / Scrittura",
-        _ => "Lettura"
+        SharedStateAccessKind.Write => LocalizationService.Instance["SharedState_Access_Write"],
+        SharedStateAccessKind.ReadWrite => LocalizationService.Instance["SharedState_Access_ReadWrite"],
+        _ => LocalizationService.Instance["SharedState_Access_Read"]
     };
 
     public string AccessBadgeBackground => Accessor.AccessKind switch
@@ -94,7 +94,9 @@ public sealed class SharedAccessorGridRow
         _ => "#2B6CB0"
     };
 
-    public string CrossModuleBadgeText => Accessor.IsCrossModule ? "Cross-Module" : "Interno";
+    public string CrossModuleBadgeText => Accessor.IsCrossModule 
+        ? LocalizationService.Instance["SharedState_Scope_CrossModule"] 
+        : LocalizationService.Instance["SharedState_Scope_Internal"];
     public string CrossModuleBadgeBackground => Accessor.IsCrossModule ? "#7C3AED" : "#4A5568";
 }
 
@@ -121,12 +123,18 @@ public sealed class SharedStateControl : UserControl
     private List<SharedVariableItem> _allItems = new();
 
     // UI Elements
+    private readonly TextBlock _kpiTotalVarsTitle;
     private readonly TextBlock _kpiTotalVarsValue;
+    private readonly TextBlock _kpiCriticalTitle;
     private readonly TextBlock _kpiCriticalValue;
+    private readonly TextBlock _kpiWritersTitle;
     private readonly TextBlock _kpiWritersValue;
+    private readonly TextBlock _kpiCrossModuleWritersTitle;
     private readonly TextBlock _kpiCrossModuleWritersValue;
 
+    private readonly TextBlock _searchLabel;
     private readonly TextBox _searchBox;
+    private readonly TextBlock _riskLabel;
     private readonly ComboBox _riskFilterCombo;
     private readonly CheckBox _crossModuleOnlyCheck;
     private readonly TextBlock _statsTextBlock;
@@ -134,6 +142,7 @@ public sealed class SharedStateControl : UserControl
     private readonly DataGrid _accessorsDataGrid;
     private readonly TextBlock _selectedVarTitleText;
     private readonly Border _emptyStateBorder;
+    private readonly TextBlock _emptyStateText;
     private readonly Grid _mainContentGrid;
 
     public SharedStateControl()
@@ -159,10 +168,10 @@ public sealed class SharedStateControl : UserControl
             ColumnDefinitions = new ColumnDefinitions("*,*,*,*")
         };
 
-        _kpiTotalVarsValue = CreateKpiCard(kpiGrid, 0, "STATO GLOBALE TOTALE", "0", "#3B82F6");
-        _kpiCriticalValue = CreateKpiCard(kpiGrid, 1, "VARIABILI CRITICHE", "0", "#EF4444");
-        _kpiWritersValue = CreateKpiCard(kpiGrid, 2, "ACCESSI IN SCRITTURA", "0", "#F59E0B");
-        _kpiCrossModuleWritersValue = CreateKpiCard(kpiGrid, 3, "MUTAZIONI CROSS-MODULE", "0", "#8B5CF6");
+        (_kpiTotalVarsTitle, _kpiTotalVarsValue) = CreateKpiCard(kpiGrid, 0, "STATO GLOBALE TOTALE", "0", "#3B82F6");
+        (_kpiCriticalTitle, _kpiCriticalValue) = CreateKpiCard(kpiGrid, 1, "VARIABILI CRITICHE", "0", "#EF4444");
+        (_kpiWritersTitle, _kpiWritersValue) = CreateKpiCard(kpiGrid, 2, "ACCESSI IN SCRITTURA", "0", "#F59E0B");
+        (_kpiCrossModuleWritersTitle, _kpiCrossModuleWritersValue) = CreateKpiCard(kpiGrid, 3, "MUTAZIONI CROSS-MODULE", "0", "#8B5CF6");
 
         kpiBorder.Child = kpiGrid;
         Grid.SetRow(kpiBorder, 0);
@@ -191,7 +200,7 @@ public sealed class SharedStateControl : UserControl
             Spacing = 6,
             VerticalAlignment = VerticalAlignment.Center
         };
-        var searchLabel = new TextBlock
+        _searchLabel = new TextBlock
         {
             Text = "Cerca:",
             FontSize = 11,
@@ -205,7 +214,7 @@ public sealed class SharedStateControl : UserControl
             FontSize = 11
         };
         _searchBox.TextChanged += (s, e) => ApplyFilter();
-        searchPanel.Children.Add(searchLabel);
+        searchPanel.Children.Add(_searchLabel);
         searchPanel.Children.Add(_searchBox);
         Grid.SetColumn(searchPanel, 0);
         toolbarGrid.Children.Add(searchPanel);
@@ -218,7 +227,7 @@ public sealed class SharedStateControl : UserControl
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(16, 0, 0, 0)
         };
-        var riskLabel = new TextBlock
+        _riskLabel = new TextBlock
         {
             Text = "Rischio Mutazione:",
             FontSize = 11,
@@ -237,7 +246,7 @@ public sealed class SharedStateControl : UserControl
         _riskFilterCombo.Items.Add(new ComboBoxItem { Content = "Medio" });
         _riskFilterCombo.Items.Add(new ComboBoxItem { Content = "Basso" });
         _riskFilterCombo.SelectionChanged += (s, e) => ApplyFilter();
-        riskPanel.Children.Add(riskLabel);
+        riskPanel.Children.Add(_riskLabel);
         riskPanel.Children.Add(_riskFilterCombo);
         Grid.SetColumn(riskPanel, 1);
         toolbarGrid.Children.Add(riskPanel);
@@ -366,14 +375,14 @@ public sealed class SharedStateControl : UserControl
             HorizontalAlignment = HorizontalAlignment.Center,
             IsVisible = false
         };
-        var emptyText = new TextBlock
+        _emptyStateText = new TextBlock
         {
             Text = "Nessuna variabile globale o stato condiviso individuato nel progetto.",
             FontSize = 13,
             HorizontalAlignment = HorizontalAlignment.Center,
             [!TextBlock.ForegroundProperty] = new DynamicResourceExtension("ThemeTextSecondaryBrush")
         };
-        _emptyStateBorder.Child = emptyText;
+        _emptyStateBorder.Child = _emptyStateText;
 
         var contentContainer = new Grid();
         contentContainer.Children.Add(_mainContentGrid);
@@ -383,6 +392,78 @@ public sealed class SharedStateControl : UserControl
         rootGrid.Children.Add(contentContainer);
 
         Content = rootGrid;
+
+        UpdateLocalizedTexts();
+        LocalizationService.Instance.LanguageChanged += (_, _) =>
+        {
+            UpdateLocalizedTexts();
+            ApplyFilter();
+        };
+    }
+
+    private void UpdateLocalizedTexts()
+    {
+        var loc = LocalizationService.Instance;
+
+        _kpiTotalVarsTitle.Text = loc["SharedState_Kpi_TotalVars"];
+        _kpiCriticalTitle.Text = loc["SharedState_Kpi_Critical"];
+        _kpiWritersTitle.Text = loc["SharedState_Kpi_Writers"];
+        _kpiCrossModuleWritersTitle.Text = loc["SharedState_Kpi_CrossModule"];
+
+        _searchLabel.Text = loc["SharedState_Filter_Search"];
+        _searchBox.Watermark = loc["SharedState_Filter_Search_Watermark"];
+
+        _riskLabel.Text = loc["SharedState_Filter_Risk"];
+        if (_riskFilterCombo.Items.Count >= 5)
+        {
+            if (_riskFilterCombo.Items[0] is ComboBoxItem item0) item0.Content = loc["SharedState_Risk_All"];
+            if (_riskFilterCombo.Items[1] is ComboBoxItem item1) item1.Content = loc["SharedState_Risk_Critical"];
+            if (_riskFilterCombo.Items[2] is ComboBoxItem item2) item2.Content = loc["SharedState_Risk_High"];
+            if (_riskFilterCombo.Items[3] is ComboBoxItem item3) item3.Content = loc["SharedState_Risk_Medium"];
+            if (_riskFilterCombo.Items[4] is ComboBoxItem item4) item4.Content = loc["SharedState_Risk_Low"];
+        }
+
+        _crossModuleOnlyCheck.Content = loc["SharedState_Filter_CrossModuleOnly"];
+        _emptyStateText.Text = loc["SharedState_EmptyState"];
+
+        if (_variablesDataGrid.Columns.Count >= 7)
+        {
+            _variablesDataGrid.Columns[0].Header = loc["SharedState_Col_Risk"];
+            _variablesDataGrid.Columns[1].Header = loc["SharedState_Col_Module"];
+            _variablesDataGrid.Columns[2].Header = loc["SharedState_Col_VarName"];
+            _variablesDataGrid.Columns[3].Header = loc["SharedState_Col_Type"];
+            _variablesDataGrid.Columns[4].Header = loc["SharedState_Col_Readers"];
+            _variablesDataGrid.Columns[5].Header = loc["SharedState_Col_Writers"];
+            _variablesDataGrid.Columns[6].Header = loc["SharedState_Col_CrossWriters"];
+        }
+
+        if (_accessorsDataGrid.Columns.Count >= 5)
+        {
+            _accessorsDataGrid.Columns[0].Header = loc["SharedState_Col_AccessType"];
+            _accessorsDataGrid.Columns[1].Header = loc["SharedState_Col_Scope"];
+            _accessorsDataGrid.Columns[2].Header = loc["SharedState_Col_CallerModule"];
+            _accessorsDataGrid.Columns[3].Header = loc["SharedState_Col_CallerRoutine"];
+            _accessorsDataGrid.Columns[4].Header = loc["SharedState_Col_Line"];
+        }
+
+        if (_variablesDataGrid.SelectedItem is SharedVariableGridRow selectedRow)
+        {
+            var item = selectedRow.Item;
+            _selectedVarTitleText.Text = loc.Get("SharedState_Detail_Selected", item.ModuleName, item.VariableName, item.TotalAccessorsCount, item.WritersCount);
+        }
+        else if (_variableRows.Count == 0 && _allItems.Count > 0)
+        {
+            _selectedVarTitleText.Text = loc["SharedState_Detail_NoMatches"];
+        }
+        else
+        {
+            _selectedVarTitleText.Text = loc["SharedState_Detail_Prompt"];
+        }
+
+        if (_allItems.Count > 0)
+        {
+            _statsTextBlock.Text = loc.Get("SharedState_Stats_Shown", _variableRows.Count, _allItems.Count);
+        }
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -470,7 +551,7 @@ public sealed class SharedStateControl : UserControl
             _variableRows.Add(new SharedVariableGridRow { Item = item });
         }
 
-        _statsTextBlock.Text = $"Visualizzate: {_variableRows.Count:N0} di {_allItems.Count:N0} variabili";
+        _statsTextBlock.Text = LocalizationService.Instance.Get("SharedState_Stats_Shown", _variableRows.Count, _allItems.Count);
 
         if (_variableRows.Count > 0)
         {
@@ -479,7 +560,7 @@ public sealed class SharedStateControl : UserControl
         else
         {
             _accessorRows.Clear();
-            _selectedVarTitleText.Text = "Nessuna variabile corrispondente ai filtri.";
+            _selectedVarTitleText.Text = LocalizationService.Instance["SharedState_Detail_NoMatches"];
         }
     }
 
@@ -490,7 +571,7 @@ public sealed class SharedStateControl : UserControl
             var item = selectedRow.Item;
             VariableSelected?.Invoke(this, item);
 
-            _selectedVarTitleText.Text = $"Accessi a: {item.ModuleName}.{item.VariableName} ({item.TotalAccessorsCount} riferimenti totali, {item.WritersCount} scritture)";
+            _selectedVarTitleText.Text = LocalizationService.Instance.Get("SharedState_Detail_Selected", item.ModuleName, item.VariableName, item.TotalAccessorsCount, item.WritersCount);
 
             _accessorRows.Clear();
             foreach (var acc in item.Accessors.OrderByDescending(a => a.IsCrossModule).ThenBy(a => a.AccessKind != SharedStateAccessKind.Read ? 0 : 1))
@@ -501,11 +582,11 @@ public sealed class SharedStateControl : UserControl
         else
         {
             _accessorRows.Clear();
-            _selectedVarTitleText.Text = "Seleziona una variabile per visualizzare le routine che vi accedono.";
+            _selectedVarTitleText.Text = LocalizationService.Instance["SharedState_Detail_Prompt"];
         }
     }
 
-    private static TextBlock CreateKpiCard(Grid grid, int col, string title, string value, string accentColorHex)
+    private static (TextBlock titleBlock, TextBlock valueBlock) CreateKpiCard(Grid grid, int col, string title, string value, string accentColorHex)
     {
         var card = new Border
         {
@@ -542,7 +623,7 @@ public sealed class SharedStateControl : UserControl
         Grid.SetColumn(card, col);
         grid.Children.Add(card);
 
-        return valueBlock;
+        return (titleBlock, valueBlock);
     }
 
     private static void ConfigureVariablesColumns(DataGrid grid)

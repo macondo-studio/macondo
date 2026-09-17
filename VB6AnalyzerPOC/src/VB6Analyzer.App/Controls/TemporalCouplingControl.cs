@@ -42,7 +42,9 @@ public sealed class TemporalCouplingGridRow
         _ => "#2B6CB0"
     };
 
-    public string StaticDependencyBadgeText => Pair.HasStaticDependency ? "Sì (Esplicita)" : "NO (Nascosto!)";
+    public string StaticDependencyBadgeText => Pair.HasStaticDependency 
+        ? LocalizationService.Instance["Temporal_Dep_Explicit"] 
+        : LocalizationService.Instance["Temporal_Dep_Hidden"];
     public string StaticDependencyBadgeBackground => Pair.HasStaticDependency ? "#2E7D32" : "#B81D2D";
     public bool IsHiddenCoupling => !Pair.HasStaticDependency && Pair.JaccardIndex >= 0.40;
 }
@@ -68,11 +70,16 @@ public sealed class TemporalCouplingControl : UserControl
     private List<TemporalCouplingPair> _allPairs = new();
 
     // UI Elements
+    private readonly TextBlock _kpiPairsTitle;
     private readonly TextBlock _kpiPairsValue;
+    private readonly TextBlock _kpiStrongTitle;
     private readonly TextBlock _kpiStrongValue;
+    private readonly TextBlock _kpiHiddenTitle;
     private readonly TextBlock _kpiHiddenValue;
+    private readonly TextBlock _kpiCommitsTitle;
     private readonly TextBlock _kpiCommitsValue;
 
+    private readonly TextBlock _searchLabel;
     private readonly TextBox _searchBox;
     private readonly Slider _thresholdSlider;
     private readonly TextBlock _thresholdLabel;
@@ -106,10 +113,10 @@ public sealed class TemporalCouplingControl : UserControl
             ColumnDefinitions = new ColumnDefinitions("*,*,*,*")
         };
 
-        _kpiPairsValue = CreateKpiCard(kpiGrid, 0, "COPPIE ACCOPPIATE", "0", "#3B82F6");
-        _kpiStrongValue = CreateKpiCard(kpiGrid, 1, "ACCOPPIAMENTO FORTE (>=50%)", "0", "#F59E0B");
-        _kpiHiddenValue = CreateKpiCard(kpiGrid, 2, "ACCOPPIAMENTI NASCOSTI", "0", "#EF4444");
-        _kpiCommitsValue = CreateKpiCard(kpiGrid, 3, "COMMIT ANALIZZATI", "0", "#8B5CF6");
+        (_kpiPairsTitle, _kpiPairsValue) = CreateKpiCard(kpiGrid, 0, "COPPIE ACCOPPIATE", "0", "#3B82F6");
+        (_kpiStrongTitle, _kpiStrongValue) = CreateKpiCard(kpiGrid, 1, "ACCOPPIAMENTO FORTE (>=50%)", "0", "#F59E0B");
+        (_kpiHiddenTitle, _kpiHiddenValue) = CreateKpiCard(kpiGrid, 2, "ACCOPPIAMENTI NASCOSTI", "0", "#EF4444");
+        (_kpiCommitsTitle, _kpiCommitsValue) = CreateKpiCard(kpiGrid, 3, "COMMIT ANALIZZATI", "0", "#8B5CF6");
 
         kpiBorder.Child = kpiGrid;
         Grid.SetRow(kpiBorder, 0);
@@ -138,7 +145,7 @@ public sealed class TemporalCouplingControl : UserControl
             Spacing = 6,
             VerticalAlignment = VerticalAlignment.Center
         };
-        var searchLabel = new TextBlock
+        _searchLabel = new TextBlock
         {
             Text = "Cerca File:",
             FontSize = 11,
@@ -152,7 +159,7 @@ public sealed class TemporalCouplingControl : UserControl
             FontSize = 11
         };
         _searchBox.TextChanged += (s, e) => ApplyFilter();
-        searchPanel.Children.Add(searchLabel);
+        searchPanel.Children.Add(_searchLabel);
         searchPanel.Children.Add(_searchBox);
         Grid.SetColumn(searchPanel, 0);
         toolbarGrid.Children.Add(searchPanel);
@@ -186,7 +193,7 @@ public sealed class TemporalCouplingControl : UserControl
         {
             if (e.Property == RangeBase.ValueProperty)
             {
-                _thresholdLabel.Text = $"Soglia Jaccard: {_thresholdSlider.Value:F0}%";
+                _thresholdLabel.Text = $"{LocalizationService.Instance["Temporal_Filter_Threshold"]}: {_thresholdSlider.Value:F0}%";
                 ApplyFilter();
             }
         };
@@ -275,6 +282,45 @@ public sealed class TemporalCouplingControl : UserControl
         rootGrid.Children.Add(contentContainer);
 
         Content = rootGrid;
+
+        UpdateLocalizedTexts();
+        LocalizationService.Instance.LanguageChanged += (_, _) =>
+        {
+            UpdateLocalizedTexts();
+            ApplyFilter();
+        };
+    }
+
+    private void UpdateLocalizedTexts()
+    {
+        var loc = LocalizationService.Instance;
+
+        _kpiPairsTitle.Text = loc["Temporal_Kpi_Pairs"];
+        _kpiStrongTitle.Text = loc["Temporal_Kpi_Strong"];
+        _kpiHiddenTitle.Text = loc["Temporal_Kpi_Hidden"];
+        _kpiCommitsTitle.Text = loc["Temporal_Kpi_Commits"];
+
+        _searchLabel.Text = loc["Temporal_Filter_Search"];
+        _searchBox.Watermark = loc["Temporal_Filter_Search_Watermark"];
+
+        _thresholdLabel.Text = $"{loc["Temporal_Filter_Threshold"]}: {_thresholdSlider.Value:F0}%";
+        _hiddenOnlyCheck.Content = loc["Temporal_Filter_HiddenOnly"];
+
+        if (_pairsDataGrid.Columns.Count >= 7)
+        {
+            _pairsDataGrid.Columns[0].Header = loc["Temporal_Col_Jaccard"];
+            _pairsDataGrid.Columns[1].Header = loc["Temporal_Col_StaticDep"];
+            _pairsDataGrid.Columns[2].Header = loc["Temporal_Col_FileA"];
+            _pairsDataGrid.Columns[3].Header = loc["Temporal_Col_FileB"];
+            _pairsDataGrid.Columns[4].Header = loc["Temporal_Col_CoChanges"];
+            _pairsDataGrid.Columns[5].Header = loc["Temporal_Col_ConfAtoB"];
+            _pairsDataGrid.Columns[6].Header = loc["Temporal_Col_ConfBtoA"];
+        }
+
+        if (_allPairs.Count > 0)
+        {
+            _statsTextBlock.Text = loc.Get("Temporal_Stats_Shown", _rows.Count, _allPairs.Count);
+        }
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -299,8 +345,8 @@ public sealed class TemporalCouplingControl : UserControl
             _kpiCommitsValue.Text = dataset?.TotalCommitsAnalyzed.ToString("N0") ?? "0";
             _statsTextBlock.Text = "";
             _emptyStateText.Text = dataset != null && dataset.TotalCommitsAnalyzed > 0
-                ? "Nessun accoppiamento temporale significativo riscontrato tra i file analizzati."
-                : "Nessuna repository Git trovata nel workspace corrente. L'analisi di Temporal Coupling richiede una cronologia di commit.";
+                ? LocalizationService.Instance["Temporal_Empty_NoCoupling"]
+                : LocalizationService.Instance["Temporal_Empty_NoGit"];
             _emptyStateBorder.IsVisible = true;
             _mainContentGrid.IsVisible = false;
             return;
@@ -350,10 +396,10 @@ public sealed class TemporalCouplingControl : UserControl
             _rows.Add(new TemporalCouplingGridRow { Pair = p });
         }
 
-        _statsTextBlock.Text = $"Coppie visualizzate: {_rows.Count:N0} di {_allPairs.Count:N0}";
+        _statsTextBlock.Text = LocalizationService.Instance.Get("Temporal_Stats_Shown", _rows.Count, _allPairs.Count);
     }
 
-    private static TextBlock CreateKpiCard(Grid grid, int col, string title, string value, string accentColorHex)
+    private static (TextBlock titleBlock, TextBlock valueBlock) CreateKpiCard(Grid grid, int col, string title, string value, string accentColorHex)
     {
         var card = new Border
         {
@@ -390,7 +436,7 @@ public sealed class TemporalCouplingControl : UserControl
         Grid.SetColumn(card, col);
         grid.Children.Add(card);
 
-        return valueBlock;
+        return (titleBlock, valueBlock);
     }
 
     private static void ConfigureColumns(DataGrid grid)

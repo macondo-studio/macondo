@@ -141,7 +141,31 @@
                             </StackPanel>
                         </Button>
 
-                        <!-- Tab 6: AI & Esportazione -->
+                        <!-- Tab 7: Metriche Martin & Dead Code -->
+                        <Button x:Name="NavMartinDeadCodeButton" Classes="nav-btn" Click="OnNavMartinDeadCodeClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconMartin}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavMartinDeadCodeText" Text="Martin &amp; Dead Code" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 8: Stato Condiviso & Temporal Coupling -->
+                        <Button x:Name="NavSharedTemporalButton" Classes="nav-btn" Click="OnNavSharedTemporalClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconSharedState}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavSharedTemporalText" Text="Stato Globale &amp; Temporal" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 9: Flussi Architetturali & CodeCity -->
+                        <Button x:Name="NavFlowCityButton" Classes="nav-btn" Click="OnNavFlowCityClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconCity}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavFlowCityText" Text="Flussi Chord &amp; CodeCity" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 10: AI & Esportazione -->
                         <Button x:Name="NavAiExportButton" Classes="nav-btn" Click="OnNavAiExportClicked">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <PathIcon Data="{StaticResource IconExport}" Width="14" Height="14" VerticalAlignment="Center" />
@@ -191,15 +215,16 @@
                         </Style>
                     </Panel.Styles>
 
-                    <!-- SEZIONE 0: PANORAMICA & ARCHITETTURA -->
-                    <ScrollViewer x:Name="OverviewSection" IsVisible="True" VerticalScrollBarVisibility="Auto">
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 0: PANORAMICA & ARCHITETTURA (IT & EN)            -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="OverviewSection_IT" IsVisible="True" VerticalScrollBarVisibility="Auto">
                         <StackPanel Spacing="16">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Panoramica &amp; Funzionamento di Macondo" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                <TextBlock Text="Strumento di analisi semantica e reverse engineering per progetti legacy Visual Basic 6.0." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                <TextBlock Text="Strumento di analisi semantica e reverse engineering per progetti legacy Visual Basic 6.0 e C#." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
-                            <!-- Card: Cos'è Macondo -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <DockPanel LastChildFill="True">
@@ -208,11 +233,10 @@
                                         </Border>
                                         <TextBlock Classes="card-title" Text="Analizzatore Semantico Indipendente" />
                                     </DockPanel>
-                                    <TextBlock Classes="card-body" Text="Macondo analizza progetti VB6 direttamente dai file sorgente (.vbp, .frm, .bas, .cls, .ctl) senza richiedere l'ambiente di sviluppo originale VB6 o componenti COM registrati. Effettua il parsing completo dell'AST (Abstract Syntax Tree) per comprendere tipi, dichiarazioni, procedure e relazioni di chiamata." />
+                                    <TextBlock Classes="card-body" Text="Macondo analizza progetti direttamente dai file sorgente (.vbp, .frm, .bas, .cls, .ctl, .csproj, .cs) senza richiedere l'ambiente di sviluppo originale VB6 o componenti COM registrati. Effettua il parsing completo dell'AST (Abstract Syntax Tree) per comprendere tipi, dichiarazioni, procedure e relazioni di chiamata." />
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card: Il Grafo Semantico -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Modello a Grafo (CodeGraph)" />
@@ -220,7 +244,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card: Cache Locale Istantanea -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Cache Locale ad Alte Prestazioni" />
@@ -230,15 +253,51 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- SEZIONE 1: DISPOSIZIONI DEL GRAFO (LAYOUTS) -->
-                    <ScrollViewer x:Name="LayoutsSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer x:Name="OverviewSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Macondo Overview &amp; Architecture" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Static semantic analysis and reverse engineering platform for legacy Visual Basic 6.0 and C# projects." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <DockPanel LastChildFill="True">
+                                        <Border Classes="badge-accent" DockPanel.Dock="Right" VerticalAlignment="Center">
+                                            <TextBlock Classes="badge-text" Text="STANDALONE" />
+                                        </Border>
+                                        <TextBlock Classes="card-title" Text="Independent Semantic Analyzer" />
+                                    </DockPanel>
+                                    <TextBlock Classes="card-body" Text="Macondo analyzes projects directly from raw source code (.vbp, .frm, .bas, .cls, .ctl, .csproj, .cs) without requiring legacy VB6 IDE installations, Windows registry components, or runtime dependencies. It parses full AST trees to discover types, declarations, procedures, and call relationships." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="CodeGraph Model" />
+                                    <TextBlock Classes="card-body" Text="The foundation of the engine is an in-memory directed semantic graph:&#x0a;• Nodes: Modules (.bas), Forms (.frm), Classes (.cls), User Controls (.ctl), and individual routines (Sub, Function, Property).&#x0a;• Edges (Relations): connect nodes via Calls (CALLS), Instantiations (INSTANTIATES), and Type Dependencies (USES_TYPE)." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="High-Performance Local Cache" />
+                                    <TextBlock Classes="card-body" Text="When analyzing a folder or project, the complete graph snapshot and impact index are cached locally (%APPDATA%\Macondo\cache\). Future launches load instantaneously in milliseconds, with automatic file staleness checks detecting on-disk changes." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 1: DISPOSIZIONI DEL GRAFO (LAYOUTS) (IT & EN)     -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="LayoutsSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
                         <StackPanel Spacing="16">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Disposizioni del Grafo (Layout Engines)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Algoritmi di posizionamento 2D per evidenziare gerarchie, cluster e flussi di codice." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
-                            <!-- Card: Radiale Standard -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="6">
                                     <TextBlock Classes="card-title" Text="1. Radiale Standard (Concentric Rings)" />
@@ -246,7 +305,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card: Radiale per Affinità -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="6">
                                     <TextBlock Classes="card-title" Text="2. Radiale per Affinità (Interaction Affinity)" />
@@ -254,7 +312,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card: Cluster a Isole -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="6">
                                     <TextBlock Classes="card-title" Text="3. Cluster a Isole (Subsystem Islands)" />
@@ -262,7 +319,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card: Force-Directed -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="6">
                                     <TextBlock Classes="card-title" Text="4. Force-Directed (Fisica a Molle)" />
@@ -272,21 +328,58 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- SEZIONE LEGENDA NODI & COLORI -->
-                    <ScrollViewer x:Name="LegendSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer x:Name="LayoutsSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Graph Layout Engines" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="2D graph positioning algorithms to highlight hierarchies, clusters, and code flows." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Classes="card-title" Text="1. Standard Radial (Concentric Rings)" />
+                                    <TextBlock Classes="card-body" Text="Arranges components in concentric orbital rings from the main form/module in the center outward to external dependencies. Ideal for understanding broad architectural hierarchy." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Classes="card-title" Text="2. Affinity Radial (Interaction Affinity)" />
+                                    <TextBlock Classes="card-body" Text="Maintains concentric orbital structure while clustering frequently interacting nodes closely along the angular space. Reduces edge crossings and highlights cohesive subsystems." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Classes="card-title" Text="3. Clustered Islands (Subsystem Islands)" />
+                                    <TextBlock Classes="card-body" Text="Physically segregates the architecture into distinct themed islands: UI Forms Island, Logic Modules Island, Domain Classes Island, and User Controls. Perfect for visualizing UI-to-business logic decoupling." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Classes="card-title" Text="4. Force-Directed (Spring Physics)" />
+                                    <TextBlock Classes="card-body" Text="Simulates a physical particle system: nodes repel each other while call dependencies act as elastic springs. Naturally brings central hub components and bridge routines to the core." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 2: LEGENDA NODI & COLORI (IT & EN)                -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="LegendSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
                         <StackPanel Spacing="16">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Legenda dei Nodi, Colori e Relazioni" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Significato visivo di tutti i simboli, diametri, colori e relazioni disegnati nel grafo 2D." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
-                            <!-- Card: Contenitori & Moduli -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="10">
-                                    <TextBlock Classes="card-title" Text="1. Moduli e Contenitori (File VB6)" />
+                                    <TextBlock Classes="card-title" Text="1. Moduli e Contenitori (File di Progetto)" />
                                     <TextBlock Classes="card-body" Text="Rappresentati come cerchi più grandi (raggio 20px) con punto centrale che indica lo stato espanso o compresso:" />
                                     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" Margin="0,4">
-                                        <!-- Form -->
                                         <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
                                             <Ellipse Width="14" Height="14" Fill="#4FA8E8" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
@@ -294,7 +387,6 @@
                                                 <TextBlock Text="Finestre grafiche e dialoghi utente" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                                             </StackPanel>
                                         </StackPanel>
-                                        <!-- Modulo -->
                                         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
                                             <Ellipse Width="14" Height="14" Fill="#C084F0" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
@@ -302,15 +394,13 @@
                                                 <TextBlock Text="Librerie globali e codice procedurale" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                                             </StackPanel>
                                         </StackPanel>
-                                        <!-- Classe -->
                                         <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
                                             <Ellipse Width="14" Height="14" Fill="#54C08C" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
-                                                <TextBlock Text="Classe (.cls)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Classe (.cls / .cs)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                                 <TextBlock Text="Classi di business logic e dati" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                                             </StackPanel>
                                         </StackPanel>
-                                        <!-- Controllo -->
                                         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
                                             <Ellipse Width="14" Height="14" Fill="#F08C4A" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
@@ -322,13 +412,11 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card: Membri Interni -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="10">
                                     <TextBlock Classes="card-title" Text="2. Membri e Routine Interne" />
                                     <TextBlock Classes="card-body" Text="Disegnati attorno al container quando è espanso:" />
                                     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" Margin="0,4">
-                                        <!-- Metodi -->
                                         <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
                                             <Ellipse Width="12" Height="12" Fill="#7D7D8E" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
@@ -336,7 +424,6 @@
                                                 <TextBlock Text="Procedure eseguibili e metodi" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                                             </StackPanel>
                                         </StackPanel>
-                                        <!-- Proprietà -->
                                         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
                                             <Ellipse Width="12" Height="12" Fill="#E8B838" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
@@ -344,7 +431,6 @@
                                                 <TextBlock Text="Accessori di proprietà incapsulate" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                                             </StackPanel>
                                         </StackPanel>
-                                        <!-- Campi -->
                                         <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
                                             <Ellipse Width="10" Height="10" Fill="#60A5FA" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
@@ -352,7 +438,6 @@
                                                 <TextBlock Text="Campi e variabili di modulo" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                                             </StackPanel>
                                         </StackPanel>
-                                        <!-- Costanti -->
                                         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
                                             <Ellipse Width="10" Height="10" Fill="#F87171" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
@@ -360,7 +445,6 @@
                                                 <TextBlock Text="Valori costanti dichiarati" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                                             </StackPanel>
                                         </StackPanel>
-                                        <!-- Tipi ed Enum -->
                                         <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
                                             <Ellipse Width="10" Height="10" Fill="#34D399" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
@@ -372,7 +456,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card: Archi e Relazioni -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="10">
                                     <TextBlock Classes="card-title" Text="3. Archi e Connessioni (Relazioni)" />
@@ -401,130 +484,173 @@
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
+                        </StackPanel>
+                    </ScrollViewer>
 
-                            <!-- Card: Evidenziazioni Dinamiche -->
+                    <ScrollViewer x:Name="LegendSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Node, Color &amp; Relationship Legend" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Visual guide to all node types, member symbols, borders, and call relationships in the 2D graph." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
                             <Border Classes="info-card">
                                 <StackPanel Spacing="10">
-                                    <TextBlock Classes="card-title" Text="4. Evidenziazioni Dinamiche durante l'Analisi" />
-                                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" Margin="0,4">
+                                    <TextBlock Classes="card-title" Text="1. Modules &amp; Containers (Project Files)" />
+                                    <TextBlock Classes="card-body" Text="Represented as larger circles (20px radius) with a center dot indicating expanded or collapsed state:" />
+                                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" Margin="0,4">
                                         <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
-                                            <Ellipse Width="14" Height="14" Fill="#FF3344" VerticalAlignment="Center" />
+                                            <Ellipse Width="14" Height="14" Fill="#4FA8E8" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
-                                                <TextBlock Text="Target Modifica" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                                <TextBlock Text="Procedura target selezionata per Blast Radius" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                                <TextBlock Text="Form (.frm)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="UI windows and user dialogs" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                                             </StackPanel>
                                         </StackPanel>
                                         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
-                                            <Ellipse Width="14" Height="14" Fill="#FF8800" VerticalAlignment="Center" />
+                                            <Ellipse Width="14" Height="14" Fill="#C084F0" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
-                                                <TextBlock Text="Chiamante Diretto (1° Livello)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                                <TextBlock Text="Chi chiama direttamente la routine" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                                <TextBlock Text="Module (.bas)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Global procedural logic and libraries" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                                             </StackPanel>
                                         </StackPanel>
                                         <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
-                                            <Ellipse Width="14" Height="14" Fill="#FFBB00" VerticalAlignment="Center" />
+                                            <Ellipse Width="14" Height="14" Fill="#54C08C" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
-                                                <TextBlock Text="Chiamante Indiretto (2°+ Livello)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                                <TextBlock Text="Chiamanti a cascata / transitivi" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                                <TextBlock Text="Class (.cls / .cs)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Domain entities and business logic" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                                             </StackPanel>
                                         </StackPanel>
                                         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
-                                            <Ellipse Width="14" Height="14" Fill="#00D0FF" VerticalAlignment="Center" />
+                                            <Ellipse Width="14" Height="14" Fill="#F08C4A" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
-                                                <TextBlock Text="Chiamate Uscenti (Callees)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                                <TextBlock Text="Funzioni invocate dal nodo selezionato" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
-                                            </StackPanel>
-                                        </StackPanel>
-                                        <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
-                                            <Ellipse Width="14" Height="14" Fill="#FFD700" VerticalAlignment="Center" />
-                                            <StackPanel Spacing="1">
-                                                <TextBlock Text="Nodo Selezionato" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                                <TextBlock Text="Simbolo attivo nell'Inspector" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                                <TextBlock Text="User Control (.ctl)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="ActiveX and graphical custom controls" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                                             </StackPanel>
                                         </StackPanel>
                                     </Grid>
                                 </StackPanel>
                             </Border>
-                        </StackPanel>
-                    </ScrollViewer>
 
-                    <!-- SEZIONE 3: TREEMAP (MAPPA AD ALBERO) -->
-                    <ScrollViewer x:Name="TreemapSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="Treemap (Mappa ad Albero del Software)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                <TextBlock Text="Rappresentazione bidimensionale a rettangoli proporzionali per individuare peso e rischio." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
-                            </StackPanel>
-
-                            <!-- Card: Cos'è la Treemap -->
-                            <Border Classes="info-card">
-                                <StackPanel Spacing="8">
-                                    <TextBlock Classes="card-title" Text="Cos'è una Treemap e come leggerla" />
-                                    <TextBlock Classes="card-body" Text="La Treemap visualizza l'intera base di codice come un mosaico di rettangoli annidati, suddivisi per Modulo, Form o Classe e contenenti le relative routine interne." />
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Card: Dimensioni e Metriche -->
-                            <Border Classes="info-card">
-                                <StackPanel Spacing="8">
-                                    <TextBlock Classes="card-title" Text="Dimensione dei Rettangoli: Volume e Complessità" />
-                                    <TextBlock Classes="card-body" Text="L'area occupata da ogni rettangolo è direttamente proporzionale alla metrica selezionata:&#x0a;• Linee di Codice (LOC): evidenzia i file e le procedure più lunghe.&#x0a;• Complessità Ciclomatica (CC): mette in risalto le funzioni con più diramazioni logiche (If, Select, Loop) e salti condizionali." />
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Card: Colori e Significato del Rischio -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="10">
-                                    <TextBlock Classes="card-title" Text="Colori: Livello di Rischio (Blast Radius)" />
-                                    <TextBlock Classes="card-body" Text="La palette cromatica rispecchia il potenziale impatto di regressione:" />
+                                    <TextBlock Classes="card-title" Text="2. Internal Members &amp; Routines" />
+                                    <TextBlock Classes="card-body" Text="Drawn orbiting the container when expanded:" />
+                                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" Margin="0,4">
+                                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="12" Height="12" Fill="#7D7D8E" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Sub / Function" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Executable procedures and methods" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="12" Height="12" Fill="#E8B838" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Property (Get / Let / Set)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Encapsulated property accessors" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="10" Height="10" Fill="#60A5FA" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Field / Variable" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Module-level fields and state variables" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="10" Height="10" Fill="#F87171" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Constants (Const)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Declared immutable values" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
+                                            <Ellipse Width="10" Height="10" Fill="#34D399" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="Type / Enum" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="UDT structs and enumeration sets" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Classes="card-title" Text="3. Edges &amp; Connections (Relations)" />
                                     <StackPanel Spacing="8">
                                         <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <Border Background="#54C08C" CornerRadius="4" Padding="8,3" MinWidth="75">
-                                                <TextBlock Text="BASSO" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
-                                            </Border>
-                                            <TextBlock Classes="card-body" Text="Routine isolate o con impatto minimo locale." VerticalAlignment="Center" />
+                                            <Rectangle Width="24" Height="4" Fill="#4AE8D0" RadiusX="2" RadiusY="2" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="CALLS" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Arrow directed from caller procedure to invoked target routine" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <Border Background="#E8B838" CornerRadius="4" Padding="8,3" MinWidth="75">
-                                                <TextBlock Text="MEDIO" FontSize="10" FontWeight="Bold" Foreground="#1E1E2E" HorizontalAlignment="Center" />
-                                            </Border>
-                                            <TextBlock Classes="card-body" Text="Routine con chiamanti locali circoscritti." VerticalAlignment="Center" />
+                                            <Rectangle Width="24" Height="4" Fill="#FFA040" RadiusX="2" RadiusY="2" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="INSTANTIATES" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Class instantiation ('Set obj = New Class' or 'Dim As New')" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <Border Background="#FF8800" CornerRadius="4" Padding="8,3" MinWidth="75">
-                                                <TextBlock Text="ALTO" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
-                                            </Border>
-                                            <TextBlock Classes="card-body" Text="Routine condivise tra più moduli della logica di business." VerticalAlignment="Center" />
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <Border Background="#FF3344" CornerRadius="4" Padding="8,3" MinWidth="75">
-                                                <TextBlock Text="CRITICO" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
-                                            </Border>
-                                            <TextBlock Classes="card-body" Text="'God Object' o routine cardine da cui dipendono Form e flussi primari." VerticalAlignment="Center" />
+                                            <Rectangle Width="24" Height="4" Fill="#A070E0" RadiusX="2" RadiusY="2" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="1">
+                                                <TextBlock Text="USES_TYPE" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock Text="Variables, parameters, or return types referencing user-defined types" FontSize="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                            </StackPanel>
                                         </StackPanel>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
+                        </StackPanel>
+                    </ScrollViewer>
 
-                            <!-- Card: A cosa serve nel concreto -->
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 3: TREEMAP (IT & EN)                              -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="TreemapSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Mappa ad Albero del Codice (Treemap)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Visualizzazione gerarchica proporzionale al volume di codice (LOC) e complessità." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock Classes="card-title" Text="Perché è fondamentale per il refactoring" />
-                                    <TextBlock Classes="card-body" Text="I rettangoli grandi e rossi saltano subito all'occhio: rappresentano i punti più fragili e pesanti della codebase legacy. Sono le prime candidate per refactoring, scomposizione o copertura con test di regressione." />
+                                    <TextBlock Classes="card-title" Text="Come interpretare la Treemap" />
+                                    <TextBlock Classes="card-body" Text="• Dimensione del Riquadro: proporzionale alle Linee di Codice (LOC) o al numero di istruzioni del modulo o della routine.&#x0a;• Colore del Riquadro: mappa di calore della Complessità Ciclomatica media (Verde = Semplice/Bassa CC, Giallo = Moderata, Rosso = Complessa/Critica).&#x0a;• Drill-Down Interattivo: fai doppio clic su un modulo per entrare all'interno e ispezionare la mappa delle singole routine e proprietà che lo compongono." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- SEZIONE 3: SCREEN FLOW & CONTROL FLOW -->
-                    <ScrollViewer x:Name="FlowsSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer x:Name="TreemapSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
                         <StackPanel Spacing="16">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="Screen Flow &amp; Control Flow" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                <TextBlock Text="Mappatura della navigazione tra finestre e scomposizione logica interna delle routine." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                <TextBlock Text="Code Metrics Treemap" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Hierarchical visualization scaled by code volume (LOC) and complexity." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
-                            <!-- Card: Screen Flow -->
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="How to Interpret the Treemap" />
+                                    <TextBlock Classes="card-body" Text="• Box Size (Area): Directly proportional to Lines of Code (LOC) or instruction volume.&#x0a;• Box Color: Heatmap indicating Cyclomatic Complexity (Green = Simple/Low CC, Yellow = Moderate, Red = Complex Hotspot).&#x0a;• Interactive Drill-Down: Double-click any module or class to zoom in and inspect individual methods and properties." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 4: SCREEN & CONTROL FLOW (IT & EN)                -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="FlowsSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Flussi di Navigazione &amp; Controllo (Flows)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Mappatura dei percorsi utente tra finestre e scomposizione a blocchi logici del codice." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Screen Flow (Flusso Schermate &amp; Finestre)" />
@@ -532,7 +658,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card: Control Flow -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Control Flow Graph (CFG - Flusso di Controllo)" />
@@ -542,15 +667,39 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- SEZIONE 4: DSM & HOTSPOTS -->
-                    <ScrollViewer x:Name="DsmHotspotsSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer x:Name="FlowsSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Navigation &amp; Control Flows" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="User navigation mapping between screens and routine-level control flow graph decomposition." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Screen Flow (Form &amp; Window Navigation)" />
+                                    <TextBlock Classes="card-body" Text="Maps the user journey through application forms (.frm):&#x0a;• Openings: .Show, Load Form, modal dialogs (vbModal).&#x0a;• Transitions &amp; Closings: .Hide and Unload Me.&#x0a;Allows architects to understand user workflows and navigation structure without running the application." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Control Flow Graph (CFG)" />
+                                    <TextBlock Classes="card-body" Text="Deconstructs a single Sub, Function, or Property into basic instruction blocks and branch edges:&#x0a;• Decisions: If...Then...Else, Select Case.&#x0a;• Loops: For...Next, Do...While, While...Wend.&#x0a;• Error Handling &amp; Jumps: On Error GoTo, Resume, GoTo labels.&#x0a;Essential for auditing complex legacy algorithms and computing cyclomatic complexity." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 5: DSM & HOTSPOTS (IT & EN)                       -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="DsmHotspotsSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
                         <StackPanel Spacing="16">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="DSM (Dependency Matrix) &amp; Hotspots" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Matrici di accoppiamento architetturale e rilevamento dei punti caldi di complessità." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
-                            <!-- Card: DSM -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="DSM (Dependency Structure Matrix)" />
@@ -558,7 +707,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card: Hotspots -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Analisi degli Hotspots (Punti Caldi)" />
@@ -568,74 +716,235 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- SEZIONE 5: BLAST RADIUS -->
-                    <ScrollViewer x:Name="BlastRadiusSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer x:Name="DsmHotspotsSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="DSM (Dependency Matrix) &amp; Hotspots" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Architectural dependency matrix and complexity hotspot detection." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="DSM (Dependency Structure Matrix)" />
+                                    <TextBlock Classes="card-body" Text="An N x N square matrix where rows and columns represent project modules:&#x0a;• Cell Values: Number of calls/dependencies between row and column modules.&#x0a;• Circular Dependency Detection: Cells above the main diagonal indicate bidirectional coupling or recursive loops (architectural anti-patterns).&#x0a;• Layer Sorting: Helps reorganize code into clean hierarchical layers." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Risk Hotspots Analysis" />
+                                    <TextBlock Classes="card-body" Text="Plots Cyclomatic Complexity against Fan-In / Churn frequency in a 4-quadrant scatter chart. Immediately pinpoints high-risk routines requiring refactoring or priority regression testing." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 6: BLAST RADIUS (IT & EN)                         -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="BlastRadiusSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
                         <StackPanel Spacing="16">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Analisi d'Impatto (Blast Radius)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Calcolo dei percorsi di propagazione a catena e livello di rischio delle modifiche." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
-                            <!-- Card: Come funziona il Blast Radius -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Cos'è il Blast Radius e come viene calcolato" />
-                                    <TextBlock Classes="card-body" Text="Quando si modifica una routine VB6, il Blast Radius esegue una visita a ritroso nel grafo (reverse call graph traversal) per identificare ogni singola procedura o form che, direttamente o indirettamente, invoca quel codice." />
+                                    <TextBlock Classes="card-body" Text="Quando si modifica una routine, il Blast Radius esegue una visita a ritroso nel grafo (reverse call graph traversal) per identificare ogni singola procedura o form che, direttamente o indirettamente, invoca quel codice." />
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card: Metriche d'Impatto -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Metriche Calcolate" />
                                     <TextBlock Classes="card-body" Text="• Chiamanti Diretti: routine che contengono una chiamata diretta al simbolo.&#x0a;• Chiamanti Indiretti: routine che invocano i chiamanti diretti (propagazione transitiva).&#x0a;• Profondità Massima (Max Depth): lunghezza della catena di chiamata più profonda.&#x0a;• Form Impattate: elenco delle finestre UI che dipendono da questa funzione." />
                                 </StackPanel>
                             </Border>
+                        </StackPanel>
+                    </ScrollViewer>
 
-                            <!-- Card: Livelli di Rischio -->
+                    <ScrollViewer x:Name="BlastRadiusSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Impact Analysis (Blast Radius)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Transitive call chain propagation and change regression risk calculation." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
                             <Border Classes="info-card">
-                                <StackPanel Spacing="10">
-                                    <TextBlock Classes="card-title" Text="Scala dei Livelli di Rischio" />
-                                    <StackPanel Spacing="8">
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <Border Background="#FF3344" CornerRadius="4" Padding="8,3" MinWidth="75">
-                                                <TextBlock Text="CRITICO" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
-                                            </Border>
-                                            <TextBlock Classes="card-body" Text="Impatta molteplici Form UI e catene profonde di chiamanti. Massima attenzione richiesta." VerticalAlignment="Center" />
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <Border Background="#FF8800" CornerRadius="4" Padding="8,3" MinWidth="75">
-                                                <TextBlock Text="ALTO" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
-                                            </Border>
-                                            <TextBlock Classes="card-body" Text="Impatto esteso su più moduli della logica di business." VerticalAlignment="Center" />
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <Border Background="#E8B838" CornerRadius="4" Padding="8,3" MinWidth="75">
-                                                <TextBlock Text="MEDIO" FontSize="10" FontWeight="Bold" Foreground="#1E1E2E" HorizontalAlignment="Center" />
-                                            </Border>
-                                            <TextBlock Classes="card-body" Text="Impatto limitato a un sotto-sistema circoscritto." VerticalAlignment="Center" />
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <Border Background="#54C08C" CornerRadius="4" Padding="8,3" MinWidth="75">
-                                                <TextBlock Text="BASSO" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
-                                            </Border>
-                                            <TextBlock Classes="card-body" Text="Funzione foglia o utilizzata esclusivamente in ambito locale." VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </StackPanel>
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="What is Blast Radius &amp; How It Works" />
+                                    <TextBlock Classes="card-body" Text="When modifying a routine, Blast Radius performs a reverse call graph traversal to discover every function, class, and UI form that invokes that code directly or indirectly." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Calculated Metrics" />
+                                    <TextBlock Classes="card-body" Text="• Direct Callers: Functions with explicit calls to the symbol.&#x0a;• Indirect Callers: Functions calling the direct callers (transitive propagation).&#x0a;• Max Depth: Deepest call chain in the execution graph.&#x0a;• Impacted Forms: List of UI screens affected by the change." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- SEZIONE 6: AI & ESPORTAZIONE LLM -->
-                    <ScrollViewer x:Name="AiExportSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 7: MARTIN & DEAD CODE (IT & EN)                   -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="MartinDeadCodeSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Diagramma di Martin &amp; Codice Morto" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Metriche di stabilità/astrattezza architetturale e rilevamento codice non raggiungibile." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Diagramma di Martin (Stabilità vs Astrattezza)" />
+                                    <TextBlock Classes="card-body" Text="Valuta la qualità del design architetturale basandosi sui principi di Robert C. Martin (Clean Architecture):&#x0a;• Afferent Coupling (Ca): numero di elementi esterni che dipendono dal componente.&#x0a;• Efferent Coupling (Ce): numero di elementi esterni da cui il componente dipende.&#x0a;• Instabilità (I = Ce / (Ca + Ce)): varia da 0 (massima stabilità, difficile da modificare) a 1 (massima instabilità, flessibile).&#x0a;• Astrattezza (A = Na / Nc): rapporto tra elementi astratti/interfacce e classi concrete.&#x0a;• Distanza dalla Sequenza Principale (D = |A + I - 1|): misura quanto il modulo è bilanciato tra stabilità ed estensibilità. Evidenzia la 'Zona di Dolore' (concreto e rigido) e la 'Zona di Inutilità' (astratto e mai utilizzato)." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Analisi Dead Code &amp; Entry Point Reachability" />
+                                    <TextBlock Classes="card-body" Text="Esegue un'esplorazione esaustiva del grafo (visita BFS/DFS) a partire dagli entry point noti dell'applicazione:&#x0a;• Entry Points: Sub Main, maschera di avvio (Startup Form), gestori eventi UI e classi COM pubbliche.&#x0a;• Raggiungibilità: identifica routine e procedure orfane non raggiungibili da alcun flusso di esecuzione.&#x0a;• Moduli Inutilizzati: evidenzia interi file .bas/.cls non referenziati dal resto dell'applicazione.&#x0a;Fornisce un supporto indispensabile per il refactoring e la rimozione sicura del debito tecnico legacy." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="MartinDeadCodeSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Martin Metrics &amp; Dead Code" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Architectural stability/abstractness metrics and unreachable code detection." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Martin Diagram (Stability vs Abstractness)" />
+                                    <TextBlock Classes="card-body" Text="Evaluates architectural package design based on Robert C. Martin's Clean Architecture principles:&#x0a;• Afferent Coupling (Ca): Number of external entities that depend on the component.&#x0a;• Efferent Coupling (Ce): Number of external entities the component depends on.&#x0a;• Instability (I = Ce / (Ca + Ce)): Ranges from 0 (maximum stability, rigid) to 1 (maximum instability, flexible).&#x0a;• Abstractness (A = Na / Nc): Ratio of abstract types/interfaces to concrete classes.&#x0a;• Distance from Main Sequence (D = |A + I - 1|): Measures architectural balance. Identifies the 'Zone of Pain' (rigid, concrete, heavily dependent) and 'Zone of Uselessness' (abstract with no dependents)." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Dead Code &amp; Reachability Analysis" />
+                                    <TextBlock Classes="card-body" Text="Performs comprehensive graph traversal (BFS/DFS) starting from official application entry points:&#x0a;• Entry Points: Sub Main, Startup Forms, UI event handlers, and public COM classes.&#x0a;• Reachability: Identifies orphan routines unreachable from any execution path.&#x0a;• Unused Modules: Highlights unreferenced .bas/.cls files that can be safely retired." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 8: STATO CONDIVISO & TEMPORAL (IT & EN)           -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="SharedTemporalSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Stato Condiviso &amp; Temporal Coupling" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Mappatura della memoria globale mutabile e co-evoluzione storica dei file da Git/VCS." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Matrice di Stato Globale e Condiviso" />
+                                    <TextBlock Classes="card-body" Text="Ispeziona tutte le variabili globali Public nei moduli (.bas) e i campi statici mutabili in C#:&#x0a;• Lettori &amp; Scrittori: per ogni variabile globale identifica con precisione quali funzioni la leggono (Readers) e quali la modificano (Writers).&#x0a;• Rischio di Mutazione Cross-Module: calcola il rischio di side-effect imprevisti quando moduli distanti alterano il medesimo stato condiviso senza incapsulamento.&#x0a;• Analisi Concorrenza: individua punti critici per la migrazione e la separazione in servizi isolati." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Accoppiamento Temporale (Co-Change Mining)" />
+                                    <TextBlock Classes="card-body" Text="Estrae la cronologia dei commit dal repository di controllo versione (Git o SVN):&#x0a;• Matrice di Co-Variazione: individua coppie di file che vengono modificati o committati insieme con alta frequenza.&#x0a;• Indice di Jaccard &amp; Confidenza: calcola J(A, B) = |A ∩ B| / |A ∪ B| e la probabilità condizionata P(B|A).&#x0a;• Dipendenze Nascoste: fa emergere accoppiamenti logici o duplicazioni di codice non visibili dall'analisi statica delle chiamate." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="SharedTemporalSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Shared State &amp; Temporal Coupling" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Mutable shared memory inspection and historical co-change mining from Git/VCS." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Global &amp; Shared State Matrix" />
+                                    <TextBlock Classes="card-body" Text="Audits all Public variables in .bas modules and mutable static fields in C#:&#x0a;• Readers &amp; Writers: Identifies exact functions reading (Readers) or modifying (Writers) each global variable.&#x0a;• Cross-Module Mutation Risk: Calculates unexpected side-effect risks when distant modules mutate shared state without encapsulation.&#x0a;• Concurrency &amp; Refactoring: Pinpoints critical state hubs to isolate into dedicated services." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Temporal Coupling &amp; Co-Change Mining" />
+                                    <TextBlock Classes="card-body" Text="Mines commit history from Git or SVN repositories:&#x0a;• Co-Change Matrix: Discovers file pairs modified or committed together with high frequency.&#x0a;• Jaccard Index &amp; Confidence: Computes J(A, B) = |A ∩ B| / |A ∪ B| and conditional probability P(B|A).&#x0a;• Hidden Dependencies: Reveals logical couplings, shared assumptions, or copy-pasted code invisible to static analysis." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 9: FLUSSI ARCHITETTURALI & CODECITY (IT & EN)     -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="FlowCitySection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Flussi Architetturali &amp; CodeCity 3D" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Visualizzazioni avanzate dei flussi di comunicazione e mappa polimetrica 3D del codice." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Flussi Architetturali a Corda (Chord Ribbon Diagram)" />
+                                    <TextBlock Classes="card-body" Text="Rappresentazione circolare dei flussi di chiamata tra moduli, namespace o livelli architetturali:&#x0a;• Nastri Volumetrici: lo spessore dell'arco rappresenta il volume complessivo di invocazioni tra i componenti.&#x0a;• Architettura a Strati: organizza i nodi per layer (UI, Business Logic, Data Access, Common).&#x0a;• Rilevamento Violazioni: evidenzia chiamate anomale che violano le direzioni permesse (es. Data Layer che invoca direttamente la UI)." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="CodeCity (Mappa Polimetrica 3D del Software)" />
+                                    <TextBlock Classes="card-body" Text="Ispirato al modello visivo di Wettel &amp; Lanza, trasforma la codebase in una città virtuale:&#x0a;• Quartieri (Districts): rappresentano cartelle, namespace o moduli logici.&#x0a;• Edifici (Buildings): rappresentano singoli file o classi.&#x0a;• Impronta a terra (Larghezza x Profondità): proporzionale al volume di codice (LOC / N. Istruzioni).&#x0a;• Altezza dell'Edificio: proporzionale alla Complessità Ciclomatica media.&#x0a;• Colore: indica il livello di rischio, accoppiamento o concentrazione di modifiche recenti." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="FlowCitySection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Architectural Flows &amp; 3D CodeCity" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Volumetric chord communication ribbons and 3D polymetric code city map." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Architectural Chord Diagram (Ribbon Flows)" />
+                                    <TextBlock Classes="card-body" Text="Circular visualization of call traffic between modules, namespaces, and architectural layers:&#x0a;• Volumetric Ribbons: Ribbon thickness represents total invocation volume between components.&#x0a;• Layered Architecture: Groups nodes by architectural tier (UI, Business Logic, Data Access, Common).&#x0a;• Layer Violations: Visually highlights illegal cross-layer calls (e.g. Data Access calling UI)." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="CodeCity (3D Software Polymetric Map)" />
+                                    <TextBlock Classes="card-body" Text="Based on Wettel &amp; Lanza's visualization model, transforms the codebase into a virtual 3D city:&#x0a;• Districts: Folders, namespaces, or logical modules.&#x0a;• Buildings: Individual files or classes.&#x0a;• Footprint (Width x Depth): Proportional to code volume (LOC).&#x0a;• Building Height: Proportional to Cyclomatic Complexity.&#x0a;• Color: Highlights risk levels, churn frequency, or technical debt." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 10: AI & ESPORTAZIONE LLM (IT & EN)               -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="AiExportSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
                         <StackPanel Spacing="16">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Integrazione AI &amp; Esportazione LLM" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Strumenti per esportare contesto strutturato e nutrire assistenti e agenti di intelligenza artificiale." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
-                            <!-- Card: Repo Map Markdown -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="1. Esporta Repo Map (Markdown)" />
@@ -643,7 +952,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card: Context Slice LLM -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="2. Esporta Context Slice LLM" />
@@ -651,7 +959,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card: JSON Export/Import -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="3. Esporta / Importa Grafo (JSON)" />
@@ -659,63 +966,57 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card: CLI & Headless Usage -->
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <DockPanel LastChildFill="True">
                                         <Border Classes="badge-accent" DockPanel.Dock="Right" VerticalAlignment="Center">
                                             <TextBlock Classes="badge-text" Text="CLI / HEADLESS" />
                                         </Border>
-                                        <TextBlock x:Name="CliCardTitleText" Classes="card-title" Text="4. Utilizzo da Riga di Comando (CLI &amp; Headless)" />
+                                        <TextBlock Classes="card-title" Text="4. Utilizzo da Riga di Comando (CLI &amp; Headless)" />
                                     </DockPanel>
-                                    <TextBlock x:Name="CliCardDescText" Classes="card-body" Text="Macondo può essere eseguito direttamente da terminale (PowerShell, Command Prompt o script CI/CD) per analizzare progetti ed esportare la Repo Map Markdown o il grafo JSON senza avviare la GUI:" />
-                                    <Border Background="{DynamicResource ThemeBackgroundSecondaryBrush}"
-                                            BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                                            BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,4,0,4">
-                                        <Grid RowDefinitions="Auto,Auto">
-                                            <DockPanel Grid.Row="0" Margin="0,0,0,8">
-                                                <Button x:Name="CopyCliCommandsButton"
-                                                        DockPanel.Dock="Right"
-                                                        Background="Transparent"
-                                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                                                        BorderThickness="1"
-                                                        CornerRadius="4"
-                                                        Padding="8,4"
-                                                        Cursor="Hand"
-                                                        ToolTip.Tip="Copia comandi negli appunti">
-                                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                                        <PathIcon Data="{StaticResource IconCopy}" Width="11" Height="11" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
-                                                        <TextBlock x:Name="CopyCliButtonText" Text="Copia" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
-                                                    </StackPanel>
-                                                </Button>
-                                                <TextBlock Text="Comandi CLI / PowerShell" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource ThemeTextMutedBrush}" VerticalAlignment="Center" />
-                                            </DockPanel>
+                                    <TextBlock Classes="card-body" Text="Macondo può essere eseguito direttamente da terminale (PowerShell, Command Prompt o script CI/CD) per analizzare progetti ed esportare la Repo Map Markdown o il grafo JSON senza avviare la GUI." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
 
-                                            <SelectableTextBlock Grid.Row="1"
-                                                                 FontFamily="Consolas, Cascadia Code, Menlo, monospace"
-                                                                 FontSize="11"
-                                                                 Foreground="{DynamicResource ThemeAccentBrush}"
-                                                                 TextWrapping="Wrap"
-                                                                 SelectionBrush="{DynamicResource ThemeAccentBrush}"
-                                                                 LineHeight="18">
-                                                <SelectableTextBlock.Inlines>
-                                                    <Run x:Name="CliCommentMdRun" Text="# Esporta la Repo Map Markdown del progetto" Foreground="{DynamicResource ThemeTextMutedBrush}" />
-                                                    <LineBreak />
-                                                    <Run Text="Macondo.exe analyze &quot;C:\Progetti\MioProgettoVB6&quot; --export-md &quot;repo-map.md&quot;" Foreground="{DynamicResource ThemeAccentBrush}" />
-                                                    <LineBreak />
-                                                    <LineBreak />
-                                                    <Run x:Name="CliCommentJsonRun" Text="# Esporta il grafo semantico completo in JSON" Foreground="{DynamicResource ThemeTextMutedBrush}" />
-                                                    <LineBreak />
-                                                    <Run Text="Macondo.exe analyze &quot;C:\Progetti\MioProgettoVB6\App.vbp&quot; --export-json &quot;graph.json&quot;" Foreground="{DynamicResource ThemeAccentBrush}" />
-                                                    <LineBreak />
-                                                    <LineBreak />
-                                                    <Run x:Name="CliCommentBothRun" Text="# Esporta entrambi i formati contemporaneamente" Foreground="{DynamicResource ThemeTextMutedBrush}" />
-                                                    <LineBreak />
-                                                    <Run Text="Macondo.exe analyze &quot;C:\Progetti\MioProgettoVB6&quot; --export-md &quot;repo-map.md&quot; --export-json &quot;graph.json&quot;" Foreground="{DynamicResource ThemeAccentBrush}" />
-                                                </SelectableTextBlock.Inlines>
-                                            </SelectableTextBlock>
-                                        </Grid>
-                                    </Border>
+                    <ScrollViewer x:Name="AiExportSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="AI Integration &amp; LLM Export" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Structured context export tools for AI assistants, ChatGPT, Claude, and Gemini." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="1. Export Repo Map (Markdown)" />
+                                    <TextBlock Classes="card-body" Text="Generates a compact, structured Markdown document containing the module tree, all Sub/Function/Property declarations with parameters, and dependencies. Perfect for attaching to LLM prompts for macro architectural reasoning." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="2. Export LLM Context Slice" />
+                                    <TextBlock Classes="card-body" Text="Surgically extracts only the relevant subgraph for a selected routine: includes source code, caller/callee contracts, and referenced types. Minimizes token usage and maximizes AI precision." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="3. Export / Import Graph (JSON)" />
+                                    <TextBlock Classes="card-body" Text="Allows exporting the entire semantic graph in standard JSON (Macondo Graph v1.0 schema) for CI/CD pipelines, archiving, or instant offline loading without re-parsing." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <DockPanel LastChildFill="True">
+                                        <Border Classes="badge-accent" DockPanel.Dock="Right" VerticalAlignment="Center">
+                                            <TextBlock Classes="badge-text" Text="CLI / HEADLESS" />
+                                        </Border>
+                                        <TextBlock Classes="card-title" Text="4. Command Line Interface (CLI &amp; Headless)" />
+                                    </DockPanel>
+                                    <TextBlock Classes="card-body" Text="Macondo can be executed directly from terminal (PowerShell, Command Prompt, or CI/CD scripts) to analyze projects and export Repo Map Markdown or JSON graph without launching the GUI." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>

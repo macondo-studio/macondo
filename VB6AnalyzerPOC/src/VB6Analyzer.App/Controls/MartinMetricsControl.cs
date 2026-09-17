@@ -55,6 +55,7 @@ public sealed class MartinMetricsControl : Control
     public MartinMetricsControl()
     {
         ClipToBounds = true;
+        LocalizationService.Instance.LanguageChanged += (_, _) => InvalidateVisual();
     }
 
     public void ApplyTheme(ThemeDefinition theme)
@@ -151,7 +152,7 @@ public sealed class MartinMetricsControl : Control
 
         // Testo Sequenza Principale lungo la diagonale
         var loc = LocalizationService.Instance;
-        var seqLabelFmt = new FormattedText("Main Sequence (A + I = 1)", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _mainSeqPenBrush);
+        var seqLabelFmt = new FormattedText(loc["Martin_MainSequence"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _mainSeqPenBrush);
         context.DrawText(seqLabelFmt, new Point(marginL + plotW * 0.4, marginT + plotH * 0.4 - 14));
 
         var painLabelFmt = new FormattedText(loc["Martin_ZonePain"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, TitleTypeface, 11, new SolidColorBrush(Color.Parse("#FF5566")));
@@ -254,8 +255,8 @@ public sealed class MartinMetricsControl : Control
         {
             MartinZone.ZoneOfPain => loc["Martin_ZonePain"],
             MartinZone.ZoneOfUselessness => loc["Martin_ZoneUseless"],
-            MartinZone.MainSequence => "Main Sequence",
-            _ => "Balanced"
+            MartinZone.MainSequence => loc["Martin_MainSequence"],
+            _ => loc["Martin_Balanced"]
         };
 
         var subFmt = new FormattedText(

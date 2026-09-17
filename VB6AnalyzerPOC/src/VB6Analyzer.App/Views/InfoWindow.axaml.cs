@@ -39,29 +39,6 @@ public partial class InfoWindow : Window
                 e.Handled = true;
             }
         }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-
-        CopyCliCommandsButton.Click += async (_, _) =>
-        {
-            var commandsText = 
-$@"{CliCommentMdRun.Text}
-Macondo.exe analyze ""C:\Progetti\MioProgettoVB6"" --export-md ""repo-map.md""
-
-{CliCommentJsonRun.Text}
-Macondo.exe analyze ""C:\Progetti\MioProgettoVB6\App.vbp"" --export-json ""graph.json""
-
-{CliCommentBothRun.Text}
-Macondo.exe analyze ""C:\Progetti\MioProgettoVB6"" --export-md ""repo-map.md"" --export-json ""graph.json""";
-
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel?.Clipboard != null)
-            {
-                await topLevel.Clipboard.SetTextAsync(commandsText);
-                var isEn = LocalizationService.Instance.CurrentLanguage == AppLanguage.English;
-                CopyCliButtonText.Text = isEn ? "Copied!" : "Copiato!";
-                await System.Threading.Tasks.Task.Delay(1800);
-                CopyCliButtonText.Text = isEn ? "Copy" : "Copia";
-            }
-        };
     }
 
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -81,6 +58,8 @@ Macondo.exe analyze ""C:\Progetti\MioProgettoVB6"" --export-md ""repo-map.md"" -
     // Navigazione Sidebar
     // =========================================================================
 
+    private int _currentTabIndex = 0;
+
     private void OnNavOverviewClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(0);
     private void OnNavLayoutsClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(1);
     private void OnNavLegendClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(2);
@@ -88,10 +67,15 @@ Macondo.exe analyze ""C:\Progetti\MioProgettoVB6"" --export-md ""repo-map.md"" -
     private void OnNavFlowsClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(4);
     private void OnNavDsmHotspotsClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(5);
     private void OnNavBlastRadiusClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(6);
-    private void OnNavAiExportClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(7);
+    private void OnNavMartinDeadCodeClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(7);
+    private void OnNavSharedTemporalClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(8);
+    private void OnNavFlowCityClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(9);
+    private void OnNavAiExportClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(10);
 
     public void SetSelectedNav(int index)
     {
+        _currentTabIndex = index;
+
         NavOverviewButton.Classes.Set("selected", index == 0);
         NavLayoutsButton.Classes.Set("selected", index == 1);
         NavLegendButton.Classes.Set("selected", index == 2);
@@ -99,16 +83,45 @@ Macondo.exe analyze ""C:\Progetti\MioProgettoVB6"" --export-md ""repo-map.md"" -
         NavFlowsButton.Classes.Set("selected", index == 4);
         NavDsmHotspotsButton.Classes.Set("selected", index == 5);
         NavBlastRadiusButton.Classes.Set("selected", index == 6);
-        NavAiExportButton.Classes.Set("selected", index == 7);
+        NavMartinDeadCodeButton.Classes.Set("selected", index == 7);
+        NavSharedTemporalButton.Classes.Set("selected", index == 8);
+        NavFlowCityButton.Classes.Set("selected", index == 9);
+        NavAiExportButton.Classes.Set("selected", index == 10);
 
-        OverviewSection.IsVisible = index == 0;
-        LayoutsSection.IsVisible = index == 1;
-        LegendSection.IsVisible = index == 2;
-        TreemapSection.IsVisible = index == 3;
-        FlowsSection.IsVisible = index == 4;
-        DsmHotspotsSection.IsVisible = index == 5;
-        BlastRadiusSection.IsVisible = index == 6;
-        AiExportSection.IsVisible = index == 7;
+        var isEn = LocalizationService.Instance.CurrentLanguage == AppLanguage.English;
+
+        OverviewSection_IT.IsVisible = index == 0 && !isEn;
+        OverviewSection_EN.IsVisible = index == 0 && isEn;
+
+        LayoutsSection_IT.IsVisible = index == 1 && !isEn;
+        LayoutsSection_EN.IsVisible = index == 1 && isEn;
+
+        LegendSection_IT.IsVisible = index == 2 && !isEn;
+        LegendSection_EN.IsVisible = index == 2 && isEn;
+
+        TreemapSection_IT.IsVisible = index == 3 && !isEn;
+        TreemapSection_EN.IsVisible = index == 3 && isEn;
+
+        FlowsSection_IT.IsVisible = index == 4 && !isEn;
+        FlowsSection_EN.IsVisible = index == 4 && isEn;
+
+        DsmHotspotsSection_IT.IsVisible = index == 5 && !isEn;
+        DsmHotspotsSection_EN.IsVisible = index == 5 && isEn;
+
+        BlastRadiusSection_IT.IsVisible = index == 6 && !isEn;
+        BlastRadiusSection_EN.IsVisible = index == 6 && isEn;
+
+        MartinDeadCodeSection_IT.IsVisible = index == 7 && !isEn;
+        MartinDeadCodeSection_EN.IsVisible = index == 7 && isEn;
+
+        SharedTemporalSection_IT.IsVisible = index == 8 && !isEn;
+        SharedTemporalSection_EN.IsVisible = index == 8 && isEn;
+
+        FlowCitySection_IT.IsVisible = index == 9 && !isEn;
+        FlowCitySection_EN.IsVisible = index == 9 && isEn;
+
+        AiExportSection_IT.IsVisible = index == 10 && !isEn;
+        AiExportSection_EN.IsVisible = index == 10 && isEn;
     }
 
     private void UpdateLocalizedTexts()
@@ -126,16 +139,12 @@ Macondo.exe analyze ""C:\Progetti\MioProgettoVB6"" --export-md ""repo-map.md"" -
         NavFlowsText.Text = isEn ? "Screen & Control Flow" : "Screen & Control Flow";
         NavDsmHotspotsText.Text = isEn ? "DSM & Hotspots" : "DSM & Hotspots";
         NavBlastRadiusText.Text = isEn ? "Blast Radius (Risk)" : "Blast Radius (Rischio)";
+        NavMartinDeadCodeText.Text = isEn ? "Martin & Dead Code" : "Martin & Dead Code";
+        NavSharedTemporalText.Text = isEn ? "Global State & Temporal" : "Stato Globale & Temporal";
+        NavFlowCityText.Text = isEn ? "Chord Flows & CodeCity" : "Flussi Chord & CodeCity";
         NavAiExportText.Text = isEn ? "AI & LLM Export" : "AI & Esportazione LLM";
 
-        CliCardTitleText.Text = loc["Info_CliTitle"];
-        CliCardDescText.Text = loc["Info_CliDescription"];
-        CliCommentMdRun.Text = loc["Info_CliCommentMd"];
-        CliCommentJsonRun.Text = loc["Info_CliCommentJson"];
-        CliCommentBothRun.Text = loc["Info_CliCommentBoth"];
-
-        CopyCliButtonText.Text = isEn ? "Copy" : "Copia";
-        ToolTip.SetTip(CopyCliCommandsButton, isEn ? "Copy commands to clipboard" : "Copia comandi negli appunti");
+        SetSelectedNav(_currentTabIndex);
     }
 
     private void ApplyTheme(ThemeDefinition theme)

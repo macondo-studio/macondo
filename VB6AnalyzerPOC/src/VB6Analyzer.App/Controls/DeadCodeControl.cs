@@ -27,16 +27,23 @@ public sealed class DeadCodeGridRow
     public string FilePath => Item.FilePath;
     public int LineStart => Item.LineStart;
     public int EstimatedLoc => Item.EstimatedLoc;
-    public string Reason => Item.Reason;
+    public string Reason => Item.Category switch
+    {
+        DeadCodeCategory.UnreachableRoutine => LocalizationService.Instance["DeadCode_Reason_UnreachableRoutine"],
+        DeadCodeCategory.UnusedFieldOrConstant => LocalizationService.Instance["DeadCode_Reason_UnusedFieldOrConstant"],
+        DeadCodeCategory.OrphanContainer => LocalizationService.Instance["DeadCode_Reason_OrphanContainer"],
+        DeadCodeCategory.UnusedType => LocalizationService.Instance["DeadCode_Reason_UnusedType"],
+        _ => LocalizationService.Instance["DeadCode_Reason_UnreachableSymbol"]
+    };
     public string Kind => Item.Kind.ToString();
 
     public string CategoryBadgeText => Item.Category switch
     {
-        DeadCodeCategory.UnreachableRoutine => "Routine",
-        DeadCodeCategory.UnusedFieldOrConstant => "Field/Const",
-        DeadCodeCategory.OrphanContainer => "Orphan Container",
-        DeadCodeCategory.UnusedType => "Type/Enum",
-        _ => "Dead Code"
+        DeadCodeCategory.UnreachableRoutine => LocalizationService.Instance["DeadCode_Badge_Routine"],
+        DeadCodeCategory.UnusedFieldOrConstant => LocalizationService.Instance["DeadCode_Badge_Field"],
+        DeadCodeCategory.OrphanContainer => LocalizationService.Instance["DeadCode_Badge_Container"],
+        DeadCodeCategory.UnusedType => LocalizationService.Instance["DeadCode_Badge_Type"],
+        _ => LocalizationService.Instance["DeadCode_Badge_Dead"]
     };
 
     public string CategoryBadgeBackground => Item.Category switch
@@ -99,11 +106,17 @@ public sealed class DeadCodeControl : UserControl
     private readonly ObservableCollection<DeadCodeGridRow> _rows = new();
     private List<DeadCodeItem> _allItems = new();
 
+    private readonly TextBlock _kpiTotalDeadTitle;
     private readonly TextBlock _kpiTotalDeadText;
+    private readonly TextBlock _kpiRatioTitle;
     private readonly TextBlock _kpiRatioText;
+    private readonly TextBlock _kpiRoutinesTitle;
     private readonly TextBlock _kpiRoutinesText;
+    private readonly TextBlock _kpiFieldsTitle;
     private readonly TextBlock _kpiFieldsText;
+    private readonly TextBlock _kpiContainersTitle;
     private readonly TextBlock _kpiContainersText;
+    private readonly TextBlock _kpiLocTitle;
     private readonly TextBlock _kpiLocText;
     private readonly TextBox _searchBox;
     private readonly ComboBox _categoryFilter;
@@ -124,12 +137,12 @@ public sealed class DeadCodeControl : UserControl
             Margin = new Thickness(0, 0, 0, 12)
         };
 
-        var card1 = CreateKpiCard("Dead Symbols", "0", "#FF5555", out _kpiTotalDeadText);
-        var card2 = CreateKpiCard("Dead Code Ratio", "0%", "#FFAA00", out _kpiRatioText);
-        var card3 = CreateKpiCard("Unreachable Routines", "0", "#E87A90", out _kpiRoutinesText);
-        var card4 = CreateKpiCard("Unused Fields/Const", "0", "#FFD54F", out _kpiFieldsText);
-        var card5 = CreateKpiCard("Orphan Containers", "0", "#C084F0", out _kpiContainersText);
-        var card6 = CreateKpiCard("Total Dead LOC", "0", "#4AE8D0", out _kpiLocText);
+        var card1 = CreateKpiCard("Dead Symbols", "0", "#FF5555", out _kpiTotalDeadTitle, out _kpiTotalDeadText);
+        var card2 = CreateKpiCard("Dead Code Ratio", "0%", "#FFAA00", out _kpiRatioTitle, out _kpiRatioText);
+        var card3 = CreateKpiCard("Unreachable Routines", "0", "#E87A90", out _kpiRoutinesTitle, out _kpiRoutinesText);
+        var card4 = CreateKpiCard("Unused Fields/Const", "0", "#FFD54F", out _kpiFieldsTitle, out _kpiFieldsText);
+        var card5 = CreateKpiCard("Orphan Containers", "0", "#C084F0", out _kpiContainersTitle, out _kpiContainersText);
+        var card6 = CreateKpiCard("Total Dead LOC", "0", "#4AE8D0", out _kpiLocTitle, out _kpiLocText);
 
         Grid.SetColumn(card1, 0);
         Grid.SetColumn(card2, 1);
@@ -175,15 +188,7 @@ public sealed class DeadCodeControl : UserControl
         {
             SelectedIndex = 0,
             FontSize = 12,
-            Width = 180,
-            ItemsSource = new[]
-            {
-                "Tutti i tipi",
-                "Solo Routine",
-                "Solo Variabili & Costanti",
-                "Solo Contenitori Orfani",
-                "Solo Tipi & Enum"
-            }
+            Width = 180
         };
         _categoryFilter.SelectionChanged += (s, e) => ApplyFilter();
         Grid.SetColumn(_categoryFilter, 1);
@@ -314,9 +319,52 @@ public sealed class DeadCodeControl : UserControl
         rootGrid.Children.Add(_grid);
 
         Content = rootGrid;
+
+        UpdateLocalizedTexts();
+        LocalizationService.Instance.LanguageChanged += (_, _) =>
+        {
+            UpdateLocalizedTexts();
+            ApplyFilter();
+        };
     }
 
-    private static Border CreateKpiCard(string title, string initialValue, string accentHex, out TextBlock valueBlock)
+    private void UpdateLocalizedTexts()
+    {
+        var loc = LocalizationService.Instance;
+
+        _kpiTotalDeadTitle.Text = loc["DeadCode_Kpi_Total"];
+        _kpiRatioTitle.Text = loc["DeadCode_Kpi_Ratio"];
+        _kpiRoutinesTitle.Text = loc["DeadCode_Kpi_Routines"];
+        _kpiFieldsTitle.Text = loc["DeadCode_Kpi_Fields"];
+        _kpiContainersTitle.Text = loc["DeadCode_Kpi_Containers"];
+        _kpiLocTitle.Text = loc["DeadCode_Kpi_Loc"];
+
+        _searchBox.Watermark = loc["DeadCode_Filter_Search_Watermark"];
+
+        int sel = _categoryFilter.SelectedIndex;
+        _categoryFilter.ItemsSource = new[]
+        {
+            loc["DeadCode_Filter_All"],
+            loc["DeadCode_Filter_Routines"],
+            loc["DeadCode_Filter_Fields"],
+            loc["DeadCode_Filter_Containers"],
+            loc["DeadCode_Filter_Types"]
+        };
+        _categoryFilter.SelectedIndex = sel >= 0 ? sel : 0;
+
+        if (_grid.Columns.Count >= 7)
+        {
+            _grid.Columns[0].Header = loc["DeadCode_Col_Type"];
+            _grid.Columns[1].Header = loc["DeadCode_Col_Category"];
+            _grid.Columns[2].Header = loc["DeadCode_Col_Name"];
+            _grid.Columns[3].Header = loc["DeadCode_Col_Container"];
+            _grid.Columns[4].Header = loc["DeadCode_Col_Line"];
+            _grid.Columns[5].Header = loc["DeadCode_Col_Loc"];
+            _grid.Columns[6].Header = loc["DeadCode_Col_Reason"];
+        }
+    }
+
+    private static Border CreateKpiCard(string title, string initialValue, string accentHex, out TextBlock titleBlock, out TextBlock valueBlock)
     {
         valueBlock = new TextBlock
         {
@@ -327,7 +375,7 @@ public sealed class DeadCodeControl : UserControl
             Margin = new Thickness(0, 2, 0, 0)
         };
 
-        var titleBlock = new TextBlock
+        titleBlock = new TextBlock
         {
             Text = title,
             FontSize = 10,

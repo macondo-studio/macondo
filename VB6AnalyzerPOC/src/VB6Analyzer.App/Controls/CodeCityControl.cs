@@ -54,6 +54,7 @@ public sealed class CodeCityControl : Control
     public CodeCityControl()
     {
         ClipToBounds = true;
+        LocalizationService.Instance.LanguageChanged += (_, _) => InvalidateVisual();
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -216,11 +217,12 @@ public sealed class CodeCityControl : Control
         context.DrawRectangle(bg, border, new RoundedRect(headerRect, 6));
 
         double colW = headerRect.Width / 4.0;
+        var loc = LocalizationService.Instance;
 
-        RenderKpiItem(context, headerRect.X, headerRect.Y, colW, "EDIFICI / COMPONENTI", dataset.TotalBuildingsCount.ToString("N0"), "#3B82F6");
-        RenderKpiItem(context, headerRect.X + colW, headerRect.Y, colW, "QUARTIERI URBANI", dataset.TotalDistrictsCount.ToString("N0"), "#10B981");
-        RenderKpiItem(context, headerRect.X + colW * 2, headerRect.Y, colW, "RIGHE DI CODICE TOT", dataset.TotalLoc.ToString("N0"), "#8B5CF6");
-        RenderKpiItem(context, headerRect.X + colW * 3, headerRect.Y, colW, "MAX COMPLESSITÀ (H)", dataset.MaxHeight.ToString("F0"), "#F59E0B");
+        RenderKpiItem(context, headerRect.X, headerRect.Y, colW, loc["City_Kpi_Buildings"], dataset.TotalBuildingsCount.ToString("N0"), "#3B82F6");
+        RenderKpiItem(context, headerRect.X + colW, headerRect.Y, colW, loc["City_Kpi_Districts"], dataset.TotalDistrictsCount.ToString("N0"), "#10B981");
+        RenderKpiItem(context, headerRect.X + colW * 2, headerRect.Y, colW, loc["City_Kpi_TotalLoc"], dataset.TotalLoc.ToString("N0"), "#8B5CF6");
+        RenderKpiItem(context, headerRect.X + colW * 3, headerRect.Y, colW, loc["City_Kpi_MaxComplexity"], dataset.MaxHeight.ToString("F0"), "#F59E0B");
     }
 
     private static void RenderKpiItem(DrawingContext context, double x, double y, double w, string label, string val, string colorHex)
@@ -355,11 +357,12 @@ public sealed class CodeCityControl : Control
 
     private void RenderTooltip(DrawingContext context, Rect bounds, CityBuilding b)
     {
+        var loc = LocalizationService.Instance;
         string title = $"{b.Name} ({b.Kind})";
-        string sub = $"Distretto: {b.DistrictName}\n" +
-                     $"Linee di Codice (LOC): {b.Loc:N0}\n" +
-                     $"Complessità Ciclomatica (CC): {b.CyclomaticComplexity:F1}\n" +
-                     $"Numero Membri/Routine: {b.MemberCount}\n" +
+        string sub = $"{loc.Get("City_Tooltip_District", b.DistrictName)}\n" +
+                     $"{loc.Get("City_Tooltip_Loc", b.Loc)}\n" +
+                     $"{loc.Get("City_Tooltip_CC", b.CyclomaticComplexity)}\n" +
+                     $"{loc.Get("City_Tooltip_Members", b.MemberCount)}\n" +
                      $"{b.FilePath}";
 
         var ftTitle = new FormattedText(title, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, KpiFont, 12.0, Brushes.White);
@@ -385,8 +388,9 @@ public sealed class CodeCityControl : Control
 
     private void RenderEmptyState(DrawingContext context, Rect bounds)
     {
+        var loc = LocalizationService.Instance;
         var text = new FormattedText(
-            "Nessun modello CodeCity calcolato. Carica un progetto per visualizzare la mappa urbana 3D/2.5D.",
+            loc["City_Placeholder"],
             CultureInfo.InvariantCulture,
             FlowDirection.LeftToRight,
             TooltipFont,
