@@ -44,6 +44,12 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
     public string? AccessibilityTooltip { get; init; }
     public bool HasAccessibility => !string.IsNullOrEmpty(AccessibilityText);
 
+    public string? LanguageBadgeText { get; init; }
+    public string? LanguageBadgeBackground { get; init; }
+    public string? LanguageBadgeForeground { get; init; }
+    public string? LanguageTooltip { get; init; }
+    public bool HasLanguageBadge => !string.IsNullOrEmpty(LanguageBadgeText);
+
     public string? FilePath { get; init; }
     public int LineStart { get; init; }
     public int LineEnd { get; init; }
@@ -107,6 +113,8 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
     private static ExplorerTreeItem BuildProjectSubTree(VisualCodeGraph graph, GraphNode project, string? projectFolderPath, bool isWorkspace = false, IReadOnlySet<Guid>? hiddenProjectIds = null)
     {
         var (prjBadge, prjBg, prjFg) = GetBadgeInfo(project.Kind);
+        var detectedLang = DetectProjectLanguage(graph, project, projectFolderPath);
+        var (langBadge, langBg, langFg, langTip) = GetLanguageBadgeInfo(detectedLang);
         var isVis = hiddenProjectIds == null || !hiddenProjectIds.Contains(project.Id);
         var projectItem = new ExplorerTreeItem
         {
@@ -120,6 +128,10 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
             KindBadge = prjBadge,
             BadgeBackground = prjBg,
             BadgeForeground = prjFg,
+            LanguageBadgeText = langBadge,
+            LanguageBadgeBackground = langBg,
+            LanguageBadgeForeground = langFg,
+            LanguageTooltip = langTip,
             FilePath = ResolvePath(project.SemanticSymbol?.FilePath, projectFolderPath) ?? projectFolderPath
         };
 
@@ -311,5 +323,58 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
             SymbolKind.Enum => loc["Explorer_Group_Enums"],
             _ => loc["Explorer_Group_Other"]
         };
+    }
+
+    public static (string? Text, string? Background, string? Foreground, string? Tooltip) GetLanguageBadgeInfo(SourceLanguage lang) => lang switch
+    {
+        SourceLanguage.VisualBasic6 => ("VB6", "#2563EB", "#FFFFFF", "Visual Basic 6.0"),
+        SourceLanguage.CSharp => ("C#", "#7C3AED", "#FFFFFF", "C# (.NET)"),
+        SourceLanguage.CPlusPlus => ("C++", "#00599C", "#FFFFFF", "C / C++"),
+        SourceLanguage.Java => ("JAVA", "#EA580C", "#FFFFFF", "Java"),
+        SourceLanguage.Python => ("PY", "#3B82F6", "#FFFFFF", "Python"),
+        SourceLanguage.TypeScript => ("TS", "#3178C6", "#FFFFFF", "TypeScript"),
+        SourceLanguage.JavaScript => ("JS", "#F59E0B", "#FFFFFF", "JavaScript"),
+        _ => (null, null, null, null)
+    };
+
+    private static SourceLanguage DetectProjectLanguage(VisualCodeGraph graph, GraphNode project, string? projectFolderPath)
+    {
+        if (project.Language != SourceLanguage.Unknown)
+            return project.Language;
+
+        // Cerca nei nodi figli o associati al progetto
+        var projectChildren = graph.GetChildren(project.Id);
+        foreach (var child in projectChildren)
+        {
+            if (child.Language != SourceLanguage.Unknown)
+                return child.Language;
+        }
+
+        var projectNodes = graph.Nodes.Where(n => n.ProjectId == project.Id || n.ParentId == project.Id);
+        foreach (var node in projectNodes)
+        {
+            if (node.Language != SourceLanguage.Unknown)
+                return node.Language;
+        }
+
+        // Cerca dall'estensione del file di progetto o della cartella
+        var path = project.SemanticSymbol?.FilePath ?? projectFolderPath;
+        if (!string.IsNullOrEmpty(path))
+        {
+            var ext = Path.GetExtension(path).ToLowerInvariant();
+            return ext switch
+            {
+                ".vbp" or ".vbg" or ".frm" or ".bas" or ".cls" or ".ctl" => SourceLanguage.VisualBasic6,
+                ".csproj" or ".sln" or ".cs" => SourceLanguage.CSharp,
+                ".cpp" or ".c" or ".h" or ".hpp" or ".vcxproj" => SourceLanguage.CPlusPlus,
+                ".java" => SourceLanguage.Java,
+                ".py" => SourceLanguage.Python,
+                ".ts" => SourceLanguage.TypeScript,
+                ".js" => SourceLanguage.JavaScript,
+                _ => SourceLanguage.Unknown
+            };
+        }
+
+        return SourceLanguage.Unknown;
     }
 }

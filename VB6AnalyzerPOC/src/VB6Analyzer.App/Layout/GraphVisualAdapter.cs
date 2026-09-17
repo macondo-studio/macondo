@@ -63,12 +63,28 @@ public static class GraphVisualAdapter
         GraphNode defaultProjectNode;
         if (projectNodes.Count == 0)
         {
+            var defaultLang = semanticGraph.Symbols.Select(s => s.Language).FirstOrDefault(l => l != SourceLanguage.Unknown);
+            if (defaultLang == SourceLanguage.Unknown)
+            {
+                defaultLang = semanticGraph.Symbols
+                    .Select(s => s.FilePath)
+                    .Where(p => !string.IsNullOrEmpty(p))
+                    .Select(p => Path.GetExtension(p).ToLowerInvariant() switch
+                    {
+                        ".cs" or ".csproj" or ".sln" => SourceLanguage.CSharp,
+                        _ => SourceLanguage.VisualBasic6
+                    })
+                    .FirstOrDefault();
+                if (defaultLang == SourceLanguage.Unknown) defaultLang = SourceLanguage.VisualBasic6;
+            }
+
             defaultProjectNode = new GraphNode
             {
                 Id = ProjectRootId,
                 Name = projectName,
                 QualifiedName = projectName,
                 Kind = SymbolKind.Project,
+                Language = defaultLang,
                 IsExpanded = true
             };
             defaultProjectNode.ProjectId = defaultProjectNode.Id;

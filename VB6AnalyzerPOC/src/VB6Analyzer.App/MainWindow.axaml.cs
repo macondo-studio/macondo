@@ -2565,6 +2565,7 @@ public partial class MainWindow : Window
     {
         InspectorEmptyPanel.IsVisible = true;
         InspectorDetailsPanel.IsVisible = false;
+        UpdateStatusLanguage();
     }
 
     private async void SelectAndInspectNodeAsync(GraphNode node)
@@ -2593,6 +2594,23 @@ public partial class MainWindow : Window
 
         // Visibilità
         InspectorAccessibility.Text = sym != null ? sym.Accessibility.ToString() : "N/A";
+
+        // Linguaggio
+        var (langBadge, langBg, langFg, langTip) = ExplorerTreeItem.GetLanguageBadgeInfo(node.Language);
+        if (!string.IsNullOrEmpty(langBadge))
+        {
+            InspectorLanguageBadge.IsVisible = true;
+            InspectorLanguage.Text = langBadge;
+            InspectorLanguageBadge.Background = Avalonia.Media.Brush.Parse(langBg ?? "#2563EB");
+            InspectorLanguage.Foreground = Avalonia.Media.Brush.Parse(langFg ?? "#FFFFFF");
+            ToolTip.SetTip(InspectorLanguageBadge, langTip);
+        }
+        else
+        {
+            InspectorLanguageBadge.IsVisible = false;
+        }
+
+        UpdateStatusLanguage(node.Language);
 
         // Tipi
         if (sym != null && (sym.DeclaredTypeName != null || sym.ReturnType != null))
@@ -3117,6 +3135,67 @@ public partial class MainWindow : Window
         {
             StatusStats.Text = loc.Get("Status_StatsFormat", nodeCount, relCount, callCount, instCount);
         }
+
+        UpdateStatusLanguage();
+    }
+
+    private void UpdateStatusLanguage(SourceLanguage? selectedNodeLang = null)
+    {
+        if (selectedNodeLang.HasValue && selectedNodeLang.Value != SourceLanguage.Unknown)
+        {
+            var (badge, bg, fg, tip) = ExplorerTreeItem.GetLanguageBadgeInfo(selectedNodeLang.Value);
+            if (!string.IsNullOrEmpty(badge))
+            {
+                StatusLanguagePanel.IsVisible = true;
+                StatusLanguageText.Text = badge;
+                StatusLanguageBadge.Background = Avalonia.Media.Brush.Parse(bg ?? "#2563EB");
+                StatusLanguageText.Foreground = Avalonia.Media.Brush.Parse(fg ?? "#FFFFFF");
+                ToolTip.SetTip(StatusLanguageBadge, tip);
+                return;
+            }
+        }
+
+        // Altrimenti mostra i linguaggi del grafo/workspace complessivo
+        if (_graph?.Nodes != null && _graph.Nodes.Count > 0)
+        {
+            var distinctLangs = _graph.Nodes
+                .Select(n => n.Language)
+                .Where(l => l != SourceLanguage.Unknown)
+                .Distinct()
+                .ToList();
+
+            if (distinctLangs.Count == 1)
+            {
+                var (badge, bg, fg, tip) = ExplorerTreeItem.GetLanguageBadgeInfo(distinctLangs[0]);
+                if (!string.IsNullOrEmpty(badge))
+                {
+                    StatusLanguagePanel.IsVisible = true;
+                    StatusLanguageText.Text = badge;
+                    StatusLanguageBadge.Background = Avalonia.Media.Brush.Parse(bg ?? "#2563EB");
+                    StatusLanguageText.Foreground = Avalonia.Media.Brush.Parse(fg ?? "#FFFFFF");
+                    ToolTip.SetTip(StatusLanguageBadge, tip);
+                    return;
+                }
+            }
+            else if (distinctLangs.Count > 1)
+            {
+                var badges = distinctLangs
+                    .Select(l => ExplorerTreeItem.GetLanguageBadgeInfo(l).Text)
+                    .Where(t => !string.IsNullOrEmpty(t));
+                var text = string.Join(" + ", badges);
+                StatusLanguagePanel.IsVisible = true;
+                StatusLanguageText.Text = text;
+                StatusLanguageBadge.Background = Avalonia.Media.Brush.Parse("#4F46E5");
+                StatusLanguageText.Foreground = Avalonia.Media.Brush.Parse("#FFFFFF");
+                var tips = distinctLangs
+                    .Select(l => ExplorerTreeItem.GetLanguageBadgeInfo(l).Tooltip)
+                    .Where(t => !string.IsNullOrEmpty(t));
+                ToolTip.SetTip(StatusLanguageBadge, string.Join(", ", tips));
+                return;
+            }
+        }
+
+        StatusLanguagePanel.IsVisible = false;
     }
 
     #endregion
@@ -4472,6 +4551,7 @@ public partial class MainWindow : Window
         InspectorSecSymbol.Text = loc["Inspector_Sec_Symbol"];
         InspectorSecKind.Text = loc["Inspector_Sec_Kind"];
         InspectorSecVisibility.Text = loc["Inspector_Sec_Visibility"];
+        InspectorSecLanguage.Text = loc["Inspector_Sec_Language"];
         InspectorSecType.Text = loc["Inspector_Sec_Type"];
         InspectorSecParams.Text = loc["Inspector_Sec_Params"];
         InspectorSecFile.Text = loc["Inspector_Sec_File"];

@@ -463,6 +463,7 @@ public static class CSharpExtractor
 
         private void RegisterSymbol(Symbol symbol)
         {
+            symbol.Language = SourceLanguage.CSharp;
             _graph.Symbols.Add(symbol);
 
             if (_scopeStack.Count > 0)

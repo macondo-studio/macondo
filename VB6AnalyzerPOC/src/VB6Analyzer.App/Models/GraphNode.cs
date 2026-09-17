@@ -60,5 +60,45 @@ public sealed class GraphNode
     /// </summary>
     public bool IsExpanded { get; set; } = true;
 
+    private SourceLanguage? _language;
+
+    /// <summary>Linguaggio di programmazione sorgente del nodo (es. VB6, C#, C++, ecc.).</summary>
+    public SourceLanguage Language
+    {
+        get
+        {
+            if (_language.HasValue && _language.Value != SourceLanguage.Unknown)
+                return _language.Value;
+
+            if (SemanticSymbol != null && SemanticSymbol.Language != SourceLanguage.Unknown)
+                return SemanticSymbol.Language;
+
+            var detected = DetectLanguageFromPath();
+            if (detected != SourceLanguage.Unknown)
+                return detected;
+
+            return SourceLanguage.VisualBasic6;
+        }
+        set => _language = value;
+    }
+
+    private SourceLanguage DetectLanguageFromPath()
+    {
+        var path = SemanticSymbol?.FilePath;
+        if (string.IsNullOrEmpty(path)) return SourceLanguage.Unknown;
+        var ext = System.IO.Path.GetExtension(path);
+        return ext.ToLowerInvariant() switch
+        {
+            ".vbp" or ".vbg" or ".frm" or ".bas" or ".cls" or ".ctl" or ".pag" or ".dsx" or ".dob" => SourceLanguage.VisualBasic6,
+            ".csproj" or ".sln" or ".cs" => SourceLanguage.CSharp,
+            ".cpp" or ".c" or ".h" or ".hpp" or ".vcxproj" => SourceLanguage.CPlusPlus,
+            ".java" => SourceLanguage.Java,
+            ".py" => SourceLanguage.Python,
+            ".ts" => SourceLanguage.TypeScript,
+            ".js" => SourceLanguage.JavaScript,
+            _ => SourceLanguage.Unknown
+        };
+    }
+
     public override string ToString() => $"{Kind}: {QualifiedName}";
 }

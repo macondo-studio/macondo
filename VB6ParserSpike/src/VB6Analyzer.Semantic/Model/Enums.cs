@@ -56,6 +56,36 @@ public enum SymbolKind
 }
 
 /// <summary>
+/// Linguaggio di programmazione sorgente del simbolo o progetto.
+/// </summary>
+public enum SourceLanguage
+{
+    /// <summary>Linguaggio sconosciuto o non specificato.</summary>
+    Unknown,
+
+    /// <summary>Microsoft Visual Basic 6.0 / VBA legacy.</summary>
+    VisualBasic6,
+
+    /// <summary>C# (.NET / Roslyn).</summary>
+    CSharp,
+
+    /// <summary>C / C++.</summary>
+    CPlusPlus,
+
+    /// <summary>Java.</summary>
+    Java,
+
+    /// <summary>Python.</summary>
+    Python,
+
+    /// <summary>TypeScript.</summary>
+    TypeScript,
+
+    /// <summary>JavaScript.</summary>
+    JavaScript
+}
+
+/// <summary>
 /// Tipologie di relazioni / archi tra simboli nel CodeGraph.
 /// </summary>
 public enum RelationshipKind

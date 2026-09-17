@@ -51,6 +51,10 @@ public static class ProjectAnalysisService
 #if !DEBUG
             cancellationToken.ThrowIfCancellationRequested();
 #endif
+            var isCs = proj.SourceFiles.Any(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) ||
+                       (proj.ProjectFilePath != null && (proj.ProjectFilePath.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) || proj.ProjectFilePath.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)));
+            var projLang = isCs ? SourceLanguage.CSharp : SourceLanguage.VisualBasic6;
+
             var projSymbol = new Symbol
             {
                 Id = proj.Id,
@@ -58,6 +62,7 @@ public static class ProjectAnalysisService
                 Name = proj.Name,
                 QualifiedName = proj.Name,
                 FilePath = proj.ProjectFilePath ?? proj.FolderPath,
+                Language = projLang,
                 LineStart = 1,
                 LineEnd = 1
             };

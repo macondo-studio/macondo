@@ -68,5 +68,8 @@ public sealed class Symbol
     /// </summary>
     public bool IsNewInstance { get; set; }
 
+    /// <summary>Linguaggio di programmazione sorgente del simbolo (es. VB6, C#, C++, ecc.).</summary>
+    public SourceLanguage Language { get; set; } = SourceLanguage.VisualBasic6;
+
     public override string ToString() => $"{Accessibility} {Kind} {QualifiedName}{(DeclaredTypeName != null ? $" As {DeclaredTypeName}" : "")}";
 }

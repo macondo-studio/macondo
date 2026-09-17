@@ -67,6 +67,7 @@ public static class ModuleExtractor
             Name = moduleName,
             QualifiedName = moduleName,
             FilePath = filePath,
+            Language = SourceLanguage.VisualBasic6,
             LineStart = 1,
             LineEnd = 1
         };

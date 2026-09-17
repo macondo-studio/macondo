@@ -342,6 +342,7 @@ public sealed class LocalizationService
         ["Inspector_Sec_Symbol"] = "SIMBOLO",
         ["Inspector_Sec_Kind"] = "CATEGORIA",
         ["Inspector_Sec_Visibility"] = "VISIBILITÀ",
+        ["Inspector_Sec_Language"] = "LINGUAGGIO",
         ["Inspector_Sec_Type"] = "TIPO",
         ["Inspector_Sec_Params"] = "PARAMETRI FORMALI",
         ["Inspector_Sec_File"] = "FILE & RIGHE",
@@ -378,11 +379,11 @@ public sealed class LocalizationService
         ["Loading_BlastRadiusSub"] = "Analisi d'impatto e percorsi di chiamata per '{0}'",
         ["Loading_NodeAnalysisTitle"] = "Analisi del nodo in corso...",
         ["Loading_NodeAnalysisSub"] = "Esplorazione chiamanti e dipendenze per '{0}'",
-        ["Loading_AnalyzeProjectTitle"] = "Analisi del progetto VB6...",
+        ["Loading_AnalyzeProjectTitle"] = "Analisi del progetto ...",
         ["Loading_AnalyzeProjectSub"] = "Scansione ed estrazione da '{0}'...",
         ["Loading_ExportTitle"] = "Esportazione in corso...",
         ["Loading_ExportSub"] = "Generazione e salvataggio di '{0}' in corso...",
-        ["Loading_FixturesTitle"] = "Caricamento fixture VB6...",
+        ["Loading_FixturesTitle"] = "Caricamento fixture ...",
         ["Loading_FixturesSub"] = "Analisi semantica dei moduli fixture in corso...",
         ["Loading_ParsingFile"] = "Analisi ed estrazione: {0}",
         ["Loading_ResolvingTypes"] = "Risoluzione globale dei tipi in corso...",
@@ -401,9 +402,9 @@ public sealed class LocalizationService
         ["Export_ModalOk"] = "OK",
         ["Loading_Cancelling"] = "Annullamento in corso...",
         ["Status_AnalysisCancelled"] = "Analisi annullata dall'utente.",
-        ["Notification_AnalysisCompleted_Title"] = "Analisi VB6 completata",
+        ["Notification_AnalysisCompleted_Title"] = "Analisi completata",
         ["Notification_AnalysisCompleted_Message"] = "L'analisi di '{0}' è terminata con successo ({1} nodi estratti).",
-        ["Notification_FixturesCompleted_Message"] = "L'analisi delle fixture VB6 è terminata con successo ({0} nodi estratti).",
+        ["Notification_FixturesCompleted_Message"] = "L'analisi delle fixture è terminata con successo ({0} nodi estratti).",
 
         // Finestra Impostazioni
         ["Settings_Title"] = "Impostazioni",
@@ -513,7 +514,7 @@ public sealed class LocalizationService
         ["Legend_Instantiates"] = "Instantiates (New)",
 
         // Grafo Canvas
-        ["Graph_Placeholder"] = "Nessun CodeGraph caricato. Apri un progetto o una cartella VB6 dal menu File.",
+        ["Graph_Placeholder"] = "Nessun CodeGraph caricato. Apri un progetto o una cartella dal menu File.",
 
         // Barra di Stato & Statistiche
         ["Status_Ready"] = "Pronto.",
@@ -536,7 +537,7 @@ public sealed class LocalizationService
         ["Open_FileTypeCSharpSources"] = "File sorgente C# (*.cs)",
         ["Open_FileTypeProjects"] = "Progetti supportati (*.vbp, *.vbg, *.csproj, *.sln)",
         ["Open_FileTypeAll"] = "Tutti i file (*.*)",
-        ["Status_FixturesLoaded"] = "Suite di fixture VB6 analizzata con successo in memoria.",
+        ["Status_FixturesLoaded"] = "Suite di fixture analizzata con successo in memoria.",
         ["Status_FakeGraphGenerating"] = "Generazione del grafo sintetico (~500 nodi)...",
         ["Status_FakeGraphGenerated"] = "Grafo sintetico di benchmark (~500 nodi) generato con successo.",
         ["Status_AnalyzingSources"] = "Analisi di {0} sorgenti/progetti in corso...",
@@ -571,12 +572,12 @@ public sealed class LocalizationService
         ["Status_StartupEmptyReady"] = "Pronto. Seleziona un progetto o una cartella per iniziare.",
 
         // Schermata di Benvenuto (Welcome / Empty State View)
-        ["Welcome_Title"] = "Macondo - VB6 Code Analyzer",
+        ["Welcome_Title"] = "Macondo - Code Analyzer",
         ["Welcome_Subtitle"] = "Analisi semantica statica, grafo delle dipendenze e raggio d'impatto per progetti legacy Visual Basic 6.0",
         ["Welcome_QuickStart"] = "Inizia Subito",
         ["Welcome_OpenProject"] = "Apri Progetto o Gruppo...",
         ["Welcome_OpenProjectDesc"] = "Seleziona file .vbp o file gruppo .vbg",
-        ["Welcome_OpenFolder"] = "Apri Cartella VB6...",
+        ["Welcome_OpenFolder"] = "Apri Cartella ...",
         ["Welcome_OpenFolderDesc"] = "Scansiona un'intera cartella di codice sorgente",
         ["Welcome_LoadFixtures"] = "Carica Fixture Demo",
         ["Welcome_LoadFixturesDesc"] = "Esplora un set completo di classi e form di esempio",
@@ -1061,6 +1062,7 @@ public sealed class LocalizationService
         ["Inspector_Sec_Symbol"] = "SYMBOL",
         ["Inspector_Sec_Kind"] = "CATEGORY",
         ["Inspector_Sec_Visibility"] = "VISIBILITY",
+        ["Inspector_Sec_Language"] = "LANGUAGE",
         ["Inspector_Sec_Type"] = "TYPE",
         ["Inspector_Sec_Params"] = "FORMAL PARAMETERS",
         ["Inspector_Sec_File"] = "FILE & LINES",
@@ -1097,11 +1099,11 @@ public sealed class LocalizationService
         ["Loading_BlastRadiusSub"] = "Impact analysis and call paths for '{0}'",
         ["Loading_NodeAnalysisTitle"] = "Analyzing node in progress...",
         ["Loading_NodeAnalysisSub"] = "Exploring callers and dependencies for '{0}'",
-        ["Loading_AnalyzeProjectTitle"] = "Analyzing VB6 Project...",
+        ["Loading_AnalyzeProjectTitle"] = "Analyzing Project...",
         ["Loading_AnalyzeProjectSub"] = "Scanning and extracting symbols from '{0}'...",
         ["Loading_ExportTitle"] = "Exporting in progress...",
         ["Loading_ExportSub"] = "Generating and saving '{0}'...",
-        ["Loading_FixturesTitle"] = "Loading VB6 Fixtures...",
+        ["Loading_FixturesTitle"] = "Loading Fixtures...",
         ["Loading_FixturesSub"] = "Parsing fixture modules...",
         ["Loading_ParsingFile"] = "Parsing and extracting: {0}",
         ["Loading_ResolvingTypes"] = "Resolving global types across files...",
@@ -1120,9 +1122,9 @@ public sealed class LocalizationService
         ["Export_ModalOk"] = "OK",
         ["Loading_Cancelling"] = "Cancelling...",
         ["Status_AnalysisCancelled"] = "Analysis cancelled by user.",
-        ["Notification_AnalysisCompleted_Title"] = "VB6 Analysis Completed",
+        ["Notification_AnalysisCompleted_Title"] = "Analysis Completed",
         ["Notification_AnalysisCompleted_Message"] = "Analysis of '{0}' completed successfully ({1} nodes detected).",
-        ["Notification_FixturesCompleted_Message"] = "VB6 fixtures analysis completed successfully ({0} nodes detected).",
+        ["Notification_FixturesCompleted_Message"] = "Fixtures analysis completed successfully ({0} nodes detected).",
 
         // Settings Window
         ["Settings_Title"] = "Settings",
@@ -1232,7 +1234,7 @@ public sealed class LocalizationService
         ["Legend_Instantiates"] = "Instantiates (New)",
 
         // Graph Canvas
-        ["Graph_Placeholder"] = "No CodeGraph loaded. Open a VB6 project or folder from the File menu.",
+        ["Graph_Placeholder"] = "No CodeGraph loaded. Open a project or folder from the File menu.",
 
         // Status Bar & Stats
         ["Status_Ready"] = "Ready.",
@@ -1255,7 +1257,7 @@ public sealed class LocalizationService
         ["Open_FileTypeCSharpSources"] = "C# Source Files (*.cs)",
         ["Open_FileTypeProjects"] = "Supported Projects (*.vbp, *.vbg, *.csproj, *.sln)",
         ["Open_FileTypeAll"] = "All files (*.*)",
-        ["Status_FixturesLoaded"] = "VB6 fixtures suite successfully analyzed in memory.",
+        ["Status_FixturesLoaded"] = "Fixtures suite successfully analyzed in memory.",
         ["Status_FakeGraphGenerating"] = "Generating synthetic demo graph (~500 nodes)...",
         ["Status_FakeGraphGenerated"] = "Synthetic benchmark demo graph (~500 nodes) successfully generated.",
         ["Status_AnalyzingSources"] = "Analyzing {0} sources/projects in progress...",
@@ -1290,12 +1292,12 @@ public sealed class LocalizationService
         ["Status_StartupEmptyReady"] = "Ready. Select a project or folder to start.",
 
         // Welcome / Empty State View
-        ["Welcome_Title"] = "Macondo - VB6 Code Analyzer",
+        ["Welcome_Title"] = "Macondo - Code Analyzer",
         ["Welcome_Subtitle"] = "Static semantic analysis, dependency graph, and blast radius impact for legacy Visual Basic 6.0 projects",
         ["Welcome_QuickStart"] = "Quick Start",
         ["Welcome_OpenProject"] = "Open Project or Group...",
         ["Welcome_OpenProjectDesc"] = "Select .vbp project or .vbg group files",
-        ["Welcome_OpenFolder"] = "Open VB6 Folder...",
+        ["Welcome_OpenFolder"] = "Open Folder...",
         ["Welcome_OpenFolderDesc"] = "Scan an entire folder of source code",
         ["Welcome_LoadFixtures"] = "Load Demo Fixtures",
         ["Welcome_LoadFixturesDesc"] = "Explore a complete suite of sample forms and classes",
