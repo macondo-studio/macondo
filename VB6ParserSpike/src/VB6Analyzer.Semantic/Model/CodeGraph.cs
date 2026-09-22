@@ -4,8 +4,13 @@ namespace Macondo.Semantic.Model;
 /// Grafo del codice semantico in memoria (CodeGraph).
 /// 
 /// Rappresenta l'intero modello del codice analizzato: nodi (<see cref="Symbols"/>) ed archi orientati (<see cref="Relationships"/>).
-/// È progettato per aggregare molteplici moduli, classi e form di un intero progetto VB6 in un'unica struttura
+/// È progettato per aggregare molteplici moduli, classi e form di un intero progetto VB6/C# in un'unica struttura
 /// in RAM altamente interrogabile, indipendente da qualsiasi database o interfaccia utente.
+/// 
+/// OTTIMIZZAZIONI DI PERFORMANCE:
+/// - Deduplicazione delle relazioni in tempo costante O(1) tramite HashSet di chiavi (Source, Target, Kind).
+/// - Ricerca dei simboli per ID in tempo costante O(1) tramite dizionario indicizzato lazy/sincronizzato.
+/// - Recupero dei figli gerarchici (CONTAINS) in tempo costante O(1) tramite indice di adiacenza parent-child.
 /// </summary>
 public sealed class CodeGraph
 {
@@ -15,6 +20,92 @@ public sealed class CodeGraph
     /// <summary>Elenco completo di tutte le relazioni semantiche tra i simboli.</summary>
     public List<Relationship> Relationships { get; } = new();
 
+    // =========================================================================
+    // INDICI INTERNI AD ALTE PRESTAZIONI (O(1))
+    // =========================================================================
+
+    private readonly HashSet<(Guid SourceId, Guid TargetId, RelationshipKind Kind)> _relationshipKeys = new();
+    private readonly Dictionary<Guid, Symbol> _symbolsById = new();
+    private readonly Dictionary<Guid, List<Symbol>> _childrenByParentId = new();
+    private int _lastIndexedSymbolCount = -1;
+    private int _lastIndexedRelCount = -1;
+
+    /// <summary>
+    /// Sincronizza gli indici interni dei simboli se la lista <see cref="Symbols"/> è stata modificata direttamente.
+    /// </summary>
+    private void EnsureSymbolsIndexed()
+    {
+        if (_symbolsById.Count == Symbols.Count && _lastIndexedSymbolCount == Symbols.Count)
+            return;
+
+        _symbolsById.Clear();
+        foreach (var sym in Symbols)
+        {
+            _symbolsById[sym.Id] = sym;
+        }
+        _lastIndexedSymbolCount = Symbols.Count;
+    }
+
+    /// <summary>
+    /// Sincronizza l'indice gerarchico di contenimento se le relazioni sono state modificate.
+    /// </summary>
+    private void EnsureContainsIndexed()
+    {
+        EnsureSymbolsIndexed();
+
+        if (_lastIndexedRelCount == Relationships.Count)
+            return;
+
+        _childrenByParentId.Clear();
+        _relationshipKeys.Clear();
+
+        foreach (var rel in Relationships)
+        {
+            _relationshipKeys.Add((rel.SourceId, rel.TargetId, rel.Kind));
+
+            if (rel.Kind == RelationshipKind.Contains)
+            {
+                if (!_childrenByParentId.TryGetValue(rel.SourceId, out var list))
+                {
+                    list = new List<Symbol>();
+                    _childrenByParentId[rel.SourceId] = list;
+                }
+
+                if (_symbolsById.TryGetValue(rel.TargetId, out var childSym))
+                {
+                    list.Add(childSym);
+                }
+            }
+        }
+
+        _lastIndexedRelCount = Relationships.Count;
+    }
+
+    /// <summary>
+    /// Registra internamente una relazione mantenendo sincronizzato l'indice O(1) delle chiavi e del contenimento.
+    /// </summary>
+    private void RegisterRelationship(Relationship rel)
+    {
+        Relationships.Add(rel);
+        _relationshipKeys.Add((rel.SourceId, rel.TargetId, rel.Kind));
+        _lastIndexedRelCount = Relationships.Count;
+
+        if (rel.Kind == RelationshipKind.Contains)
+        {
+            EnsureSymbolsIndexed();
+            if (!_childrenByParentId.TryGetValue(rel.SourceId, out var list))
+            {
+                list = new List<Symbol>();
+                _childrenByParentId[rel.SourceId] = list;
+            }
+
+            if (_symbolsById.TryGetValue(rel.TargetId, out var childSym))
+            {
+                list.Add(childSym);
+            }
+        }
+    }
+
     /// <summary>
     /// Aggiunge una relazione strutturale gerarchica di contenimento (CONTAINS) tra un parent e un child.
     /// </summary>
@@ -23,7 +114,7 @@ public sealed class CodeGraph
     /// <param name="line">Numero di riga nel sorgente.</param>
     public void AddContains(Symbol parent, Symbol child, int? line = null)
     {
-        Relationships.Add(new Relationship
+        RegisterRelationship(new Relationship
         {
             SourceId = parent.Id,
             TargetId = child.Id,
@@ -42,7 +133,7 @@ public sealed class CodeGraph
     /// <param name="confidence">Grado di certezza della risoluzione (Exact, Inferred, Unknown).</param>
     public void AddCalls(Symbol caller, Symbol callee, int? line = null, ResolutionConfidence confidence = ResolutionConfidence.Exact)
     {
-        Relationships.Add(new Relationship
+        RegisterRelationship(new Relationship
         {
             SourceId = caller.Id,
             TargetId = callee.Id,
@@ -61,7 +152,7 @@ public sealed class CodeGraph
     /// <param name="confidence">Grado di certezza della risoluzione.</param>
     public void AddInstantiates(Symbol source, Symbol targetClass, int? line = null, ResolutionConfidence confidence = ResolutionConfidence.Exact)
     {
-        Relationships.Add(new Relationship
+        RegisterRelationship(new Relationship
         {
             SourceId = source.Id,
             TargetId = targetClass.Id,
@@ -73,6 +164,7 @@ public sealed class CodeGraph
 
     /// <summary>
     /// Aggiunge una relazione di gestione evento (HANDLES_EVENT) tra la sorgente dell'evento (Form, Controllo o Oggetto) e la routine gestore.
+    /// Deduplicazione istantanea O(1).
     /// </summary>
     /// <param name="source">La Form, Controllo o Oggetto che genera l'evento.</param>
     /// <param name="eventHandler">La procedura Sub che gestisce l'evento.</param>
@@ -80,10 +172,12 @@ public sealed class CodeGraph
     /// <param name="confidence">Grado di certezza della risoluzione.</param>
     public void AddHandlesEvent(Symbol source, Symbol eventHandler, int? line = null, ResolutionConfidence confidence = ResolutionConfidence.Exact)
     {
-        if (Relationships.Any(r => r.Kind == RelationshipKind.HandlesEvent && r.SourceId == source.Id && r.TargetId == eventHandler.Id))
+        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+        if (_relationshipKeys.Contains((source.Id, eventHandler.Id, RelationshipKind.HandlesEvent)))
             return;
 
-        Relationships.Add(new Relationship
+        RegisterRelationship(new Relationship
         {
             SourceId = source.Id,
             TargetId = eventHandler.Id,
@@ -95,13 +189,16 @@ public sealed class CodeGraph
 
     /// <summary>
     /// Aggiunge una relazione di ereditarietà (INHERITS) da una classe/tipo derivato verso la classe base.
+    /// Deduplicazione istantanea O(1).
     /// </summary>
     public void AddInherits(Symbol derivedType, Symbol baseType, int? line = null)
     {
-        if (Relationships.Any(r => r.Kind == RelationshipKind.Inherits && r.SourceId == derivedType.Id && r.TargetId == baseType.Id))
+        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+        if (_relationshipKeys.Contains((derivedType.Id, baseType.Id, RelationshipKind.Inherits)))
             return;
 
-        Relationships.Add(new Relationship
+        RegisterRelationship(new Relationship
         {
             SourceId = derivedType.Id,
             TargetId = baseType.Id,
@@ -113,13 +210,16 @@ public sealed class CodeGraph
 
     /// <summary>
     /// Aggiunge una relazione di implementazione di interfaccia (IMPLEMENTS) tra una classe/struttura e l'interfaccia.
+    /// Deduplicazione istantanea O(1).
     /// </summary>
     public void AddImplements(Symbol implementingType, Symbol interfaceType, int? line = null)
     {
-        if (Relationships.Any(r => r.Kind == RelationshipKind.Implements && r.SourceId == implementingType.Id && r.TargetId == interfaceType.Id))
+        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+        if (_relationshipKeys.Contains((implementingType.Id, interfaceType.Id, RelationshipKind.Implements)))
             return;
 
-        Relationships.Add(new Relationship
+        RegisterRelationship(new Relationship
         {
             SourceId = implementingType.Id,
             TargetId = interfaceType.Id,
@@ -131,17 +231,19 @@ public sealed class CodeGraph
 
     /// <summary>
     /// Aggiunge una relazione di dipendenza di tipo (USES_TYPE) da un simbolo verso il tipo utilizzato.
+    /// Deduplicazione istantanea O(1).
     /// </summary>
     /// <param name="source">Il simbolo che dichiara o usa il tipo (variabile, routine, modulo).</param>
     /// <param name="targetType">Il simbolo del tipo utilizzato (Class, UDT, Enum, Form).</param>
     /// <param name="line">Numero di riga nel sorgente.</param>
     public void AddUsesType(Symbol source, Symbol targetType, int? line = null)
     {
-        // Evita duplicati identici se già presente
-        if (Relationships.Any(r => r.Kind == RelationshipKind.UsesType && r.SourceId == source.Id && r.TargetId == targetType.Id))
+        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+        if (_relationshipKeys.Contains((source.Id, targetType.Id, RelationshipKind.UsesType)))
             return;
 
-        Relationships.Add(new Relationship
+        RegisterRelationship(new Relationship
         {
             SourceId = source.Id,
             TargetId = targetType.Id,
@@ -153,16 +255,22 @@ public sealed class CodeGraph
 
     /// <summary>
     /// Restituisce tutti i simboli figli direttamente contenuti all'interno del simbolo specificato.
+    /// Esecuzione istantanea O(1) tramite indice di adiacenza gerarchico.
     /// </summary>
     /// <param name="parentId">ID del simbolo padre.</param>
-    public IEnumerable<Symbol> GetChildren(Guid parentId) =>
-        Relationships
-            .Where(r => r.Kind == RelationshipKind.Contains && r.SourceId == parentId)
-            .Select(r => Symbols.First(s => s.Id == r.TargetId));
+    public IEnumerable<Symbol> GetChildren(Guid parentId)
+    {
+        EnsureContainsIndexed();
+        return _childrenByParentId.TryGetValue(parentId, out var children) ? children : Enumerable.Empty<Symbol>();
+    }
 
     /// <summary>
     /// Recupera un simbolo dal grafo tramite il suo ID univoco.
+    /// Esecuzione istantanea O(1) tramite dizionario indicizzato.
     /// </summary>
-    public Symbol? FindSymbolById(Guid id) =>
-        Symbols.FirstOrDefault(s => s.Id == id);
+    public Symbol? FindSymbolById(Guid id)
+    {
+        EnsureSymbolsIndexed();
+        return _symbolsById.TryGetValue(id, out var symbol) ? symbol : null;
+    }
 }

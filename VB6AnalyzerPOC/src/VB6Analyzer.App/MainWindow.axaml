@@ -1353,7 +1353,7 @@
                             <TextBlock x:Name="GridTabHeader" Text="Griglia Blast Radius" VerticalAlignment="Center" />
                         </StackPanel>
                     </TabItem.Header>
-                    <Grid RowDefinitions="Auto,*">
+                    <Grid RowDefinitions="Auto,Auto,*">
                         <!-- Toolbar della Griglia: Filtri e Statistiche -->
                         <Border x:Name="GridToolbarBorder" Grid.Row="0"
                                 Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
@@ -1404,8 +1404,16 @@
                             </Grid>
                         </Border>
 
+                        <!-- Barra di avanzamento calcolo Audit Blast Radius -->
+                        <ProgressBar Grid.Row="1" x:Name="GridLoadingProgressBar"
+                                     Height="3"
+                                     Minimum="0" Maximum="100" Value="0"
+                                     Foreground="#4AE8D0"
+                                     Background="Transparent"
+                                     IsVisible="False" />
+
                         <!-- Tabella Risultati Blast Radius (DataGrid) -->
-                        <DataGrid Grid.Row="1" x:Name="BlastRadiusDataGrid"
+                        <DataGrid Grid.Row="2" x:Name="BlastRadiusDataGrid"
                                   x:DataType="models:BlastRadiusGridRow"
                                   AutoGenerateColumns="False"
                                   IsReadOnly="True"
@@ -1705,10 +1713,18 @@
 
         <!-- Barra di Stato Inferiore -->
         <Border x:Name="StatusBarBorder" Grid.Row="3" Background="{DynamicResource ThemeBackgroundSecondaryBrush}" Padding="12,5" BorderBrush="{DynamicResource ThemeBorderDefaultBrush}" BorderThickness="0,1,0,0">
-            <Grid ColumnDefinitions="*,Auto,Auto">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                 <TextBlock Grid.Column="0" x:Name="StatusText" Text="Pronto." Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 <TextBlock Grid.Column="1" x:Name="StatusStats" Text="Nodi: 0 | Relazioni: 0" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="11" VerticalAlignment="Center" />
-                <StackPanel Grid.Column="2" x:Name="StatusLanguagePanel" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="12,0,0,0" IsVisible="False">
+                
+                <!-- Barra di avanzamento per il pre-calcolo delle viste analitiche in background -->
+                <StackPanel Grid.Column="2" x:Name="BackgroundAnalyticsPanel" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="14,0,0,0" IsVisible="False">
+                    <Rectangle Width="1" Height="12" Fill="{DynamicResource ThemeBorderDefaultBrush}" VerticalAlignment="Center" />
+                    <ProgressBar x:Name="BackgroundAnalyticsProgressBar" Width="90" Height="5" Minimum="0" Maximum="10" Value="0" VerticalAlignment="Center" CornerRadius="2.5" />
+                    <TextBlock x:Name="BackgroundAnalyticsText" Text="Analisi viste... 0/10" Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="10" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" x:Name="StatusLanguagePanel" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="12,0,0,0" IsVisible="False">
                     <Rectangle Width="1" Height="12" Fill="{DynamicResource ThemeBorderDefaultBrush}" VerticalAlignment="Center" />
                     <Border x:Name="StatusLanguageBadge"
                             CornerRadius="3"

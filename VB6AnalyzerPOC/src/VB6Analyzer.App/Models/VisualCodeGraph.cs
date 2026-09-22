@@ -20,6 +20,7 @@ public sealed class VisualCodeGraph
     public CallGraphQueries? Queries { get; set; }
 
     private Dictionary<Guid, GraphNode>? _nodesById;
+    private Dictionary<Guid, List<GraphNode>>? _childrenByParentId;
 
     /// <summary>Recupera un nodo del grafo tramite il suo ID univoco.</summary>
     public GraphNode? GetNode(Guid id)
@@ -28,15 +29,37 @@ public sealed class VisualCodeGraph
         return _nodesById.TryGetValue(id, out var node) ? node : null;
     }
 
-    /// <summary>Restituisce i nodi figli contenuti direttamente nel nodo specificato.</summary>
-    public IEnumerable<GraphNode> GetChildren(Guid parentId) =>
-        Nodes.Where(n => n.ParentId == parentId);
+    /// <summary>
+    /// Restituisce i nodi figli contenuti direttamente nel nodo specificato.
+    /// Esecuzione istantanea O(1) tramite indice gerarchico interno memorizzato nella cache.
+    /// </summary>
+    public IEnumerable<GraphNode> GetChildren(Guid parentId)
+    {
+        if (_childrenByParentId == null)
+        {
+            _childrenByParentId = new Dictionary<Guid, List<GraphNode>>();
+            foreach (var node in Nodes)
+            {
+                if (node.ParentId.HasValue)
+                {
+                    if (!_childrenByParentId.TryGetValue(node.ParentId.Value, out var list))
+                    {
+                        list = new List<GraphNode>();
+                        _childrenByParentId[node.ParentId.Value] = list;
+                    }
+                    list.Add(node);
+                }
+            }
+        }
 
+        return _childrenByParentId.TryGetValue(parentId, out var children) ? children : Enumerable.Empty<GraphNode>();
+    }
 
-    /// <summary>Invalida la cache degli ID e delle query dopo modifiche alla struttura del grafo.</summary>
+    /// <summary>Invalida la cache degli ID, dell'albero gerarchico e delle query dopo modifiche alla struttura del grafo.</summary>
     public void Invalidate()
     {
         _nodesById = null;
+        _childrenByParentId = null;
         Queries?.ClearCache();
     }
 }

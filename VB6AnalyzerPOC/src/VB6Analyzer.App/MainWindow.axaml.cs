@@ -1220,7 +1220,7 @@ public partial class MainWindow : Window
         UpdateStatsBar();
         SyncFilterUiState();
 
-        UpdateAnalyticsViews();
+        InvalidateAnalyticsViews();
 
         if (precalculatedRows != null && precalculatedRows.Count > 0)
         {
@@ -1416,54 +1416,472 @@ public partial class MainWindow : Window
         }
     }
 
+    // Insieme dei Tab analitici i cui dataset necessitano di ricalcolo lazy o in background
+    private readonly HashSet<object> _dirtyAnalyticsTabs = new();
+    private CancellationTokenSource? _analyticsCts;
+
     /// <summary>
-    /// Ricalcola e aggiorna tutte le viste analitiche (DSM, Treemap, Hotspots, Screen Flow)
-    /// tenendo conto dei progetti attualmente visibili (escludendo i progetti disattivati).
+    /// Restituisce il grafo semantico target tenendo conto dei soli progetti attualmente visibili nel workspace.
     /// </summary>
-    private void UpdateAnalyticsViews()
+    private CodeGraph GetTargetSemanticGraph()
     {
-        if (_graph?.SemanticGraph is null) return;
+        if (_graph?.SemanticGraph is null) return new CodeGraph();
 
         var semGraph = _graph.SemanticGraph;
         var hiddenIds = Graph.HiddenProjectIds;
 
-        CodeGraph targetGraph;
-        if (hiddenIds.Count > 0)
-        {
-            var hiddenSymbolIds = _graph.Nodes
-                .Where(n => (n.ProjectId.HasValue && hiddenIds.Contains(n.ProjectId.Value)) ||
-                            (n.Kind == SymbolKind.Project && hiddenIds.Contains(n.Id)))
-                .Select(n => n.Id)
-                .ToHashSet();
+        if (hiddenIds.Count == 0)
+            return semGraph;
 
-            targetGraph = new CodeGraph();
-            foreach (var s in semGraph.Symbols)
-            {
-                if (!hiddenSymbolIds.Contains(s.Id))
-                    targetGraph.Symbols.Add(s);
-            }
-            foreach (var r in semGraph.Relationships)
-            {
-                if (!hiddenSymbolIds.Contains(r.SourceId) && !hiddenSymbolIds.Contains(r.TargetId))
-                    targetGraph.Relationships.Add(r);
-            }
-        }
-        else
+        var hiddenSymbolIds = _graph.Nodes
+            .Where(n => (n.ProjectId.HasValue && hiddenIds.Contains(n.ProjectId.Value)) ||
+                        (n.Kind == SymbolKind.Project && hiddenIds.Contains(n.Id)))
+            .Select(n => n.Id)
+            .ToHashSet();
+
+        var targetGraph = new CodeGraph();
+        foreach (var s in semGraph.Symbols)
         {
-            targetGraph = semGraph;
+            if (!hiddenSymbolIds.Contains(s.Id))
+                targetGraph.Symbols.Add(s);
+        }
+        foreach (var r in semGraph.Relationships)
+        {
+            if (!hiddenSymbolIds.Contains(r.SourceId) && !hiddenSymbolIds.Contains(r.TargetId))
+                targetGraph.Relationships.Add(r);
         }
 
-        Dsm.Matrix = DsmMatrixBuilder.Build(targetGraph);
-        Treemap.RootItem = TreemapModelBuilder.Build(targetGraph);
-        Hotspot.Dataset = HotspotAnalyzer.Analyze(targetGraph);
-        ScreenFlow.Graph = ScreenFlowBuilder.Build(targetGraph);
-        MartinMetrics.Dataset = MartinMetricsCalculator.Analyze(targetGraph);
-        DeadCode.Dataset = DeadCodeAnalyzer.Analyze(targetGraph);
-        SharedState.Dataset = SharedStateAnalyzer.Analyze(targetGraph);
-        var commitChangelists = GitService.Instance.GetCommitFileChangelists(_currentFolderPath);
-        TemporalCoupling.Dataset = TemporalCouplingAnalyzer.Analyze(commitChangelists, targetGraph, _currentFolderPath);
-        ArchitecturalFlow.Dataset = ArchitecturalFlowAnalyzer.Analyze(targetGraph);
-        CodeCity.Dataset = CodeCityBuilder.Build(targetGraph);
+        return targetGraph;
+    }
+
+    /// <summary>
+    /// Marca tutte le viste analitiche secondarie come non aggiornate (dirty) e avvia
+    /// immediatamente la pre-elaborazione in background (su thread pool a bassa priorità).
+    /// In questo modo:
+    /// 1. Il thread UI mostra il grafo visuale e l'albero file a 0 ms di ritardo (nessun blocco o freeze).
+    /// 2. I vari tab analitici (DSM, Treemap, Martin, Dead Code, Screen Flow, ecc.) vengono pre-calcolati
+    ///    silenziosamente in background nei secondi successivi.
+    /// 3. Se l'utente clicca su un tab già completato dal worker in background, l'apertura è istantanea (0 ms).
+    /// 4. Se l'utente clicca immediatamente su un tab prima che il worker vi sia arrivato, il calcolo viene eseguito
+    ///    just-in-time su quel singolo tab.
+    /// </summary>
+    private void InvalidateAnalyticsViews()
+    {
+        // Cancella eventuali elaborazioni in background ancora in corso per il workspace precedente
+        _analyticsCts?.Cancel();
+        _analyticsCts?.Dispose();
+        _analyticsCts = new CancellationTokenSource();
+
+        _dirtyAnalyticsTabs.Clear();
+        if (DsmTabItem != null) _dirtyAnalyticsTabs.Add(DsmTabItem);
+        if (TreemapTabItem != null) _dirtyAnalyticsTabs.Add(TreemapTabItem);
+        if (HotspotTabItem != null) _dirtyAnalyticsTabs.Add(HotspotTabItem);
+        if (ScreenFlowTabItem != null) _dirtyAnalyticsTabs.Add(ScreenFlowTabItem);
+        if (MartinTabItem != null) _dirtyAnalyticsTabs.Add(MartinTabItem);
+        if (DeadCodeTabItem != null) _dirtyAnalyticsTabs.Add(DeadCodeTabItem);
+        if (SharedStateTabItem != null) _dirtyAnalyticsTabs.Add(SharedStateTabItem);
+        if (TemporalCouplingTabItem != null) _dirtyAnalyticsTabs.Add(TemporalCouplingTabItem);
+        if (ArchitecturalFlowTabItem != null) _dirtyAnalyticsTabs.Add(ArchitecturalFlowTabItem);
+        if (CodeCityTabItem != null) _dirtyAnalyticsTabs.Add(CodeCityTabItem);
+
+        // Se l'utente si trova già su un tab analitico secondario (es. non la vista grafo), calcolalo subito
+        EnsureActiveTabAnalyticsLoaded();
+
+        // Avvia la pipeline di pre-calcolo in background per tutti i rimanenti tab
+        StartBackgroundAnalyticsPrecomputation(_analyticsCts.Token);
+    }
+
+    /// <summary>
+    /// Pipeline in background per pre-calcolare i dataset di tutti i tab analitici senza bloccare l'interfaccia,
+    /// aggiornando in tempo reale la barra di avanzamento visibile nella barra di stato in basso a destra.
+    /// </summary>
+    private void StartBackgroundAnalyticsPrecomputation(CancellationToken token)
+    {
+        if (_graph?.SemanticGraph is null)
+        {
+            if (BackgroundAnalyticsPanel != null) BackgroundAnalyticsPanel.IsVisible = false;
+            return;
+        }
+
+        var targetGraph = GetTargetSemanticGraph();
+        var folder = _currentFolderPath;
+        const int totalAnalyticsSteps = 10;
+
+        // Inizializza e mostra la barra di avanzamento nella status bar
+        if (BackgroundAnalyticsPanel != null)
+        {
+            BackgroundAnalyticsPanel.IsVisible = true;
+            BackgroundAnalyticsProgressBar.Minimum = 0;
+            BackgroundAnalyticsProgressBar.Maximum = totalAnalyticsSteps;
+            BackgroundAnalyticsProgressBar.Value = 0;
+            BackgroundAnalyticsText.Text = LocalizationService.Instance.Get("Status_BackgroundAnalyticsProgress", 0, totalAnalyticsSteps);
+        }
+
+        _ = Task.Run(async () =>
+        {
+            int completedCount = 0;
+
+            void ReportStepCompletion()
+            {
+                var done = Interlocked.Increment(ref completedCount);
+                if (token.IsCancellationRequested) return;
+
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    if (token.IsCancellationRequested || BackgroundAnalyticsPanel == null) return;
+
+                    BackgroundAnalyticsProgressBar.Value = done;
+                    BackgroundAnalyticsText.Text = LocalizationService.Instance.Get("Status_BackgroundAnalyticsProgress", done, totalAnalyticsSteps);
+
+                    // Al completamento di tutti i tab, visualizza brevemente lo stato completato e poi nasconde la barra
+                    if (done >= totalAnalyticsSteps)
+                    {
+                        BackgroundAnalyticsText.Text = LocalizationService.Instance["Status_BackgroundAnalyticsCompleted"];
+                        _ = Task.Delay(1500, token).ContinueWith(_ =>
+                        {
+                            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                            {
+                                if (!token.IsCancellationRequested && BackgroundAnalyticsPanel != null)
+                                {
+                                    BackgroundAnalyticsPanel.IsVisible = false;
+                                }
+                            });
+                        }, TaskScheduler.Default);
+                    }
+                });
+            }
+
+            // 1. Matrice DSM
+            if (!token.IsCancellationRequested)
+            {
+                if (_dirtyAnalyticsTabs.Contains(DsmTabItem))
+                {
+                    var matrix = DsmMatrixBuilder.Build(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(DsmTabItem))
+                            {
+                                Dsm.Matrix = matrix;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 2. Treemap
+            if (!token.IsCancellationRequested)
+            {
+                if (_dirtyAnalyticsTabs.Contains(TreemapTabItem))
+                {
+                    var treemap = TreemapModelBuilder.Build(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(TreemapTabItem))
+                            {
+                                Treemap.RootItem = treemap;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 3. Hotspots di Rischio
+            if (!token.IsCancellationRequested)
+            {
+                if (_dirtyAnalyticsTabs.Contains(HotspotTabItem))
+                {
+                    var hotspot = HotspotAnalyzer.Analyze(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(HotspotTabItem))
+                            {
+                                Hotspot.Dataset = hotspot;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 4. Martin Metrics
+            if (!token.IsCancellationRequested)
+            {
+                if (_dirtyAnalyticsTabs.Contains(MartinTabItem))
+                {
+                    var martin = MartinMetricsCalculator.Analyze(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(MartinTabItem))
+                            {
+                                MartinMetrics.Dataset = martin;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 5. Dead Code e Componenti Orfani
+            if (!token.IsCancellationRequested)
+            {
+                if (_dirtyAnalyticsTabs.Contains(DeadCodeTabItem))
+                {
+                    var deadCode = DeadCodeAnalyzer.Analyze(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(DeadCodeTabItem))
+                            {
+                                DeadCode.Dataset = deadCode;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 6. Flusso Schermate (Screen Flow)
+            if (!token.IsCancellationRequested)
+            {
+                if (_dirtyAnalyticsTabs.Contains(ScreenFlowTabItem))
+                {
+                    var screenFlow = ScreenFlowBuilder.Build(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(ScreenFlowTabItem))
+                            {
+                                ScreenFlow.Graph = screenFlow;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 7. Stato Globale Condiviso
+            if (!token.IsCancellationRequested)
+            {
+                if (_dirtyAnalyticsTabs.Contains(SharedStateTabItem))
+                {
+                    var sharedState = SharedStateAnalyzer.Analyze(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(SharedStateTabItem))
+                            {
+                                SharedState.Dataset = sharedState;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 8. Flussi Architetturali (Chord Diagram)
+            if (!token.IsCancellationRequested)
+            {
+                if (_dirtyAnalyticsTabs.Contains(ArchitecturalFlowTabItem))
+                {
+                    var archFlow = ArchitecturalFlowAnalyzer.Analyze(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(ArchitecturalFlowTabItem))
+                            {
+                                ArchitecturalFlow.Dataset = archFlow;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 9. CodeCity 3D / Isometrica
+            if (!token.IsCancellationRequested)
+            {
+                if (_dirtyAnalyticsTabs.Contains(CodeCityTabItem))
+                {
+                    var codeCity = CodeCityBuilder.Build(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(CodeCityTabItem))
+                            {
+                                CodeCity.Dataset = codeCity;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 10. Temporal Coupling (Analisi Cronologia Git su Disco)
+            if (!token.IsCancellationRequested)
+            {
+                if (_dirtyAnalyticsTabs.Contains(TemporalCouplingTabItem))
+                {
+                    var commitChangelists = GitService.Instance.GetCommitFileChangelists(folder);
+                    var dataset = TemporalCouplingAnalyzer.Analyze(commitChangelists, targetGraph, folder);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(TemporalCouplingTabItem))
+                            {
+                                TemporalCoupling.Dataset = dataset;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+        }, token);
+    }
+
+    /// <summary>
+    /// Esegue il calcolo asincrono on-demand (Lazy) per il tab analitico correntemente selezionato
+    /// qualora sia contrassegnato come dirty e non ancora pre-elaborato in background.
+    /// Esegue il lavoro su Task.Run in background per garantire che il thread UI rimanga sempre reattivo a 60 FPS.
+    /// </summary>
+    private void EnsureActiveTabAnalyticsLoaded()
+    {
+        if (_graph?.SemanticGraph is null || CentralTabControl == null) return;
+
+        var selectedItem = CentralTabControl.SelectedItem;
+        if (selectedItem == null || !_dirtyAnalyticsTabs.Contains(selectedItem))
+            return;
+
+        var targetGraph = GetTargetSemanticGraph();
+        _dirtyAnalyticsTabs.Remove(selectedItem);
+
+        if (selectedItem == DsmTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var matrix = DsmMatrixBuilder.Build(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    Dsm.Matrix = matrix;
+                });
+            });
+        }
+        else if (selectedItem == TreemapTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var treemap = TreemapModelBuilder.Build(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    Treemap.RootItem = treemap;
+                });
+            });
+        }
+        else if (selectedItem == HotspotTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var hotspot = HotspotAnalyzer.Analyze(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    Hotspot.Dataset = hotspot;
+                });
+            });
+        }
+        else if (selectedItem == ScreenFlowTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var screenFlow = ScreenFlowBuilder.Build(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    ScreenFlow.Graph = screenFlow;
+                });
+            });
+        }
+        else if (selectedItem == MartinTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var martin = MartinMetricsCalculator.Analyze(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    MartinMetrics.Dataset = martin;
+                });
+            });
+        }
+        else if (selectedItem == DeadCodeTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var deadCode = DeadCodeAnalyzer.Analyze(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    DeadCode.Dataset = deadCode;
+                });
+            });
+        }
+        else if (selectedItem == SharedStateTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var sharedState = SharedStateAnalyzer.Analyze(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    SharedState.Dataset = sharedState;
+                });
+            });
+        }
+        else if (selectedItem == ArchitecturalFlowTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var flow = ArchitecturalFlowAnalyzer.Analyze(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    ArchitecturalFlow.Dataset = flow;
+                });
+            });
+        }
+        else if (selectedItem == CodeCityTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var city = CodeCityBuilder.Build(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    CodeCity.Dataset = city;
+                });
+            });
+        }
+        else if (selectedItem == TemporalCouplingTabItem)
+        {
+            var folder = _currentFolderPath;
+            _ = Task.Run(() =>
+            {
+                var commitChangelists = GitService.Instance.GetCommitFileChangelists(folder);
+                var dataset = TemporalCouplingAnalyzer.Analyze(commitChangelists, targetGraph, folder);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    TemporalCoupling.Dataset = dataset;
+                });
+            });
+        }
     }
 
     /// <summary>
@@ -1589,7 +2007,7 @@ public partial class MainWindow : Window
         UpdateProjectsBadgeText();
         UpdateStatsBar();
         ApplyGridFilters();
-        UpdateAnalyticsViews();
+        InvalidateAnalyticsViews();
     }
 
     private void OnProjectsSelectAllClicked(object? sender, RoutedEventArgs e)
@@ -2854,7 +3272,12 @@ public partial class MainWindow : Window
 
     private void OnCentralTabSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (e.Source == CentralTabControl && CentralTabControl.SelectedItem == GridTabItem && _selectedNode != null)
+        if (e.Source != CentralTabControl) return;
+
+        // Calcola e carica i dati del tab solo quando l'utente vi accede per la prima volta (Lazy Analytics)
+        EnsureActiveTabAnalyticsLoaded();
+
+        if (CentralTabControl.SelectedItem == GridTabItem && _selectedNode != null)
         {
             var matchingRow = _allBlastRadiusRows.FirstOrDefault(r => r.NodeId == _selectedNode.Id);
             if (matchingRow != null && BlastRadiusDataGrid.SelectedItem != matchingRow)
@@ -2880,6 +3303,7 @@ public partial class MainWindow : Window
             _allBlastRadiusRows = new();
             if (BlastRadiusDataGrid != null) BlastRadiusDataGrid.ItemsSource = null;
             if (GridStatsTextBlock != null) GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_StatsFormat", 0, 0);
+            if (GridLoadingProgressBar != null) GridLoadingProgressBar.IsVisible = false;
             return;
         }
 
@@ -2893,16 +3317,39 @@ public partial class MainWindow : Window
                         (n.SemanticSymbol.Kind == SymbolKind.Method || n.SemanticSymbol.Kind == SymbolKind.Property))
             .ToList();
 
+        if (routineNodes.Count == 0)
+        {
+            _allBlastRadiusRows = new();
+            if (BlastRadiusDataGrid != null) BlastRadiusDataGrid.ItemsSource = null;
+            if (GridStatsTextBlock != null) GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_StatsFormat", 0, 0);
+            if (GridLoadingProgressBar != null) GridLoadingProgressBar.IsVisible = false;
+            return;
+        }
+
+        // Mostra e configura la barra di avanzamento del calcolo
+        if (GridLoadingProgressBar != null)
+        {
+            GridLoadingProgressBar.Minimum = 0;
+            GridLoadingProgressBar.Maximum = routineNodes.Count;
+            GridLoadingProgressBar.Value = 0;
+            GridLoadingProgressBar.IsVisible = true;
+        }
+
         if (GridStatsTextBlock != null)
             GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_Calculating", routineNodes.Count);
 
         try
         {
+            var totalCount = routineNodes.Count;
+            var processedCount = 0;
+            var lastReportTime = DateTime.UtcNow;
+
             var rows = await Task.Run(() =>
             {
-                var result = new List<BlastRadiusGridRow>(routineNodes.Count);
-                foreach (var node in routineNodes)
+                var result = new List<BlastRadiusGridRow>(totalCount);
+                for (int i = 0; i < totalCount; i++)
                 {
+                    var node = routineNodes[i];
                     var sym = node.SemanticSymbol!;
                     var report = queries.GetImpactReport(sym);
                     string containerName = "(globale)";
@@ -2934,6 +3381,28 @@ public partial class MainWindow : Window
                         AffectedFormsSummary = affectedForms.Count > 0 ? string.Join(", ", affectedForms) : "-",
                         TotalImpactedCount = report.DirectCallers.Count + report.IndirectCallers.Count + report.AffectedForms.Count + report.AffectedClasses.Count + report.AffectedModules.Count
                     });
+
+                    processedCount++;
+
+                    // Notifica periodica dell'avanzamento sulla UI
+                    var now = DateTime.UtcNow;
+                    if (processedCount % 25 == 0 || (now - lastReportTime).TotalMilliseconds >= 100 || processedCount == totalCount)
+                    {
+                        lastReportTime = now;
+                        var current = processedCount;
+                        var percent = (int)((double)current / totalCount * 100);
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (GridLoadingProgressBar != null && GridLoadingProgressBar.IsVisible)
+                            {
+                                GridLoadingProgressBar.Value = current;
+                            }
+                            if (GridStatsTextBlock != null)
+                            {
+                                GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_CalculatingProgress", current, totalCount, percent);
+                            }
+                        });
+                    }
                 }
 
                 // Ordinamento predefinito: Rischio decrescente (Critical -> High -> Medium -> Low), poi Impatto Totale decrescente
@@ -2955,6 +3424,13 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             StatusText.Text = LocalizationService.Instance.Get("Status_ErrorGridCalc", ex.Message);
+        }
+        finally
+        {
+            if (GridLoadingProgressBar != null)
+            {
+                GridLoadingProgressBar.IsVisible = false;
+            }
         }
     }
 

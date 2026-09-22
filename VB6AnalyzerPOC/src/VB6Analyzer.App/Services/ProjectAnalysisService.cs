@@ -83,68 +83,99 @@ public static class ProjectAnalysisService
                 : LocalizationService.Instance["Loading_ResolvingTypes"]
         });
 
+        // 2. Estrazione AST e simboli multi-core (Parallel.ForEach)
+        // Raccoglie tutti i file con il rispettivo descrittore di progetto
+        var fileWorkItems = projects
+            .SelectMany(p => p.SourceFiles.Select(f => (Project: p, ProjSymbol: projectSymbols[p.Id], FilePath: f)))
+            .ToList();
+
+        // Strutture concorrenti per raccogliere i risultati dai vari worker thread
+        var concurrentVbResults = new System.Collections.Concurrent.ConcurrentBag<(ModuleExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
+        var concurrentCsResults = new System.Collections.Concurrent.ConcurrentBag<(CSharpExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
+
+        var parallelOptions = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount),
+            CancellationToken = cancellationToken
+        };
+
+        var lastReportTicks = Environment.TickCount64;
         int processedFiles = 0;
 
-        // 2. Estrazione AST e simboli per ciascun file di ciascun progetto
-        foreach (var proj in projects)
+        Parallel.ForEach(fileWorkItems, parallelOptions, item =>
         {
 #if !DEBUG
             cancellationToken.ThrowIfCancellationRequested();
 #endif
-            var projSymbol = projectSymbols[proj.Id];
+            var file = item.FilePath;
+            var fileName = Path.GetFileName(file);
+            var fileExtension = Path.GetExtension(file);
 
-            foreach (var file in proj.SourceFiles)
+            if (File.Exists(file))
             {
-#if !DEBUG
-                cancellationToken.ThrowIfCancellationRequested();
-#endif
-                var fileName = Path.GetFileName(file);
-                var fileExtension = Path.GetExtension(file);
+                var source = File.ReadAllText(file);
+                var localGraph = new Semantic.Model.CodeGraph();
 
-                if (File.Exists(file))
+                if (string.Equals(fileExtension, ".cs", StringComparison.OrdinalIgnoreCase))
                 {
-                    var source = File.ReadAllText(file);
-
-                    if (string.Equals(fileExtension, ".cs", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var csResult = CSharpExtractor.ExtractCSharpFile(semanticGraph, file, source);
-                        csharpResults.Add(csResult);
-
-                        foreach (var topSym in csResult.TopLevelSymbols)
-                        {
-                            semanticGraph.AddContains(projSymbol, topSym);
-                            if (projects.Count > 1 && !topSym.QualifiedName.StartsWith(proj.Name + ".", StringComparison.OrdinalIgnoreCase))
-                            {
-                                topSym.QualifiedName = $"{proj.Name}.{topSym.QualifiedName}";
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var result = ModuleExtractor.ExtractModule(semanticGraph, file, source);
-                        extractionResults.Add(result);
-
-                        // Collega il modulo al proprio progetto tramite relazione CONTAINS
-                        semanticGraph.AddContains(projSymbol, result.ModuleSymbol);
-
-                        // Imposta il QualifiedName con il prefisso del progetto se non già presente
-                        if (projects.Count > 1)
-                        {
-                            result.ModuleSymbol.QualifiedName = $"{proj.Name}.{result.ModuleSymbol.Name}";
-                        }
-                    }
+                    var csResult = CSharpExtractor.ExtractCSharpFile(localGraph, file, source);
+                    concurrentCsResults.Add((csResult, localGraph, item.Project, item.ProjSymbol));
                 }
+                else
+                {
+                    var vbResult = ModuleExtractor.ExtractModule(localGraph, file, source);
+                    concurrentVbResults.Add((vbResult, localGraph, item.Project, item.ProjSymbol));
+                }
+            }
 
-                processedFiles++;
+            var currentDone = Interlocked.Increment(ref processedFiles);
 
+            // Throttling del progresso per non saturare il dispatcher UI (ogni ~80ms o sull'ultimo file)
+            var nowTicks = Environment.TickCount64;
+            if (currentDone == totalFiles || (nowTicks - Interlocked.Read(ref lastReportTicks)) > 80)
+            {
+                Interlocked.Exchange(ref lastReportTicks, nowTicks);
                 progress?.Report(new ProjectAnalysisProgress
                 {
-                    CurrentFileIndex = processedFiles,
+                    CurrentFileIndex = currentDone,
                     TotalFiles = totalFiles,
                     CurrentFileName = fileName,
-                    ExtractedNodesCount = semanticGraph.Symbols.Count,
+                    ExtractedNodesCount = concurrentVbResults.Count + concurrentCsResults.Count,
                     PhaseMessage = LocalizationService.Instance.Get("Loading_ParsingFile", fileName)
                 });
+            }
+        });
+
+        // 2b. Unione deterministica e atomica dei grafi locali nel CodeGraph globale del Workspace
+        foreach (var (vbResult, localGraph, proj, projSymbol) in concurrentVbResults)
+        {
+            extractionResults.Add(vbResult);
+            semanticGraph.Symbols.AddRange(localGraph.Symbols);
+            semanticGraph.Relationships.AddRange(localGraph.Relationships);
+
+            // Collega il modulo al proprio progetto tramite relazione CONTAINS
+            semanticGraph.AddContains(projSymbol, vbResult.ModuleSymbol);
+
+            // Imposta il QualifiedName con il prefisso del progetto se workspace multi-progetto
+            if (projects.Count > 1)
+            {
+                vbResult.ModuleSymbol.QualifiedName = $"{proj.Name}.{vbResult.ModuleSymbol.Name}";
+            }
+        }
+
+        foreach (var (csResult, localGraph, proj, projSymbol) in concurrentCsResults)
+        {
+            csharpResults.Add(csResult);
+            semanticGraph.Symbols.AddRange(localGraph.Symbols);
+            semanticGraph.Relationships.AddRange(localGraph.Relationships);
+
+            foreach (var topSym in csResult.TopLevelSymbols)
+            {
+                semanticGraph.AddContains(projSymbol, topSym);
+                if (projects.Count > 1 && !topSym.QualifiedName.StartsWith(proj.Name + ".", StringComparison.OrdinalIgnoreCase))
+                {
+                    topSym.QualifiedName = $"{proj.Name}.{topSym.QualifiedName}";
+                }
             }
         }
 

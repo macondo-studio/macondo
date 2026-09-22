@@ -23,10 +23,11 @@ public sealed class ModuleExtractionResult
 
     /// <summary>
     /// Parse tree generato da ANTLR (<see cref="VisualBasic6Parser.StartRuleContext"/>).
-    /// Mantenuto in memoria per consentire a successivi analizzatori (es. <see cref="Macondo.Semantic.Resolution.RoutineInvocationAnalyzer"/>)
+    /// Mantenuto in memoria temporaneamente per consentire a successivi analizzatori (es. <see cref="Macondo.Semantic.Resolution.RoutineInvocationAnalyzer"/>)
     /// di attraversare i corpi dei metodi senza dover riparsare il file sorgente da zero.
+    /// Viene rilasciato (impostato a null) al termine della costruzione del Call Graph per minimizzare l'impronta di memoria.
     /// </summary>
-    public VisualBasic6Parser.StartRuleContext? ParseTree { get; init; }
+    public VisualBasic6Parser.StartRuleContext? ParseTree { get; set; }
 
     /// <summary>Indica se il modulo è stato parsato ed estratto senza errori di sintassi.</summary>
     public bool Success => ParseErrors.Count == 0;

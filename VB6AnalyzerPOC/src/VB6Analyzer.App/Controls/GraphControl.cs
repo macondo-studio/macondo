@@ -264,6 +264,40 @@ public sealed class GraphControl : Control
     private static readonly IPen SelectionOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#FFD700")), 3);
     private static readonly IPen TargetBlastOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#FF3344")), 3.5);
     private static readonly IPen FormBlastOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#00D0FF")), 2.5);
+
+    // Palette statica di pennelli pre-allocati per eliminare le allocazioni GC a ogni frame di rendering
+    private static readonly IBrush BrushProject = new SolidColorBrush(Color.Parse("#E85D75"));
+    private static readonly IBrush BrushForm = new SolidColorBrush(Color.Parse("#4FA8E8"));
+    private static readonly IBrush BrushClass = new SolidColorBrush(Color.Parse("#54C08C"));
+    private static readonly IBrush BrushModule = new SolidColorBrush(Color.Parse("#C084F0"));
+    private static readonly IBrush BrushUserControl = new SolidColorBrush(Color.Parse("#F08C4A"));
+    private static readonly IBrush BrushMethod = new SolidColorBrush(Color.Parse("#7D7D8E"));
+    private static readonly IBrush BrushProperty = new SolidColorBrush(Color.Parse("#E8B838"));
+    private static readonly IBrush BrushField = new SolidColorBrush(Color.Parse("#60A5FA"));
+    private static readonly IBrush BrushConstant = new SolidColorBrush(Color.Parse("#F87171"));
+    private static readonly IBrush BrushType = new SolidColorBrush(Color.Parse("#34D399"));
+    private static readonly IBrush BrushEnum = new SolidColorBrush(Color.Parse("#A7F3D0"));
+    private static readonly IBrush BrushSelected = new SolidColorBrush(Color.Parse("#FFD700"));
+    private static readonly IBrush BrushHighlighted = new SolidColorBrush(Color.Parse("#90CAF9"));
+    private static readonly IBrush BrushBlastTarget = new SolidColorBrush(Color.Parse("#FF3344"));
+    private static readonly IBrush BrushBlastDepth1 = new SolidColorBrush(Color.Parse("#FF8800"));
+    private static readonly IBrush BrushBlastDepth2 = new SolidColorBrush(Color.Parse("#FFBB00"));
+    private static readonly IBrush BrushBlastDepth3 = new SolidColorBrush(Color.Parse("#FFE066"));
+    private static readonly IBrush BrushAffectedForm = new SolidColorBrush(Color.Parse("#00D0FF"));
+    private static readonly IBrush BrushAffectedContainer = new SolidColorBrush(Color.Parse("#54C08C"));
+    private static readonly IBrush BrushDimmedDark = new SolidColorBrush(Color.Parse("#282834"));
+    private static readonly IBrush BrushDimmedLight = new SolidColorBrush(Color.Parse("#E0E0EA"));
+    private static readonly IBrush BrushCallee = new SolidColorBrush(Color.Parse("#00D0FF"));
+    private static readonly IBrush BrushCaller = new SolidColorBrush(Color.Parse("#FF9933"));
+    private static readonly IBrush BrushContainerCalleeDark = new SolidColorBrush(Color.Parse("#3A6073"));
+    private static readonly IBrush BrushContainerCalleeLight = new SolidColorBrush(Color.Parse("#90C2DE"));
+    private static readonly IBrush BrushContainerCallerDark = new SolidColorBrush(Color.Parse("#5C4335"));
+    private static readonly IBrush BrushContainerCallerLight = new SolidColorBrush(Color.Parse("#DEB598"));
+    private static readonly IBrush BrushContainerCurrentDark = new SolidColorBrush(Color.Parse("#5C5535"));
+    private static readonly IBrush BrushContainerCurrentLight = new SolidColorBrush(Color.Parse("#D4C388"));
+    private static readonly IBrush BrushRoutineInnerCall = new SolidColorBrush(Color.Parse("#FFE57F"));
+    private static readonly IBrush BrushDimmedAltDark = new SolidColorBrush(Color.Parse("#22222E"));
+
     private static readonly Typeface LabelTypeface = new("Inter", FontStyle.Normal, FontWeight.Medium);
 
     static GraphControl()
@@ -516,112 +550,98 @@ public sealed class GraphControl : Control
         if (isInBlastRadius)
         {
             if (isSelected)
-                return new SolidColorBrush(Color.Parse("#FF3344")); // Rosso acceso = Target di modifica
+                return BrushBlastTarget; // Rosso acceso = Target di modifica
 
             if (blastDepth.HasValue)
             {
                 return blastDepth.Value switch
                 {
-                    1 => new SolidColorBrush(Color.Parse("#FF8800")), // Arancione = Chiamante diretto
-                    2 => new SolidColorBrush(Color.Parse("#FFBB00")), // Ambra = Chiamante 2° livello
-                    _ => new SolidColorBrush(Color.Parse("#FFE066"))  // Giallo chiaro = Chiamante 3°+ livello
+                    1 => BrushBlastDepth1, // Arancione = Chiamante diretto
+                    2 => BrushBlastDepth2, // Ambra = Chiamante 2° livello
+                    _ => BrushBlastDepth3  // Giallo chiaro = Chiamante 3°+ livello
                 };
             }
 
             if (isAffectedContainer)
             {
                 return node.Kind == SymbolKind.Form
-                    ? new SolidColorBrush(Color.Parse("#00D0FF")) // Form UI toccata
-                    : new SolidColorBrush(Color.Parse("#54C08C")); // Classe/Modulo toccato
+                    ? BrushAffectedForm // Form UI toccata
+                    : BrushAffectedContainer; // Classe/Modulo toccato
             }
 
             // Nodi non impattati: attenuati
-            return _isDarkTheme
-                ? new SolidColorBrush(Color.Parse("#282834"))
-                : new SolidColorBrush(Color.Parse("#E0E0EA"));
+            return _isDarkTheme ? BrushDimmedDark : BrushDimmedLight;
         }
 
         // Modalità Callees: evidenzia il chiamante sorgente, le routine chiamate (Cyan) e i loro container
         if (_currentHighlightMode == HighlightMode.Callees)
         {
-            if (isSelected) return new SolidColorBrush(Color.Parse("#FFD700")); // Gold
-            if (isCallee) return new SolidColorBrush(Color.Parse("#00D0FF"));   // Bright Cyan
+            if (isSelected) return BrushSelected;
+            if (isCallee) return BrushCallee;
 
             if (_selectedNode is { IsContainer: true } && node.ParentId == _selectedNode.Id)
             {
                 // Routine interna del container che effettua chiamate
                 if (_calleeEdgeIds.Any(e => e.Item1 == node.Id))
-                    return new SolidColorBrush(Color.Parse("#FFE57F")); // Light Gold
+                    return BrushRoutineInnerCall;
             }
 
             if (node.IsContainer && _calleeContainerIds.Contains(node.Id))
             {
-                return _isDarkTheme
-                    ? new SolidColorBrush(Color.Parse("#3A6073")) // Slate Cyan per il modulo destinazione
-                    : new SolidColorBrush(Color.Parse("#90C2DE"));
+                return _isDarkTheme ? BrushContainerCalleeDark : BrushContainerCalleeLight;
             }
 
             if (_selectedNode?.ParentId == node.Id)
             {
-                return _isDarkTheme
-                    ? new SolidColorBrush(Color.Parse("#5C5535")) // Slate Gold per il container della routine selezionata
-                    : new SolidColorBrush(Color.Parse("#D4C388"));
+                return _isDarkTheme ? BrushContainerCurrentDark : BrushContainerCurrentLight;
             }
 
-            return _isDarkTheme
-                ? new SolidColorBrush(Color.Parse("#22222E")) // Attenuato
-                : new SolidColorBrush(Color.Parse("#E0E0EA"));
+            return _isDarkTheme ? BrushDimmedAltDark : BrushDimmedLight;
         }
 
         // Modalità Callers: evidenzia la routine target, i chiamanti (Amber/Orange) e i loro container
         if (_currentHighlightMode == HighlightMode.Callers)
         {
-            if (isSelected) return new SolidColorBrush(Color.Parse("#FFD700")); // Gold
-            if (isCaller) return new SolidColorBrush(Color.Parse("#FF9933"));   // Bright Amber
+            if (isSelected) return BrushSelected;
+            if (isCaller) return BrushCaller;
 
             if (_selectedNode is { IsContainer: true } && node.ParentId == _selectedNode.Id)
             {
                 // Routine interna del container chiamata dall'esterno
                 if (_callerEdgeIds.Any(e => e.Item2 == node.Id))
-                    return new SolidColorBrush(Color.Parse("#FFE57F")); // Light Gold
+                    return BrushRoutineInnerCall;
             }
 
             if (node.IsContainer && _callerContainerIds.Contains(node.Id))
             {
-                return _isDarkTheme
-                    ? new SolidColorBrush(Color.Parse("#5C4335")) // Slate Amber per il modulo chiamante
-                    : new SolidColorBrush(Color.Parse("#DEB598"));
+                return _isDarkTheme ? BrushContainerCallerDark : BrushContainerCallerLight;
             }
 
             if (_selectedNode?.ParentId == node.Id)
             {
-                return _isDarkTheme
-                    ? new SolidColorBrush(Color.Parse("#5C5535")) // Slate Gold per il container della routine selezionata
-                    : new SolidColorBrush(Color.Parse("#D4C388"));
+                return _isDarkTheme ? BrushContainerCurrentDark : BrushContainerCurrentLight;
             }
 
-            return _isDarkTheme
-                ? new SolidColorBrush(Color.Parse("#22222E")) // Attenuato
-                : new SolidColorBrush(Color.Parse("#E0E0EA"));
+            return _isDarkTheme ? BrushDimmedAltDark : BrushDimmedLight;
         }
 
         // Modalità normale
-        if (isSelected) return new SolidColorBrush(Color.Parse("#FFD700")); // Gold
-        if (isHighlighted) return new SolidColorBrush(Color.Parse("#90CAF9")); // Light blue
+        if (isSelected) return BrushSelected;
+        if (isHighlighted) return BrushHighlighted;
 
         return node.Kind switch
         {
-            SymbolKind.Project => new SolidColorBrush(Color.Parse("#E85D75")),
-            SymbolKind.Form => new SolidColorBrush(Color.Parse("#4FA8E8")),
-            SymbolKind.Class => new SolidColorBrush(Color.Parse("#54C08C")),
-            SymbolKind.Module => new SolidColorBrush(Color.Parse("#C084F0")),
-            SymbolKind.UserControl => new SolidColorBrush(Color.Parse("#F08C4A")),
-            SymbolKind.Method => new SolidColorBrush(Color.Parse("#7D7D8E")),
-            SymbolKind.Property => new SolidColorBrush(Color.Parse("#E8B838")),
-            SymbolKind.Field => new SolidColorBrush(Color.Parse("#60A5FA")),
-            SymbolKind.Constant => new SolidColorBrush(Color.Parse("#F87171")),
-            SymbolKind.Type => new SolidColorBrush(Color.Parse("#34D399")),
-            SymbolKind.Enum => new SolidColorBrush(Color.Parse("#A7F3D0")),
+            SymbolKind.Project => BrushProject,
+            SymbolKind.Form => BrushForm,
+            SymbolKind.Class => BrushClass,
+            SymbolKind.Module => BrushModule,
+            SymbolKind.UserControl => BrushUserControl,
+            SymbolKind.Method => BrushMethod,
+            SymbolKind.Property => BrushProperty,
+            SymbolKind.Field => BrushField,
+            SymbolKind.Constant => BrushConstant,
+            SymbolKind.Type => BrushType,
+            SymbolKind.Enum => BrushEnum,
             _ => Brushes.Gray
         };
     }

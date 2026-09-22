@@ -252,15 +252,25 @@ public static class TreemapModelBuilder
             Depth = 0
         };
 
-        // 2. Raccoglie tutti i container primari (Classi, Form, Moduli, UserControl, UDT)
+        // 2. Raccoglie tutti i container primari (Classi, Form, Moduli, UserControl, UDT, Interfacce, Strutture, Record)
         var containers = graph.Symbols
-            .Where(s => s.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type)
+            .Where(s => s.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
             .OrderBy(c => c.Name)
             .ToList();
 
         if (containers.Count == 0)
         {
             containers = graph.Symbols.Where(s => s.Kind != SymbolKind.Project).ToList();
+        }
+
+        // Indicizzazione O(1) delle chiamate uscenti per ogni simbolo sorgente per evitare scansioni O(R) nel loop
+        var outgoingCallsCount = new Dictionary<Guid, int>();
+        foreach (var r in graph.Relationships)
+        {
+            if (r.Kind == RelationshipKind.Calls)
+            {
+                outgoingCallsCount[r.SourceId] = outgoingCallsCount.GetValueOrDefault(r.SourceId) + 1;
+            }
         }
 
         // 3. Costruisce l'albero dei figli e calcola le metriche di peso (LOC stimate) e complessità
@@ -284,9 +294,9 @@ public static class TreemapModelBuilder
             {
                 foreach (var child in children)
                 {
-                    // Calcolo LOC o peso basato sulle righe di codice o complessità delle chiamate
+                    // Calcolo LOC o peso basato sulle righe di codice o complessità delle chiamate in O(1)
                     int lineCount = Math.Max(1, child.LineEnd - child.LineStart + 1);
-                    int callees = graph.Relationships.Count(r => r.SourceId == child.Id && r.Kind == RelationshipKind.Calls);
+                    outgoingCallsCount.TryGetValue(child.Id, out int callees);
                     double complexityScore = 1.0 + (callees * 1.5) + (child.Parameters.Count * 0.8);
 
                     var childItem = new TreemapItem

@@ -76,6 +76,9 @@ public sealed class CallGraphBuilder
         // 1b. Genera relazioni semantiche per i risultati C# (CALLS, INSTANTIATES, INHERITS, IMPLEMENTS)
         if (csharpResults != null)
         {
+            // Indice dei metodi/proprietà per nome per evitare scansioni lineari su grafi estesi
+            Dictionary<string, Symbol>? routineIndexByName = null;
+
             foreach (var csResult in csharpResults)
             {
                 // Invocazioni C# (CALLS)
@@ -96,10 +99,20 @@ public sealed class CallGraphBuilder
 
                     if (targetMethod == null)
                     {
-                        // Cerca tra i simboli dei tipi racchiudenti o nel grafo
-                        targetMethod = _graph.Symbols
-                            .FirstOrDefault(s => s.Kind is SymbolKind.Method or SymbolKind.Property &&
-                                                string.Equals(s.Name, callSite.InvokedMethodName, StringComparison.OrdinalIgnoreCase));
+                        // Costruzione lazy dell'indice dei metodi per lookup O(1)
+                        if (routineIndexByName == null)
+                        {
+                            routineIndexByName = new Dictionary<string, Symbol>(StringComparer.OrdinalIgnoreCase);
+                            foreach (var s in _graph.Symbols)
+                            {
+                                if (s.Kind is SymbolKind.Method or SymbolKind.Property && !routineIndexByName.ContainsKey(s.Name))
+                                {
+                                    routineIndexByName[s.Name] = s;
+                                }
+                            }
+                        }
+
+                        routineIndexByName.TryGetValue(callSite.InvokedMethodName, out targetMethod);
                     }
 
                     if (targetMethod != null)
@@ -214,6 +227,12 @@ public sealed class CallGraphBuilder
                     _graph.AddHandlesEvent(extraction.ModuleSymbol, routine, routine.LineStart);
                 }
             }
+        }
+
+        // 5. Rilascio esplicito dei parse tree ANTLR per consentire al Garbage Collector di recuperare RAM
+        foreach (var extraction in extractionResults)
+        {
+            extraction.ParseTree = null;
         }
     }
 

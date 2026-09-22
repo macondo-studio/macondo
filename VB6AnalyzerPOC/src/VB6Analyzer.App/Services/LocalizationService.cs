@@ -728,7 +728,15 @@ public sealed class LocalizationService
         ["General_Loc"] = "LOC",
         ["General_CC"] = "CC",
         ["General_Members"] = "Membri",
-        ["General_Routines"] = "Routine"
+        ["General_Routines"] = "Routine",
+        ["Status_BackgroundAnalyticsProgress"] = "Analisi viste... {0}/{1}",
+        ["Status_BackgroundAnalyticsCompleted"] = "Analisi completata",
+
+        // Blast Radius Grid
+        ["Grid_Calculating"] = "Calcolo matrice di impatto in corso ({0} routine)...",
+        ["Grid_CalculatingProgress"] = "Calcolo matrice di impatto: {0:N0} di {1:N0} ({2}%)",
+        ["Grid_StatsFormat"] = "Elementi visualizzati: {0:N0} di {1:N0}",
+        ["Status_ErrorGridCalc"] = "Errore durante il calcolo della matrice Blast Radius: {0}"
     };
 
     private readonly Dictionary<string, string> _enStrings = new()
@@ -1448,7 +1456,15 @@ public sealed class LocalizationService
         ["General_Loc"] = "LOC",
         ["General_CC"] = "CC",
         ["General_Members"] = "Members",
-        ["General_Routines"] = "Routines"
+        ["General_Routines"] = "Routines",
+        ["Status_BackgroundAnalyticsProgress"] = "Background analysis... {0}/{1}",
+        ["Status_BackgroundAnalyticsCompleted"] = "Analysis completed",
+
+        // Blast Radius Grid
+        ["Grid_Calculating"] = "Calculating impact matrix ({0} routines)...",
+        ["Grid_CalculatingProgress"] = "Calculating impact matrix: {0:N0} of {1:N0} ({2}%)",
+        ["Grid_StatsFormat"] = "Displayed items: {0:N0} of {1:N0}",
+        ["Status_ErrorGridCalc"] = "Error calculating Blast Radius matrix: {0}"
     };
 
     private LocalizationService() { }

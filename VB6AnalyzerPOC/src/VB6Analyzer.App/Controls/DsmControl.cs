@@ -47,7 +47,7 @@ public sealed class DsmControl : Control
     private static readonly Typeface LabelTypeface = new("Inter", FontStyle.Normal, FontWeight.Medium);
     private static readonly Typeface BoldTypeface = new("Inter", FontStyle.Normal, FontWeight.Bold);
 
-    // Pennelli tema
+    // Pennelli e penne tema pre-allocati
     private IBrush _backgroundBrush = new SolidColorBrush(Color.Parse("#14141E"));
     private IBrush _gridLineBrush = new SolidColorBrush(Color.Parse("#252535"));
     private IBrush _diagBrush = new SolidColorBrush(Color.Parse("#1E1E2C"));
@@ -59,6 +59,12 @@ public sealed class DsmControl : Control
     private IBrush _cycleBorderBrush = new SolidColorBrush(Color.Parse("#FF3355"));
     private IBrush _depCellBrush = new SolidColorBrush(Color.Parse("#1A3050"));
     private IBrush _depCellTextBrush = new SolidColorBrush(Color.Parse("#60B0FF"));
+    private readonly IBrush _hoverRowColBrush = new SolidColorBrush(Color.FromArgb(40, 96, 176, 255));
+
+    private IPen _gridLinePen = new Pen(new SolidColorBrush(Color.Parse("#252535")), 0.6);
+    private IPen _diagLinePen = new Pen(new SolidColorBrush(Color.Parse("#252535")), 1);
+    private IPen _cycleBorderPen = new Pen(new SolidColorBrush(Color.Parse("#FF3355")), 1.5);
+    private IPen _selectedCellPen = new Pen(new SolidColorBrush(Color.Parse("#FFD700")), 2);
 
     static DsmControl()
     {
@@ -91,7 +97,11 @@ public sealed class DsmControl : Control
             _backgroundBrush = new SolidColorBrush(bgCol);
 
         if (Color.TryParse(theme.BorderSubtle, out var borderSubtleCol))
+        {
             _gridLineBrush = new SolidColorBrush(borderSubtleCol);
+            _gridLinePen = new Pen(_gridLineBrush, 0.6);
+            _diagLinePen = new Pen(_gridLineBrush, 1);
+        }
 
         if (Color.TryParse(theme.BackgroundSurface, out var bgSurfaceCol))
             _diagBrush = new SolidColorBrush(bgSurfaceCol);
@@ -120,6 +130,9 @@ public sealed class DsmControl : Control
             _depCellTextBrush = new SolidColorBrush(Color.Parse("#005FB8"));
         }
 
+        _cycleBorderPen = new Pen(_cycleBorderBrush, 1.5);
+        _selectedCellPen = new Pen(_selectedCellBrush, 2);
+
         InvalidateVisual();
     }
 
@@ -144,6 +157,24 @@ public sealed class DsmControl : Control
 
         int n = matrix.Size;
 
+        // Viewport culling: calcola gli intervalli di riga/colonna visibili a schermo per evitare O(N^2) draw calls
+        double viewportW = Bounds.Width;
+        double viewportH = Bounds.Height;
+
+        double minLocalX = (0 - _offsetX) / _scale;
+        double maxLocalX = (viewportW - _offsetX) / _scale;
+        double minLocalY = (0 - _offsetY) / _scale;
+        double maxLocalY = (viewportH - _offsetY) / _scale;
+
+        int minRow = Math.Max(0, (int)Math.Floor(minLocalY / CellSize));
+        int maxRow = Math.Min(n - 1, (int)Math.Ceiling(maxLocalY / CellSize));
+
+        int minCol = Math.Max(0, (int)Math.Floor(minLocalX / CellSize));
+        int maxCol = Math.Min(n - 1, (int)Math.Ceiling(maxLocalX / CellSize));
+
+        bool showRowHeaders = maxLocalX >= -HeaderWidth && minLocalX <= 0;
+        bool showColHeaders = maxLocalY >= -HeaderHeight && minLocalY <= 0;
+
         using (context.PushTransform(Avalonia.Matrix.CreateTranslation(_offsetX, _offsetY)))
         using (context.PushTransform(Avalonia.Matrix.CreateScale(_scale, _scale)))
         {
@@ -151,18 +182,18 @@ public sealed class DsmControl : Control
             if (_hoveredRow >= 0 && _hoveredRow < n)
             {
                 var rowRect = new Rect(0, _hoveredRow * CellSize, n * CellSize, CellSize);
-                context.FillRectangle(new SolidColorBrush(Color.FromArgb(40, 96, 176, 255)), rowRect);
+                context.FillRectangle(_hoverRowColBrush, rowRect);
             }
             if (_hoveredCol >= 0 && _hoveredCol < n)
             {
                 var colRect = new Rect(_hoveredCol * CellSize, 0, CellSize, n * CellSize);
-                context.FillRectangle(new SolidColorBrush(Color.FromArgb(40, 96, 176, 255)), colRect);
+                context.FillRectangle(_hoverRowColBrush, colRect);
             }
 
-            // 2. Griglia e Celle della Matrice
-            for (int r = 0; r < n; r++)
+            // 2. Griglia e Celle della Matrice (Culling attivo per massima fluidità a 60+ FPS)
+            for (int r = minRow; r <= maxRow; r++)
             {
-                for (int c = 0; c < n; c++)
+                for (int c = minCol; c <= maxCol; c++)
                 {
                     var cellRect = new Rect(c * CellSize, r * CellSize, CellSize, CellSize);
                     var cell = matrix.GetCell(r, c);
@@ -171,14 +202,14 @@ public sealed class DsmControl : Control
                     {
                         // Diagonale principale (auto-riferimento)
                         context.FillRectangle(_diagBrush, cellRect);
-                        context.DrawLine(new Pen(_gridLineBrush, 1), cellRect.TopLeft, cellRect.BottomRight);
+                        context.DrawLine(_diagLinePen, cellRect.TopLeft, cellRect.BottomRight);
                     }
                     else if (cell.HasDependency)
                     {
                         if (cell.IsInCycle)
                         {
                             context.FillRectangle(_cycleCellBrush, cellRect);
-                            context.DrawRectangle(new Pen(_cycleBorderBrush, 1.5), cellRect);
+                            context.DrawRectangle(_cycleBorderPen, cellRect);
                         }
                         else
                         {
@@ -203,73 +234,79 @@ public sealed class DsmControl : Control
                     // Selezione attiva
                     if (_selectedCell != null && _selectedCell.RowIndex == r && _selectedCell.ColumnIndex == c)
                     {
-                        context.DrawRectangle(new Pen(_selectedCellBrush, 2), cellRect);
+                        context.DrawRectangle(_selectedCellPen, cellRect);
                     }
 
-                    context.DrawRectangle(new Pen(_gridLineBrush, 0.6), cellRect);
+                    context.DrawRectangle(_gridLinePen, cellRect);
                 }
             }
 
-            // 3. Intestazioni Righe (Sinistra)
-            for (int r = 0; r < n; r++)
+            // 3. Intestazioni Righe (Sinistra - solo visibili)
+            if (showRowHeaders)
             {
-                var item = matrix.Items[r];
-                var headerRect = new Rect(-HeaderWidth, r * CellSize, HeaderWidth - 4, CellSize);
-                
-                if (r == _hoveredRow)
+                for (int r = minRow; r <= maxRow; r++)
                 {
-                    context.FillRectangle(_hoverHeaderBrush, headerRect);
-                }
+                    var item = matrix.Items[r];
+                    var headerRect = new Rect(-HeaderWidth, r * CellSize, HeaderWidth - 4, CellSize);
+                    
+                    if (r == _hoveredRow)
+                    {
+                        context.FillRectangle(_hoverHeaderBrush, headerRect);
+                    }
 
-                // Badge numerico indice riga
-                var idxFmt = new FormattedText(
-                    (r + 1).ToString("D2"),
-                    CultureInfo.InvariantCulture,
-                    FlowDirection.LeftToRight,
-                    BoldTypeface,
-                    9,
-                    item.HasCircularDependencies ? _cycleBorderBrush : _textMutedBrush);
-                context.DrawText(idxFmt, new Point(-HeaderWidth + 4, r * CellSize + 7));
+                    // Badge numerico indice riga
+                    var idxFmt = new FormattedText(
+                        (r + 1).ToString("D2"),
+                        CultureInfo.InvariantCulture,
+                        FlowDirection.LeftToRight,
+                        BoldTypeface,
+                        9,
+                        item.HasCircularDependencies ? _cycleBorderBrush : _textMutedBrush);
+                    context.DrawText(idxFmt, new Point(-HeaderWidth + 4, r * CellSize + 7));
 
-                // Nome modulo
-                string displayName = item.Name.Length > 20 ? item.Name[..18] + "…" : item.Name;
-                var textFmt = new FormattedText(
-                    displayName,
-                    CultureInfo.InvariantCulture,
-                    FlowDirection.LeftToRight,
-                    LabelTypeface,
-                    11,
-                    item.HasCircularDependencies ? _cycleBorderBrush : _textPrimaryBrush);
-                context.DrawText(textFmt, new Point(-HeaderWidth + 26, r * CellSize + 6));
-            }
-
-            // 4. Intestazioni Colonne (In alto con rotazione 45° per massima leggibilità)
-            for (int c = 0; c < n; c++)
-            {
-                var item = matrix.Items[c];
-                double cx = (c * CellSize) + (CellSize / 2.0);
-
-                var idxFmt = new FormattedText(
-                    (c + 1).ToString("D2"),
-                    CultureInfo.InvariantCulture,
-                    FlowDirection.LeftToRight,
-                    BoldTypeface,
-                    9,
-                    item.HasCircularDependencies ? _cycleBorderBrush : _textMutedBrush);
-                context.DrawText(idxFmt, new Point(c * CellSize + (CellSize - idxFmt.Width) / 2.0, -16));
-
-                using (context.PushTransform(Avalonia.Matrix.CreateTranslation(cx, -22)))
-                using (context.PushTransform(Avalonia.Matrix.CreateRotation(-Math.PI / 4.0))) // Ruota a -45°
-                {
-                    string colName = item.Name.Length > 16 ? item.Name[..14] + "…" : item.Name;
-                    var colFmt = new FormattedText(
-                        colName,
+                    // Nome modulo
+                    string displayName = item.Name.Length > 20 ? item.Name[..18] + "…" : item.Name;
+                    var textFmt = new FormattedText(
+                        displayName,
                         CultureInfo.InvariantCulture,
                         FlowDirection.LeftToRight,
                         LabelTypeface,
-                        10,
-                        c == _hoveredCol ? Brushes.Yellow : (item.HasCircularDependencies ? _cycleBorderBrush : _textMutedBrush));
-                    context.DrawText(colFmt, new Point(0, -colFmt.Height / 2.0));
+                        11,
+                        item.HasCircularDependencies ? _cycleBorderBrush : _textPrimaryBrush);
+                    context.DrawText(textFmt, new Point(-HeaderWidth + 26, r * CellSize + 6));
+                }
+            }
+
+            // 4. Intestazioni Colonne (In alto con rotazione 45° - solo visibili)
+            if (showColHeaders)
+            {
+                for (int c = minCol; c <= maxCol; c++)
+                {
+                    var item = matrix.Items[c];
+                    double cx = (c * CellSize) + (CellSize / 2.0);
+
+                    var idxFmt = new FormattedText(
+                        (c + 1).ToString("D2"),
+                        CultureInfo.InvariantCulture,
+                        FlowDirection.LeftToRight,
+                        BoldTypeface,
+                        9,
+                        item.HasCircularDependencies ? _cycleBorderBrush : _textMutedBrush);
+                    context.DrawText(idxFmt, new Point(c * CellSize + (CellSize - idxFmt.Width) / 2.0, -16));
+
+                    using (context.PushTransform(Avalonia.Matrix.CreateTranslation(cx, -22)))
+                    using (context.PushTransform(Avalonia.Matrix.CreateRotation(-Math.PI / 4.0))) // Ruota a -45°
+                    {
+                        string colName = item.Name.Length > 16 ? item.Name[..14] + "…" : item.Name;
+                        var colFmt = new FormattedText(
+                            colName,
+                            CultureInfo.InvariantCulture,
+                            FlowDirection.LeftToRight,
+                            LabelTypeface,
+                            10,
+                            c == _hoveredCol ? Brushes.Yellow : (item.HasCircularDependencies ? _cycleBorderBrush : _textMutedBrush));
+                        context.DrawText(colFmt, new Point(0, -colFmt.Height / 2.0));
+                    }
                 }
             }
         }

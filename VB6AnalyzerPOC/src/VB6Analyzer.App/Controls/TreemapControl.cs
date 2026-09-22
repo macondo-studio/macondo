@@ -111,7 +111,10 @@ public sealed class TreemapControl : Control
         }
 
         if (Color.TryParse(theme.BorderDefault, out var borderCol))
+        {
             _containerBorderBrush = new SolidColorBrush(borderCol);
+            _containerBorderPen = new Pen(_containerBorderBrush, 1);
+        }
 
         if (Color.TryParse(theme.TextPrimary, out var textPrimaryCol))
             _textWhiteBrush = new SolidColorBrush(textPrimaryCol);
@@ -123,6 +126,7 @@ public sealed class TreemapControl : Control
             _accentTextBrush = new SolidColorBrush(accentCol);
 
         _hoverBorderBrush = theme.IsDark ? Brushes.White : new SolidColorBrush(Color.Parse("#1A1A24"));
+        _hoverBorderPen = new Pen(_hoverBorderBrush, 1.5);
 
         InvalidateVisual();
     }
@@ -169,9 +173,22 @@ public sealed class TreemapControl : Control
         }
     }
 
+    private static readonly IBrush BrushLow = new SolidColorBrush(Color.Parse("#164E3D"));
+    private static readonly IBrush BrushMedLow = new SolidColorBrush(Color.Parse("#1D6B52"));
+    private static readonly IBrush BrushMed = new SolidColorBrush(Color.Parse("#8C6B14"));
+    private static readonly IBrush BrushHigh = new SolidColorBrush(Color.Parse("#A84B1A"));
+    private static readonly IBrush BrushVeryHigh = new SolidColorBrush(Color.Parse("#961C2C"));
+    private static readonly IBrush LeafBorderBrush = new SolidColorBrush(Color.FromArgb(50, 0, 0, 0));
+    private static readonly IBrush SubLabelBrush = new SolidColorBrush(Color.FromArgb(200, 255, 255, 255));
+
+    private IPen _containerBorderPen = new Pen(new SolidColorBrush(Color.Parse("#35354A")), 1);
+    private IPen _selectedBorderPen = new Pen(new SolidColorBrush(Color.Parse("#FFD700")), 2.5);
+    private IPen _hoverBorderPen = new Pen(Brushes.White, 1.5);
+    private IPen _leafBorderPen = new Pen(LeafBorderBrush, 1);
+
     private void RenderItemRecursive(DrawingContext context, TreemapItem item)
     {
-        if (item.Bounds.Width <= 2 || item.Bounds.Height <= 2) return;
+        if (item.Bounds.Width <= 1 || item.Bounds.Height <= 1) return;
 
         var rect = new Rect(item.Bounds.X, item.Bounds.Y, item.Bounds.Width, item.Bounds.Height);
 
@@ -181,9 +198,9 @@ public sealed class TreemapControl : Control
             if (item.Depth > 0)
             {
                 context.FillRectangle(_containerHeaderBrush, rect);
-                context.DrawRectangle(new Pen(_containerBorderBrush, 1), rect);
+                context.DrawRectangle(_containerBorderPen, rect);
 
-                // Titolo del modulo
+                // Titolo del modulo se visibile e leggibile
                 if (rect.Width > 50 && rect.Height > 18)
                 {
                     string header = $"{item.Name} ({LocalizationService.Instance.Get("Treemap_MembersCount", item.Children.Count)})";
@@ -211,15 +228,15 @@ public sealed class TreemapControl : Control
 
             if (_selectedItem?.Id == item.Id)
             {
-                context.DrawRectangle(new Pen(_selectedBorderBrush, 2.5), rect);
+                context.DrawRectangle(_selectedBorderPen, rect);
             }
             else if (_hoveredItem?.Id == item.Id)
             {
-                context.DrawRectangle(new Pen(_hoverBorderBrush, 1.5), rect);
+                context.DrawRectangle(_hoverBorderPen, rect);
             }
             else
             {
-                context.DrawRectangle(new Pen(new SolidColorBrush(Color.FromArgb(50, 0, 0, 0)), 1), rect);
+                context.DrawRectangle(_leafBorderPen, rect);
             }
 
             // Testo etichetta se lo spazio è sufficiente
@@ -245,7 +262,7 @@ public sealed class TreemapControl : Control
                         FlowDirection.LeftToRight,
                         SubLabelTypeface,
                         9,
-                        new SolidColorBrush(Color.FromArgb(200, 255, 255, 255)));
+                        SubLabelBrush);
                     context.DrawText(valFmt, new Point(rect.X + 4, rect.Y + nameFmt.Height + 2));
                 }
             }
@@ -262,15 +279,11 @@ public sealed class TreemapControl : Control
     /// </summary>
     private static IBrush GetComplexityBrush(double score)
     {
-        if (score <= 2.0)
-            return new SolidColorBrush(Color.Parse("#164E3D")); // Verde scuro / Bassa complessità
-        if (score <= 4.5)
-            return new SolidColorBrush(Color.Parse("#1D6B52")); // Verde medio
-        if (score <= 7.0)
-            return new SolidColorBrush(Color.Parse("#8C6B14")); // Giallo ambra / Media
-        if (score <= 11.0)
-            return new SolidColorBrush(Color.Parse("#A84B1A")); // Arancione / Alta
-        return new SolidColorBrush(Color.Parse("#961C2C")); // Rosso / Altissima complessità
+        if (score <= 2.0) return BrushLow;
+        if (score <= 4.5) return BrushMedLow;
+        if (score <= 7.0) return BrushMed;
+        if (score <= 11.0) return BrushHigh;
+        return BrushVeryHigh;
     }
 
     /// <summary>

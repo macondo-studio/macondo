@@ -34,8 +34,8 @@ public sealed record DsmDependencyDetail(
 /// </summary>
 public sealed class DsmCell
 {
-    public int RowIndex { get; init; }
-    public int ColumnIndex { get; init; }
+    public int RowIndex { get; set; }
+    public int ColumnIndex { get; set; }
     public Guid RowContainerId { get; init; }
     public Guid ColumnContainerId { get; init; }
     
@@ -158,11 +158,11 @@ public static class DsmMatrixBuilder
         }
 
         // ---------------------------------------------------------------------
-        // FASE 2: Rilevamento dei nodi container di primo livello (Classi, Form, Moduli, UDT, UserControl).
+        // FASE 2: Rilevamento dei nodi container di primo livello (Classi, Form, Moduli, UDT, UserControl, Interfacce, Strutture, Record).
         // Se non vi sono container espliciti, usiamo tutti i simboli non di progetto.
         // ---------------------------------------------------------------------
         var containers = graph.Symbols
-            .Where(s => s.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type)
+            .Where(s => s.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
             .ToList();
 
         if (containers.Count == 0)
@@ -460,25 +460,19 @@ public static class DsmMatrixBuilder
         for (int i = 0; i < oldItems.Count; i++) oldMap[oldItems[i].Id] = i;
 
         // 2. Crea la nuova griglia di celle N x N riallineata secondo le nuove coordinate riga/colonna
+        // Riassegniamo i riferimenti alle celle esistenti senza allocare nuovi oggetti o copiare liste
+        var oldCells = matrix.Cells;
         var newCells = new DsmCell[sortedItems.Count, sortedItems.Count];
         for (int r = 0; r < sortedItems.Count; r++)
         {
+            int oldR = oldMap[sortedItems[r].Id];
             for (int c = 0; c < sortedItems.Count; c++)
             {
-                int oldR = oldMap[sortedItems[r].Id];
                 int oldC = oldMap[sortedItems[c].Id];
-                var oldCell = matrix.GetCell(oldR, oldC);
-                newCells[r, c] = new DsmCell
-                {
-                    RowIndex = r,
-                    ColumnIndex = c,
-                    RowContainerId = sortedItems[r].Id,
-                    ColumnContainerId = sortedItems[c].Id,
-                    Weight = oldCell.Weight,
-                    DependencyKinds = oldCell.DependencyKinds,
-                    IsInCycle = oldCell.IsInCycle
-                };
-                newCells[r, c].Details.AddRange(oldCell.Details);
+                var cell = oldCells[oldR, oldC];
+                cell.RowIndex = r;
+                cell.ColumnIndex = c;
+                newCells[r, c] = cell;
             }
         }
 
