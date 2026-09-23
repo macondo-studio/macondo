@@ -123,6 +123,9 @@ public static class SharedStateAnalyzer
         // 2. Isola le relazioni Reads e Writes o Calls verso la variabile
         foreach (var rel in graph.Relationships)
         {
+            if (rel.Kind is not (RelationshipKind.Reads or RelationshipKind.Writes or RelationshipKind.References or RelationshipKind.Calls))
+                continue;
+
             if (globalVarById.TryGetValue(rel.TargetId, out var targetVar))
             {
                 var sourceSym = graph.FindSymbolById(rel.SourceId);
