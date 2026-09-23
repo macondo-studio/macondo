@@ -1809,7 +1809,7 @@
         </Border>
 
         <!-- Overlay di Caricamento Centrato a Schermo (Blast Radius & Analisi Asincrona) -->
-        <Grid x:Name="LoadingOverlay" Grid.Row="0" Grid.RowSpan="4"
+        <Grid x:Name="LoadingOverlay" Grid.Row="1" Grid.RowSpan="3"
               Background="#75101018"
               IsVisible="False"
               ZIndex="999">
@@ -1921,7 +1921,7 @@
 
 
         <!-- Overlay Modale Aggiornamento Disponibile -->
-        <Grid x:Name="UpdateOverlay" Grid.Row="0" Grid.RowSpan="4"
+        <Grid x:Name="UpdateOverlay" Grid.Row="1" Grid.RowSpan="3"
               Background="#75101018"
               IsVisible="False"
               ZIndex="998">
@@ -1996,7 +1996,7 @@
         </Grid>
 
         <!-- Overlay Modale Conferma Esportazione Completata -->
-        <Grid x:Name="ExportSuccessOverlay" Grid.Row="0" Grid.RowSpan="4"
+        <Grid x:Name="ExportSuccessOverlay" Grid.Row="1" Grid.RowSpan="3"
               Background="#75101018"
               IsVisible="False"
               ZIndex="997">
@@ -2054,7 +2054,7 @@
         </Grid>
 
         <!-- Overlay Modale Conferma Cambio Layout con Nodi Spostati -->
-        <Grid x:Name="LayoutConfirmOverlay" Grid.Row="0" Grid.RowSpan="4"
+        <Grid x:Name="LayoutConfirmOverlay" Grid.Row="1" Grid.RowSpan="3"
               Background="#75101018"
               IsVisible="False"
               ZIndex="998">
