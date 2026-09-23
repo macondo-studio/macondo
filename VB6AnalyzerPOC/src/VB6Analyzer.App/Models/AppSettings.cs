@@ -72,6 +72,45 @@ public sealed class AppSettings
     /// <summary>Indica se mostrare i nomi testuali accanto alle icone nelle schede di visualizzazione centrali (Vista Grafo, DSM, Treemap...).</summary>
     public bool ShowTabLabels { get; set; } = true;
 
+    /// <summary>Indica se la scheda Vista Grafo è visibile.</summary>
+    public bool ShowTabGraph { get; set; } = true;
+
+    /// <summary>Indica se la scheda Matrice DSM è visibile.</summary>
+    public bool ShowTabDsm { get; set; } = true;
+
+    /// <summary>Indica se la scheda Treemap Metriche è visibile.</summary>
+    public bool ShowTabTreemap { get; set; } = true;
+
+    /// <summary>Indica se la scheda Hotspot di Rischio è visibile.</summary>
+    public bool ShowTabHotspot { get; set; } = true;
+
+    /// <summary>Indica se la scheda Flusso Schermate è visibile.</summary>
+    public bool ShowTabScreenFlow { get; set; } = true;
+
+    /// <summary>Indica se la scheda Control Flow (CFG) è visibile.</summary>
+    public bool ShowTabControlFlow { get; set; } = true;
+
+    /// <summary>Indica se la scheda Metriche Martin è visibile.</summary>
+    public bool ShowTabMartin { get; set; } = true;
+
+    /// <summary>Indica se la scheda Dead Code &amp; Orfani è visibile.</summary>
+    public bool ShowTabDeadCode { get; set; } = true;
+
+    /// <summary>Indica se la scheda Stato Condiviso è visibile.</summary>
+    public bool ShowTabSharedState { get; set; } = true;
+
+    /// <summary>Indica se la scheda Temporal Coupling è visibile.</summary>
+    public bool ShowTabTemporalCoupling { get; set; } = true;
+
+    /// <summary>Indica se la scheda Flussi Architetturali è visibile.</summary>
+    public bool ShowTabArchitecturalFlow { get; set; } = true;
+
+    /// <summary>Indica se la scheda CodeCity 3D è visibile.</summary>
+    public bool ShowTabCodeCity { get; set; } = true;
+
+    /// <summary>Indica se la scheda Griglia Blast Radius è visibile.</summary>
+    public bool ShowTabBlastRadiusGrid { get; set; } = true;
+
     /// <summary>Elenco degli ultimi progetti o cartelle analizzati (massimo 10 elementi).</summary>
     public List<RecentProjectItem> RecentProjects { get; set; } = new();
 }

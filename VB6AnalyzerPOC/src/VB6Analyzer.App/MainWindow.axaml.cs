@@ -535,6 +535,7 @@ public partial class MainWindow : Window
             Graph.EnableHoverSelection = s.EnableHoverSelection;
             HoverSelectionCheckIcon.IsVisible = s.EnableHoverSelection;
             ApplyTabLabelsVisibility(s.ShowTabLabels);
+            ApplyTabsVisibility(s);
         };
 
         // Applica i valori salvati prima del rendering iniziale
@@ -543,6 +544,7 @@ public partial class MainWindow : Window
         Graph.EnableHoverSelection = settings.EnableHoverSelection;
         HoverSelectionCheckIcon.IsVisible = settings.EnableHoverSelection;
         ApplyTabLabelsVisibility(settings.ShowTabLabels);
+        ApplyTabsVisibility(settings);
         UpdateLocalizedUI();
 
         // Ripristino Filtro di Rischio salvato
@@ -1551,10 +1553,12 @@ public partial class MainWindow : Window
                 });
             }
 
+            var s = SettingsService.Instance.Settings;
+
             // 1. Matrice DSM
             if (!token.IsCancellationRequested)
             {
-                if (_dirtyAnalyticsTabs.Contains(DsmTabItem))
+                if (s.ShowTabDsm && _dirtyAnalyticsTabs.Contains(DsmTabItem))
                 {
                     var matrix = DsmMatrixBuilder.Build(targetGraph);
                     if (!token.IsCancellationRequested)
@@ -1574,7 +1578,7 @@ public partial class MainWindow : Window
             // 2. Treemap
             if (!token.IsCancellationRequested)
             {
-                if (_dirtyAnalyticsTabs.Contains(TreemapTabItem))
+                if (s.ShowTabTreemap && _dirtyAnalyticsTabs.Contains(TreemapTabItem))
                 {
                     var treemap = TreemapModelBuilder.Build(targetGraph);
                     if (!token.IsCancellationRequested)
@@ -1594,7 +1598,7 @@ public partial class MainWindow : Window
             // 3. Hotspots di Rischio
             if (!token.IsCancellationRequested)
             {
-                if (_dirtyAnalyticsTabs.Contains(HotspotTabItem))
+                if (s.ShowTabHotspot && _dirtyAnalyticsTabs.Contains(HotspotTabItem))
                 {
                     var hotspot = HotspotAnalyzer.Analyze(targetGraph);
                     if (!token.IsCancellationRequested)
@@ -1614,7 +1618,7 @@ public partial class MainWindow : Window
             // 4. Martin Metrics
             if (!token.IsCancellationRequested)
             {
-                if (_dirtyAnalyticsTabs.Contains(MartinTabItem))
+                if (s.ShowTabMartin && _dirtyAnalyticsTabs.Contains(MartinTabItem))
                 {
                     var martin = MartinMetricsCalculator.Analyze(targetGraph);
                     if (!token.IsCancellationRequested)
@@ -1634,7 +1638,7 @@ public partial class MainWindow : Window
             // 5. Dead Code e Componenti Orfani
             if (!token.IsCancellationRequested)
             {
-                if (_dirtyAnalyticsTabs.Contains(DeadCodeTabItem))
+                if (s.ShowTabDeadCode && _dirtyAnalyticsTabs.Contains(DeadCodeTabItem))
                 {
                     var deadCode = DeadCodeAnalyzer.Analyze(targetGraph);
                     if (!token.IsCancellationRequested)
@@ -1654,7 +1658,7 @@ public partial class MainWindow : Window
             // 6. Flusso Schermate (Screen Flow)
             if (!token.IsCancellationRequested)
             {
-                if (_dirtyAnalyticsTabs.Contains(ScreenFlowTabItem))
+                if (s.ShowTabScreenFlow && _dirtyAnalyticsTabs.Contains(ScreenFlowTabItem))
                 {
                     var screenFlow = ScreenFlowBuilder.Build(targetGraph);
                     if (!token.IsCancellationRequested)
@@ -1674,7 +1678,7 @@ public partial class MainWindow : Window
             // 7. Stato Globale Condiviso
             if (!token.IsCancellationRequested)
             {
-                if (_dirtyAnalyticsTabs.Contains(SharedStateTabItem))
+                if (s.ShowTabSharedState && _dirtyAnalyticsTabs.Contains(SharedStateTabItem))
                 {
                     var sharedState = SharedStateAnalyzer.Analyze(targetGraph);
                     if (!token.IsCancellationRequested)
@@ -1694,7 +1698,7 @@ public partial class MainWindow : Window
             // 8. Flussi Architetturali (Chord Diagram)
             if (!token.IsCancellationRequested)
             {
-                if (_dirtyAnalyticsTabs.Contains(ArchitecturalFlowTabItem))
+                if (s.ShowTabArchitecturalFlow && _dirtyAnalyticsTabs.Contains(ArchitecturalFlowTabItem))
                 {
                     var archFlow = ArchitecturalFlowAnalyzer.Analyze(targetGraph);
                     if (!token.IsCancellationRequested)
@@ -1714,7 +1718,7 @@ public partial class MainWindow : Window
             // 9. CodeCity 3D / Isometrica
             if (!token.IsCancellationRequested)
             {
-                if (_dirtyAnalyticsTabs.Contains(CodeCityTabItem))
+                if (s.ShowTabCodeCity && _dirtyAnalyticsTabs.Contains(CodeCityTabItem))
                 {
                     var codeCity = CodeCityBuilder.Build(targetGraph);
                     if (!token.IsCancellationRequested)
@@ -1734,7 +1738,7 @@ public partial class MainWindow : Window
             // 10. Temporal Coupling (Analisi Cronologia Git su Disco)
             if (!token.IsCancellationRequested)
             {
-                if (_dirtyAnalyticsTabs.Contains(TemporalCouplingTabItem))
+                if (s.ShowTabTemporalCoupling && _dirtyAnalyticsTabs.Contains(TemporalCouplingTabItem))
                 {
                     var commitChangelists = GitService.Instance.GetCommitFileChangelists(folder);
                     var dataset = TemporalCouplingAnalyzer.Analyze(commitChangelists, targetGraph, folder);
@@ -3255,19 +3259,22 @@ public partial class MainWindow : Window
     #region Griglia Blast Radius, Navigazione Tab & Statistiche
 
     /// <summary>
-    /// Cambia ciclicamente la scheda di visualizzazione centrale (Grafo, DSM, Treemap, Hotspots, ScreenFlow, CFG, Griglia Blast Radius).
+    /// Cambia ciclicamente la scheda di visualizzazione centrale tra quelle attualmente visibili e abilitate.
     /// </summary>
     private void CycleCentralTab(bool forward = true)
     {
-        var count = CentralTabControl.ItemCount;
-        if (count <= 1) return;
+        var visibleTabs = CentralTabControl.Items.OfType<TabItem>().Where(t => t.IsVisible).ToList();
+        if (visibleTabs.Count <= 1) return;
 
-        var current = CentralTabControl.SelectedIndex;
-        if (current < 0) current = 0;
+        var current = CentralTabControl.SelectedItem as TabItem;
+        var currentIndex = current != null ? visibleTabs.IndexOf(current) : -1;
+        if (currentIndex < 0) currentIndex = 0;
 
-        CentralTabControl.SelectedIndex = forward
-            ? (current + 1) % count
-            : (current - 1 + count) % count;
+        var nextIndex = forward
+            ? (currentIndex + 1) % visibleTabs.Count
+            : (currentIndex - 1 + visibleTabs.Count) % visibleTabs.Count;
+
+        CentralTabControl.SelectedItem = visibleTabs[nextIndex];
     }
 
     private void OnCentralTabSelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -4291,6 +4298,90 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Applica la visibilità configurata dall'utente per ciascuna scheda di analisi nella barra centrale
+    /// e aggiorna contestualmente i segni di spunta nel menu Visualizza.
+    /// </summary>
+    private void ApplyTabsVisibility(AppSettings s)
+    {
+        if (GraphTabItem != null) GraphTabItem.IsVisible = s.ShowTabGraph;
+        if (DsmTabItem != null) DsmTabItem.IsVisible = s.ShowTabDsm;
+        if (TreemapTabItem != null) TreemapTabItem.IsVisible = s.ShowTabTreemap;
+        if (HotspotTabItem != null) HotspotTabItem.IsVisible = s.ShowTabHotspot;
+        if (ScreenFlowTabItem != null) ScreenFlowTabItem.IsVisible = s.ShowTabScreenFlow;
+        if (ControlFlowTabItem != null) ControlFlowTabItem.IsVisible = s.ShowTabControlFlow;
+        if (MartinTabItem != null) MartinTabItem.IsVisible = s.ShowTabMartin;
+        if (DeadCodeTabItem != null) DeadCodeTabItem.IsVisible = s.ShowTabDeadCode;
+        if (SharedStateTabItem != null) SharedStateTabItem.IsVisible = s.ShowTabSharedState;
+        if (TemporalCouplingTabItem != null) TemporalCouplingTabItem.IsVisible = s.ShowTabTemporalCoupling;
+        if (ArchitecturalFlowTabItem != null) ArchitecturalFlowTabItem.IsVisible = s.ShowTabArchitecturalFlow;
+        if (CodeCityTabItem != null) CodeCityTabItem.IsVisible = s.ShowTabCodeCity;
+        if (GridTabItem != null) GridTabItem.IsVisible = s.ShowTabBlastRadiusGrid;
+
+        if (TabGraphCheckIcon != null) TabGraphCheckIcon.IsVisible = s.ShowTabGraph;
+        if (TabDsmCheckIcon != null) TabDsmCheckIcon.IsVisible = s.ShowTabDsm;
+        if (TabTreemapCheckIcon != null) TabTreemapCheckIcon.IsVisible = s.ShowTabTreemap;
+        if (TabHotspotCheckIcon != null) TabHotspotCheckIcon.IsVisible = s.ShowTabHotspot;
+        if (TabScreenFlowCheckIcon != null) TabScreenFlowCheckIcon.IsVisible = s.ShowTabScreenFlow;
+        if (TabControlFlowCheckIcon != null) TabControlFlowCheckIcon.IsVisible = s.ShowTabControlFlow;
+        if (TabMartinCheckIcon != null) TabMartinCheckIcon.IsVisible = s.ShowTabMartin;
+        if (TabDeadCodeCheckIcon != null) TabDeadCodeCheckIcon.IsVisible = s.ShowTabDeadCode;
+        if (TabSharedStateCheckIcon != null) TabSharedStateCheckIcon.IsVisible = s.ShowTabSharedState;
+        if (TabTemporalCouplingCheckIcon != null) TabTemporalCouplingCheckIcon.IsVisible = s.ShowTabTemporalCoupling;
+        if (TabArchitecturalFlowCheckIcon != null) TabArchitecturalFlowCheckIcon.IsVisible = s.ShowTabArchitecturalFlow;
+        if (TabCodeCityCheckIcon != null) TabCodeCityCheckIcon.IsVisible = s.ShowTabCodeCity;
+        if (TabBlastRadiusGridCheckIcon != null) TabBlastRadiusGridCheckIcon.IsVisible = s.ShowTabBlastRadiusGrid;
+
+        // Se la scheda attualmente attiva viene nascosta, ripiega in sicurezza sulla prima scheda visibile
+        if (CentralTabControl?.SelectedItem is TabItem currentTab && !currentTab.IsVisible)
+        {
+            var firstVisible = CentralTabControl.Items.OfType<TabItem>().FirstOrDefault(t => t.IsVisible);
+            if (firstVisible != null)
+            {
+                CentralTabControl.SelectedItem = firstVisible;
+            }
+        }
+    }
+
+    private void OnToggleTabGraphMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabGraph = !s.ShowTabGraph);
+
+    private void OnToggleTabDsmMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabDsm = !s.ShowTabDsm);
+
+    private void OnToggleTabTreemapMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabTreemap = !s.ShowTabTreemap);
+
+    private void OnToggleTabHotspotMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabHotspot = !s.ShowTabHotspot);
+
+    private void OnToggleTabScreenFlowMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabScreenFlow = !s.ShowTabScreenFlow);
+
+    private void OnToggleTabControlFlowMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabControlFlow = !s.ShowTabControlFlow);
+
+    private void OnToggleTabMartinMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabMartin = !s.ShowTabMartin);
+
+    private void OnToggleTabDeadCodeMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabDeadCode = !s.ShowTabDeadCode);
+
+    private void OnToggleTabSharedStateMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabSharedState = !s.ShowTabSharedState);
+
+    private void OnToggleTabTemporalCouplingMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabTemporalCoupling = !s.ShowTabTemporalCoupling);
+
+    private void OnToggleTabArchitecturalFlowMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabArchitecturalFlow = !s.ShowTabArchitecturalFlow);
+
+    private void OnToggleTabCodeCityMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabCodeCity = !s.ShowTabCodeCity);
+
+    private void OnToggleTabBlastRadiusGridMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabBlastRadiusGrid = !s.ShowTabBlastRadiusGrid);
+
     #endregion
 
     #region Integrazione VCS (Git & SVN)
@@ -4828,6 +4919,20 @@ public partial class MainWindow : Window
         LayoutForceMenuItem.Header = loc["Layout_ForceDirected"];
         ToggleHoverSelectionMenuItem.Header = loc["Menu_HoverSelection"];
         ToggleTabLabelsMenuItem.Header = loc["Menu_ToggleTabLabels"];
+        VisibleTabsMenuItem.Header = loc["Menu_VisibleTabs"];
+        ToggleTabGraphMenuItem.Header = loc["Tab_GraphView"];
+        ToggleTabDsmMenuItem.Header = loc["Tab_DsmMatrix"];
+        ToggleTabTreemapMenuItem.Header = loc["Tab_TreemapMetrics"];
+        ToggleTabHotspotMenuItem.Header = loc["Tab_RiskHotspots"];
+        ToggleTabScreenFlowMenuItem.Header = loc["Tab_ScreenFlow"];
+        ToggleTabControlFlowMenuItem.Header = loc["Tab_ControlFlow"];
+        ToggleTabMartinMenuItem.Header = loc["Tab_MartinMetrics"];
+        ToggleTabDeadCodeMenuItem.Header = loc["Tab_DeadCode"];
+        ToggleTabSharedStateMenuItem.Header = loc["Tab_SharedState"];
+        ToggleTabTemporalCouplingMenuItem.Header = loc["Tab_TemporalCoupling"];
+        ToggleTabArchitecturalFlowMenuItem.Header = loc["Tab_ArchitecturalFlow"];
+        ToggleTabCodeCityMenuItem.Header = loc["Tab_CodeCity"];
+        ToggleTabBlastRadiusGridMenuItem.Header = loc["Tab_BlastRadiusGrid"];
 
         // Menu Analisi
         AnalysisMenu.Header = loc["Menu_Analysis"];

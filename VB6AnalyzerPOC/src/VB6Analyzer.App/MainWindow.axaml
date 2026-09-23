@@ -166,6 +166,78 @@
                                     <PathIcon x:Name="TabLabelsCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <Separator />
+                            <!-- Sottomenu Schede Analitiche Visibili -->
+                            <MenuItem x:Name="VisibleTabsMenuItem" Header="Schede Analitiche Visibili">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconTable}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                                <MenuItem x:Name="ToggleTabGraphMenuItem" Header="Vista Grafo" Click="OnToggleTabGraphMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabGraphCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabDsmMenuItem" Header="Matrice DSM" Click="OnToggleTabDsmMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabDsmCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabTreemapMenuItem" Header="Treemap Metriche" Click="OnToggleTabTreemapMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabTreemapCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabHotspotMenuItem" Header="Hotspot di Rischio" Click="OnToggleTabHotspotMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabHotspotCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabScreenFlowMenuItem" Header="Flusso Schermate" Click="OnToggleTabScreenFlowMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabScreenFlowCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabControlFlowMenuItem" Header="Control Flow (CFG)" Click="OnToggleTabControlFlowMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabControlFlowCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabMartinMenuItem" Header="Metriche Martin" Click="OnToggleTabMartinMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabMartinCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabDeadCodeMenuItem" Header="Dead Code &amp; Orfani" Click="OnToggleTabDeadCodeMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabDeadCodeCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabSharedStateMenuItem" Header="Stato Condiviso" Click="OnToggleTabSharedStateMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabSharedStateCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabTemporalCouplingMenuItem" Header="Temporal Coupling" Click="OnToggleTabTemporalCouplingMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabTemporalCouplingCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabArchitecturalFlowMenuItem" Header="Flussi Architetturali" Click="OnToggleTabArchitecturalFlowMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabArchitecturalFlowCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabCodeCityMenuItem" Header="CodeCity 3D" Click="OnToggleTabCodeCityMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabCodeCityCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabBlastRadiusGridMenuItem" Header="Griglia Blast Radius" Click="OnToggleTabBlastRadiusGridMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabBlastRadiusGridCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </MenuItem>
                         </MenuItem>
                         <MenuItem x:Name="AnalysisMenu" Header="_Analisi">
                             <MenuItem x:Name="BlastRadiusMenuItem" Header="Calcola Blast Radius" InputGesture="F5">

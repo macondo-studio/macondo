@@ -111,7 +111,15 @@
                             </StackPanel>
                         </Button>
 
-                        <!-- Tab 4: Scorciatoie -->
+                        <!-- Tab 4: Schede Analitiche -->
+                        <Button x:Name="NavAnalyticsTabsButton" Classes="nav-btn" Click="OnNavAnalyticsTabsClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PathIcon Data="{StaticResource IconTable}" Width="14" Height="14" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavAnalyticsTabsText" Text="Schede Analitiche" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 5: Scorciatoie -->
                         <Button x:Name="NavShortcutsButton" Classes="nav-btn" Click="OnNavShortcutsClicked">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <PathIcon Data="{StaticResource IconKeyboard}" Width="14" Height="14" VerticalAlignment="Center" />
@@ -436,7 +444,299 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- SEZIONE 4: SCORCIATOIE DA TASTIERA -->
+                    <!-- SEZIONE 4: SCHEDE ANALITICHE (VISIBILITÀ TAB) -->
+                    <ScrollViewer x:Name="AnalyticsTabsSection" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Name="AnalyticsTabsHeaderTitle" Text="Visibilità Schede di Analisi" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock x:Name="AnalyticsTabsHeaderSub" Text="Scegli quali schede e viste analitiche mostrare nella barra centrale." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                            </StackPanel>
+
+                            <!-- Barra Azioni Rapide (Seleziona Tutte / Deseleziona Tutte) -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button x:Name="SelectAllTabsButton"
+                                        Padding="10,5"
+                                        FontSize="11"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="4"
+                                        Foreground="{DynamicResource ThemeTextPrimaryBrush}"
+                                        Click="OnSelectAllTabsClicked">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <PathIcon Data="{StaticResource IconCheck}" Width="10" Height="10" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="SelectAllTabsButtonText" Text="Seleziona Tutte" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="DeselectAllTabsButton"
+                                        Padding="10,5"
+                                        FontSize="11"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="4"
+                                        Foreground="{DynamicResource ThemeTextPrimaryBrush}"
+                                        Click="OnDeselectAllTabsClicked">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <PathIcon Data="{StaticResource IconWindowClose}" Width="10" Height="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="DeselectAllTabsButtonText" Text="Deseleziona Tutte" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <!-- Griglia/Lista delle Schede Analitiche e Viste -->
+                            <StackPanel Spacing="8">
+                                <!-- Card Vista Grafo -->
+                                <Border x:Name="CardTabGraph"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabGraph">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconGraph}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabGraphTitle" Text="Vista Grafo" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabGraphDesc" Text="Canvas interattivo con visualizzazione a grafo nodi-relazioni dei simboli e moduli." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabGraph" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card DSM -->
+                                <Border x:Name="CardTabDsm"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabDsm">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconMatrix}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabDsmTitle" Text="Matrice DSM" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabDsmDesc" Text="Matrice di dipendenza strutturale (DSM) e rilevamento cicli." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabDsm" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card Treemap -->
+                                <Border x:Name="CardTabTreemap"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabTreemap">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconTreemap}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabTreemapTitle" Text="Treemap Metriche" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabTreemapDesc" Text="Mappa gerarchica proporzionale per linee di codice e complessità." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabTreemap" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card Hotspot -->
+                                <Border x:Name="CardTabHotspot"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabHotspot">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconHotspot}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabHotspotTitle" Text="Hotspot di Rischio" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabHotspotDesc" Text="Matrice dei punti caldi a rischio (complessità vs churn)." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabHotspot" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card Screen Flow -->
+                                <Border x:Name="CardTabScreenFlow"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabScreenFlow">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconScreenFlow}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabScreenFlowTitle" Text="Flusso Schermate" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabScreenFlowDesc" Text="Mappa di navigazione visiva tra form e controlli UI." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabScreenFlow" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card Control Flow (CFG) -->
+                                <Border x:Name="CardTabControlFlow"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabControlFlow">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconControlFlow}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabControlFlowTitle" Text="Control Flow (CFG)" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabControlFlowDesc" Text="Grafo a blocchi di flusso di controllo (CFG) delle routine." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabControlFlow" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card Martin Metrics -->
+                                <Border x:Name="CardTabMartin"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabMartin">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconMartin}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabMartinTitle" Text="Metriche Martin" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabMartinDesc" Text="Grafico Sequence Principale: Astrattezza vs Instabilità." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabMartin" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card Dead Code -->
+                                <Border x:Name="CardTabDeadCode"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabDeadCode">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconDeadCode}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabDeadCodeTitle" Text="Dead Code &amp; Orfani" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabDeadCodeDesc" Text="Rilevamento codice non utilizzato, funzioni orfane e isolamento." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabDeadCode" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card Stato Condiviso -->
+                                <Border x:Name="CardTabSharedState"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabSharedState">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconSharedState}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabSharedStateTitle" Text="Stato Condiviso" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabSharedStateDesc" Text="Matrice delle variabili globali condivise e relative mutazioni." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabSharedState" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card Temporal Coupling -->
+                                <Border x:Name="CardTabTemporalCoupling"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabTemporalCoupling">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconTemporalCoupling}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabTemporalCouplingTitle" Text="Temporal Coupling" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabTemporalCouplingDesc" Text="Accoppiamento temporale e co-modifiche storiche da Git." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabTemporalCoupling" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card Flussi Architetturali -->
+                                <Border x:Name="CardTabArchitecturalFlow"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabArchitecturalFlow">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconFlow}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabArchitecturalFlowTitle" Text="Flussi Architetturali" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabArchitecturalFlowDesc" Text="Flussi e chiamate a strati con diagramma Chord interattivo." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabArchitecturalFlow" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card CodeCity -->
+                                <Border x:Name="CardTabCodeCity"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabCodeCity">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCity}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabCodeCityTitle" Text="CodeCity 3D" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabCodeCityDesc" Text="Mappa urbana tridimensionale polimetrica del codebase." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabCodeCity" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card Blast Radius Grid -->
+                                <Border x:Name="CardTabBlastRadiusGrid"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabBlastRadiusGrid">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconTable}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabBlastRadiusGridTitle" Text="Griglia Blast Radius" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabBlastRadiusGridDesc" Text="Tabella riassuntiva di audit impatto e matrice di rischio." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabBlastRadiusGrid" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- SEZIONE 5: SCORCIATOIE DA TASTIERA -->
                     <Grid x:Name="ShortcutsSection" RowDefinitions="Auto,Auto,*" IsVisible="False">
                         <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
                             <TextBlock x:Name="ShortcutsHeaderTitle" Text="Catalogo Scorciatoie da Tastiera" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
