@@ -88,9 +88,9 @@ public static class WindowsNotificationService
     /// Fa lampeggiare l'icona dell'applicazione sulla barra delle applicazioni di Windows
     /// finché l'utente non seleziona la finestra portandola in primo piano.
     /// </summary>
-    public static void FlashTaskbar(Window window)
+    public static void FlashTaskbar(Window? window)
     {
-        if (!OperatingSystem.IsWindows()) return;
+        if (!OperatingSystem.IsWindows() || window == null) return;
 
         try
         {
@@ -117,9 +117,9 @@ public static class WindowsNotificationService
     /// <summary>
     /// Mostra una notifica popup nativa su Windows (Toast / Balloon) associata alla finestra dell'applicazione.
     /// </summary>
-    public static void ShowWindowsNotification(Window window, string title, string message)
+    public static void ShowWindowsNotification(Window? window, string title, string message)
     {
-        if (!OperatingSystem.IsWindows()) return;
+        if (!OperatingSystem.IsWindows() || window == null) return;
 
         try
         {
@@ -182,7 +182,7 @@ public static class WindowsNotificationService
     /// Notifica il completamento dell'analisi: fa lampeggiare l'icona sulla barra delle applicazioni
     /// e mostra un popup di notifica nativo su Windows.
     /// </summary>
-    public static void NotifyAnalysisCompleted(Window window, string title, string message)
+    public static void NotifyAnalysisCompleted(Window? window, string title, string message)
     {
         FlashTaskbar(window);
         ShowWindowsNotification(window, title, message);
