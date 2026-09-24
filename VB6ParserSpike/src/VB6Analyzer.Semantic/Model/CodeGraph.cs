@@ -254,6 +254,69 @@ public sealed class CodeGraph
     }
 
     /// <summary>
+    /// Aggiunge una relazione di lettura di stato (READS) da una routine o simbolo verso un campo o proprietà.
+    /// Deduplicazione istantanea O(1).
+    /// </summary>
+    public void AddReads(Symbol source, Symbol targetField, int? line = null)
+    {
+        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+        if (_relationshipKeys.Contains((source.Id, targetField.Id, RelationshipKind.Reads)))
+            return;
+
+        RegisterRelationship(new Relationship
+        {
+            SourceId = source.Id,
+            TargetId = targetField.Id,
+            Kind = RelationshipKind.Reads,
+            Line = line,
+            Confidence = ResolutionConfidence.Exact
+        });
+    }
+
+    /// <summary>
+    /// Aggiunge una relazione di scrittura o assegnazione di stato (WRITES) verso un campo o proprietà.
+    /// Deduplicazione istantanea O(1).
+    /// </summary>
+    public void AddWrites(Symbol source, Symbol targetField, int? line = null)
+    {
+        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+        if (_relationshipKeys.Contains((source.Id, targetField.Id, RelationshipKind.Writes)))
+            return;
+
+        RegisterRelationship(new Relationship
+        {
+            SourceId = source.Id,
+            TargetId = targetField.Id,
+            Kind = RelationshipKind.Writes,
+            Line = line,
+            Confidence = ResolutionConfidence.Exact
+        });
+    }
+
+    /// <summary>
+    /// Aggiunge una relazione di riferimento generico (REFERENCES) tra simboli.
+    /// Deduplicazione istantanea O(1).
+    /// </summary>
+    public void AddReferences(Symbol source, Symbol target, int? line = null)
+    {
+        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+        if (_relationshipKeys.Contains((source.Id, target.Id, RelationshipKind.References)))
+            return;
+
+        RegisterRelationship(new Relationship
+        {
+            SourceId = source.Id,
+            TargetId = target.Id,
+            Kind = RelationshipKind.References,
+            Line = line,
+            Confidence = ResolutionConfidence.Exact
+        });
+    }
+
+    /// <summary>
     /// Restituisce tutti i simboli figli direttamente contenuti all'interno del simbolo specificato.
     /// Esecuzione istantanea O(1) tramite indice di adiacenza gerarchico.
     /// </summary>

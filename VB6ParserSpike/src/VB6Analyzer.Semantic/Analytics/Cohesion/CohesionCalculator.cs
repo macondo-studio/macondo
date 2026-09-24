@@ -1,0 +1,311 @@
+using Macondo.Semantic.Model;
+
+namespace Macondo.Semantic.Analytics.Cohesion;
+
+/// <summary>
+/// Calcolatore poliglotto e deterministico delle metriche di coesione interna e suite Chidamber & Kemerer (C&K).
+/// Calcola LCOM4 (Lack of Cohesion in Methods 4), TCC (Tight Class Cohesion), LCC (Loose Class Cohesion),
+/// WMC (Weighted Methods per Class), CBO (Coupling Between Objects) ed RFC (Response for a Class).
+/// </summary>
+public static class CohesionCalculator
+{
+    private static readonly HashSet<SymbolKind> ContainerKinds = new()
+    {
+        SymbolKind.Class,
+        SymbolKind.Module,
+        SymbolKind.Form,
+        SymbolKind.UserControl,
+        SymbolKind.Struct,
+        SymbolKind.Record
+    };
+
+    private static readonly HashSet<SymbolKind> RoutineKinds = new()
+    {
+        SymbolKind.Method,
+        SymbolKind.Property
+    };
+
+    private static readonly HashSet<SymbolKind> StateKinds = new()
+    {
+        SymbolKind.Field,
+        SymbolKind.Property,
+        SymbolKind.Constant
+    };
+
+    /// <summary>
+    /// Esegue l'analisi completa di coesione su tutti i contenitori del CodeGraph.
+    /// </summary>
+    public static CohesionDataset Analyze(CodeGraph graph)
+    {
+        var dataset = new CohesionDataset();
+        if (graph.Symbols.Count == 0)
+            return dataset;
+
+        var containers = graph.Symbols.Where(s => ContainerKinds.Contains(s.Kind)).ToList();
+        if (containers.Count == 0)
+            return dataset;
+
+        // Mappatura globale per CBO ed RFC
+        var memberToContainerMap = new Dictionary<Guid, Guid>();
+        foreach (var c in containers)
+        {
+            memberToContainerMap[c.Id] = c.Id;
+            foreach (var child in graph.GetChildren(c.Id))
+            {
+                memberToContainerMap[child.Id] = c.Id;
+            }
+        }
+
+        foreach (var container in containers)
+        {
+            var children = graph.GetChildren(container.Id).ToList();
+            var routines = children.Where(c => RoutineKinds.Contains(c.Kind)).ToList();
+            var fields = children.Where(c => StateKinds.Contains(c.Kind)).ToList();
+
+            var report = new ContainerCohesionReport
+            {
+                Container = container,
+                MethodCount = routines.Count,
+                FieldCount = fields.Count
+            };
+
+            // Se non ci sono metodi o c'è un solo metodo, LCOM4 è banale
+            if (routines.Count == 0)
+            {
+                report.Lcom4 = 0;
+                report.TightClassCohesion = 1.0;
+                report.LooseClassCohesion = 1.0;
+            }
+            else if (routines.Count == 1)
+            {
+                report.Lcom4 = 1;
+                report.TightClassCohesion = 1.0;
+                report.LooseClassCohesion = 1.0;
+                report.Clusters.Add(new CohesionCluster
+                {
+                    ClusterIndex = 1,
+                    Methods = new List<Symbol> { routines[0] },
+                    AccessedFields = fields,
+                    SuggestedRefactoringName = container.Name
+                });
+            }
+            else
+            {
+                CalculateLcom4AndCohesion(graph, container, routines, fields, report);
+            }
+
+            // Calcolo WMC, CBO ed RFC
+            CalculateCkMetrics(graph, container, routines, memberToContainerMap, report);
+
+            dataset.Items.Add(report);
+        }
+
+        // Ordina mettendo in cima i candidati più critici al refactoring
+        dataset.Items.Sort((a, b) =>
+        {
+            int cmp = b.Lcom4.CompareTo(a.Lcom4);
+            if (cmp != 0) return cmp;
+            return a.TightClassCohesion.CompareTo(b.TightClassCohesion);
+        });
+
+        return dataset;
+    }
+
+    /// <summary>
+    /// Calcola il grafo non orientato di connettività tra i metodi del contenitore e ne individua le componenti connesse (LCOM4).
+    /// </summary>
+    private static void CalculateLcom4AndCohesion(
+        CodeGraph graph,
+        Symbol container,
+        List<Symbol> routines,
+        List<Symbol> fields,
+        ContainerCohesionReport report)
+    {
+        var routineIds = routines.Select(r => r.Id).ToHashSet();
+        var fieldIds = fields.Select(f => f.Id).ToHashSet();
+        var routineMap = routines.ToDictionary(r => r.Id);
+        var fieldMap = fields.ToDictionary(f => f.Id);
+
+        // Mappa: Routine -> Insieme di Campi/Stato letti o scritti
+        var routineFields = routines.ToDictionary(r => r.Id, _ => new HashSet<Guid>());
+        // Mappa: Routine -> Insieme di Routine interne chiamate
+        var routineInternalCalls = routines.ToDictionary(r => r.Id, _ => new HashSet<Guid>());
+
+        foreach (var rel in graph.Relationships)
+        {
+            if (routineIds.Contains(rel.SourceId))
+            {
+                if ((rel.Kind == RelationshipKind.Reads || rel.Kind == RelationshipKind.Writes) && fieldIds.Contains(rel.TargetId))
+                {
+                    routineFields[rel.SourceId].Add(rel.TargetId);
+                }
+                else if (rel.Kind == RelationshipKind.Calls && routineIds.Contains(rel.TargetId) && rel.TargetId != rel.SourceId)
+                {
+                    routineInternalCalls[rel.SourceId].Add(rel.TargetId);
+                }
+            }
+        }
+
+        // Costruzione della matrice di adiacenza non orientata per LCOM4
+        // Due metodi sono adiacenti se:
+        // 1. Accedono ad almeno un campo comune
+        // 2. Oppure uno chiama direttamente l'altro
+        int n = routines.Count;
+        var adj = new Dictionary<Guid, HashSet<Guid>>();
+        foreach (var r in routines)
+            adj[r.Id] = new HashSet<Guid>();
+
+        int directConnectedPairs = 0;
+        int totalPossiblePairs = (n * (n - 1)) / 2;
+
+        for (int i = 0; i < n; i++)
+        {
+            var r1 = routines[i].Id;
+            var f1 = routineFields[r1];
+
+            for (int j = i + 1; j < n; j++)
+            {
+                var r2 = routines[j].Id;
+                var f2 = routineFields[r2];
+
+                bool shareField = f1.Overlaps(f2);
+                bool callEachOther = routineInternalCalls[r1].Contains(r2) || routineInternalCalls[r2].Contains(r1);
+
+                if (shareField || callEachOther)
+                {
+                    adj[r1].Add(r2);
+                    adj[r2].Add(r1);
+                    directConnectedPairs++;
+                }
+            }
+        }
+
+        // Calcolo delle Componenti Connesse (BFS/DFS) -> LCOM4
+        var visited = new HashSet<Guid>();
+        int clusterIdx = 1;
+
+        foreach (var routine in routines)
+        {
+            if (visited.Contains(routine.Id))
+                continue;
+
+            var cluster = new CohesionCluster
+            {
+                ClusterIndex = clusterIdx++,
+                SuggestedRefactoringName = $"{container.Name}_Part{clusterIdx - 1}"
+            };
+
+            var queue = new Queue<Guid>();
+            queue.Enqueue(routine.Id);
+            visited.Add(routine.Id);
+
+            var clusterFieldIds = new HashSet<Guid>();
+
+            while (queue.Count > 0)
+            {
+                var currId = queue.Dequeue();
+                if (routineMap.TryGetValue(currId, out var rSym))
+                {
+                    cluster.Methods.Add(rSym);
+                }
+
+                foreach (var fId in routineFields[currId])
+                {
+                    clusterFieldIds.Add(fId);
+                }
+
+                foreach (var neighbor in adj[currId])
+                {
+                    if (visited.Add(neighbor))
+                    {
+                        queue.Enqueue(neighbor);
+                    }
+                }
+            }
+
+            foreach (var fId in clusterFieldIds)
+            {
+                if (fieldMap.TryGetValue(fId, out var fSym))
+                {
+                    cluster.AccessedFields.Add(fSym);
+                }
+            }
+
+            report.Clusters.Add(cluster);
+        }
+
+        report.Lcom4 = report.Clusters.Count;
+
+        // TCC (Tight Class Cohesion)
+        report.TightClassCohesion = totalPossiblePairs > 0
+            ? Math.Clamp((double)directConnectedPairs / totalPossiblePairs, 0.0, 1.0)
+            : 1.0;
+
+        // LCC (Loose Class Cohesion): calcolo coppie raggiungibili transitivamente (all'interno della stessa componente connessa)
+        int reachablePairs = 0;
+        foreach (var cluster in report.Clusters)
+        {
+            int size = cluster.Methods.Count;
+            if (size > 1)
+            {
+                reachablePairs += (size * (size - 1)) / 2;
+            }
+        }
+
+        report.LooseClassCohesion = totalPossiblePairs > 0
+            ? Math.Clamp((double)reachablePairs / totalPossiblePairs, 0.0, 1.0)
+            : 1.0;
+    }
+
+    /// <summary>
+    /// Calcola le metriche Chidamber & Kemerer di accoppiamento e complessità (WMC, CBO, RFC).
+    /// </summary>
+    private static void CalculateCkMetrics(
+        CodeGraph graph,
+        Symbol container,
+        List<Symbol> routines,
+        Dictionary<Guid, Guid> memberToContainerMap,
+        ContainerCohesionReport report)
+    {
+        var routineIds = routines.Select(r => r.Id).ToHashSet();
+        var externalContainersCoupled = new HashSet<Guid>();
+        var responseMethods = new HashSet<Guid>(routineIds);
+
+        int totalWmc = 0;
+
+        foreach (var r in routines)
+        {
+            // Complessità stimata per metodo (base 1 + linee di codice normalizzate se non calcolato il CFG)
+            int methodLoc = Math.Max(1, r.LineEnd - r.LineStart + 1);
+            int estimatedComplexity = Math.Max(1, Math.Min(15, methodLoc / 10));
+            totalWmc += estimatedComplexity;
+        }
+
+        foreach (var rel in graph.Relationships)
+        {
+            if (routineIds.Contains(rel.SourceId))
+            {
+                if (rel.Kind == RelationshipKind.Calls)
+                {
+                    responseMethods.Add(rel.TargetId);
+                }
+
+                if (memberToContainerMap.TryGetValue(rel.TargetId, out var targetContId) && targetContId != container.Id)
+                {
+                    externalContainersCoupled.Add(targetContId);
+                }
+            }
+            else if (rel.SourceId == container.Id)
+            {
+                if (memberToContainerMap.TryGetValue(rel.TargetId, out var targetContId) && targetContId != container.Id)
+                {
+                    externalContainersCoupled.Add(targetContId);
+                }
+            }
+        }
+
+        report.WeightedMethodsCount = Math.Max(report.MethodCount, totalWmc);
+        report.CouplingBetweenObjects = externalContainersCoupled.Count;
+        report.ResponseForClass = responseMethods.Count;
+    }
+}
