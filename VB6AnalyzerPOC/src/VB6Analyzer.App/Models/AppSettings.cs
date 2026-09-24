@@ -111,6 +111,30 @@ public sealed class AppSettings
     /// <summary>Indica se la scheda Griglia Blast Radius è visibile.</summary>
     public bool ShowTabBlastRadiusGrid { get; set; } = true;
 
+    /// <summary>Indica se la scheda Coesione &amp; LCOM è visibile.</summary>
+    public bool ShowTabCohesion { get; set; } = true;
+
+    /// <summary>Indica se la scheda Indice di Manutenibilità è visibile.</summary>
+    public bool ShowTabMaintainability { get; set; } = true;
+
+    /// <summary>Indica se la scheda Regole Architetturali è visibile.</summary>
+    public bool ShowTabArchitecturalRules { get; set; } = true;
+
+    /// <summary>Indica se la scheda Duplicazioni (CPD) è visibile.</summary>
+    public bool ShowTabCodeClone { get; set; } = true;
+
+    /// <summary>Indica se la scheda Social &amp; Bus Factor è visibile.</summary>
+    public bool ShowTabSocialCode { get; set; } = true;
+
+    /// <summary>Indica se la scheda Data Flow &amp; Taint è visibile.</summary>
+    public bool ShowTabDataFlow { get; set; } = true;
+
+    /// <summary>Indica se la scheda API Diff &amp; SemVer è visibile.</summary>
+    public bool ShowTabApiDiff { get; set; } = true;
+
+    /// <summary>Indica se la scheda Matrice CRUD è visibile.</summary>
+    public bool ShowTabCrudMatrix { get; set; } = true;
+
     /// <summary>Elenco degli ultimi progetti o cartelle analizzati (massimo 10 elementi).</summary>
     public List<RecentProjectItem> RecentProjects { get; set; } = new();
 }

@@ -237,6 +237,47 @@
                                         <PathIcon x:Name="TabBlastRadiusGridCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
                                     </MenuItem.Icon>
                                 </MenuItem>
+                                <Separator />
+                                <MenuItem x:Name="ToggleTabCohesionMenuItem" Header="Coesione &amp; LCOM" Click="OnToggleTabCohesionMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabCohesionCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabMaintainabilityMenuItem" Header="Manutenibilità" Click="OnToggleTabMaintainabilityMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabMaintainabilityCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabArchitecturalRulesMenuItem" Header="Regole Architettura" Click="OnToggleTabArchitecturalRulesMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabArchitecturalRulesCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabCodeCloneMenuItem" Header="Duplicazioni (CPD)" Click="OnToggleTabCodeCloneMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabCodeCloneCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabSocialCodeMenuItem" Header="Social &amp; Bus Factor" Click="OnToggleTabSocialCodeMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabSocialCodeCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabDataFlowMenuItem" Header="Data Flow &amp; Taint" Click="OnToggleTabDataFlowMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabDataFlowCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabApiDiffMenuItem" Header="API Diff &amp; SemVer" Click="OnToggleTabApiDiffMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabApiDiffCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabCrudMatrixMenuItem" Header="Matrice CRUD" Click="OnToggleTabCrudMatrixMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabCrudMatrixCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
                             </MenuItem>
                         </MenuItem>
                         <MenuItem x:Name="AnalysisMenu" Header="_Analisi">
@@ -1417,7 +1458,111 @@
                     </Grid>
                 </TabItem>
 
-                <!-- TAB 13: Griglia Risultati Blast Radius & Matrice di Rischio -->
+                <!-- TAB 13: Coesione & LCOM -->
+                <TabItem x:Name="CohesionTabItem" ToolTip.Tip="Analisi Coesione LCOM4 e C&amp;K">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconCohesion}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="CohesionTabHeader" Text="Coesione &amp; LCOM" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:CohesionControl x:Name="Cohesion" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 14: Indice di Manutenibilità -->
+                <TabItem x:Name="MaintainabilityTabItem" ToolTip.Tip="Maintainability Index (MI) e Halstead">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconMaintainability}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="MaintainabilityTabHeader" Text="Manutenibilità" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:MaintainabilityControl x:Name="Maintainability" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 15: Regole Architetturali -->
+                <TabItem x:Name="ArchitecturalRulesTabItem" ToolTip.Tip="Linter Regole Architetturali">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconArchitecturalRules}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="ArchitecturalRulesTabHeader" Text="Regole Architettura" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:ArchitecturalRulesControl x:Name="ArchitecturalRules" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 16: Duplicazioni e Cloni (CPD) -->
+                <TabItem x:Name="CodeCloneTabItem" ToolTip.Tip="Rilevamento Duplicazioni e Cloni (CPD)">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconCodeClone}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="CodeCloneTabHeader" Text="Duplicazioni (CPD)" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:CodeCloneControl x:Name="CodeClone" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 17: Social Code & Bus Factor -->
+                <TabItem x:Name="SocialCodeTabItem" ToolTip.Tip="Social Code Analysis e Bus Factor (Conway)">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconSocialCode}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="SocialCodeTabHeader" Text="Social &amp; Bus Factor" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:SocialCodeControl x:Name="SocialCode" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 18: Data Flow & Taint Tracking -->
+                <TabItem x:Name="DataFlowTabItem" ToolTip.Tip="Data Flow e Taint Tracking Source-Sink">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconDataFlow}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="DataFlowTabHeader" Text="Data Flow &amp; Taint" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:DataFlowControl x:Name="DataFlow" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 19: API Diff & SemVer -->
+                <TabItem x:Name="ApiDiffTabItem" ToolTip.Tip="Confronto Superficie API e Breaking Changes">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconApiDiff}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="ApiDiffTabHeader" Text="API Diff &amp; SemVer" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:ApiDiffControl x:Name="ApiDiff" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 20: Matrice CRUD -->
+                <TabItem x:Name="CrudMatrixTabItem" ToolTip.Tip="Matrice Operazioni CRUD su Dati">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource IconCrudMatrix}" Width="13" Height="13" VerticalAlignment="Center" />
+                            <TextBlock x:Name="CrudMatrixTabHeader" Text="Matrice CRUD" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <controls:CrudMatrixControl x:Name="CrudMatrix" />
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 21: Griglia Risultati Blast Radius & Matrice di Rischio -->
                 <TabItem x:Name="GridTabItem" ToolTip.Tip="Griglia e Matrice Blast Radius">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">

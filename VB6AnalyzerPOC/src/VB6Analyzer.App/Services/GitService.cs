@@ -193,6 +193,68 @@ public sealed class GitService
     }
 
     /// <summary>
+    /// Estrae la cronologia dettagliata dei commit per file (Autore, percorso file, data, righe aggiunte/rimosse) per l'analisi Social Code e Bus Factor.
+    /// </summary>
+    public List<Macondo.Semantic.Analytics.SocialCode.FileCommitRecord> GetFileCommitHistory(string? folderPath, int maxCommits = 500)
+    {
+        var root = FindGitRoot(folderPath);
+        if (root == null) return new List<Macondo.Semantic.Analytics.SocialCode.FileCommitRecord>();
+
+        var (exitCode, stdout, _) = RunGitCommand(root, $"log -n {maxCommits} --numstat --pretty=format:--COMMIT--%an%x09%aI");
+        if (exitCode != 0 || string.IsNullOrWhiteSpace(stdout))
+            return new List<Macondo.Semantic.Analytics.SocialCode.FileCommitRecord>();
+
+        var result = new List<Macondo.Semantic.Analytics.SocialCode.FileCommitRecord>();
+        var lines = stdout.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+        string currentAuthor = "Unknown";
+        DateTime currentTimestamp = DateTime.UtcNow;
+
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+            if (string.IsNullOrEmpty(trimmed)) continue;
+
+            if (trimmed.StartsWith("--COMMIT--"))
+            {
+                var meta = trimmed.Substring("--COMMIT--".Length).Split('\t');
+                currentAuthor = meta.Length > 0 && !string.IsNullOrWhiteSpace(meta[0]) ? meta[0].Trim() : "Unknown";
+                if (meta.Length > 1 && DateTime.TryParse(meta[1], out var dt))
+                {
+                    currentTimestamp = dt;
+                }
+                else
+                {
+                    currentTimestamp = DateTime.UtcNow;
+                }
+            }
+            else
+            {
+                var parts = line.Split('\t');
+                if (parts.Length >= 3)
+                {
+                    int.TryParse(parts[0], out var added);
+                    int.TryParse(parts[1], out var deleted);
+                    var filePath = parts[2].Trim();
+                    if (!string.IsNullOrEmpty(filePath))
+                    {
+                        var fullPath = Path.GetFullPath(Path.Combine(root, filePath));
+                        result.Add(new Macondo.Semantic.Analytics.SocialCode.FileCommitRecord
+                        {
+                            Author = currentAuthor,
+                            FilePath = fullPath,
+                            Timestamp = currentTimestamp,
+                            LinesAdded = added,
+                            LinesDeleted = deleted
+                        });
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// Esegue il checkout asincrono del branch specificato.
     /// Restituisce Success = true se completato, altrimenti Success = false con il messaggio di errore di Git.
     /// </summary>

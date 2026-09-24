@@ -15,14 +15,22 @@ using Macondo.App.Models;
 using Macondo.App.Services;
 using Macondo.App.Views;
 using Macondo.Semantic.Analytics.ArchitecturalFlow;
+using Macondo.Semantic.Analytics.ArchitecturalRules;
+using Macondo.Semantic.Analytics.ApiDiff;
 using Macondo.Semantic.Analytics.CodeCity;
+using Macondo.Semantic.Analytics.CodeClones;
+using Macondo.Semantic.Analytics.Cohesion;
 using Macondo.Semantic.Analytics.ControlFlow;
+using Macondo.Semantic.Analytics.DataFlow;
+using Macondo.Semantic.Analytics.DataMatrix;
 using Macondo.Semantic.Analytics.DeadCode;
 using Macondo.Semantic.Analytics.Dsm;
 using Macondo.Semantic.Analytics.Hotspots;
+using Macondo.Semantic.Analytics.Maintainability;
 using Macondo.Semantic.Analytics.Martin;
 using Macondo.Semantic.Analytics.ScreenFlow;
 using Macondo.Semantic.Analytics.SharedState;
+using Macondo.Semantic.Analytics.SocialCode;
 using Macondo.Semantic.Analytics.TemporalCoupling;
 using Macondo.Semantic.Analytics.Treemap;
 using Macondo.Semantic.Export;
@@ -1485,6 +1493,14 @@ public partial class MainWindow : Window
         if (TemporalCouplingTabItem != null) _dirtyAnalyticsTabs.Add(TemporalCouplingTabItem);
         if (ArchitecturalFlowTabItem != null) _dirtyAnalyticsTabs.Add(ArchitecturalFlowTabItem);
         if (CodeCityTabItem != null) _dirtyAnalyticsTabs.Add(CodeCityTabItem);
+        if (CohesionTabItem != null) _dirtyAnalyticsTabs.Add(CohesionTabItem);
+        if (MaintainabilityTabItem != null) _dirtyAnalyticsTabs.Add(MaintainabilityTabItem);
+        if (ArchitecturalRulesTabItem != null) _dirtyAnalyticsTabs.Add(ArchitecturalRulesTabItem);
+        if (CodeCloneTabItem != null) _dirtyAnalyticsTabs.Add(CodeCloneTabItem);
+        if (SocialCodeTabItem != null) _dirtyAnalyticsTabs.Add(SocialCodeTabItem);
+        if (DataFlowTabItem != null) _dirtyAnalyticsTabs.Add(DataFlowTabItem);
+        if (ApiDiffTabItem != null) _dirtyAnalyticsTabs.Add(ApiDiffTabItem);
+        if (CrudMatrixTabItem != null) _dirtyAnalyticsTabs.Add(CrudMatrixTabItem);
 
         // Se l'utente si trova già su un tab analitico secondario (es. non la vista grafo), calcolalo subito
         EnsureActiveTabAnalyticsLoaded();
@@ -1507,7 +1523,7 @@ public partial class MainWindow : Window
 
         var targetGraph = GetTargetSemanticGraph();
         var folder = _currentFolderPath;
-        const int totalAnalyticsSteps = 10;
+        const int totalAnalyticsSteps = 18;
 
         // Inizializza e mostra la barra di avanzamento nella status bar
         if (BackgroundAnalyticsPanel != null)
@@ -1755,6 +1771,167 @@ public partial class MainWindow : Window
                 }
                 ReportStepCompletion();
             }
+
+            // 11. Coesione & LCOM
+            if (!token.IsCancellationRequested)
+            {
+                if (s.ShowTabCohesion && _dirtyAnalyticsTabs.Contains(CohesionTabItem))
+                {
+                    var cohesion = CohesionCalculator.Analyze(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(CohesionTabItem))
+                            {
+                                Cohesion.Dataset = cohesion;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 12. Maintainability Index & Halstead
+            if (!token.IsCancellationRequested)
+            {
+                if (s.ShowTabMaintainability && _dirtyAnalyticsTabs.Contains(MaintainabilityTabItem))
+                {
+                    var maintainability = MaintainabilityCalculator.Analyze(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(MaintainabilityTabItem))
+                            {
+                                Maintainability.Dataset = maintainability;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 13. Regole Architetturali
+            if (!token.IsCancellationRequested)
+            {
+                if (s.ShowTabArchitecturalRules && _dirtyAnalyticsTabs.Contains(ArchitecturalRulesTabItem))
+                {
+                    var rulesReport = ArchitecturalRulesEngine.Evaluate(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(ArchitecturalRulesTabItem))
+                            {
+                                ArchitecturalRules.Report = rulesReport;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 14. Duplicazioni e Cloni (CPD)
+            if (!token.IsCancellationRequested)
+            {
+                if (s.ShowTabCodeClone && _dirtyAnalyticsTabs.Contains(CodeCloneTabItem))
+                {
+                    var cloneReport = CodeCloneDetector.DetectClones(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(CodeCloneTabItem))
+                            {
+                                CodeClone.Report = cloneReport;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 15. Social Code & Bus Factor
+            if (!token.IsCancellationRequested)
+            {
+                if (s.ShowTabSocialCode && _dirtyAnalyticsTabs.Contains(SocialCodeTabItem))
+                {
+                    var commitRecords = GitService.Instance.GetFileCommitHistory(folder);
+                    var socialDataset = SocialCodeAnalyzer.Analyze(targetGraph, commitRecords);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(SocialCodeTabItem))
+                            {
+                                SocialCode.Dataset = socialDataset;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 16. Data Flow & Taint Tracking
+            if (!token.IsCancellationRequested)
+            {
+                if (s.ShowTabDataFlow && _dirtyAnalyticsTabs.Contains(DataFlowTabItem))
+                {
+                    var dataFlowDataset = TaintAnalyzer.Analyze(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(DataFlowTabItem))
+                            {
+                                DataFlow.Dataset = dataFlowDataset;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 17. API Diff & SemVer
+            if (!token.IsCancellationRequested)
+            {
+                if (s.ShowTabApiDiff && _dirtyAnalyticsTabs.Contains(ApiDiffTabItem))
+                {
+                    var apiDiffReport = ApiDiffAnalyzer.Compare(new CodeGraph(), targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(ApiDiffTabItem))
+                            {
+                                ApiDiff.Report = apiDiffReport;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
+
+            // 18. Matrice CRUD
+            if (!token.IsCancellationRequested)
+            {
+                if (s.ShowTabCrudMatrix && _dirtyAnalyticsTabs.Contains(CrudMatrixTabItem))
+                {
+                    var crudDataset = CrudMatrixAnalyzer.Analyze(targetGraph);
+                    if (!token.IsCancellationRequested)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(CrudMatrixTabItem))
+                            {
+                                CrudMatrix.Dataset = crudDataset;
+                            }
+                        });
+                    }
+                }
+                ReportStepCompletion();
+            }
         }, token);
     }
 
@@ -1883,6 +2060,96 @@ public partial class MainWindow : Window
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
                     TemporalCoupling.Dataset = dataset;
+                });
+            });
+        }
+        else if (selectedItem == CohesionTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var cohesion = CohesionCalculator.Analyze(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    Cohesion.Dataset = cohesion;
+                });
+            });
+        }
+        else if (selectedItem == MaintainabilityTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var maintainability = MaintainabilityCalculator.Analyze(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    Maintainability.Dataset = maintainability;
+                });
+            });
+        }
+        else if (selectedItem == ArchitecturalRulesTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var rules = ArchitecturalRulesEngine.Evaluate(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    ArchitecturalRules.Report = rules;
+                });
+            });
+        }
+        else if (selectedItem == CodeCloneTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var clones = CodeCloneDetector.DetectClones(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    CodeClone.Report = clones;
+                });
+            });
+        }
+        else if (selectedItem == SocialCodeTabItem)
+        {
+            var folder = _currentFolderPath;
+            _ = Task.Run(() =>
+            {
+                var commitRecords = GitService.Instance.GetFileCommitHistory(folder);
+                var dataset = SocialCodeAnalyzer.Analyze(targetGraph, commitRecords);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    SocialCode.Dataset = dataset;
+                });
+            });
+        }
+        else if (selectedItem == DataFlowTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var dataset = TaintAnalyzer.Analyze(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    DataFlow.Dataset = dataset;
+                });
+            });
+        }
+        else if (selectedItem == ApiDiffTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var report = ApiDiffAnalyzer.Compare(new CodeGraph(), targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    ApiDiff.Report = report;
+                });
+            });
+        }
+        else if (selectedItem == CrudMatrixTabItem)
+        {
+            _ = Task.Run(() =>
+            {
+                var dataset = CrudMatrixAnalyzer.Analyze(targetGraph);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    CrudMatrix.Dataset = dataset;
                 });
             });
         }
@@ -3748,6 +4015,14 @@ public partial class MainWindow : Window
         TemporalCoupling.ApplyTheme(theme);
         ArchitecturalFlow.ApplyTheme(theme);
         CodeCity.ApplyTheme(theme);
+        Cohesion.ApplyTheme(theme);
+        Maintainability.ApplyTheme(theme);
+        ArchitecturalRules.ApplyTheme(theme);
+        CodeClone.ApplyTheme(theme);
+        SocialCode.ApplyTheme(theme);
+        DataFlow.ApplyTheme(theme);
+        ApiDiff.ApplyTheme(theme);
+        CrudMatrix.ApplyTheme(theme);
     }
 
     #endregion
@@ -4292,6 +4567,14 @@ public partial class MainWindow : Window
         ArchitecturalFlowTabHeader.IsVisible = showLabels;
         CodeCityTabHeader.IsVisible = showLabels;
         GridTabHeader.IsVisible = showLabels;
+        CohesionTabHeader.IsVisible = showLabels;
+        MaintainabilityTabHeader.IsVisible = showLabels;
+        ArchitecturalRulesTabHeader.IsVisible = showLabels;
+        CodeCloneTabHeader.IsVisible = showLabels;
+        SocialCodeTabHeader.IsVisible = showLabels;
+        DataFlowTabHeader.IsVisible = showLabels;
+        ApiDiffTabHeader.IsVisible = showLabels;
+        CrudMatrixTabHeader.IsVisible = showLabels;
         if (TabLabelsCheckIcon != null)
         {
             TabLabelsCheckIcon.IsVisible = showLabels;
@@ -4316,6 +4599,14 @@ public partial class MainWindow : Window
         if (TemporalCouplingTabItem != null) TemporalCouplingTabItem.IsVisible = s.ShowTabTemporalCoupling;
         if (ArchitecturalFlowTabItem != null) ArchitecturalFlowTabItem.IsVisible = s.ShowTabArchitecturalFlow;
         if (CodeCityTabItem != null) CodeCityTabItem.IsVisible = s.ShowTabCodeCity;
+        if (CohesionTabItem != null) CohesionTabItem.IsVisible = s.ShowTabCohesion;
+        if (MaintainabilityTabItem != null) MaintainabilityTabItem.IsVisible = s.ShowTabMaintainability;
+        if (ArchitecturalRulesTabItem != null) ArchitecturalRulesTabItem.IsVisible = s.ShowTabArchitecturalRules;
+        if (CodeCloneTabItem != null) CodeCloneTabItem.IsVisible = s.ShowTabCodeClone;
+        if (SocialCodeTabItem != null) SocialCodeTabItem.IsVisible = s.ShowTabSocialCode;
+        if (DataFlowTabItem != null) DataFlowTabItem.IsVisible = s.ShowTabDataFlow;
+        if (ApiDiffTabItem != null) ApiDiffTabItem.IsVisible = s.ShowTabApiDiff;
+        if (CrudMatrixTabItem != null) CrudMatrixTabItem.IsVisible = s.ShowTabCrudMatrix;
         if (GridTabItem != null) GridTabItem.IsVisible = s.ShowTabBlastRadiusGrid;
 
         if (TabGraphCheckIcon != null) TabGraphCheckIcon.IsVisible = s.ShowTabGraph;
@@ -4330,6 +4621,14 @@ public partial class MainWindow : Window
         if (TabTemporalCouplingCheckIcon != null) TabTemporalCouplingCheckIcon.IsVisible = s.ShowTabTemporalCoupling;
         if (TabArchitecturalFlowCheckIcon != null) TabArchitecturalFlowCheckIcon.IsVisible = s.ShowTabArchitecturalFlow;
         if (TabCodeCityCheckIcon != null) TabCodeCityCheckIcon.IsVisible = s.ShowTabCodeCity;
+        if (TabCohesionCheckIcon != null) TabCohesionCheckIcon.IsVisible = s.ShowTabCohesion;
+        if (TabMaintainabilityCheckIcon != null) TabMaintainabilityCheckIcon.IsVisible = s.ShowTabMaintainability;
+        if (TabArchitecturalRulesCheckIcon != null) TabArchitecturalRulesCheckIcon.IsVisible = s.ShowTabArchitecturalRules;
+        if (TabCodeCloneCheckIcon != null) TabCodeCloneCheckIcon.IsVisible = s.ShowTabCodeClone;
+        if (TabSocialCodeCheckIcon != null) TabSocialCodeCheckIcon.IsVisible = s.ShowTabSocialCode;
+        if (TabDataFlowCheckIcon != null) TabDataFlowCheckIcon.IsVisible = s.ShowTabDataFlow;
+        if (TabApiDiffCheckIcon != null) TabApiDiffCheckIcon.IsVisible = s.ShowTabApiDiff;
+        if (TabCrudMatrixCheckIcon != null) TabCrudMatrixCheckIcon.IsVisible = s.ShowTabCrudMatrix;
         if (TabBlastRadiusGridCheckIcon != null) TabBlastRadiusGridCheckIcon.IsVisible = s.ShowTabBlastRadiusGrid;
 
         // Se la scheda attualmente attiva viene nascosta, ripiega in sicurezza sulla prima scheda visibile
@@ -4378,6 +4677,30 @@ public partial class MainWindow : Window
 
     private void OnToggleTabCodeCityMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabCodeCity = !s.ShowTabCodeCity);
+
+    private void OnToggleTabCohesionMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabCohesion = !s.ShowTabCohesion);
+
+    private void OnToggleTabMaintainabilityMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabMaintainability = !s.ShowTabMaintainability);
+
+    private void OnToggleTabArchitecturalRulesMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabArchitecturalRules = !s.ShowTabArchitecturalRules);
+
+    private void OnToggleTabCodeCloneMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabCodeClone = !s.ShowTabCodeClone);
+
+    private void OnToggleTabSocialCodeMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabSocialCode = !s.ShowTabSocialCode);
+
+    private void OnToggleTabDataFlowMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabDataFlow = !s.ShowTabDataFlow);
+
+    private void OnToggleTabApiDiffMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabApiDiff = !s.ShowTabApiDiff);
+
+    private void OnToggleTabCrudMatrixMenuClicked(object? sender, RoutedEventArgs e) =>
+        SettingsService.Instance.Update(s => s.ShowTabCrudMatrix = !s.ShowTabCrudMatrix);
 
     private void OnToggleTabBlastRadiusGridMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabBlastRadiusGrid = !s.ShowTabBlastRadiusGrid);
@@ -4932,6 +5255,14 @@ public partial class MainWindow : Window
         ToggleTabTemporalCouplingMenuItem.Header = loc["Tab_TemporalCoupling"];
         ToggleTabArchitecturalFlowMenuItem.Header = loc["Tab_ArchitecturalFlow"];
         ToggleTabCodeCityMenuItem.Header = loc["Tab_CodeCity"];
+        ToggleTabCohesionMenuItem.Header = loc["Tab_Cohesion"];
+        ToggleTabMaintainabilityMenuItem.Header = loc["Tab_Maintainability"];
+        ToggleTabArchitecturalRulesMenuItem.Header = loc["Tab_ArchitecturalRules"];
+        ToggleTabCodeCloneMenuItem.Header = loc["Tab_CodeClone"];
+        ToggleTabSocialCodeMenuItem.Header = loc["Tab_SocialCode"];
+        ToggleTabDataFlowMenuItem.Header = loc["Tab_DataFlow"];
+        ToggleTabApiDiffMenuItem.Header = loc["Tab_ApiDiff"];
+        ToggleTabCrudMatrixMenuItem.Header = loc["Tab_CrudMatrix"];
         ToggleTabBlastRadiusGridMenuItem.Header = loc["Tab_BlastRadiusGrid"];
 
         // Menu Analisi
@@ -5008,6 +5339,14 @@ public partial class MainWindow : Window
         TemporalCouplingTabHeader.Text = loc["Tab_TemporalCoupling"];
         ArchitecturalFlowTabHeader.Text = loc["Tab_ArchitecturalFlow"];
         CodeCityTabHeader.Text = loc["Tab_CodeCity"];
+        CohesionTabHeader.Text = loc["Tab_Cohesion"];
+        MaintainabilityTabHeader.Text = loc["Tab_Maintainability"];
+        ArchitecturalRulesTabHeader.Text = loc["Tab_ArchitecturalRules"];
+        CodeCloneTabHeader.Text = loc["Tab_CodeClone"];
+        SocialCodeTabHeader.Text = loc["Tab_SocialCode"];
+        DataFlowTabHeader.Text = loc["Tab_DataFlow"];
+        ApiDiffTabHeader.Text = loc["Tab_ApiDiff"];
+        CrudMatrixTabHeader.Text = loc["Tab_CrudMatrix"];
         GridTabHeader.Text = loc["Tab_BlastRadiusGrid"];
 
         ToolTip.SetTip(GraphTabItem, loc["Tab_GraphView_Tip"]);
@@ -5022,6 +5361,14 @@ public partial class MainWindow : Window
         ToolTip.SetTip(TemporalCouplingTabItem, loc["Tab_TemporalCoupling_Tip"]);
         ToolTip.SetTip(ArchitecturalFlowTabItem, loc["Tab_ArchitecturalFlow_Tip"]);
         ToolTip.SetTip(CodeCityTabItem, loc["Tab_CodeCity_Tip"]);
+        ToolTip.SetTip(CohesionTabItem, loc["Tab_Cohesion_Tip"]);
+        ToolTip.SetTip(MaintainabilityTabItem, loc["Tab_Maintainability_Tip"]);
+        ToolTip.SetTip(ArchitecturalRulesTabItem, loc["Tab_ArchitecturalRules_Tip"]);
+        ToolTip.SetTip(CodeCloneTabItem, loc["Tab_CodeClone_Tip"]);
+        ToolTip.SetTip(SocialCodeTabItem, loc["Tab_SocialCode_Tip"]);
+        ToolTip.SetTip(DataFlowTabItem, loc["Tab_DataFlow_Tip"]);
+        ToolTip.SetTip(ApiDiffTabItem, loc["Tab_ApiDiff_Tip"]);
+        ToolTip.SetTip(CrudMatrixTabItem, loc["Tab_CrudMatrix_Tip"]);
         ToolTip.SetTip(GridTabItem, loc["Tab_BlastRadiusGrid_Tip"]);
 
         Dsm.InvalidateVisual();

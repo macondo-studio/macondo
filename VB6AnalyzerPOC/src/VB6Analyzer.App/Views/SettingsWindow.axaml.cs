@@ -197,6 +197,14 @@ public partial class SettingsWindow : Window
             CardTabArchitecturalFlow.BorderBrush = borderBrush;
             CardTabCodeCity.BorderBrush = borderBrush;
             CardTabBlastRadiusGrid.BorderBrush = borderBrush;
+            CardTabCohesion.BorderBrush = borderBrush;
+            CardTabMaintainability.BorderBrush = borderBrush;
+            CardTabArchitecturalRules.BorderBrush = borderBrush;
+            CardTabCodeClone.BorderBrush = borderBrush;
+            CardTabSocialCode.BorderBrush = borderBrush;
+            CardTabDataFlow.BorderBrush = borderBrush;
+            CardTabApiDiff.BorderBrush = borderBrush;
+            CardTabCrudMatrix.BorderBrush = borderBrush;
 
             SelectAllTabsButton.BorderBrush = borderBrush;
             DeselectAllTabsButton.BorderBrush = borderBrush;
@@ -232,6 +240,14 @@ public partial class SettingsWindow : Window
             CardTabArchitecturalFlow.Background = surfBrush;
             CardTabCodeCity.Background = surfBrush;
             CardTabBlastRadiusGrid.Background = surfBrush;
+            CardTabCohesion.Background = surfBrush;
+            CardTabMaintainability.Background = surfBrush;
+            CardTabArchitecturalRules.Background = surfBrush;
+            CardTabCodeClone.Background = surfBrush;
+            CardTabSocialCode.Background = surfBrush;
+            CardTabDataFlow.Background = surfBrush;
+            CardTabApiDiff.Background = surfBrush;
+            CardTabCrudMatrix.Background = surfBrush;
 
             SelectAllTabsButton.Background = surfBrush;
             DeselectAllTabsButton.Background = surfBrush;
@@ -408,6 +424,62 @@ public partial class SettingsWindow : Window
         UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
     }
 
+    private void OnToggleTabCohesion(object? sender, PointerPressedEventArgs e)
+    {
+        var updated = !SettingsService.Instance.Settings.ShowTabCohesion;
+        SettingsService.Instance.Update(s => s.ShowTabCohesion = updated);
+        UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
+    }
+
+    private void OnToggleTabMaintainability(object? sender, PointerPressedEventArgs e)
+    {
+        var updated = !SettingsService.Instance.Settings.ShowTabMaintainability;
+        SettingsService.Instance.Update(s => s.ShowTabMaintainability = updated);
+        UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
+    }
+
+    private void OnToggleTabArchitecturalRules(object? sender, PointerPressedEventArgs e)
+    {
+        var updated = !SettingsService.Instance.Settings.ShowTabArchitecturalRules;
+        SettingsService.Instance.Update(s => s.ShowTabArchitecturalRules = updated);
+        UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
+    }
+
+    private void OnToggleTabCodeClone(object? sender, PointerPressedEventArgs e)
+    {
+        var updated = !SettingsService.Instance.Settings.ShowTabCodeClone;
+        SettingsService.Instance.Update(s => s.ShowTabCodeClone = updated);
+        UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
+    }
+
+    private void OnToggleTabSocialCode(object? sender, PointerPressedEventArgs e)
+    {
+        var updated = !SettingsService.Instance.Settings.ShowTabSocialCode;
+        SettingsService.Instance.Update(s => s.ShowTabSocialCode = updated);
+        UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
+    }
+
+    private void OnToggleTabDataFlow(object? sender, PointerPressedEventArgs e)
+    {
+        var updated = !SettingsService.Instance.Settings.ShowTabDataFlow;
+        SettingsService.Instance.Update(s => s.ShowTabDataFlow = updated);
+        UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
+    }
+
+    private void OnToggleTabApiDiff(object? sender, PointerPressedEventArgs e)
+    {
+        var updated = !SettingsService.Instance.Settings.ShowTabApiDiff;
+        SettingsService.Instance.Update(s => s.ShowTabApiDiff = updated);
+        UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
+    }
+
+    private void OnToggleTabCrudMatrix(object? sender, PointerPressedEventArgs e)
+    {
+        var updated = !SettingsService.Instance.Settings.ShowTabCrudMatrix;
+        SettingsService.Instance.Update(s => s.ShowTabCrudMatrix = updated);
+        UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
+    }
+
     private void OnSelectAllTabsClicked(object? sender, RoutedEventArgs e)
     {
         SettingsService.Instance.Update(s =>
@@ -425,6 +497,14 @@ public partial class SettingsWindow : Window
             s.ShowTabArchitecturalFlow = true;
             s.ShowTabCodeCity = true;
             s.ShowTabBlastRadiusGrid = true;
+            s.ShowTabCohesion = true;
+            s.ShowTabMaintainability = true;
+            s.ShowTabArchitecturalRules = true;
+            s.ShowTabCodeClone = true;
+            s.ShowTabSocialCode = true;
+            s.ShowTabDataFlow = true;
+            s.ShowTabApiDiff = true;
+            s.ShowTabCrudMatrix = true;
         });
         UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
     }
@@ -446,6 +526,14 @@ public partial class SettingsWindow : Window
             s.ShowTabArchitecturalFlow = false;
             s.ShowTabCodeCity = false;
             s.ShowTabBlastRadiusGrid = false;
+            s.ShowTabCohesion = false;
+            s.ShowTabMaintainability = false;
+            s.ShowTabArchitecturalRules = false;
+            s.ShowTabCodeClone = false;
+            s.ShowTabSocialCode = false;
+            s.ShowTabDataFlow = false;
+            s.ShowTabApiDiff = false;
+            s.ShowTabCrudMatrix = false;
         });
         UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
     }
@@ -465,6 +553,14 @@ public partial class SettingsWindow : Window
         CheckTabArchitecturalFlow.IsVisible = s.ShowTabArchitecturalFlow;
         CheckTabCodeCity.IsVisible = s.ShowTabCodeCity;
         CheckTabBlastRadiusGrid.IsVisible = s.ShowTabBlastRadiusGrid;
+        CheckTabCohesion.IsVisible = s.ShowTabCohesion;
+        CheckTabMaintainability.IsVisible = s.ShowTabMaintainability;
+        CheckTabArchitecturalRules.IsVisible = s.ShowTabArchitecturalRules;
+        CheckTabCodeClone.IsVisible = s.ShowTabCodeClone;
+        CheckTabSocialCode.IsVisible = s.ShowTabSocialCode;
+        CheckTabDataFlow.IsVisible = s.ShowTabDataFlow;
+        CheckTabApiDiff.IsVisible = s.ShowTabApiDiff;
+        CheckTabCrudMatrix.IsVisible = s.ShowTabCrudMatrix;
     }
 
     // =========================================================================
@@ -609,6 +705,22 @@ public partial class SettingsWindow : Window
         TabCodeCityDesc.Text = loc["Settings_Tab_CodeCity_Desc"];
         TabBlastRadiusGridTitle.Text = loc["Tab_BlastRadiusGrid"];
         TabBlastRadiusGridDesc.Text = loc["Settings_Tab_BlastRadiusGrid_Desc"];
+        TabCohesionTitle.Text = loc["Tab_Cohesion"];
+        TabCohesionDesc.Text = loc["Settings_Tab_Cohesion_Desc"];
+        TabMaintainabilityTitle.Text = loc["Tab_Maintainability"];
+        TabMaintainabilityDesc.Text = loc["Settings_Tab_Maintainability_Desc"];
+        TabArchitecturalRulesTitle.Text = loc["Tab_ArchitecturalRules"];
+        TabArchitecturalRulesDesc.Text = loc["Settings_Tab_ArchitecturalRules_Desc"];
+        TabCodeCloneTitle.Text = loc["Tab_CodeClone"];
+        TabCodeCloneDesc.Text = loc["Settings_Tab_CodeClone_Desc"];
+        TabSocialCodeTitle.Text = loc["Tab_SocialCode"];
+        TabSocialCodeDesc.Text = loc["Settings_Tab_SocialCode_Desc"];
+        TabDataFlowTitle.Text = loc["Tab_DataFlow"];
+        TabDataFlowDesc.Text = loc["Settings_Tab_DataFlow_Desc"];
+        TabApiDiffTitle.Text = loc["Tab_ApiDiff"];
+        TabApiDiffDesc.Text = loc["Settings_Tab_ApiDiff_Desc"];
+        TabCrudMatrixTitle.Text = loc["Tab_CrudMatrix"];
+        TabCrudMatrixDesc.Text = loc["Settings_Tab_CrudMatrix_Desc"];
 
         ShortcutsHeaderTitle.Text = loc["Settings_Shortcuts_Header"];
         ShortcutsHeaderSub.Text = loc["Settings_Shortcuts_Sub"];
