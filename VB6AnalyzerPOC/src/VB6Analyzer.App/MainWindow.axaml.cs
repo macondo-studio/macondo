@@ -619,6 +619,9 @@ public partial class MainWindow : Window
         ToggleMaximize();
     }
 
+    /// <summary>
+    /// Alterna lo stato della finestra principale tra massimizzato (<see cref="WindowState.Maximized"/>) e normale (<see cref="WindowState.Normal"/>).
+    /// </summary>
     private void ToggleMaximize()
     {
         WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
@@ -1027,11 +1030,11 @@ public partial class MainWindow : Window
                     var isStale = ProjectCacheService.Instance.CheckStaleness(cachedSnapshot, firstPath);
                     if (isStale)
                     {
-                        StatusText.Text = LocalizationService.Instance.Get("Status_CacheStale", cachedSnapshot.ProjectName);
+                        StatusText.Text = localizationService.Get("Status_CacheStale", cachedSnapshot.ProjectName);
                     }
                     else
                     {
-                        StatusText.Text = LocalizationService.Instance.Get("Status_LoadedFromCache", cachedSnapshot.ProjectName, cachedSnapshot.AnalyzedAtUtc.ToLocalTime().ToString("g"));
+                        StatusText.Text = localizationService.Get("Status_LoadedFromCache", cachedSnapshot.ProjectName, cachedSnapshot.AnalyzedAtUtc.ToLocalTime().ToString("g"));
                     }
                     return;
                 }
@@ -1139,7 +1142,7 @@ public partial class MainWindow : Window
     /// <summary>
     /// Ricostruisce dinamicamente il sottomenu "Recenti" nel menu File con gli ultimi 10 elementi.
     /// </summary>
-    private void UpdateRecentProjectsMenu()
+    private void UpdateRecentProjectsMenu() 
     {
         var localizationService = LocalizationService.Instance;
         RecentProjectsMenuItem.Header = localizationService["Menu_Recent"];
@@ -1267,6 +1270,10 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Espande o comprime tutti i nodi container (classi, moduli, form) presenti nel grafo visuale.
+    /// </summary>
+    /// <param name="expanded"><c>true</c> per espandere tutti i container; <c>false</c> per comprimerli.</param>
     private void SetAllExpanded(bool expanded)
     {
         if (_graph is null) return;
@@ -1282,6 +1289,10 @@ public partial class MainWindow : Window
 
     #region Filtri Simboli, Livelli di Dettaglio & Progetti Multipli
 
+    /// <summary>
+    /// Inizializza i controlli di filtro dei simboli, registrando i gestori di eventi per checkbox, menu e pulsanti della legenda.
+    /// Ripristina inoltre lo stato dei filtri salvato nelle impostazioni utente.
+    /// </summary>
     private void InitFilterControls()
     {
         var settings = SettingsService.Instance.Settings;
@@ -1320,6 +1331,10 @@ public partial class MainWindow : Window
         SyncFilterUiState();
     }
 
+    /// <summary>
+    /// Applica un preset di livello di dettaglio predefinito (0 = Completo, 1 = Metodi &amp; Proprietà, 2 = Solo Moduli).
+    /// </summary>
+    /// <param name="index">Indice del preset selezionato nel ComboBox o MenuItem.</param>
     private void SetDetailPreset(int index)
     {
         if (index == 0) // Completo: tutti i membri visibili
@@ -1337,12 +1352,18 @@ public partial class MainWindow : Window
         SaveFilterSettings();
     }
 
+    /// <summary>
+    /// Gestisce il cambio di selezione nel ComboBox del livello di dettaglio dei simboli.
+    /// </summary>
     private void OnDetailLevelComboBoxSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (_isSyncingFilterUi) return;
         SetDetailPreset(DetailLevelComboBox.SelectedIndex);
     }
 
+    /// <summary>
+    /// Gestisce la variazione dello stato di spunta di uno dei CheckBox dei filtri di tipo simbolo.
+    /// </summary>
     private void OnFilterCheckBoxChanged()
     {
         if (_isSyncingFilterUi) return;
@@ -1354,6 +1375,10 @@ public partial class MainWindow : Window
         SaveFilterSettings();
     }
 
+    /// <summary>
+    /// Inverte la visibilità nel grafo per la specifica categoria di simboli (<see cref="SymbolKind"/>).
+    /// </summary>
+    /// <param name="kind">Il tipo di simbolo da alternare (Method, Property, Field, Constant, Type/Enum).</param>
     private void ToggleFilterCategory(SymbolKind kind)
     {
         switch (kind)
@@ -1377,6 +1402,9 @@ public partial class MainWindow : Window
         SaveFilterSettings();
     }
 
+    /// <summary>
+    /// Salva le impostazioni correnti di filtro dei simboli nella configurazione persistente dell'applicazione.
+    /// </summary>
     private void SaveFilterSettings()
     {
         SettingsService.Instance.Update(s =>
@@ -1389,6 +1417,10 @@ public partial class MainWindow : Window
         });
     }
 
+    /// <summary>
+    /// Sincronizza lo stato visivo di tutti i controlli UI di filtro (checkbox, opacità elementi legenda, icone di spunta menu, combo preset)
+    /// con lo stato effettivo delle proprietà di filtro del <see cref="Controls.GraphControl"/>.
+    /// </summary>
     private void SyncFilterUiState()
     {
         _isSyncingFilterUi = true;
@@ -2227,6 +2259,11 @@ public partial class MainWindow : Window
         UpdateProjectsBadgeText();
     }
 
+    /// <summary>
+    /// Aggiorna l'icona di spunta (checkmark) per una voce di menu (<see cref="MenuItem"/>) in base al valore booleano specificato.
+    /// </summary>
+    /// <param name="mi">L'elemento di menu da aggiornare.</param>
+    /// <param name="isChecked"><c>true</c> per mostrare l'icona di spunta; <c>false</c> per rimuoverla.</param>
     private void UpdateMenuItemCheck(MenuItem mi, bool isChecked)
     {
         if (isChecked)
@@ -2248,6 +2285,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Aggiorna il testo informativo del badge dei progetti (es. "Progetti: 2/3 visibili") e abilita/disabilita il pulsante "Tutti".
+    /// </summary>
     private void UpdateProjectsBadgeText()
     {
         var (vis, total) = Graph.GetProjectCounts();
@@ -2255,6 +2295,9 @@ public partial class MainWindow : Window
         ExplorerProjectsSelectAllButton.IsEnabled = (vis < total);
     }
 
+    /// <summary>
+    /// Gestisce il click sulla casella di controllo del progetto nella vista ad albero del Project Explorer per alternarne la visibilità.
+    /// </summary>
     private void OnExplorerProjectCheckBoxClick(object? sender, RoutedEventArgs e)
     {
         if (sender is CheckBox cb && cb.DataContext is ExplorerTreeItem item && item.ProjectId.HasValue)
@@ -2264,6 +2307,12 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Invocato quando la visibilità di un progetto cambia nel grafo.
+    /// Sincronizza lo stato degli elementi nel Project Explorer, le voci di menu, le statistiche e invalida le viste analitiche.
+    /// </summary>
+    /// <param name="sender">La sorgente dell'evento.</param>
+    /// <param name="projectId">L'identificatore univoco del progetto la cui visibilità è cambiata.</param>
     private void OnGraphProjectVisibilityChanged(object? sender, Guid projectId)
     {
         // Sincronizza lo stato dei nodi nell'ExplorerTree
@@ -2303,6 +2352,9 @@ public partial class MainWindow : Window
         InvalidateAnalyticsViews();
     }
 
+    /// <summary>
+    /// Gestisce il click sul pulsante "Tutti" nella barra progetti dell'Explorer, ripristinando la visibilità di tutti i progetti nel workspace.
+    /// </summary>
     private void OnProjectsSelectAllClicked(object? sender, RoutedEventArgs e)
     {
         Graph.ClearHiddenProjects();
@@ -2333,7 +2385,12 @@ public partial class MainWindow : Window
         {
             Graph.HighlightBlastRadius(cachedReport);
             UpdateInspectorImpactSection(cachedReport);
-            StatusText.Text = localizationService.Get("Status_BlastReportFormat", node.QualifiedName, cachedReport.DirectCallers.Count, cachedReport.IndirectCallers.Count, cachedReport.AffectedForms.Count, localizationService.GetRiskLevel(cachedReport.RiskLevel));
+            StatusText.Text = localizationService.Get("Status_BlastReportFormat", 
+                node.QualifiedName, 
+                cachedReport.DirectCallers.Count,
+                cachedReport.IndirectCallers.Count, 
+                cachedReport.AffectedForms.Count,
+                localizationService.GetRiskLevel(cachedReport.RiskLevel));
             return;
         }
 
@@ -2348,7 +2405,12 @@ public partial class MainWindow : Window
             {
                 Graph.HighlightBlastRadius(report);
                 UpdateInspectorImpactSection(report);
-                StatusText.Text = localizationService.Get("Status_BlastReportFormat", node.QualifiedName, report.DirectCallers.Count, report.IndirectCallers.Count, report.AffectedForms.Count, localizationService.GetRiskLevel(report.RiskLevel));
+                StatusText.Text = localizationService.Get("Status_BlastReportFormat", 
+                    node.QualifiedName,
+                    report.DirectCallers.Count,
+                    report.IndirectCallers.Count, 
+                    report.AffectedForms.Count, 
+                    localizationService.GetRiskLevel(report.RiskLevel));
             }
         }
         catch (Exception ex)
@@ -2411,6 +2473,12 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce l'evento di cambio selezione di un nodo nel controllo del grafo (<see cref="Controls.GraphControl"/>).
+    /// Aggiorna il nodo selezionato corrente, sincronizza la riga nella griglia Blast Radius e avvia l'ispezione nel Symbol Inspector.
+    /// </summary>
+    /// <param name="sender">La sorgente dell'evento.</param>
+    /// <param name="node">Il nodo selezionato nel grafo, oppure <c>null</c> se la selezione è stata azzerata.</param>
     private void OnGraphSelectionChanged(object? sender, GraphNode? node)
     {
         _selectedNode = node;
@@ -2446,6 +2514,11 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Seleziona un nodo, espande il container padre se necessario, centra la vista del grafo su di esso
+    /// e sincronizza la vista ScreenFlow se il nodo corrisponde a un form.
+    /// </summary>
+    /// <param name="node">Il nodo del grafo da selezionare e mettere a fuoco.</param>
     private void SelectAndFocusGraphNode(GraphNode node)
     {
         if (_graph is null) return;
@@ -2480,6 +2553,9 @@ public partial class MainWindow : Window
 
     #region Project Explorer & Interazione File e Cartelle
 
+    /// <summary>
+    /// Gestisce la variazione di selezione nella vista ad albero del Project Explorer, selezionando e centrando il nodo corrispondente nel grafo.
+    /// </summary>
     private void OnExplorerSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (e.AddedItems.Count == 0) return;
@@ -2491,6 +2567,10 @@ public partial class MainWindow : Window
             SelectAndFocusGraphNode(node);
     }
 
+    /// <summary>
+    /// Gestisce il doppio click su un elemento dell'albero Project Explorer.
+    /// Se l'elemento è un file o simbolo con percorso su disco, apre il file corrispondente con l'editor predefinito di sistema.
+    /// </summary>
     public void OnExplorerDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (ExplorerTree.SelectedItem is not ExplorerTreeItem item) return;
@@ -2514,6 +2594,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce il click sul pulsante inline "Apri file" associato a una riga dell'albero del Project Explorer.
+    /// </summary>
     private void OnExplorerOpenItemButtonClick(object? sender, RoutedEventArgs e)
     {
         var item = GetExplorerItemFromSender(sender);
@@ -2523,6 +2606,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce la pressione del puntatore sul TreeView del Project Explorer per selezionare automaticamente l'elemento cliccato con il tasto destro.
+    /// </summary>
     private void OnExplorerTreePointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetCurrentPoint(ExplorerTree);
@@ -2537,6 +2623,10 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce la richiesta di menu contestuale su un elemento dell'albero del Project Explorer (clic destro o tasto Menu).
+    /// Mostra il menu contestuale dedicato sui file solo se l'elemento è un file effettivo.
+    /// </summary>
     private void OnExplorerTreeContextRequested(object? sender, ContextRequestedEventArgs e)
     {
         var visual = e.Source as Visual;
@@ -2560,6 +2650,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce il comando "Apri file sorgente" dal menu contestuale del Project Explorer.
+    /// </summary>
     private void OnExplorerContextMenuOpenFile(object? sender, RoutedEventArgs e)
     {
         var item = GetExplorerItemFromSender(sender);
@@ -2569,6 +2662,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce il comando "Apri cartella contenitrice" dal menu contestuale del Project Explorer.
+    /// </summary>
     private void OnExplorerContextMenuOpenFolder(object? sender, RoutedEventArgs e)
     {
         var item = GetExplorerItemFromSender(sender);
@@ -2578,6 +2674,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce il comando "Copia percorso file" dal menu contestuale del Project Explorer.
+    /// </summary>
     private void OnExplorerContextMenuCopyPath(object? sender, RoutedEventArgs e)
     {
         var item = GetExplorerItemFromSender(sender);
@@ -2587,6 +2686,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce il click sul pulsante "Apri file" all'interno della sezione File del Symbol Inspector.
+    /// </summary>
     private void OnInspectorOpenFileClicked(object? sender, RoutedEventArgs e)
     {
         var filePath = _selectedNode?.SemanticSymbol?.FilePath;
@@ -2594,29 +2696,46 @@ public partial class MainWindow : Window
         OpenOriginalFile(filePath, line);
     }
 
+    /// <summary>
+    /// Gestisce il click sul pulsante "Apri cartella contenitrice" all'interno della sezione File del Symbol Inspector.
+    /// </summary>
     private void OnInspectorOpenFolderClicked(object? sender, RoutedEventArgs e)
     {
         var filePath = _selectedNode?.SemanticSymbol?.FilePath;
         OpenContainingFolder(filePath);
     }
 
+    /// <summary>
+    /// Risolve e restituisce l'istanza di <see cref="ExplorerTreeItem"/> associata all'evento o al controllo mittente (<paramref name="sender"/>).
+    /// Ispeziona a cascata varie sorgenti possibili (Button CommandParameter, MenuItem DataContext, ContextMenu PlacementTarget, Control generico)
+    /// con fallback finale sull'elemento attualmente selezionato nell'albero (<see cref="ExplorerTree"/>).
+    /// </summary>
+    /// <param name="sender">L'oggetto sorgente dell'evento (es. MenuItem, Button, ContextMenu).</param>
+    /// <returns>L'istanza di <see cref="ExplorerTreeItem"/> individuata, oppure <c>null</c>.</returns>
     private ExplorerTreeItem? GetExplorerItemFromSender(object? sender)
     {
+        // 1. Caso Pulsante con CommandParameter esplicito (es. icone inline nella riga dell'albero)
         if (sender is Button btn && btn.CommandParameter is ExplorerTreeItem itemParam)
             return itemParam;
 
+        // 2. Caso Voce di Menu Contestuale (MenuItem)
         if (sender is MenuItem menuItem)
         {
+            // DataContext diretto del MenuItem
             if (menuItem.DataContext is ExplorerTreeItem item1)
                 return item1;
+            // DataContext del ContextMenu genitore
             if (menuItem.Parent is ContextMenu ctx && ctx.DataContext is ExplorerTreeItem itemCtx)
                 return itemCtx;
+            // DataContext del PlacementTarget a cui è agganciato il ContextMenu
             if (menuItem.Parent is ContextMenu ctx2 && ctx2.PlacementTarget?.DataContext is ExplorerTreeItem itemTarget)
                 return itemTarget;
+            // DataContext del TreeViewItem target del ContextMenu
             if (menuItem.Parent is ContextMenu ctxTvi && ctxTvi.PlacementTarget is TreeViewItem tvi && tvi.DataContext is ExplorerTreeItem itemTvi)
                 return itemTvi;
         }
 
+        // 3. Caso ContextMenu diretto
         if (sender is ContextMenu ctxMenu)
         {
             if (ctxMenu.DataContext is ExplorerTreeItem itemCtx)
@@ -2627,14 +2746,20 @@ public partial class MainWindow : Window
                 return itemTvi2;
         }
 
+        // 4. Caso Control generico con DataContext tipizzato
         if (sender is Control ctrl && ctrl.DataContext is ExplorerTreeItem item3)
             return item3;
 
+        // 5. Fallback finale: elemento attualmente selezionato nell'albero
         return ExplorerTree.SelectedItem as ExplorerTreeItem;
     }
 
     #region Menu Contestuale Nodi del Grafo
 
+    /// <summary>
+    /// Gestisce la richiesta di apertura del menu contestuale sul canvas del grafo (<see cref="Controls.GraphControl"/>).
+    /// Seleziona il nodo sottostante al cursore e mostra le relative azioni di analisi ed esportazione.
+    /// </summary>
     private void OnGraphContextRequested(object? sender, ContextRequestedEventArgs e)
     {
         var hitNode = e.TryGetPosition(Graph, out var screenPos)
@@ -2660,8 +2785,14 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce il comando "Esporta Context Slice LLM (Markdown)" dal menu contestuale del nodo del grafo.
+    /// </summary>
     private async void OnNodeExportMarkdownClicked(object? sender, RoutedEventArgs e) => await ExportLlmSliceAsync();
 
+    /// <summary>
+    /// Gestisce il comando "Esporta Dati Nodo (JSON)" dal menu contestuale del nodo del grafo.
+    /// </summary>
     private async void OnNodeExportJsonClicked(object? sender, RoutedEventArgs e) => await ExportNodeJsonAsync();
 
     /// <summary>
@@ -2750,6 +2881,11 @@ public partial class MainWindow : Window
 
     #endregion
 
+    /// <summary>
+    /// Apre il file sorgente specificato utilizzando l'applicazione o l'IDE predefinito del sistema operativo.
+    /// </summary>
+    /// <param name="filePath">Il percorso relativo o assoluto del file sorgente da aprire.</param>
+    /// <param name="line">La riga iniziale a cui posizionarsi (opzionale).</param>
     private void OpenOriginalFile(string? filePath, int line = 0)
     {
         var localizationService = LocalizationService.Instance;
@@ -2783,6 +2919,11 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Apre la cartella contenitrice del percorso specificato in Esplora File (Windows Explorer).
+    /// Se <paramref name="filePath"/> è un file, il file viene pre-selezionato automaticamente.
+    /// </summary>
+    /// <param name="filePath">Il percorso del file o della cartella da rivelare nel file manager.</param>
     private void OpenContainingFolder(string? filePath)
     {
         var localizationService = LocalizationService.Instance;
@@ -2822,6 +2963,10 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Copia il percorso assoluto risolto del file specificato negli Appunti di sistema.
+    /// </summary>
+    /// <param name="filePath">Il percorso relativo o assoluto del file da copiare.</param>
     private async void CopyFilePathToClipboard(string? filePath)
     {
         var localizationService = LocalizationService.Instance;
@@ -2842,6 +2987,11 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Risolve un percorso file relativo trasformandolo nel percorso assoluto su disco, utilizzando la cartella di progetto corrente come base.
+    /// </summary>
+    /// <param name="filePath">Il percorso relativo o assoluto da risolvere.</param>
+    /// <returns>Il percorso assoluto normalizzato, oppure <c>null</c> se non risolvibile.</returns>
     private string? ResolveEffectiveFilePath(string? filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
@@ -2877,6 +3027,11 @@ public partial class MainWindow : Window
         string[] Keywords,
         Action Action);
 
+    /// <summary>
+    /// Costruisce e restituisce l'elenco completo delle destinazioni di ricerca applicative (Impostazioni, Viste analitiche, Guida, Azioni rapide)
+    /// localizzate nella lingua corrente per la Command Palette globale.
+    /// </summary>
+    /// <returns>La lista degli <see cref="AppSearchTarget"/> registrati.</returns>
     private List<AppSearchTarget> GetAppSearchTargets()
     {
         var localizationService = LocalizationService.Instance;
@@ -3122,6 +3277,10 @@ public partial class MainWindow : Window
         };
     }
 
+    /// <summary>
+    /// Gestisce la variazione del testo digitato nella casella di ricerca globale (SearchBox).
+    /// Esegue la ricerca in tempo reale sia sui comandi/viste applicative sia sui simboli del grafo di codice.
+    /// </summary>
     private void OnSearchTextChanged(object? sender, TextChangedEventArgs e)
     {
         var query = SearchBox.Text?.Trim();
@@ -3200,6 +3359,10 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Esegue l'azione associata a un risultato di ricerca (navigazione al simbolo nel grafo o esecuzione del comando/schermata).
+    /// </summary>
+    /// <param name="item">L'elemento di ricerca selezionato.</param>
     private void ExecuteSearchResult(SearchResultItem item)
     {
         SearchResultsPopup.IsOpen = false;
@@ -3214,6 +3377,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce l'evento di selezione di un elemento dall'elenco a comparsa dei risultati di ricerca.
+    /// </summary>
     private void OnSearchResultSelected(object? sender, SelectionChangedEventArgs e)
     {
         if (e.AddedItems.Count > 0 && e.AddedItems[0] is SearchResultItem selected)
@@ -3223,6 +3389,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce i tasti speciali (Invio, Freccia Giù, Esc) premuti nella casella di testo della ricerca globale.
+    /// </summary>
     private void OnSearchBoxKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter)
@@ -3255,6 +3424,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce i tasti speciali (Invio per eseguire, Esc per chiudere) quando il focus si trova nell'elenco dei risultati di ricerca.
+    /// </summary>
     private void OnSearchResultsListKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter)
@@ -3278,6 +3450,9 @@ public partial class MainWindow : Window
 
     #region Symbol Inspector & Dettagli Semantici
 
+    /// <summary>
+    /// Mostra il pannello informativo segnaposto dell'Inspector quando nessun nodo o simbolo è selezionato nel grafo.
+    /// </summary>
     private void ShowEmptyInspector()
     {
         InspectorEmptyPanel.IsVisible = true;
@@ -3285,6 +3460,11 @@ public partial class MainWindow : Window
         UpdateStatusLanguage();
     }
 
+    /// <summary>
+    /// Ispeziona asincronamente il nodo selezionato, aggiornando sia i metadati statici immediati (nome, tipo, parametri, file)
+    /// sia i calcoli semantici pesanti in background (CFG, Blast Radius, chiamanti diretti e classi istanziate).
+    /// </summary>
+    /// <param name="node">Il nodo del grafo da ispezionare.</param>
     private async void SelectAndInspectNodeAsync(GraphNode node)
     {
         // Annulla ogni analisi precedente ancora in corso
@@ -3455,6 +3635,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Ripristina lo stato predefinito (vuoto) per le sezioni dinamiche dell'Inspector (Chiamanti, Chiamati, Form impattate).
+    /// </summary>
     private void ClearDynamicInspectorSections()
     {
         var localizationService = LocalizationService.Instance;
@@ -3466,6 +3649,10 @@ public partial class MainWindow : Window
         BlastPathsSection.IsVisible = false;
     }
 
+    /// <summary>
+    /// Aggiorna le statistiche visive della sezione Blast Radius nell'Inspector (badge di rischio, conteggio chiamanti diretti/indiretti, profondità massima, form e moduli impattati).
+    /// </summary>
+    /// <param name="impact">Il report d'impatto calcolato per il simbolo.</param>
     private void UpdateInspectorImpactSection(ImpactReport impact)
     {
         var localizationService = LocalizationService.Instance;
@@ -3521,6 +3708,12 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Aggiorna l'intera sezione d'impatto e relazioni nel Symbol Inspector, compresi gli elenchi testuali di chiamanti, chiamati e istanziazioni.
+    /// </summary>
+    /// <param name="impact">Il report d'impatto calcolato.</param>
+    /// <param name="callees">L'elenco dei simboli chiamati direttamente.</param>
+    /// <param name="instantiations">L'elenco delle classi istanziate.</param>
     private void UpdateInspectorImpactDetails(
         ImpactReport impact,
         IReadOnlyList<Symbol> callees,
@@ -3575,6 +3768,10 @@ public partial class MainWindow : Window
         CentralTabControl.SelectedItem = visibleTabs[nextIndex];
     }
 
+    /// <summary>
+    /// Gestisce la variazione della scheda selezionata nel TabControl centrale.
+    /// Avvia il caricamento analitico Lazy per la vista attivata e sincronizza la selezione con la griglia Blast Radius.
+    /// </summary>
     private void OnCentralTabSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (e.Source != CentralTabControl) return;
@@ -3601,6 +3798,11 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Calcola in background l'impatto semantico e il Blast Radius per tutte le routine del workspace (metodi e proprietà),
+    /// popolando la griglia tabellare con conteggi chiamanti, profondità, form coinvolte e livello di rischio,
+    /// salvando contemporaneamente il risultato nella cache del progetto.
+    /// </summary>
     private async Task PopulateBlastRadiusGridAsync()
     {
         if (_graph is null)
@@ -3739,6 +3941,12 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Applica i criteri di filtro correnti (testo di ricerca, livello di rischio e visibilità per progetto)
+    /// alla lista completa delle righe di Blast Radius (<see cref="_allBlastRadiusRows"/>), aggiornando
+    /// la sorgente dati della griglia (<see cref="BlastRadiusDataGrid"/>), il contatore delle statistiche
+    /// e riallineando la selezione con il nodo correntemente attivo nel grafo.
+    /// </summary>
     private void ApplyGridFilters()
     {
         if (BlastRadiusDataGrid == null || GridStatsTextBlock == null) return;
@@ -3803,11 +4011,17 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce la variazione del testo nel campo di ricerca/filtro della griglia Blast Radius.
+    /// </summary>
     private void OnGridFilterTextChanged(object? sender, TextChangedEventArgs e)
     {
         ApplyGridFilters();
     }
 
+    /// <summary>
+    /// Gestisce il cambio di selezione nel ComboBox del filtro di rischio della griglia Blast Radius, salvando la preferenza nelle impostazioni.
+    /// </summary>
     private void OnRiskFilterChanged(object? sender, SelectionChangedEventArgs e)
     {
         ApplyGridFilters();
@@ -3817,11 +4031,17 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce il click sul pulsante "Ricalcola Audit" nella barra strumenti della griglia.
+    /// </summary>
     private void OnRefreshGridClicked(object? sender, RoutedEventArgs e)
     {
         _ = PopulateBlastRadiusGridAsync();
     }
 
+    /// <summary>
+    /// Gestisce la selezione di una riga all'interno della griglia Blast Radius, selezionando e ispezionando il relativo nodo nel grafo.
+    /// </summary>
     private void OnGridRowSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (_isSyncingSelection || BlastRadiusDataGrid.SelectedItem is not BlastRadiusGridRow row)
@@ -3852,6 +4072,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce il doppio click su una riga della griglia Blast Radius per navigare e visualizzare il nodo nel canvas del grafo.
+    /// </summary>
     private void OnGridRowDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (BlastRadiusDataGrid.SelectedItem is BlastRadiusGridRow row)
@@ -3860,6 +4083,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce il click sul pulsante "Mostra nel grafo" presente nella colonna azioni della griglia Blast Radius.
+    /// </summary>
     private void OnShowInGraphButtonClicked(object? sender, RoutedEventArgs e)
     {
         if (sender is Button { DataContext: BlastRadiusGridRow row })
@@ -3868,6 +4094,10 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Passa alla scheda del Grafo, espande il container genitore, centra la vista e calcola graficamente l'impatto Blast Radius per il nodo specificato.
+    /// </summary>
+    /// <param name="nodeId">L'identificatore univoco del nodo a cui navigare.</param>
     private void NavigateToNodeInGraph(Guid nodeId)
     {
         if (_graph == null) return;
@@ -3884,6 +4114,9 @@ public partial class MainWindow : Window
         OnBlastRadiusClicked();
     }
 
+    /// <summary>
+    /// Calcola e aggiorna le metriche generali del workspace (conteggio progetti, nodi, relazioni, chiamate, istanziazioni) visualizzate nella barra di stato inferiore.
+    /// </summary>
     private void UpdateStatsBar()
     {
         if (_graph is null) return;
@@ -3920,6 +4153,11 @@ public partial class MainWindow : Window
         UpdateStatusLanguage();
     }
 
+    /// <summary>
+    /// Aggiorna il badge del linguaggio sorgente (VB6, C#, ecc.) nella barra di stato in basso a destra,
+    /// basandosi sul nodo correntemente selezionato o sui linguaggi complessivi rilevati nel workspace.
+    /// </summary>
+    /// <param name="selectedNodeLang">Il linguaggio del nodo selezionato, o <c>null</c> per usare i linguaggi complessivi del grafo.</param>
     private void UpdateStatusLanguage(SourceLanguage? selectedNodeLang = null)
     {
         if (selectedNodeLang.HasValue && selectedNodeLang.Value != SourceLanguage.Unknown)
@@ -3983,18 +4221,30 @@ public partial class MainWindow : Window
 
     #region Impostazioni, Informazioni & Temi
 
+    /// <summary>
+    /// Apre la finestra di dialogo modale delle Impostazioni (<see cref="SettingsWindow"/>) posizionandosi sulla scheda specificata.
+    /// </summary>
+    /// <param name="initialTab">L'indice della scheda iniziale da selezionare (0 = Aspetto, 1 = Lingua, 2 = Comportamento, 3 = Scorciatoie).</param>
     private void OpenSettings(int initialTab = 0)
     {
         var settingsWin = new SettingsWindow(initialTab);
         settingsWin.ShowDialog(this);
     }
 
+    /// <summary>
+    /// Apre la finestra di dialogo modale della Guida e Informazioni (<see cref="InfoWindow"/>) posizionandosi sulla scheda specificata.
+    /// </summary>
+    /// <param name="initialTab">L'indice della scheda iniziale da selezionare.</param>
     private void OpenInfo(int initialTab = 0)
     {
         var infoWin = new Views.InfoWindow(initialTab);
         infoWin.ShowDialog(this);
     }
 
+    /// <summary>
+    /// Applica i pennelli e colori della definizione del tema a tutti i bordi della finestra principale e ai controlli di visualizzazione analitica.
+    /// </summary>
+    /// <param name="theme">La definizione del tema contenente i codici esadecimali dei colori.</param>
     private void ApplyTheme(ThemeDefinition theme)
     {
         if (Color.TryParse(theme.BackgroundPrimary, out var bgPrimary))
@@ -4349,11 +4599,17 @@ public partial class MainWindow : Window
         ExportSuccessOverlay.IsVisible = true;
     }
 
+    /// <summary>
+    /// Gestisce la chiusura della modale di conferma esportazione.
+    /// </summary>
     private void OnExportSuccessCloseClicked(object? sender, RoutedEventArgs e)
     {
         ExportSuccessOverlay.IsVisible = false;
     }
 
+    /// <summary>
+    /// Gestisce il click sul pulsante "Apri cartella" della modale di conferma esportazione, rivelando il file generato in Esplora File.
+    /// </summary>
     private void OnExportSuccessOpenFolderClicked(object? sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrEmpty(_lastExportedFilePath))
@@ -4401,6 +4657,10 @@ public partial class MainWindow : Window
         SetLayoutMode(mode, resetView);
     }
 
+    /// <summary>
+    /// Mostra l'overlay modale di avviso prima di riorganizzare automaticamente il layout del grafo
+    /// se l'utente ha spostato manualmente dei nodi.
+    /// </summary>
     private void ShowLayoutConfirmModal()
     {
         var localizationService = LocalizationService.Instance;
@@ -4411,6 +4671,9 @@ public partial class MainWindow : Window
         LayoutConfirmOverlay.IsVisible = true;
     }
 
+    /// <summary>
+    /// Gestisce l'annullamento del cambio di layout dal popup di conferma, ripristinando la selezione precedente nella ComboBox.
+    /// </summary>
     private void OnLayoutConfirmCancelClicked(object? sender, RoutedEventArgs e)
     {
         LayoutConfirmOverlay.IsVisible = false;
@@ -4419,6 +4682,9 @@ public partial class MainWindow : Window
         LayoutComboBox.SelectedIndex = (int)_currentLayoutMode;
     }
 
+    /// <summary>
+    /// Gestisce la conferma del cambio layout dal popup, applicando il nuovo algoritmo e azzerando le posizioni personalizzate.
+    /// </summary>
     private void OnLayoutConfirmApplyClicked(object? sender, RoutedEventArgs e)
     {
         LayoutConfirmOverlay.IsVisible = false;
@@ -4486,6 +4752,9 @@ public partial class MainWindow : Window
         _layoutSaveDebounceTimer.Start();
     }
 
+    /// <summary>
+    /// Gestore scatenato allo scadere del timer di debounce per persistere su disco le posizioni aggiornate dei nodi.
+    /// </summary>
     private void OnLayoutSaveDebounceTick(object? sender, EventArgs e)
     {
         _layoutSaveDebounceTimer?.Stop();
@@ -4538,6 +4807,9 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Restituisce la stringa descrittiva localizzata corrispondente all'algoritmo di layout specificato.
+    /// </summary>
     private string GetLocalizedLayoutName(Layout.GraphLayoutMode mode) => mode switch
     {
         Layout.GraphLayoutMode.StandardRadial => LocalizationService.Instance["Layout_StandardRadial"],
@@ -4547,6 +4819,9 @@ public partial class MainWindow : Window
         _ => mode.ToString()
     };
 
+    /// <summary>
+    /// Gestisce il cambio di selezione nel ComboBox del layout per richiedere l'applicazione del nuovo algoritmo.
+    /// </summary>
     private void OnLayoutComboBoxSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (LayoutComboBox.SelectedIndex < 0) return;
@@ -4576,6 +4851,9 @@ public partial class MainWindow : Window
         ToggleTabLabels();
     }
 
+    /// <summary>
+    /// Alterna lo stato di visibilità delle etichette dei tab centrali e aggiorna le impostazioni utente.
+    /// </summary>
     private void ToggleTabLabels()
     {
         var newValue = !SettingsService.Instance.Settings.ShowTabLabels;
@@ -4583,6 +4861,10 @@ public partial class MainWindow : Window
         ApplyTabLabelsVisibility(newValue);
     }
 
+    /// <summary>
+    /// Applica la visibilità visiva alle intestazioni testuali di tutte le schede del controllo a schede centrale.
+    /// </summary>
+    /// <param name="showLabels"><c>true</c> per mostrare le etichette con il testo; <c>false</c> per mostrare solo le icone.</param>
     private void ApplyTabLabelsVisibility(bool showLabels)
     {
         GraphTabHeader.IsVisible = showLabels;
@@ -4673,66 +4955,87 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>Alterna la visibilità del tab Grafo delle Dipendenze nelle impostazioni.</summary>
     private void OnToggleTabGraphMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabGraph = !s.ShowTabGraph);
 
+    /// <summary>Alterna la visibilità del tab Matrice DSM nelle impostazioni.</summary>
     private void OnToggleTabDsmMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabDsm = !s.ShowTabDsm);
 
+    /// <summary>Alterna la visibilità del tab Treemap Gerarchica nelle impostazioni.</summary>
     private void OnToggleTabTreemapMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabTreemap = !s.ShowTabTreemap);
 
+    /// <summary>Alterna la visibilità del tab Matrice Hotspot nelle impostazioni.</summary>
     private void OnToggleTabHotspotMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabHotspot = !s.ShowTabHotspot);
 
+    /// <summary>Alterna la visibilità del tab Flusso Schermate nelle impostazioni.</summary>
     private void OnToggleTabScreenFlowMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabScreenFlow = !s.ShowTabScreenFlow);
 
+    /// <summary>Alterna la visibilità del tab Control Flow Graph (CFG) nelle impostazioni.</summary>
     private void OnToggleTabControlFlowMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabControlFlow = !s.ShowTabControlFlow);
 
+    /// <summary>Alterna la visibilità del tab Metriche Martin nelle impostazioni.</summary>
     private void OnToggleTabMartinMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabMartin = !s.ShowTabMartin);
 
+    /// <summary>Alterna la visibilità del tab Dead Code &amp; Orfani nelle impostazioni.</summary>
     private void OnToggleTabDeadCodeMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabDeadCode = !s.ShowTabDeadCode);
 
+    /// <summary>Alterna la visibilità del tab Stato Globale Condiviso nelle impostazioni.</summary>
     private void OnToggleTabSharedStateMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabSharedState = !s.ShowTabSharedState);
 
+    /// <summary>Alterna la visibilità del tab Temporal Coupling (Git Co-change) nelle impostazioni.</summary>
     private void OnToggleTabTemporalCouplingMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabTemporalCoupling = !s.ShowTabTemporalCoupling);
 
+    /// <summary>Alterna la visibilità del tab Flussi Architetturali (Chord) nelle impostazioni.</summary>
     private void OnToggleTabArchitecturalFlowMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabArchitecturalFlow = !s.ShowTabArchitecturalFlow);
 
+    /// <summary>Alterna la visibilità del tab CodeCity 3D nelle impostazioni.</summary>
     private void OnToggleTabCodeCityMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabCodeCity = !s.ShowTabCodeCity);
 
+    /// <summary>Alterna la visibilità del tab Coesione &amp; LCOM nelle impostazioni.</summary>
     private void OnToggleTabCohesionMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabCohesion = !s.ShowTabCohesion);
 
+    /// <summary>Alterna la visibilità del tab Maintainability Index nelle impostazioni.</summary>
     private void OnToggleTabMaintainabilityMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabMaintainability = !s.ShowTabMaintainability);
 
+    /// <summary>Alterna la visibilità del tab Regole Architetturali nelle impostazioni.</summary>
     private void OnToggleTabArchitecturalRulesMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabArchitecturalRules = !s.ShowTabArchitecturalRules);
 
+    /// <summary>Alterna la visibilità del tab Cloni e Duplicazioni (CPD) nelle impostazioni.</summary>
     private void OnToggleTabCodeCloneMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabCodeClone = !s.ShowTabCodeClone);
 
+    /// <summary>Alterna la visibilità del tab Social Code &amp; Bus Factor nelle impostazioni.</summary>
     private void OnToggleTabSocialCodeMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabSocialCode = !s.ShowTabSocialCode);
 
+    /// <summary>Alterna la visibilità del tab Data Flow &amp; Taint Tracking nelle impostazioni.</summary>
     private void OnToggleTabDataFlowMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabDataFlow = !s.ShowTabDataFlow);
 
+    /// <summary>Alterna la visibilità del tab API Diff &amp; SemVer nelle impostazioni.</summary>
     private void OnToggleTabApiDiffMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabApiDiff = !s.ShowTabApiDiff);
 
+    /// <summary>Alterna la visibilità del tab Matrice CRUD nelle impostazioni.</summary>
     private void OnToggleTabCrudMatrixMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabCrudMatrix = !s.ShowTabCrudMatrix);
 
+    /// <summary>Alterna la visibilità del tab Griglia Blast Radius nelle impostazioni.</summary>
     private void OnToggleTabBlastRadiusGridMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabBlastRadiusGrid = !s.ShowTabBlastRadiusGrid);
 
@@ -4962,6 +5265,11 @@ public partial class MainWindow : Window
 
     #region Visibilità Pannelli, Scorciatoie da Tastiera & Manutenzione
 
+    /// <summary>
+    /// Gestisce le scorciatoie da tastiera globali della finestra principale (es. Ctrl+B per Project Explorer, Ctrl+I per Symbol Inspector).
+    /// </summary>
+    /// <param name="sender">Sorgente dell'evento di pressione tasto.</param>
+    /// <param name="e">Argomenti dell'evento contenenti i modificatori e il tasto premuto.</param>
     private void OnMainWindowKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
@@ -4979,11 +5287,20 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Alterna la visibilità del pannello laterale sinistro Project Explorer o imposta uno stato forzato.
+    /// </summary>
+    /// <param name="forceState">Stato di visibilità desiderato (true per mostrare, false per nascondere, null per alternare).</param>
     public void ToggleExplorer(bool? forceState = null)
     {
         SetExplorerVisibility(forceState ?? !_isExplorerVisible);
     }
 
+    /// <summary>
+    /// Imposta la visibilità e le dimensioni della colonna di layout del Project Explorer nella griglia centrale, salvando lo stato se richiesto.
+    /// </summary>
+    /// <param name="isVisible">Indica se il pannello Project Explorer deve essere visibile.</param>
+    /// <param name="updateSettings">Indica se persistere la preferenza nelle impostazioni utente.</param>
     public void SetExplorerVisibility(bool isVisible, bool updateSettings = true)
     {
         _isExplorerVisible = isVisible;
@@ -5023,11 +5340,20 @@ public partial class MainWindow : Window
         UpdatePanelToggleVisuals();
     }
 
+    /// <summary>
+    /// Alterna la visibilità del pannello laterale destro Symbol Inspector o imposta uno stato forzato.
+    /// </summary>
+    /// <param name="forceState">Stato di visibilità desiderato (true per mostrare, false per nascondere, null per alternare).</param>
     public void ToggleInspector(bool? forceState = null)
     {
         SetInspectorVisibility(forceState ?? !_isInspectorVisible);
     }
 
+    /// <summary>
+    /// Imposta la visibilità e le dimensioni della colonna di layout del Symbol Inspector nella griglia centrale, salvando lo stato se richiesto.
+    /// </summary>
+    /// <param name="isVisible">Indica se il pannello Symbol Inspector deve essere visibile.</param>
+    /// <param name="updateSettings">Indica se persistere la preferenza nelle impostazioni utente.</param>
     public void SetInspectorVisibility(bool isVisible, bool updateSettings = true)
     {
         _isInspectorVisible = isVisible;
@@ -5067,6 +5393,9 @@ public partial class MainWindow : Window
         UpdatePanelToggleVisuals();
     }
 
+    /// <summary>
+    /// Aggiorna lo stile visivo attivo/inattivo dei pulsanti di toggle dei pannelli Explorer e Inspector nella barra superiore.
+    /// </summary>
     private void UpdatePanelToggleVisuals()
     {
         ToggleExplorerTopButton.Classes.Set("active", _isExplorerVisible);
@@ -5074,7 +5403,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Svuota completamente la cache locale dei progetti (%APPDATA%\Macondo\cache\) e invalida le query in memoria.
+    /// Ripristina tutte le impostazioni dell'applicazione ai valori predefiniti, aggiornando tema, lingua, layout e visibilità dei pannelli.
     /// </summary>
     private void ResetSettingsToDefaults()
     {
@@ -5089,6 +5418,9 @@ public partial class MainWindow : Window
         StatusText.Text = LocalizationService.Instance["Status_SettingsReset"];
     }
 
+    /// <summary>
+    /// Svuota completamente la cache locale dei progetti (%APPDATA%\Macondo\cache\) e invalida le query del grafo in memoria.
+    /// </summary>
     private void ClearProjectCache()
     {
         var count = ProjectCacheService.Instance.ClearAllCache();
@@ -5176,6 +5508,11 @@ public partial class MainWindow : Window
         WelcomeNoRecentText.IsVisible = recentItems.Count == 0;
     }
 
+    /// <summary>
+    /// Gestisce il click sul pulsante "Analizza ora" nella card di progetto in sospeso della schermata di benvenuto.
+    /// </summary>
+    /// <param name="sender">Sorgente dell'evento.</param>
+    /// <param name="e">Argomenti dell'evento di click.</param>
     private async void OnWelcomePendingAnalyzeClicked(object? sender, RoutedEventArgs e)
     {
         if (WelcomePendingPathText.Tag is string path && !string.IsNullOrEmpty(path) && Directory.Exists(path))
@@ -5184,21 +5521,41 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Gestisce il click sull'opzione "Apri file progetto" nella schermata di benvenuto per selezionare singoli file VB6 (.vbp, .frm, .bas, .cls).
+    /// </summary>
+    /// <param name="sender">Sorgente del puntatore.</param>
+    /// <param name="e">Argomenti dell'evento di pressione del puntatore.</param>
     private async void OnWelcomeOpenProjectFilesClicked(object? sender, PointerPressedEventArgs e)
     {
         await OpenProjectFilesAsync();
     }
 
+    /// <summary>
+    /// Gestisce il click sull'opzione "Apri cartella" nella schermata di benvenuto per selezionare una directory contenente progetti VB6.
+    /// </summary>
+    /// <param name="sender">Sorgente del puntatore.</param>
+    /// <param name="e">Argomenti dell'evento di pressione del puntatore.</param>
     private async void OnWelcomeOpenFolderClicked(object? sender, PointerPressedEventArgs e)
     {
         await OpenFolderAsync();
     }
 
+    /// <summary>
+    /// Gestisce il click sull'opzione "Carica fixture di test" nella schermata di benvenuto per avviare il caricamento della fixture demo.
+    /// </summary>
+    /// <param name="sender">Sorgente del puntatore.</param>
+    /// <param name="e">Argomenti dell'evento di pressione del puntatore.</param>
     private void OnWelcomeLoadFixturesClicked(object? sender, PointerPressedEventArgs e)
     {
         LoadDefaultFixtures();
     }
 
+    /// <summary>
+    /// Gestisce il click su un elemento della lista dei progetti recenti nella schermata di benvenuto, avviandone l'analisi e il caricamento.
+    /// </summary>
+    /// <param name="sender">Controllo associato all'elemento cliccato contenente il <see cref="WelcomeRecentItem"/> nel DataContext.</param>
+    /// <param name="e">Argomenti dell'evento di pressione del puntatore.</param>
     private async void OnWelcomeRecentItemPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if ((sender as Control)?.DataContext is WelcomeRecentItem item && item.Paths.Count > 0)
@@ -5211,6 +5568,9 @@ public partial class MainWindow : Window
 
     #region Localizzazione & Aggiornamento UI
 
+    /// <summary>
+    /// Aggiorna tutte le etichette, tooltip, intestazioni di menu, colonne e testi dell'interfaccia utente in base alla lingua correntemente selezionata nel <see cref="LocalizationService"/>.
+    /// </summary>
     private void UpdateLocalizedUI()
     {
         var localizationService = LocalizationService.Instance;
