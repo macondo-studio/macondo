@@ -159,7 +159,11 @@ public sealed class ProjectCacheService
     /// <summary>
     /// Salva in background uno snapshot completo di cache per la cartella analizzata.
     /// </summary>
-    public async Task SaveSnapshotAsync(string folderPath, VisualCodeGraph graph, IReadOnlyList<BlastRadiusGridRow> rows, bool hasCustomUserLayout = false)
+    public async Task SaveSnapshotAsync(
+        string folderPath,
+        VisualCodeGraph graph,
+        IReadOnlyList<BlastRadiusGridRow> rows,
+        bool hasCustomUserLayout = false)
     {
         if (graph.SemanticGraph is null || !Directory.Exists(folderPath))
             return;

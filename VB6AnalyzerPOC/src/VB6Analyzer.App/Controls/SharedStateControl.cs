@@ -586,7 +586,12 @@ public sealed class SharedStateControl : UserControl
         }
     }
 
-    private static (TextBlock titleBlock, TextBlock valueBlock) CreateKpiCard(Grid grid, int col, string title, string value, string accentColorHex)
+    private static (TextBlock titleBlock, TextBlock valueBlock) CreateKpiCard(
+        Grid grid,
+        int col,
+        string title,
+        string value,
+        string accentColorHex)
     {
         var card = new Border
         {

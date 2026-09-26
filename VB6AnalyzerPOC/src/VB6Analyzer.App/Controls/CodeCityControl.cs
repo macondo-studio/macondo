@@ -225,7 +225,14 @@ public sealed class CodeCityControl : Control
         RenderKpiItem(context, headerRect.X + colW * 3, headerRect.Y, colW, loc["City_Kpi_MaxComplexity"], dataset.MaxHeight.ToString("F0"), "#F59E0B");
     }
 
-    private static void RenderKpiItem(DrawingContext context, double x, double y, double w, string label, string val, string colorHex)
+    private static void RenderKpiItem(
+        DrawingContext context,
+        double x,
+        double y,
+        double w,
+        string label,
+        string val,
+        string colorHex)
     {
         var lblText = new FormattedText(label, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, KpiFont, 9.5, new SolidColorBrush(Color.Parse("#9090A0")));
         var valText = new FormattedText(val, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, KpiFont, 15.0, new SolidColorBrush(Color.Parse(colorHex)));
@@ -273,7 +280,11 @@ public sealed class CodeCityControl : Control
         context.DrawText(ft, p);
     }
 
-    private void RenderBuildingPrism(DrawingContext context, CityBuilding b, bool isHovered, bool isSelected)
+    private void RenderBuildingPrism(
+        DrawingContext context,
+        CityBuilding b,
+        bool isHovered,
+        bool isSelected)
     {
         double x = b.X;
         double y = b.Y;

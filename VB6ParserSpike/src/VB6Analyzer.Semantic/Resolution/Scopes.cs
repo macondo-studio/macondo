@@ -335,7 +335,11 @@ public sealed class WithScope : IScope
     public string ScopeName => $"With ({_targetResult})";
     public ResolutionResult TargetResult => _targetResult;
 
-    public WithScope(IScope parentScope, ResolutionResult targetResult, CodeGraph graph, TypeResolver typeResolver)
+    public WithScope(
+        IScope parentScope,
+        ResolutionResult targetResult,
+        CodeGraph graph,
+        TypeResolver typeResolver)
     {
         _parentScope = parentScope;
         _targetResult = targetResult;

@@ -15,7 +15,10 @@ public static class ProjectAnalysisService
     /// <summary>
     /// Analizza molteplici cartelle, file .vbp o file .vbg all'interno di un unico workspace semantico.
     /// </summary>
-    public static VisualCodeGraph AnalyzePaths(IReadOnlyList<string> paths, IProgress<ProjectAnalysisProgress>? progress = null, CancellationToken cancellationToken = default)
+    public static VisualCodeGraph AnalyzePaths(
+        IReadOnlyList<string> paths,
+        IProgress<ProjectAnalysisProgress>? progress = null,
+        CancellationToken cancellationToken = default)
     {
 #if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
@@ -34,7 +37,10 @@ public static class ProjectAnalysisService
     /// Esegue l'analisi completa di una lista di progetti VB6 creando un unico CodeGraph unificato
     /// con risoluzione cross-project di tipi, chiamate e istanziazioni.
     /// </summary>
-    public static VisualCodeGraph AnalyzeProjects(IReadOnlyList<ProjectDescriptor> projects, IProgress<ProjectAnalysisProgress>? progress = null, CancellationToken cancellationToken = default)
+    public static VisualCodeGraph AnalyzeProjects(
+        IReadOnlyList<ProjectDescriptor> projects,
+        IProgress<ProjectAnalysisProgress>? progress = null,
+        CancellationToken cancellationToken = default)
     {
 #if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();

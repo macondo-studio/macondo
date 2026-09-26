@@ -82,7 +82,11 @@ public static class WindowsNotificationService
     private static extern bool Shell_NotifyIcon(uint dwMessage, ref NOTIFYICONDATA lpData);
 
     [DllImport("user32.dll", CharSet = CharSet.Auto)]
-    private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+    private static extern IntPtr SendMessage(
+        IntPtr hWnd,
+        uint msg,
+        IntPtr wParam,
+        IntPtr lParam);
 
     /// <summary>
     /// Fa lampeggiare l'icona dell'applicazione sulla barra delle applicazioni di Windows

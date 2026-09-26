@@ -188,7 +188,12 @@ public static class CSharpExtractor
             _scopeStack.Pop();
         }
 
-        private void ProcessTypeDeclaration(TypeDeclarationSyntax node, SymbolKind kind, string name, SyntaxTokenList modifiers, BaseListSyntax? baseList)
+        private void ProcessTypeDeclaration(
+            TypeDeclarationSyntax node,
+            SymbolKind kind,
+            string name,
+            SyntaxTokenList modifiers,
+            BaseListSyntax? baseList)
         {
             var span = node.GetLocation().GetLineSpan();
             var qname = BuildQualifiedName(name);

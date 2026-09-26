@@ -631,7 +631,15 @@ public partial class MainWindow : Window
     /// <summary>
     /// Mostra l'overlay modale di caricamento centrato a tutto schermo con opzioni per la barra di avanzamento e statistiche.
     /// </summary>
-    private void ShowLoading(string title, string subtitle, bool isIndeterminate = true, double progressValue = 0, double progressMax = 100, string? countText = null, string? statsText = null, bool canCancel = true)
+    private void ShowLoading(
+        string title,
+        string subtitle,
+        bool isIndeterminate = true,
+        double progressValue = 0,
+        double progressMax = 100,
+        string? countText = null,
+        string? statsText = null,
+        bool canCancel = true)
     {
         _loadingCts?.Cancel();
         _loadingCts?.Dispose();
@@ -676,7 +684,12 @@ public partial class MainWindow : Window
     /// <summary>
     /// Aggiorna l'avanzamento dettagliato e lo stato testuale dell'overlay di caricamento.
     /// </summary>
-    private void UpdateLoadingProgress(double current, double total, string? subtitle = null, string? countText = null, string? statsText = null)
+    private void UpdateLoadingProgress(
+        double current,
+        double total,
+        string? subtitle = null,
+        string? countText = null,
+        string? statsText = null)
     {
         LoadingProgressBar.IsIndeterminate = false;
         LoadingProgressBar.Minimum = 0;
@@ -2847,7 +2860,13 @@ public partial class MainWindow : Window
 
     #region Ricerca Globale & Command Palette
 
-    private record AppSearchTarget(string Title, string Subtitle, string BadgeText, SearchResultCategory Category, string[] Keywords, Action Action);
+    private record AppSearchTarget(
+        string Title,
+        string Subtitle,
+        string BadgeText,
+        SearchResultCategory Category,
+        string[] Keywords,
+        Action Action);
 
     private List<AppSearchTarget> GetAppSearchTargets()
     {
@@ -3493,7 +3512,10 @@ public partial class MainWindow : Window
         }
     }
 
-    private void UpdateInspectorImpactDetails(ImpactReport impact, IReadOnlyList<Symbol> callees, IReadOnlyList<Symbol> instantiations)
+    private void UpdateInspectorImpactDetails(
+        ImpactReport impact,
+        IReadOnlyList<Symbol> callees,
+        IReadOnlyList<Symbol> instantiations)
     {
         UpdateInspectorImpactSection(impact);
 

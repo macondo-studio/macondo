@@ -126,7 +126,12 @@ public sealed class GraphControl : Control
     /// <summary>
     /// Imposta simultaneamente tutti i filtri di visibilità per tipologia di simbolo.
     /// </summary>
-    public void SetFilters(bool methods, bool properties, bool fields, bool constants, bool typesAndEnums)
+    public void SetFilters(
+        bool methods,
+        bool properties,
+        bool fields,
+        bool constants,
+        bool typesAndEnums)
     {
         _showMethods = methods;
         _showProperties = properties;
@@ -499,7 +504,12 @@ public sealed class GraphControl : Control
     /// <param name="from">Coordinate a schermo del punto di partenza dell'arco.</param>
     /// <param name="to">Coordinate a schermo del punto di arrivo (centro del nodo target).</param>
     /// <param name="targetRadius">Raggio del nodo target a schermo, per evitare sovrapposizioni grafiche con il corpo del nodo.</param>
-    private static void DrawArrowHead(DrawingContext context, IBrush? brush, Point from, Point to, double targetRadius)
+    private static void DrawArrowHead(
+        DrawingContext context,
+        IBrush? brush,
+        Point from,
+        Point to,
+        double targetRadius)
     {
         if (brush == null) return;
 

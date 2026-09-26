@@ -399,7 +399,12 @@ public sealed class TemporalCouplingControl : UserControl
         _statsTextBlock.Text = LocalizationService.Instance.Get("Temporal_Stats_Shown", _rows.Count, _allPairs.Count);
     }
 
-    private static (TextBlock titleBlock, TextBlock valueBlock) CreateKpiCard(Grid grid, int col, string title, string value, string accentColorHex)
+    private static (TextBlock titleBlock, TextBlock valueBlock) CreateKpiCard(
+        Grid grid,
+        int col,
+        string title,
+        string value,
+        string accentColorHex)
     {
         var card = new Border
         {

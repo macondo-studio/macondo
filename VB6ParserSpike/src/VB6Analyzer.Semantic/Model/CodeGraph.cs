@@ -131,7 +131,11 @@ public sealed class CodeGraph
     /// <param name="callee">La routine chiamata (Method o Property).</param>
     /// <param name="line">Numero di riga nel sorgente in cui si origina la chiamata.</param>
     /// <param name="confidence">Grado di certezza della risoluzione (Exact, Inferred, Unknown).</param>
-    public void AddCalls(Symbol caller, Symbol callee, int? line = null, ResolutionConfidence confidence = ResolutionConfidence.Exact)
+    public void AddCalls(
+        Symbol caller,
+        Symbol callee,
+        int? line = null,
+        ResolutionConfidence confidence = ResolutionConfidence.Exact)
     {
         RegisterRelationship(new Relationship
         {
@@ -150,7 +154,11 @@ public sealed class CodeGraph
     /// <param name="targetClass">Il simbolo della classe istanziata.</param>
     /// <param name="line">Numero di riga nel sorgente.</param>
     /// <param name="confidence">Grado di certezza della risoluzione.</param>
-    public void AddInstantiates(Symbol source, Symbol targetClass, int? line = null, ResolutionConfidence confidence = ResolutionConfidence.Exact)
+    public void AddInstantiates(
+        Symbol source,
+        Symbol targetClass,
+        int? line = null,
+        ResolutionConfidence confidence = ResolutionConfidence.Exact)
     {
         RegisterRelationship(new Relationship
         {
@@ -170,7 +178,11 @@ public sealed class CodeGraph
     /// <param name="eventHandler">La procedura Sub che gestisce l'evento.</param>
     /// <param name="line">Numero di riga nel sorgente.</param>
     /// <param name="confidence">Grado di certezza della risoluzione.</param>
-    public void AddHandlesEvent(Symbol source, Symbol eventHandler, int? line = null, ResolutionConfidence confidence = ResolutionConfidence.Exact)
+    public void AddHandlesEvent(
+        Symbol source,
+        Symbol eventHandler,
+        int? line = null,
+        ResolutionConfidence confidence = ResolutionConfidence.Exact)
     {
         if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
 

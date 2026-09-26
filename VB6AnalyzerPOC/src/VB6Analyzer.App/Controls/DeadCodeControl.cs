@@ -364,7 +364,12 @@ public sealed class DeadCodeControl : UserControl
         }
     }
 
-    private static Border CreateKpiCard(string title, string initialValue, string accentHex, out TextBlock titleBlock, out TextBlock valueBlock)
+    private static Border CreateKpiCard(
+        string title,
+        string initialValue,
+        string accentHex,
+        out TextBlock titleBlock,
+        out TextBlock valueBlock)
     {
         valueBlock = new TextBlock
         {

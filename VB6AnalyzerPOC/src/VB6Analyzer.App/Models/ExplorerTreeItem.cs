@@ -63,7 +63,10 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
     /// Costruisce l'albero gerarchico del progetto a partire dal CodeGraph visuale,
     /// con raggruppamento dei file per tipologia.
     /// </summary>
-    public static ExplorerTreeItem BuildTree(VisualCodeGraph graph, string? projectFolderPath = null, IReadOnlySet<Guid>? hiddenProjectIds = null)
+    public static ExplorerTreeItem BuildTree(
+        VisualCodeGraph graph,
+        string? projectFolderPath = null,
+        IReadOnlySet<Guid>? hiddenProjectIds = null)
     {
         if (graph.Nodes.Count == 0)
         {
@@ -110,7 +113,12 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
         return BuildProjectSubTree(graph, singleProject, projectFolderPath, isWorkspace: false, hiddenProjectIds: hiddenProjectIds);
     }
 
-    private static ExplorerTreeItem BuildProjectSubTree(VisualCodeGraph graph, GraphNode project, string? projectFolderPath, bool isWorkspace = false, IReadOnlySet<Guid>? hiddenProjectIds = null)
+    private static ExplorerTreeItem BuildProjectSubTree(
+        VisualCodeGraph graph,
+        GraphNode project,
+        string? projectFolderPath,
+        bool isWorkspace = false,
+        IReadOnlySet<Guid>? hiddenProjectIds = null)
     {
         var (prjBadge, prjBg, prjFg) = GetBadgeInfo(project.Kind);
         var detectedLang = DetectProjectLanguage(graph, project, projectFolderPath);
@@ -337,7 +345,10 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
         _ => (null, null, null, null)
     };
 
-    private static SourceLanguage DetectProjectLanguage(VisualCodeGraph graph, GraphNode project, string? projectFolderPath)
+    private static SourceLanguage DetectProjectLanguage(
+        VisualCodeGraph graph,
+        GraphNode project,
+        string? projectFolderPath)
     {
         if (project.Language != SourceLanguage.Unknown)
             return project.Language;

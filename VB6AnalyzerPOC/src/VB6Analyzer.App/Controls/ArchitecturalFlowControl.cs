@@ -213,7 +213,14 @@ public sealed class ArchitecturalFlowControl : Control
         RenderKpiItem(context, headerRect.X + colW * 3, headerRect.Y, colW, loc["Flow_Kpi_Violations"], dataset.LayerViolationsCount.ToString("N0"), dataset.LayerViolationsCount > 0 ? "#EF4444" : "#10B981");
     }
 
-    private static void RenderKpiItem(DrawingContext context, double x, double y, double w, string label, string val, string colorHex)
+    private static void RenderKpiItem(
+        DrawingContext context,
+        double x,
+        double y,
+        double w,
+        string label,
+        string val,
+        string colorHex)
     {
         var lblText = new FormattedText(label, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, KpiFont, 9.5, new SolidColorBrush(Color.Parse("#9090A0")));
         var valText = new FormattedText(val, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, KpiFont, 15.0, new SolidColorBrush(Color.Parse(colorHex)));
@@ -222,7 +229,15 @@ public sealed class ArchitecturalFlowControl : Control
         context.DrawText(valText, new Point(x + 16, y + 20));
     }
 
-    private static void RenderNodeArc(DrawingContext context, double cx, double cy, double innerR, double outerR, FlowNode node, Color color, bool isSelected)
+    private static void RenderNodeArc(
+        DrawingContext context,
+        double cx,
+        double cy,
+        double innerR,
+        double outerR,
+        FlowNode node,
+        Color color,
+        bool isSelected)
     {
         var geom = new StreamGeometry();
         using (var ctx = geom.Open())
@@ -254,7 +269,14 @@ public sealed class ArchitecturalFlowControl : Control
         context.DrawGeometry(brush, pen, geom);
     }
 
-    private static void RenderChordRibbon(DrawingContext context, double cx, double cy, double r, FlowLink link, Color color, bool isViolation)
+    private static void RenderChordRibbon(
+        DrawingContext context,
+        double cx,
+        double cy,
+        double r,
+        FlowLink link,
+        Color color,
+        bool isViolation)
     {
         double p1x = cx + r * Math.Cos(link.SourceStartAngle);
         double p1y = cy + r * Math.Sin(link.SourceStartAngle);
@@ -282,7 +304,13 @@ public sealed class ArchitecturalFlowControl : Control
         context.DrawGeometry(brush, pen, geom);
     }
 
-    private void RenderNodeLabel(DrawingContext context, double cx, double cy, double r, FlowNode node, bool isHighlighted)
+    private void RenderNodeLabel(
+        DrawingContext context,
+        double cx,
+        double cy,
+        double r,
+        FlowNode node,
+        bool isHighlighted)
     {
         double midAngle = node.MidAngle;
         double lx = cx + r * Math.Cos(midAngle);
@@ -300,7 +328,11 @@ public sealed class ArchitecturalFlowControl : Control
         context.DrawText(ft, new Point(textX, textY));
     }
 
-    private void RenderTooltip(DrawingContext context, Rect bounds, FlowNode node, ArchitecturalFlowDataset dataset)
+    private void RenderTooltip(
+        DrawingContext context,
+        Rect bounds,
+        FlowNode node,
+        ArchitecturalFlowDataset dataset)
     {
         var loc = LocalizationService.Instance;
         var outLinks = dataset.Links.Where(l => l.SourceId == node.Id).ToList();

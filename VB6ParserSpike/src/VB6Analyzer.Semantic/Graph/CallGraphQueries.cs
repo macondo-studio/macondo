@@ -95,7 +95,11 @@ public sealed class CallGraphQueries
     /// <param name="maxDepth">Profondità massima di ricerca.</param>
     /// <param name="cancellationToken">Token opzionale per annullare la ricerca.</param>
     /// <returns>Elenco dei cammini (<see cref="CallPath"/>) identificati.</returns>
-    public IReadOnlyList<CallPath> FindExecutionPaths(Symbol source, Symbol target, int maxDepth = 10, CancellationToken cancellationToken = default)
+    public IReadOnlyList<CallPath> FindExecutionPaths(
+        Symbol source,
+        Symbol target,
+        int maxDepth = 10,
+        CancellationToken cancellationToken = default)
     {
         var key = (source.Id, target.Id, maxDepth);
         if (_executionPathsCache.TryGetValue(key, out var cachedPaths))
