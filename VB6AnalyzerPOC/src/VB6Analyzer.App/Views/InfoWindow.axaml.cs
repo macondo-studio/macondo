@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -126,8 +126,8 @@ public partial class InfoWindow : Window
 
     private void UpdateLocalizedTexts()
     {
-        var loc = LocalizationService.Instance;
-        var isEn = loc.CurrentLanguage == AppLanguage.English;
+        var localizationService = LocalizationService.Instance;
+        var isEn = localizationService.CurrentLanguage == AppLanguage.English;
 
         Title = isEn ? "Guide & Concepts — Macondo" : "Macondo — Guida & Concetti";
         WindowTitleText.Text = Title;

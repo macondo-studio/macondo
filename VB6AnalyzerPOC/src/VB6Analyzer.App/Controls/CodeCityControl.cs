@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -217,12 +217,12 @@ public sealed class CodeCityControl : Control
         context.DrawRectangle(bg, border, new RoundedRect(headerRect, 6));
 
         double colW = headerRect.Width / 4.0;
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
 
-        RenderKpiItem(context, headerRect.X, headerRect.Y, colW, loc["City_Kpi_Buildings"], dataset.TotalBuildingsCount.ToString("N0"), "#3B82F6");
-        RenderKpiItem(context, headerRect.X + colW, headerRect.Y, colW, loc["City_Kpi_Districts"], dataset.TotalDistrictsCount.ToString("N0"), "#10B981");
-        RenderKpiItem(context, headerRect.X + colW * 2, headerRect.Y, colW, loc["City_Kpi_TotalLoc"], dataset.TotalLoc.ToString("N0"), "#8B5CF6");
-        RenderKpiItem(context, headerRect.X + colW * 3, headerRect.Y, colW, loc["City_Kpi_MaxComplexity"], dataset.MaxHeight.ToString("F0"), "#F59E0B");
+        RenderKpiItem(context, headerRect.X, headerRect.Y, colW, localizationService["City_Kpi_Buildings"], dataset.TotalBuildingsCount.ToString("N0"), "#3B82F6");
+        RenderKpiItem(context, headerRect.X + colW, headerRect.Y, colW, localizationService["City_Kpi_Districts"], dataset.TotalDistrictsCount.ToString("N0"), "#10B981");
+        RenderKpiItem(context, headerRect.X + colW * 2, headerRect.Y, colW, localizationService["City_Kpi_TotalLoc"], dataset.TotalLoc.ToString("N0"), "#8B5CF6");
+        RenderKpiItem(context, headerRect.X + colW * 3, headerRect.Y, colW, localizationService["City_Kpi_MaxComplexity"], dataset.MaxHeight.ToString("F0"), "#F59E0B");
     }
 
     private static void RenderKpiItem(
@@ -368,12 +368,12 @@ public sealed class CodeCityControl : Control
 
     private void RenderTooltip(DrawingContext context, Rect bounds, CityBuilding b)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         string title = $"{b.Name} ({b.Kind})";
-        string sub = $"{loc.Get("City_Tooltip_District", b.DistrictName)}\n" +
-                     $"{loc.Get("City_Tooltip_Loc", b.Loc)}\n" +
-                     $"{loc.Get("City_Tooltip_CC", b.CyclomaticComplexity)}\n" +
-                     $"{loc.Get("City_Tooltip_Members", b.MemberCount)}\n" +
+        string sub = $"{localizationService.Get("City_Tooltip_District", b.DistrictName)}\n" +
+                     $"{localizationService.Get("City_Tooltip_Loc", b.Loc)}\n" +
+                     $"{localizationService.Get("City_Tooltip_CC", b.CyclomaticComplexity)}\n" +
+                     $"{localizationService.Get("City_Tooltip_Members", b.MemberCount)}\n" +
                      $"{b.FilePath}";
 
         var ftTitle = new FormattedText(title, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, KpiFont, 12.0, Brushes.White);
@@ -399,9 +399,9 @@ public sealed class CodeCityControl : Control
 
     private void RenderEmptyState(DrawingContext context, Rect bounds)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var text = new FormattedText(
-            loc["City_Placeholder"],
+            localizationService["City_Placeholder"],
             CultureInfo.InvariantCulture,
             FlowDirection.LeftToRight,
             TooltipFont,

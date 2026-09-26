@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -151,14 +151,14 @@ public sealed class MartinMetricsControl : Control
         context.DrawLine(mainSeqPen, mainSeqP1, mainSeqP2);
 
         // Testo Sequenza Principale lungo la diagonale
-        var loc = LocalizationService.Instance;
-        var seqLabelFmt = new FormattedText(loc["Martin_MainSequence"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _mainSeqPenBrush);
+        var localizationService = LocalizationService.Instance;
+        var seqLabelFmt = new FormattedText(localizationService["Martin_MainSequence"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _mainSeqPenBrush);
         context.DrawText(seqLabelFmt, new Point(marginL + plotW * 0.4, marginT + plotH * 0.4 - 14));
 
-        var painLabelFmt = new FormattedText(loc["Martin_ZonePain"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, TitleTypeface, 11, new SolidColorBrush(Color.Parse("#FF5566")));
+        var painLabelFmt = new FormattedText(localizationService["Martin_ZonePain"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, TitleTypeface, 11, new SolidColorBrush(Color.Parse("#FF5566")));
         context.DrawText(painLabelFmt, new Point(marginL + 8, marginT + plotH - 22));
 
-        var uselessLabelFmt = new FormattedText(loc["Martin_ZoneUseless"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, TitleTypeface, 11, new SolidColorBrush(Color.Parse("#FFB030")));
+        var uselessLabelFmt = new FormattedText(localizationService["Martin_ZoneUseless"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, TitleTypeface, 11, new SolidColorBrush(Color.Parse("#FFB030")));
         context.DrawText(uselessLabelFmt, new Point(marginL + plotW - uselessLabelFmt.Width - 8, marginT + 8));
 
         // 3. Assi Cartesiani
@@ -183,10 +183,10 @@ public sealed class MartinMetricsControl : Control
         }
 
         // Intestazioni Assi
-        var axisYTitle = new FormattedText(loc["Martin_AxisY"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, AxisTypeface, 11, _textWhiteBrush);
+        var axisYTitle = new FormattedText(localizationService["Martin_AxisY"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, AxisTypeface, 11, _textWhiteBrush);
         context.DrawText(axisYTitle, new Point(marginL, 16));
 
-        var axisXTitle = new FormattedText(loc["Martin_AxisX"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, AxisTypeface, 11, _textWhiteBrush);
+        var axisXTitle = new FormattedText(localizationService["Martin_AxisX"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, AxisTypeface, 11, _textWhiteBrush);
         context.DrawText(axisXTitle, new Point(marginL + plotW - axisXTitle.Width, marginT + plotH + 32));
 
         // 4. Disegno Punti / Bolle per ciascun componente
@@ -242,7 +242,7 @@ public sealed class MartinMetricsControl : Control
 
     private void DrawHoverCard(DrawingContext context, MartinMetricItem item)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var titleFmt = new FormattedText(
             $"{item.Kind}: {item.QualifiedName}",
             CultureInfo.InvariantCulture,
@@ -253,10 +253,10 @@ public sealed class MartinMetricsControl : Control
 
         string zoneText = item.Zone switch
         {
-            MartinZone.ZoneOfPain => loc["Martin_ZonePain"],
-            MartinZone.ZoneOfUselessness => loc["Martin_ZoneUseless"],
-            MartinZone.MainSequence => loc["Martin_MainSequence"],
-            _ => loc["Martin_Balanced"]
+            MartinZone.ZoneOfPain => localizationService["Martin_ZonePain"],
+            MartinZone.ZoneOfUselessness => localizationService["Martin_ZoneUseless"],
+            MartinZone.MainSequence => localizationService["Martin_MainSequence"],
+            _ => localizationService["Martin_Balanced"]
         };
 
         var subFmt = new FormattedText(

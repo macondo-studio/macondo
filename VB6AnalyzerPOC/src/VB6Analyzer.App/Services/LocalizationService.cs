@@ -621,11 +621,11 @@ public sealed class LocalizationService
 
         // Schermata di Benvenuto (Welcome / Empty State View)
         ["Welcome_Title"] = "Macondo - Code Analyzer",
-        ["Welcome_Subtitle"] = "Analisi semantica statica, grafo delle dipendenze e raggio d'impatto per progetti legacy Visual Basic 6.0",
+        ["Welcome_Subtitle"] = "Analisi semantica statica, grafo delle dipendenze e raggio d'impatto per basi di codice complesse (VB6, C#)",
         ["Welcome_QuickStart"] = "Inizia Subito",
         ["Welcome_OpenProject"] = "Apri Progetto o Gruppo...",
         ["Welcome_OpenProjectDesc"] = "Seleziona file .vbp o file gruppo .vbg",
-        ["Welcome_OpenFolder"] = "Apri Cartella ...",
+        ["Welcome_OpenFolder"] = "Apri Cartella...",
         ["Welcome_OpenFolderDesc"] = "Scansiona un'intera cartella di codice sorgente",
         ["Welcome_LoadFixtures"] = "Carica Fixture Demo",
         ["Welcome_LoadFixturesDesc"] = "Esplora un set completo di classi e form di esempio",
@@ -1397,7 +1397,7 @@ public sealed class LocalizationService
 
         // Welcome / Empty State View
         ["Welcome_Title"] = "Macondo - Code Analyzer",
-        ["Welcome_Subtitle"] = "Static semantic analysis, dependency graph, and blast radius impact for legacy Visual Basic 6.0 projects",
+        ["Welcome_Subtitle"] = "Static semantic analysis, dependency graph, and blast radius impact for complex codebases (VB6, C#)",
         ["Welcome_QuickStart"] = "Quick Start",
         ["Welcome_OpenProject"] = "Open Project or Group...",
         ["Welcome_OpenProjectDesc"] = "Select .vbp project or .vbg group files",

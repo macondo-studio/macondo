@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -403,66 +403,66 @@ public sealed class SharedStateControl : UserControl
 
     private void UpdateLocalizedTexts()
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
 
-        _kpiTotalVarsTitle.Text = loc["SharedState_Kpi_TotalVars"];
-        _kpiCriticalTitle.Text = loc["SharedState_Kpi_Critical"];
-        _kpiWritersTitle.Text = loc["SharedState_Kpi_Writers"];
-        _kpiCrossModuleWritersTitle.Text = loc["SharedState_Kpi_CrossModule"];
+        _kpiTotalVarsTitle.Text = localizationService["SharedState_Kpi_TotalVars"];
+        _kpiCriticalTitle.Text = localizationService["SharedState_Kpi_Critical"];
+        _kpiWritersTitle.Text = localizationService["SharedState_Kpi_Writers"];
+        _kpiCrossModuleWritersTitle.Text = localizationService["SharedState_Kpi_CrossModule"];
 
-        _searchLabel.Text = loc["SharedState_Filter_Search"];
-        _searchBox.Watermark = loc["SharedState_Filter_Search_Watermark"];
+        _searchLabel.Text = localizationService["SharedState_Filter_Search"];
+        _searchBox.Watermark = localizationService["SharedState_Filter_Search_Watermark"];
 
-        _riskLabel.Text = loc["SharedState_Filter_Risk"];
+        _riskLabel.Text = localizationService["SharedState_Filter_Risk"];
         if (_riskFilterCombo.Items.Count >= 5)
         {
-            if (_riskFilterCombo.Items[0] is ComboBoxItem item0) item0.Content = loc["SharedState_Risk_All"];
-            if (_riskFilterCombo.Items[1] is ComboBoxItem item1) item1.Content = loc["SharedState_Risk_Critical"];
-            if (_riskFilterCombo.Items[2] is ComboBoxItem item2) item2.Content = loc["SharedState_Risk_High"];
-            if (_riskFilterCombo.Items[3] is ComboBoxItem item3) item3.Content = loc["SharedState_Risk_Medium"];
-            if (_riskFilterCombo.Items[4] is ComboBoxItem item4) item4.Content = loc["SharedState_Risk_Low"];
+            if (_riskFilterCombo.Items[0] is ComboBoxItem item0) item0.Content = localizationService["SharedState_Risk_All"];
+            if (_riskFilterCombo.Items[1] is ComboBoxItem item1) item1.Content = localizationService["SharedState_Risk_Critical"];
+            if (_riskFilterCombo.Items[2] is ComboBoxItem item2) item2.Content = localizationService["SharedState_Risk_High"];
+            if (_riskFilterCombo.Items[3] is ComboBoxItem item3) item3.Content = localizationService["SharedState_Risk_Medium"];
+            if (_riskFilterCombo.Items[4] is ComboBoxItem item4) item4.Content = localizationService["SharedState_Risk_Low"];
         }
 
-        _crossModuleOnlyCheck.Content = loc["SharedState_Filter_CrossModuleOnly"];
-        _emptyStateText.Text = loc["SharedState_EmptyState"];
+        _crossModuleOnlyCheck.Content = localizationService["SharedState_Filter_CrossModuleOnly"];
+        _emptyStateText.Text = localizationService["SharedState_EmptyState"];
 
         if (_variablesDataGrid.Columns.Count >= 7)
         {
-            _variablesDataGrid.Columns[0].Header = loc["SharedState_Col_Risk"];
-            _variablesDataGrid.Columns[1].Header = loc["SharedState_Col_Module"];
-            _variablesDataGrid.Columns[2].Header = loc["SharedState_Col_VarName"];
-            _variablesDataGrid.Columns[3].Header = loc["SharedState_Col_Type"];
-            _variablesDataGrid.Columns[4].Header = loc["SharedState_Col_Readers"];
-            _variablesDataGrid.Columns[5].Header = loc["SharedState_Col_Writers"];
-            _variablesDataGrid.Columns[6].Header = loc["SharedState_Col_CrossWriters"];
+            _variablesDataGrid.Columns[0].Header = localizationService["SharedState_Col_Risk"];
+            _variablesDataGrid.Columns[1].Header = localizationService["SharedState_Col_Module"];
+            _variablesDataGrid.Columns[2].Header = localizationService["SharedState_Col_VarName"];
+            _variablesDataGrid.Columns[3].Header = localizationService["SharedState_Col_Type"];
+            _variablesDataGrid.Columns[4].Header = localizationService["SharedState_Col_Readers"];
+            _variablesDataGrid.Columns[5].Header = localizationService["SharedState_Col_Writers"];
+            _variablesDataGrid.Columns[6].Header = localizationService["SharedState_Col_CrossWriters"];
         }
 
         if (_accessorsDataGrid.Columns.Count >= 5)
         {
-            _accessorsDataGrid.Columns[0].Header = loc["SharedState_Col_AccessType"];
-            _accessorsDataGrid.Columns[1].Header = loc["SharedState_Col_Scope"];
-            _accessorsDataGrid.Columns[2].Header = loc["SharedState_Col_CallerModule"];
-            _accessorsDataGrid.Columns[3].Header = loc["SharedState_Col_CallerRoutine"];
-            _accessorsDataGrid.Columns[4].Header = loc["SharedState_Col_Line"];
+            _accessorsDataGrid.Columns[0].Header = localizationService["SharedState_Col_AccessType"];
+            _accessorsDataGrid.Columns[1].Header = localizationService["SharedState_Col_Scope"];
+            _accessorsDataGrid.Columns[2].Header = localizationService["SharedState_Col_CallerModule"];
+            _accessorsDataGrid.Columns[3].Header = localizationService["SharedState_Col_CallerRoutine"];
+            _accessorsDataGrid.Columns[4].Header = localizationService["SharedState_Col_Line"];
         }
 
         if (_variablesDataGrid.SelectedItem is SharedVariableGridRow selectedRow)
         {
             var item = selectedRow.Item;
-            _selectedVarTitleText.Text = loc.Get("SharedState_Detail_Selected", item.ModuleName, item.VariableName, item.TotalAccessorsCount, item.WritersCount);
+            _selectedVarTitleText.Text = localizationService.Get("SharedState_Detail_Selected", item.ModuleName, item.VariableName, item.TotalAccessorsCount, item.WritersCount);
         }
         else if (_variableRows.Count == 0 && _allItems.Count > 0)
         {
-            _selectedVarTitleText.Text = loc["SharedState_Detail_NoMatches"];
+            _selectedVarTitleText.Text = localizationService["SharedState_Detail_NoMatches"];
         }
         else
         {
-            _selectedVarTitleText.Text = loc["SharedState_Detail_Prompt"];
+            _selectedVarTitleText.Text = localizationService["SharedState_Detail_Prompt"];
         }
 
         if (_allItems.Count > 0)
         {
-            _statsTextBlock.Text = loc.Get("SharedState_Stats_Shown", _variableRows.Count, _allItems.Count);
+            _statsTextBlock.Text = localizationService.Get("SharedState_Stats_Shown", _variableRows.Count, _allItems.Count);
         }
     }
 

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -330,37 +330,37 @@ public sealed class DeadCodeControl : UserControl
 
     private void UpdateLocalizedTexts()
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
 
-        _kpiTotalDeadTitle.Text = loc["DeadCode_Kpi_Total"];
-        _kpiRatioTitle.Text = loc["DeadCode_Kpi_Ratio"];
-        _kpiRoutinesTitle.Text = loc["DeadCode_Kpi_Routines"];
-        _kpiFieldsTitle.Text = loc["DeadCode_Kpi_Fields"];
-        _kpiContainersTitle.Text = loc["DeadCode_Kpi_Containers"];
-        _kpiLocTitle.Text = loc["DeadCode_Kpi_Loc"];
+        _kpiTotalDeadTitle.Text = localizationService["DeadCode_Kpi_Total"];
+        _kpiRatioTitle.Text = localizationService["DeadCode_Kpi_Ratio"];
+        _kpiRoutinesTitle.Text = localizationService["DeadCode_Kpi_Routines"];
+        _kpiFieldsTitle.Text = localizationService["DeadCode_Kpi_Fields"];
+        _kpiContainersTitle.Text = localizationService["DeadCode_Kpi_Containers"];
+        _kpiLocTitle.Text = localizationService["DeadCode_Kpi_Loc"];
 
-        _searchBox.Watermark = loc["DeadCode_Filter_Search_Watermark"];
+        _searchBox.Watermark = localizationService["DeadCode_Filter_Search_Watermark"];
 
         int sel = _categoryFilter.SelectedIndex;
         _categoryFilter.ItemsSource = new[]
         {
-            loc["DeadCode_Filter_All"],
-            loc["DeadCode_Filter_Routines"],
-            loc["DeadCode_Filter_Fields"],
-            loc["DeadCode_Filter_Containers"],
-            loc["DeadCode_Filter_Types"]
+            localizationService["DeadCode_Filter_All"],
+            localizationService["DeadCode_Filter_Routines"],
+            localizationService["DeadCode_Filter_Fields"],
+            localizationService["DeadCode_Filter_Containers"],
+            localizationService["DeadCode_Filter_Types"]
         };
         _categoryFilter.SelectedIndex = sel >= 0 ? sel : 0;
 
         if (_grid.Columns.Count >= 7)
         {
-            _grid.Columns[0].Header = loc["DeadCode_Col_Type"];
-            _grid.Columns[1].Header = loc["DeadCode_Col_Category"];
-            _grid.Columns[2].Header = loc["DeadCode_Col_Name"];
-            _grid.Columns[3].Header = loc["DeadCode_Col_Container"];
-            _grid.Columns[4].Header = loc["DeadCode_Col_Line"];
-            _grid.Columns[5].Header = loc["DeadCode_Col_Loc"];
-            _grid.Columns[6].Header = loc["DeadCode_Col_Reason"];
+            _grid.Columns[0].Header = localizationService["DeadCode_Col_Type"];
+            _grid.Columns[1].Header = localizationService["DeadCode_Col_Category"];
+            _grid.Columns[2].Header = localizationService["DeadCode_Col_Name"];
+            _grid.Columns[3].Header = localizationService["DeadCode_Col_Container"];
+            _grid.Columns[4].Header = localizationService["DeadCode_Col_Line"];
+            _grid.Columns[5].Header = localizationService["DeadCode_Col_Loc"];
+            _grid.Columns[6].Header = localizationService["DeadCode_Col_Reason"];
         }
     }
 

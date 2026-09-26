@@ -108,7 +108,7 @@ internal static class Program
             var projects = ProjectDescriptor.DiscoverFromPaths(inputPaths);
             if (projects.Count == 0)
             {
-                Console.Error.WriteLine($"[Error] No VB6 project files (.vbp, .vbg) or source files found in: {string.Join(", ", inputPaths)}");
+                Console.Error.WriteLine($"[Error] No supported project files (.vbp, .vbg, .csproj, .sln) or source files found in: {string.Join(", ", inputPaths)}");
                 return 1;
             }
 
@@ -173,7 +173,7 @@ internal static class Program
     private static void PrintCliHelp()
     {
         Console.WriteLine(@"
-Macondo — VB6 Analyzer & Architecture Explorer (CLI Mode)
+Macondo — Architecture & Code Analyzer (CLI Mode)
 
 Usage:
   Macondo.exe analyze <path_to_vbp_or_folder> [options]

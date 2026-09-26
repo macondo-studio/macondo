@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -134,12 +134,12 @@ public sealed class ControlFlowControl : Control
     {
         context.FillRectangle(_backgroundBrush, new Rect(Bounds.Size));
 
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var graph = Graph;
         if (graph is null || graph.Blocks.Count == 0)
         {
             var placeholder = new FormattedText(
-                loc["ControlFlow_Placeholder"],
+                localizationService["ControlFlow_Placeholder"],
                 CultureInfo.InvariantCulture,
                 FlowDirection.LeftToRight,
                 HeaderTypeface,
@@ -150,7 +150,7 @@ public sealed class ControlFlowControl : Control
         }
 
         // Header superiore con metadati della procedura
-        string header = loc.Get("ControlFlow_Header", graph.ProcedureName, graph.ContainerName, graph.CyclomaticComplexity, graph.Blocks.Count);
+        string header = localizationService.Get("ControlFlow_Header", graph.ProcedureName, graph.ContainerName, graph.CyclomaticComplexity, graph.Blocks.Count);
         var hFmt = new FormattedText(header, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, HeaderTypeface, 12, _textWhiteBrush);
         context.DrawText(hFmt, new Point(16, 12));
 

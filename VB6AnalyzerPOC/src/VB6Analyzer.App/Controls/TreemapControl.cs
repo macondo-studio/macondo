@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -135,12 +135,12 @@ public sealed class TreemapControl : Control
     {
         context.FillRectangle(_backgroundBrush, new Rect(Bounds.Size));
 
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var root = _currentRoot ?? RootItem;
         if (root is null || root.Children.Count == 0)
         {
             var placeholder = new FormattedText(
-                loc["Treemap_Placeholder"],
+                localizationService["Treemap_Placeholder"],
                 CultureInfo.InvariantCulture,
                 FlowDirection.LeftToRight,
                 LabelTypeface,
@@ -152,8 +152,8 @@ public sealed class TreemapControl : Control
 
         // Header / Breadcrumb superiore
         string breadcrumb = _currentRoot?.Parent != null 
-            ? loc.Get("Treemap_BreadcrumbDrillUp", _currentRoot.Name, _currentRoot.Kind) 
-            : loc["Treemap_BreadcrumbRoot"];
+            ? localizationService.Get("Treemap_BreadcrumbDrillUp", _currentRoot.Name, _currentRoot.Kind) 
+            : localizationService["Treemap_BreadcrumbRoot"];
         var breadcrumbFmt = new FormattedText(
             breadcrumb,
             CultureInfo.InvariantCulture,

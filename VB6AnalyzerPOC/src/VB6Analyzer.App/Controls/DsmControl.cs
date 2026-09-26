@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -140,12 +140,12 @@ public sealed class DsmControl : Control
     {
         context.FillRectangle(_backgroundBrush, new Rect(Bounds.Size));
 
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var matrix = Matrix;
         if (matrix is null || matrix.Size == 0)
         {
             var placeholder = new FormattedText(
-                loc["Dsm_Placeholder"],
+                localizationService["Dsm_Placeholder"],
                 CultureInfo.InvariantCulture,
                 FlowDirection.LeftToRight,
                 LabelTypeface,

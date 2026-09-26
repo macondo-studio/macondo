@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -205,12 +205,12 @@ public sealed class ArchitecturalFlowControl : Control
         context.DrawRectangle(bg, border, new RoundedRect(headerRect, 6));
 
         double colW = headerRect.Width / 4.0;
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
 
-        RenderKpiItem(context, headerRect.X, headerRect.Y, colW, loc["Flow_Kpi_Modules"], dataset.TotalNodesCount.ToString("N0"), "#3B82F6");
-        RenderKpiItem(context, headerRect.X + colW, headerRect.Y, colW, loc["Flow_Kpi_TotalLinks"], dataset.TotalLinksCount.ToString("N0"), "#10B981");
-        RenderKpiItem(context, headerRect.X + colW * 2, headerRect.Y, colW, loc["Flow_Kpi_Volume"], dataset.TotalFlowVolume.ToString("N0"), "#8B5CF6");
-        RenderKpiItem(context, headerRect.X + colW * 3, headerRect.Y, colW, loc["Flow_Kpi_Violations"], dataset.LayerViolationsCount.ToString("N0"), dataset.LayerViolationsCount > 0 ? "#EF4444" : "#10B981");
+        RenderKpiItem(context, headerRect.X, headerRect.Y, colW, localizationService["Flow_Kpi_Modules"], dataset.TotalNodesCount.ToString("N0"), "#3B82F6");
+        RenderKpiItem(context, headerRect.X + colW, headerRect.Y, colW, localizationService["Flow_Kpi_TotalLinks"], dataset.TotalLinksCount.ToString("N0"), "#10B981");
+        RenderKpiItem(context, headerRect.X + colW * 2, headerRect.Y, colW, localizationService["Flow_Kpi_Volume"], dataset.TotalFlowVolume.ToString("N0"), "#8B5CF6");
+        RenderKpiItem(context, headerRect.X + colW * 3, headerRect.Y, colW, localizationService["Flow_Kpi_Violations"], dataset.LayerViolationsCount.ToString("N0"), dataset.LayerViolationsCount > 0 ? "#EF4444" : "#10B981");
     }
 
     private static void RenderKpiItem(
@@ -334,16 +334,16 @@ public sealed class ArchitecturalFlowControl : Control
         FlowNode node,
         ArchitecturalFlowDataset dataset)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var outLinks = dataset.Links.Where(l => l.SourceId == node.Id).ToList();
         var inLinks = dataset.Links.Where(l => l.TargetId == node.Id).ToList();
         int violations = outLinks.Count(l => l.IsLayerViolation) + inLinks.Count(l => l.IsLayerViolation);
 
         string title = $"{node.Name} ({node.LayerName})";
-        string sub = $"{loc["General_Loc"]}: {node.Loc:N0} | {loc["General_CC"]}: {node.CyclomaticComplexity:F1} | {loc["General_Members"]}: {node.MemberCount}\n" +
-                     $"{loc.Get("Flow_Tooltip_Inflow", node.InflowVolume, inLinks.Count)}\n" +
-                     $"{loc.Get("Flow_Tooltip_Outflow", node.OutflowVolume, outLinks.Count)}\n" +
-                     $"{loc.Get("Flow_Tooltip_Violations", violations)}";
+        string sub = $"{localizationService["General_Loc"]}: {node.Loc:N0} | {localizationService["General_CC"]}: {node.CyclomaticComplexity:F1} | {localizationService["General_Members"]}: {node.MemberCount}\n" +
+                     $"{localizationService.Get("Flow_Tooltip_Inflow", node.InflowVolume, inLinks.Count)}\n" +
+                     $"{localizationService.Get("Flow_Tooltip_Outflow", node.OutflowVolume, outLinks.Count)}\n" +
+                     $"{localizationService.Get("Flow_Tooltip_Violations", violations)}";
 
         var ftTitle = new FormattedText(title, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, KpiFont, 12.0, Brushes.White);
         var ftSub = new FormattedText(sub, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, TooltipFont, 10.5, new SolidColorBrush(Color.Parse("#D0D0E0")));
@@ -368,9 +368,9 @@ public sealed class ArchitecturalFlowControl : Control
 
     private void RenderEmptyState(DrawingContext context, Rect bounds)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var text = new FormattedText(
-            loc["Flow_Placeholder"],
+            localizationService["Flow_Placeholder"],
             CultureInfo.InvariantCulture,
             FlowDirection.LeftToRight,
             TooltipFont,

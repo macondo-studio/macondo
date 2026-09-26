@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -102,12 +102,12 @@ public sealed class HotspotControl : Control
     {
         context.FillRectangle(_backgroundBrush, new Rect(Bounds.Size));
 
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var dataset = Dataset;
         if (dataset is null || dataset.Items.Count == 0)
         {
             var placeholder = new FormattedText(
-                loc["Hotspot_Placeholder"],
+                localizationService["Hotspot_Placeholder"],
                 CultureInfo.InvariantCulture,
                 FlowDirection.LeftToRight,
                 LabelTypeface,
@@ -142,10 +142,10 @@ public sealed class HotspotControl : Control
         context.FillRectangle(_dangerQuadrantBrush, new Rect(splitX, marginT, marginL + plotW - splitX, splitY - marginT));
 
         // Etichette dei quadranti
-        var dangerBadge = new FormattedText(loc["Hotspot_DangerBadge"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, TitleTypeface, 11, new SolidColorBrush(Color.Parse("#FF5566")));
+        var dangerBadge = new FormattedText(localizationService["Hotspot_DangerBadge"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, TitleTypeface, 11, new SolidColorBrush(Color.Parse("#FF5566")));
         context.DrawText(dangerBadge, new Point(marginL + plotW - dangerBadge.Width - 10, marginT + 10));
 
-        var safeBadge = new FormattedText(loc["Hotspot_SafeBadge"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, TitleTypeface, 11, new SolidColorBrush(Color.Parse("#40C070")));
+        var safeBadge = new FormattedText(localizationService["Hotspot_SafeBadge"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, TitleTypeface, 11, new SolidColorBrush(Color.Parse("#40C070")));
         context.DrawText(safeBadge, new Point(marginL + 10, marginT + plotH - 24));
 
         // 2. Linee Soglia e Assi
@@ -158,10 +158,10 @@ public sealed class HotspotControl : Control
         context.DrawLine(axisPen, new Point(marginL, marginT + plotH), new Point(marginL + plotW, marginT + plotH));
 
         // Titoli Assi
-        var axisYFmt = new FormattedText(loc["Hotspot_AxisY"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, AxisTypeface, 10, _textMutedBrush);
+        var axisYFmt = new FormattedText(localizationService["Hotspot_AxisY"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, AxisTypeface, 10, _textMutedBrush);
         context.DrawText(axisYFmt, new Point(marginL, 16));
 
-        var axisXFmt = new FormattedText(loc["Hotspot_AxisX"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, AxisTypeface, 10, _textMutedBrush);
+        var axisXFmt = new FormattedText(localizationService["Hotspot_AxisX"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, AxisTypeface, 10, _textMutedBrush);
         context.DrawText(axisXFmt, new Point(marginL + plotW - axisXFmt.Width, marginT + plotH + 30));
 
         // 3. Disegno Bolle / Punti
@@ -234,9 +234,9 @@ public sealed class HotspotControl : Control
             12,
             _textWhiteBrush);
 
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var subFmt = new FormattedText(
-            loc.Get("Hotspot_HoverSub", item.RiskScore, loc.GetRiskLevel(item.RiskLevel), item.Complexity, item.ChurnOrFanIn, item.DirectCallersCount),
+            localizationService.Get("Hotspot_HoverSub", item.RiskScore, localizationService.GetRiskLevel(item.RiskLevel), item.Complexity, item.ChurnOrFanIn, item.DirectCallersCount),
             CultureInfo.InvariantCulture,
             FlowDirection.LeftToRight,
             LabelTypeface,

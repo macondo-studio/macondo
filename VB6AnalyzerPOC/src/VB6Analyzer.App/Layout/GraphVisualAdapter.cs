@@ -20,7 +20,7 @@ public static class GraphVisualAdapter
     /// </summary>
     /// <param name="semanticGraph">Il CodeGraph semantico contenente simboli e relazioni reali.</param>
     /// <param name="projectName">Nome descrittivo del progetto visualizzato.</param>
-    public static VisualCodeGraph FromSemanticGraph(Macondo.Semantic.Model.CodeGraph semanticGraph, string projectName = "VB6 Project")
+    public static VisualCodeGraph FromSemanticGraph(Macondo.Semantic.Model.CodeGraph semanticGraph, string projectName = "Project")
     {
         var visualGraph = new VisualCodeGraph
         {

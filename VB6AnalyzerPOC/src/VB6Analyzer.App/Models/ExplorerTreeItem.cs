@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Macondo.App.Services;
 using Macondo.Semantic.Model;
 
@@ -317,19 +317,19 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
 
     private static string GetGroupName(SymbolKind kind)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         return kind switch
         {
-            SymbolKind.Form => loc["Explorer_Group_Forms"],
-            SymbolKind.Module => loc["Explorer_Group_Modules"],
-            SymbolKind.Class => loc["Explorer_Group_Classes"],
-            SymbolKind.Interface => loc["Explorer_Group_Interfaces"],
-            SymbolKind.Record => loc["Explorer_Group_Records"],
-            SymbolKind.Struct => loc["Explorer_Group_Structs"],
-            SymbolKind.UserControl => loc["Explorer_Group_UserControls"],
-            SymbolKind.Type => loc["Explorer_Group_Types"],
-            SymbolKind.Enum => loc["Explorer_Group_Enums"],
-            _ => loc["Explorer_Group_Other"]
+            SymbolKind.Form => localizationService["Explorer_Group_Forms"],
+            SymbolKind.Module => localizationService["Explorer_Group_Modules"],
+            SymbolKind.Class => localizationService["Explorer_Group_Classes"],
+            SymbolKind.Interface => localizationService["Explorer_Group_Interfaces"],
+            SymbolKind.Record => localizationService["Explorer_Group_Records"],
+            SymbolKind.Struct => localizationService["Explorer_Group_Structs"],
+            SymbolKind.UserControl => localizationService["Explorer_Group_UserControls"],
+            SymbolKind.Type => localizationService["Explorer_Group_Types"],
+            SymbolKind.Enum => localizationService["Explorer_Group_Enums"],
+            _ => localizationService["Explorer_Group_Other"]
         };
     }
 

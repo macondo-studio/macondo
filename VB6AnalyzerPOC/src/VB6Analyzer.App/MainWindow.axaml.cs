@@ -758,29 +758,32 @@ public partial class MainWindow : Window
     /// </summary>
     private async void LoadSyntheticGraph()
     {
-        var loc = LocalizationService.Instance;
-        ShowLoading("Generazione del grafo sintetico...", "Creazione di ~500 nodi e calcolo del layout radiale...", canCancel: true);
+        var localizationService = LocalizationService.Instance;
+        ShowLoading(
+            "Generazione del grafo sintetico...",
+            "Creazione di ~500 nodi e calcolo del layout radiale...",
+            canCancel: true);
         var token = _loadingCts?.Token ?? CancellationToken.None;
         try
         {
             await Task.Delay(16, token);
             _currentFolderPath = null;
             UpdateVcsBranchStatus(null);
-            StatusText.Text = loc["Status_FakeGraphGenerating"];
+            StatusText.Text = localizationService["Status_FakeGraphGenerating"];
             _graph = await Task.Run(() => Generation.FakeGraphGenerator.Generate(seed: Environment.TickCount), token);
 #if !DEBUG
             token.ThrowIfCancellationRequested();
 #endif
             ApplyGraphToUI();
-            StatusText.Text = loc["Status_FakeGraphGenerated"];
+            StatusText.Text = localizationService["Status_FakeGraphGenerated"];
         }
         catch (OperationCanceledException)
         {
-            StatusText.Text = LocalizationService.Instance["Status_AnalysisCancelled"];
+            StatusText.Text = localizationService["Status_AnalysisCancelled"];
         }
         catch (Exception ex)
         {
-            StatusText.Text = loc.Get("Status_ErrorGenerating", ex.Message);
+            StatusText.Text = localizationService.Get("Status_ErrorGenerating", ex.Message);
         }
         finally
         {
@@ -793,14 +796,20 @@ public partial class MainWindow : Window
     /// </summary>
     private async void LoadDefaultFixtures()
     {
-        var loc = LocalizationService.Instance;
-        ShowLoading(loc["Loading_FixturesTitle"], loc["Loading_FixturesSub"], isIndeterminate: false, progressValue: 0, progressMax: 100, canCancel: true);
+        var localizationService = LocalizationService.Instance;
+        ShowLoading(
+            localizationService["Loading_FixturesTitle"],
+            localizationService["Loading_FixturesSub"],
+            isIndeterminate: false,
+            progressValue: 0,
+            progressMax: 100,
+            canCancel: true);
         var token = _loadingCts?.Token ?? CancellationToken.None;
 
         var progress = new Progress<ProjectAnalysisProgress>(p =>
         {
-            var countStr = loc.Get("Loading_FilesProgressFormat", p.CurrentFileIndex, p.TotalFiles, (int)p.Percentage);
-            var statsStr = loc.Get("Loading_NodesExtractedFormat", p.ExtractedNodesCount);
+            var countStr = localizationService.Get("Loading_FilesProgressFormat", p.CurrentFileIndex, p.TotalFiles, (int)p.Percentage);
+            var statsStr = localizationService.Get("Loading_NodesExtractedFormat", p.ExtractedNodesCount);
             UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr);
         });
 
@@ -809,27 +818,27 @@ public partial class MainWindow : Window
             await Task.Delay(16, token);
             _currentFolderPath = null;
             UpdateVcsBranchStatus(null);
-            StatusText.Text = loc["Loading_FixturesSub"];
+            StatusText.Text = localizationService["Loading_FixturesSub"];
             _graph = await Task.Run(() => ProjectAnalysisService.LoadDefaultFixtures(progress, token), token);
 #if !DEBUG
             token.ThrowIfCancellationRequested();
 #endif
             ApplyGraphToUI();
-            StatusText.Text = loc["Status_FixturesLoaded"];
+            StatusText.Text = localizationService["Status_FixturesLoaded"];
 
             // Lampeggio icona sulla barra di Windows e notifica di sistema
             WindowsNotificationService.NotifyAnalysisCompleted(
                 this,
-                loc["Notification_AnalysisCompleted_Title"],
-                loc.Get("Notification_FixturesCompleted_Message", _graph.Nodes.Count));
+                localizationService["Notification_AnalysisCompleted_Title"],
+                localizationService.Get("Notification_FixturesCompleted_Message", _graph.Nodes.Count));
         }
         catch (OperationCanceledException)
         {
-            StatusText.Text = loc["Status_AnalysisCancelled"];
+            StatusText.Text = localizationService["Status_AnalysisCancelled"];
         }
         catch (Exception ex)
         {
-            StatusText.Text = loc.Get("Status_ErrorLoading", ex.Message);
+            StatusText.Text = localizationService.Get("Status_ErrorLoading", ex.Message);
         }
         finally
         {
@@ -878,10 +887,10 @@ public partial class MainWindow : Window
     /// </summary>
     private async Task OpenFolderAsync()
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = loc["Open_FolderTitle"],
+            Title = localizationService["Open_FolderTitle"],
             AllowMultiple = true
         });
 
@@ -896,30 +905,30 @@ public partial class MainWindow : Window
     /// </summary>
     private async Task OpenProjectFilesAsync()
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = loc["Open_ProjectFilesTitle"],
+            Title = localizationService["Open_ProjectFilesTitle"],
             AllowMultiple = true,
             FileTypeFilter = new[]
             {
-                new FilePickerFileType(loc["Open_FileTypeSupportedProjects"])
+                new FilePickerFileType(localizationService["Open_FileTypeSupportedProjects"])
                 {
                     Patterns = new[] { "*.vbp", "*.vbg", "*.csproj", "*.sln", "*.cs" }
                 },
-                new FilePickerFileType(loc["Open_FileTypeCSharpProjects"])
+                new FilePickerFileType(localizationService["Open_FileTypeCSharpProjects"])
                 {
                     Patterns = new[] { "*.csproj", "*.sln" }
                 },
-                new FilePickerFileType(loc["Open_FileTypeCSharpSources"])
+                new FilePickerFileType(localizationService["Open_FileTypeCSharpSources"])
                 {
                     Patterns = new[] { "*.cs" }
                 },
-                new FilePickerFileType(loc["Open_FileTypeVB6Projects"])
+                new FilePickerFileType(localizationService["Open_FileTypeVB6Projects"])
                 {
                     Patterns = new[] { "*.vbp", "*.vbg" }
                 },
-                new FilePickerFileType(loc["Open_FileTypeAll"])
+                new FilePickerFileType(localizationService["Open_FileTypeAll"])
                 {
                     Patterns = new[] { "*.*" }
                 }
@@ -952,8 +961,8 @@ public partial class MainWindow : Window
         if (string.IsNullOrEmpty(targetFolder) || !Directory.Exists(targetFolder))
         {
             StatusText.Text = LocalizationService.Instance.CurrentLanguage == AppLanguage.English
-                ? "No project open to reload. Use 'Open VB6 Folder...' (Ctrl+O)."
-                : "Nessun progetto aperto da ricaricare. Usa 'Apri Cartella VB6...' (Ctrl+O).";
+                ? "No project open to reload. Use 'Open Folder...' (Ctrl+O)."
+                : "Nessun progetto aperto da ricaricare. Usa 'Apri Cartella...' (Ctrl+O).";
             return;
         }
 
@@ -976,14 +985,14 @@ public partial class MainWindow : Window
         if (paths.Count == 0) return;
 
         FlushPendingLayoutChangesSync();
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var firstPath = paths[0];
         var titleName = paths.Count == 1 
             ? Path.GetFileName(firstPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) 
             : $"Workspace ({paths.Count} percorsi)";
 
         // Mostra subito l'overlay di caricamento per dare feedback immediato all'utente
-        ShowLoading(loc["Loading_AnalyzeProjectTitle"], loc.Get("Loading_AnalyzeProjectSub", titleName), canCancel: true);
+        ShowLoading(localizationService["Loading_AnalyzeProjectTitle"], localizationService.Get("Loading_AnalyzeProjectSub", titleName), canCancel: true);
         var token = _loadingCts?.Token ?? CancellationToken.None;
 
         try
@@ -1031,12 +1040,12 @@ public partial class MainWindow : Window
             // 2. Analisi completa da sorgenti su disco con barra di avanzamento determinata
             var progress = new Progress<ProjectAnalysisProgress>(p =>
             {
-                var countStr = loc.Get("Loading_FilesProgressFormat", p.CurrentFileIndex, p.TotalFiles, (int)p.Percentage);
-                var statsStr = loc.Get("Loading_NodesExtractedFormat", p.ExtractedNodesCount);
+                var countStr = localizationService.Get("Loading_FilesProgressFormat", p.CurrentFileIndex, p.TotalFiles, (int)p.Percentage);
+                var statsStr = localizationService.Get("Loading_NodesExtractedFormat", p.ExtractedNodesCount);
                 UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr);
             });
 
-            StatusText.Text = loc.Get("Status_AnalyzingSources", paths.Count);
+            StatusText.Text = localizationService.Get("Status_AnalyzingSources", paths.Count);
             _graph = await Task.Run(() => ProjectAnalysisService.AnalyzePaths(paths, progress, token), token);
 #if !DEBUG
             token.ThrowIfCancellationRequested();
@@ -1050,11 +1059,11 @@ public partial class MainWindow : Window
             var crossCount = _graph.Edges.Count(e => e.IsCrossProject);
             if (projectCount > 1)
             {
-                StatusText.Text = loc.Get("Status_WorkspaceAnalyzed", projectCount, _graph.Nodes.Count, crossCount);
+                StatusText.Text = localizationService.Get("Status_WorkspaceAnalyzed", projectCount, _graph.Nodes.Count, crossCount);
             }
             else
             {
-                StatusText.Text = loc.Get("Status_Refreshed", titleName, _graph.Nodes.Count);
+                StatusText.Text = localizationService.Get("Status_Refreshed", titleName, _graph.Nodes.Count);
             }
 
             // Salva l'ultima cartella aperta nelle impostazioni se singola cartella e aggiunge ai recenti
@@ -1067,16 +1076,16 @@ public partial class MainWindow : Window
             // Lampeggio icona sulla barra di Windows e notifica di sistema
             WindowsNotificationService.NotifyAnalysisCompleted(
                 this,
-                loc["Notification_AnalysisCompleted_Title"],
-                loc.Get("Notification_AnalysisCompleted_Message", titleName, _graph.Nodes.Count));
+                localizationService["Notification_AnalysisCompleted_Title"],
+                localizationService.Get("Notification_AnalysisCompleted_Message", titleName, _graph.Nodes.Count));
         }
         catch (OperationCanceledException)
         {
-            StatusText.Text = loc["Status_AnalysisCancelled"];
+            StatusText.Text = localizationService["Status_AnalysisCancelled"];
         }
         catch (Exception ex)
         {
-            StatusText.Text = loc.Get("Status_ErrorAnalyzing", ex.Message);
+            StatusText.Text = localizationService.Get("Status_ErrorAnalyzing", ex.Message);
         }
         finally
         {
@@ -1132,8 +1141,8 @@ public partial class MainWindow : Window
     /// </summary>
     private void UpdateRecentProjectsMenu()
     {
-        var loc = LocalizationService.Instance;
-        RecentProjectsMenuItem.Header = loc["Menu_Recent"];
+        var localizationService = LocalizationService.Instance;
+        RecentProjectsMenuItem.Header = localizationService["Menu_Recent"];
         RecentProjectsMenuItem.Items.Clear();
 
         var recentList = SettingsService.Instance.Settings.RecentProjects;
@@ -1141,7 +1150,7 @@ public partial class MainWindow : Window
         {
             var emptyItem = new MenuItem
             {
-                Header = loc["Menu_NoRecentProjects"],
+                Header = localizationService["Menu_NoRecentProjects"],
                 IsEnabled = false
             };
             RecentProjectsMenuItem.Items.Add(emptyItem);
@@ -1183,7 +1192,7 @@ public partial class MainWindow : Window
         RecentProjectsMenuItem.Items.Add(new Separator());
         var clearItem = new MenuItem
         {
-            Header = loc["Menu_ClearRecentProjects"]
+            Header = localizationService["Menu_ClearRecentProjects"]
         };
         if (this.TryFindResource("IconClearFilter", out var clearRes) && clearRes is StreamGeometry clearGeo)
         {
@@ -2309,10 +2318,10 @@ public partial class MainWindow : Window
     /// </summary>
     private async void OnBlastRadiusClicked(object? sender = null, RoutedEventArgs? e = null)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         if (_selectedNode?.SemanticSymbol is null || _graph?.Queries is null)
         {
-            StatusText.Text = loc["Status_SelectSymbolForBlast"];
+            StatusText.Text = localizationService["Status_SelectSymbolForBlast"];
             return;
         }
 
@@ -2324,11 +2333,11 @@ public partial class MainWindow : Window
         {
             Graph.HighlightBlastRadius(cachedReport);
             UpdateInspectorImpactSection(cachedReport);
-            StatusText.Text = loc.Get("Status_BlastReportFormat", node.QualifiedName, cachedReport.DirectCallers.Count, cachedReport.IndirectCallers.Count, cachedReport.AffectedForms.Count, loc.GetRiskLevel(cachedReport.RiskLevel));
+            StatusText.Text = localizationService.Get("Status_BlastReportFormat", node.QualifiedName, cachedReport.DirectCallers.Count, cachedReport.IndirectCallers.Count, cachedReport.AffectedForms.Count, localizationService.GetRiskLevel(cachedReport.RiskLevel));
             return;
         }
 
-        ShowLoading(loc["Loading_BlastRadiusTitle"], loc.Get("Loading_BlastRadiusSub", node.Name));
+        ShowLoading(localizationService["Loading_BlastRadiusTitle"], localizationService.Get("Loading_BlastRadiusSub", node.Name));
         await Task.Delay(16);
 
         try
@@ -2339,12 +2348,12 @@ public partial class MainWindow : Window
             {
                 Graph.HighlightBlastRadius(report);
                 UpdateInspectorImpactSection(report);
-                StatusText.Text = loc.Get("Status_BlastReportFormat", node.QualifiedName, report.DirectCallers.Count, report.IndirectCallers.Count, report.AffectedForms.Count, loc.GetRiskLevel(report.RiskLevel));
+                StatusText.Text = localizationService.Get("Status_BlastReportFormat", node.QualifiedName, report.DirectCallers.Count, report.IndirectCallers.Count, report.AffectedForms.Count, localizationService.GetRiskLevel(report.RiskLevel));
             }
         }
         catch (Exception ex)
         {
-            StatusText.Text = loc.Get("Status_BlastError", ex.Message);
+            StatusText.Text = localizationService.Get("Status_BlastError", ex.Message);
         }
         finally
         {
@@ -2357,10 +2366,10 @@ public partial class MainWindow : Window
     /// </summary>
     private void OnShowCalleesClicked(object? sender = null, RoutedEventArgs? e = null)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         if (_selectedNode is null)
         {
-            StatusText.Text = loc["Status_SelectSymbolForCallees"];
+            StatusText.Text = localizationService["Status_SelectSymbolForCallees"];
             return;
         }
 
@@ -2369,11 +2378,11 @@ public partial class MainWindow : Window
         {
             var names = string.Join(", ", callees.Take(4).Select(c => c.Name));
             if (callees.Count > 4) names += $" +{callees.Count - 4}...";
-            StatusText.Text = loc.Get("Status_CalleesFound", _selectedNode.Name, callees.Count, names);
+            StatusText.Text = localizationService.Get("Status_CalleesFound", _selectedNode.Name, callees.Count, names);
         }
         else
         {
-            StatusText.Text = loc.Get("Status_CalleesNone", _selectedNode.Name);
+            StatusText.Text = localizationService.Get("Status_CalleesNone", _selectedNode.Name);
         }
     }
 
@@ -2382,10 +2391,10 @@ public partial class MainWindow : Window
     /// </summary>
     private void OnShowCallersClicked(object? sender = null, RoutedEventArgs? e = null)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         if (_selectedNode is null)
         {
-            StatusText.Text = loc["Status_SelectSymbolForCallers"];
+            StatusText.Text = localizationService["Status_SelectSymbolForCallers"];
             return;
         }
 
@@ -2394,11 +2403,11 @@ public partial class MainWindow : Window
         {
             var names = string.Join(", ", callers.Take(4).Select(c => c.Name));
             if (callers.Count > 4) names += $" +{callers.Count - 4}...";
-            StatusText.Text = loc.Get("Status_CallersFound", _selectedNode.Name, callers.Count, names);
+            StatusText.Text = localizationService.Get("Status_CallersFound", _selectedNode.Name, callers.Count, names);
         }
         else
         {
-            StatusText.Text = loc.Get("Status_CallersNone", _selectedNode.Name);
+            StatusText.Text = localizationService.Get("Status_CallersNone", _selectedNode.Name);
         }
     }
 
@@ -2715,8 +2724,8 @@ public partial class MainWindow : Window
 
         if (file == null) return;
 
-        var loc = LocalizationService.Instance;
-        ShowLoading(loc["Loading_ExportTitle"], loc.Get("Loading_ExportSub", file.Name), canCancel: false);
+        var localizationService = LocalizationService.Instance;
+        ShowLoading(localizationService["Loading_ExportTitle"], localizationService.Get("Loading_ExportSub", file.Name), canCancel: false);
         await Task.Delay(16);
 
         try
@@ -2726,12 +2735,12 @@ public partial class MainWindow : Window
             await writer.WriteAsync(json);
 
             var fullPath = file.TryGetLocalPath() ?? file.Path?.LocalPath ?? file.Name;
-            StatusText.Text = loc.Get("Status_ExportSuccess", file.Name);
+            StatusText.Text = localizationService.Get("Status_ExportSuccess", file.Name);
             ShowExportSuccessModal(file.Name, fullPath);
         }
         catch (Exception ex)
         {
-            StatusText.Text = loc.Get("Status_ErrorExportJson", ex.Message);
+            StatusText.Text = localizationService.Get("Status_ErrorExportJson", ex.Message);
         }
         finally
         {
@@ -2743,12 +2752,12 @@ public partial class MainWindow : Window
 
     private void OpenOriginalFile(string? filePath, int line = 0)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var resolved = ResolveEffectiveFilePath(filePath);
 
         if (string.IsNullOrEmpty(resolved) || (!File.Exists(resolved) && !Directory.Exists(resolved)))
         {
-            StatusText.Text = loc.Get("Explorer_FileNotFound", filePath ?? loc["Explorer_Title"]);
+            StatusText.Text = localizationService.Get("Explorer_FileNotFound", filePath ?? localizationService["Explorer_Title"]);
             return;
         }
 
@@ -2766,17 +2775,17 @@ public partial class MainWindow : Window
                 UseShellExecute = true
             };
             Process.Start(psi);
-            StatusText.Text = loc.Get("Explorer_FileOpened", Path.GetFileName(resolved));
+            StatusText.Text = localizationService.Get("Explorer_FileOpened", Path.GetFileName(resolved));
         }
         catch (Exception ex)
         {
-            StatusText.Text = loc.Get("Status_ErrorOpenFile", ex.Message);
+            StatusText.Text = localizationService.Get("Status_ErrorOpenFile", ex.Message);
         }
     }
 
     private void OpenContainingFolder(string? filePath)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var resolved = ResolveEffectiveFilePath(filePath);
         if (string.IsNullOrEmpty(resolved))
         {
@@ -2795,7 +2804,7 @@ public partial class MainWindow : Window
                     Arguments = $"/select,\"{resolved}\"",
                     UseShellExecute = true
                 });
-                StatusText.Text = loc.Get("Explorer_FolderOpened", Path.GetFileName(resolved));
+                StatusText.Text = localizationService.Get("Explorer_FolderOpened", Path.GetFileName(resolved));
             }
             else if (Directory.Exists(resolved))
             {
@@ -2804,18 +2813,18 @@ public partial class MainWindow : Window
                     FileName = resolved,
                     UseShellExecute = true
                 });
-                StatusText.Text = loc.Get("Explorer_FolderOpened", resolved);
+                StatusText.Text = localizationService.Get("Explorer_FolderOpened", resolved);
             }
         }
         catch (Exception ex)
         {
-            StatusText.Text = loc.Get("Status_ErrorOpenFolder", ex.Message);
+            StatusText.Text = localizationService.Get("Status_ErrorOpenFolder", ex.Message);
         }
     }
 
     private async void CopyFilePathToClipboard(string? filePath)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var resolved = ResolveEffectiveFilePath(filePath);
         if (string.IsNullOrEmpty(resolved)) return;
 
@@ -2824,12 +2833,12 @@ public partial class MainWindow : Window
             if (Clipboard != null)
             {
                 await Clipboard.SetTextAsync(resolved);
-                StatusText.Text = loc.Get("Explorer_PathCopied", resolved);
+                StatusText.Text = localizationService.Get("Explorer_PathCopied", resolved);
             }
         }
         catch (Exception ex)
         {
-            StatusText.Text = loc.Get("Status_ErrorCopyPath", ex.Message);
+            StatusText.Text = localizationService.Get("Status_ErrorCopyPath", ex.Message);
         }
     }
 
@@ -2870,8 +2879,8 @@ public partial class MainWindow : Window
 
     private List<AppSearchTarget> GetAppSearchTargets()
     {
-        var loc = LocalizationService.Instance;
-        var isEn = loc.CurrentLanguage == AppLanguage.English;
+        var localizationService = LocalizationService.Instance;
+        var isEn = localizationService.CurrentLanguage == AppLanguage.English;
 
         return new List<AppSearchTarget>
         {
@@ -3380,14 +3389,14 @@ public partial class MainWindow : Window
         }
 
         // 2. Imposta lo stato di caricamento nell'Inspector per Blast Radius e chiamanti
-        var loc = LocalizationService.Instance;
-        RiskLevelText.Text = loc["Inspector_Calculating"];
+        var localizationService = LocalizationService.Instance;
+        RiskLevelText.Text = localizationService["Inspector_Calculating"];
         RiskBadge.Background = new SolidColorBrush(Color.Parse("#FF6633"));
         BlastDirectCallersCount.Text = "...";
         BlastIndirectCallersCount.Text = "...";
         BlastMaxDepth.Text = "...";
-        InspectorCallers.Text = loc["Inspector_CalculatingCallers"];
-        InspectorCallees.Text = loc["Inspector_CalculatingCallees"];
+        InspectorCallers.Text = localizationService["Inspector_CalculatingCallers"];
+        InspectorCallees.Text = localizationService["Inspector_CalculatingCallees"];
         BlastFormsSection.IsVisible = false;
         BlastClassesSection.IsVisible = false;
         BlastPathsSection.IsVisible = false;
@@ -3406,7 +3415,7 @@ public partial class MainWindow : Window
                 {
                     if (!ct.IsCancellationRequested && !isCompleted && _selectedNode?.Id == targetId)
                     {
-                        ShowLoading(loc["Loading_NodeAnalysisTitle"], loc.Get("Loading_NodeAnalysisSub", node.Name));
+                        ShowLoading(localizationService["Loading_NodeAnalysisTitle"], localizationService.Get("Loading_NodeAnalysisSub", node.Name));
                     }
                 });
             }
@@ -3433,7 +3442,7 @@ public partial class MainWindow : Window
         {
             if (!ct.IsCancellationRequested && _selectedNode?.Id == targetId)
             {
-                StatusText.Text = loc.Get("Status_NodeAnalysisError", ex.Message);
+                StatusText.Text = localizationService.Get("Status_NodeAnalysisError", ex.Message);
             }
         }
         finally
@@ -3448,9 +3457,9 @@ public partial class MainWindow : Window
 
     private void ClearDynamicInspectorSections()
     {
-        var loc = LocalizationService.Instance;
-        InspectorCallers.Text = loc["Inspector_NoItems"];
-        InspectorCallees.Text = loc["Inspector_NoItems"];
+        var localizationService = LocalizationService.Instance;
+        InspectorCallers.Text = localizationService["Inspector_NoItems"];
+        InspectorCallees.Text = localizationService["Inspector_NoItems"];
         InspectorInstantiatesSection.IsVisible = false;
         BlastFormsSection.IsVisible = false;
         BlastClassesSection.IsVisible = false;
@@ -3459,10 +3468,10 @@ public partial class MainWindow : Window
 
     private void UpdateInspectorImpactSection(ImpactReport impact)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
 
         // Risk Badge
-        RiskLevelText.Text = loc.Get("Risk_Format", loc.GetRiskLevel(impact.RiskLevel));
+        RiskLevelText.Text = localizationService.Get("Risk_Format", localizationService.GetRiskLevel(impact.RiskLevel));
         RiskBadge.Background = impact.RiskLevel switch
         {
             ImpactRiskLevel.Low => new SolidColorBrush(Color.Parse("#2E7D32")),
@@ -3519,17 +3528,17 @@ public partial class MainWindow : Window
     {
         UpdateInspectorImpactSection(impact);
 
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
 
         // Callers diretti standard
         InspectorCallers.Text = impact.DirectCallers.Count > 0
             ? string.Join("\n", impact.DirectCallers.Select(c => $"• {c.QualifiedName}"))
-            : loc["Inspector_NoCallers"];
+            : localizationService["Inspector_NoCallers"];
 
         // Callees diretti
         InspectorCallees.Text = callees.Count > 0
             ? string.Join("\n", callees.Select(c => $"• {c.QualifiedName}"))
-            : loc["Inspector_NoCallees"];
+            : localizationService["Inspector_NoCallees"];
 
         // Classi istanziate
         if (instantiations.Count > 0)
@@ -3879,7 +3888,7 @@ public partial class MainWindow : Window
     {
         if (_graph is null) return;
 
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var (visProj, projectCount) = Graph.GetProjectCounts();
         var (visNodes, nodeCount) = Graph.GetNodeCounts();
         var relCount = _graph.Edges.Count;
@@ -3890,22 +3899,22 @@ public partial class MainWindow : Window
         if (projectCount > 1)
         {
             var projText = visProj < projectCount 
-                ? loc.Get("Stats_ProjectsRatioFormat", visProj, projectCount) 
-                : loc.Get("Stats_ProjectsFormat", projectCount);
+                ? localizationService.Get("Stats_ProjectsRatioFormat", visProj, projectCount) 
+                : localizationService.Get("Stats_ProjectsFormat", projectCount);
             var nodesText = visNodes < nodeCount 
-                ? loc.Get("Stats_NodesRatioFormat", visNodes, nodeCount) 
-                : loc.Get("Stats_NodesFormat", nodeCount);
+                ? localizationService.Get("Stats_NodesRatioFormat", visNodes, nodeCount) 
+                : localizationService.Get("Stats_NodesFormat", nodeCount);
             var relText = crossCount > 0 
-                ? loc.Get("Stats_RelationsCrossFormat", relCount, crossCount) 
-                : loc.Get("Stats_RelationsFormat", relCount);
-            var callText = loc.Get("Stats_CallsFormat", callCount);
-            var instText = loc.Get("Stats_InstantiatesFormat", instCount);
+                ? localizationService.Get("Stats_RelationsCrossFormat", relCount, crossCount) 
+                : localizationService.Get("Stats_RelationsFormat", relCount);
+            var callText = localizationService.Get("Stats_CallsFormat", callCount);
+            var instText = localizationService.Get("Stats_InstantiatesFormat", instCount);
 
             StatusStats.Text = $"{projText} | {nodesText} | {relText} | {callText} | {instText}";
         }
         else
         {
-            StatusStats.Text = loc.Get("Status_StatsFormat", nodeCount, relCount, callCount, instCount);
+            StatusStats.Text = localizationService.Get("Status_StatsFormat", nodeCount, relCount, callCount, instCount);
         }
 
         UpdateStatusLanguage();
@@ -4080,8 +4089,8 @@ public partial class MainWindow : Window
 
         if (file == null) return;
 
-        var loc = LocalizationService.Instance;
-        ShowLoading(loc["Loading_ExportTitle"], loc.Get("Loading_ExportSub", file.Name), canCancel: false);
+        var localizationService = LocalizationService.Instance;
+        ShowLoading(localizationService["Loading_ExportTitle"], localizationService.Get("Loading_ExportSub", file.Name), canCancel: false);
         await Task.Delay(16);
 
         try
@@ -4092,12 +4101,12 @@ public partial class MainWindow : Window
             await writer.WriteAsync(markdown);
 
             var fullPath = file.TryGetLocalPath() ?? file.Path?.LocalPath ?? file.Name;
-            StatusText.Text = loc.Get("Status_ExportSuccess", file.Name);
+            StatusText.Text = localizationService.Get("Status_ExportSuccess", file.Name);
             ShowExportSuccessModal(file.Name, fullPath);
         }
         catch (Exception ex)
         {
-            StatusText.Text = loc.Get("Status_ErrorExportMarkdown", ex.Message);
+            StatusText.Text = localizationService.Get("Status_ErrorExportMarkdown", ex.Message);
         }
         finally
         {
@@ -4134,8 +4143,8 @@ public partial class MainWindow : Window
 
         if (file == null) return;
 
-        var loc = LocalizationService.Instance;
-        ShowLoading(loc["Loading_ExportTitle"], loc.Get("Loading_ExportSub", file.Name), canCancel: false);
+        var localizationService = LocalizationService.Instance;
+        ShowLoading(localizationService["Loading_ExportTitle"], localizationService.Get("Loading_ExportSub", file.Name), canCancel: false);
         await Task.Delay(16);
 
         try
@@ -4146,12 +4155,12 @@ public partial class MainWindow : Window
             await writer.WriteAsync(json);
 
             var fullPath = file.TryGetLocalPath() ?? file.Path?.LocalPath ?? file.Name;
-            StatusText.Text = loc.Get("Status_ExportSuccess", file.Name);
+            StatusText.Text = localizationService.Get("Status_ExportSuccess", file.Name);
             ShowExportSuccessModal(file.Name, fullPath);
         }
         catch (Exception ex)
         {
-            StatusText.Text = loc.Get("Status_ErrorExportJson", ex.Message);
+            StatusText.Text = localizationService.Get("Status_ErrorExportJson", ex.Message);
         }
         finally
         {
@@ -4272,8 +4281,8 @@ public partial class MainWindow : Window
 
         if (file == null) return;
 
-        var loc = LocalizationService.Instance;
-        ShowLoading(loc["Loading_ExportTitle"], loc.Get("Loading_ExportSub", file.Name), canCancel: false);
+        var localizationService = LocalizationService.Instance;
+        ShowLoading(localizationService["Loading_ExportTitle"], localizationService.Get("Loading_ExportSub", file.Name), canCancel: false);
         await Task.Delay(16);
 
         try
@@ -4305,12 +4314,12 @@ public partial class MainWindow : Window
             await writer.WriteAsync(markdown);
 
             var fullPath = file.TryGetLocalPath() ?? file.Path?.LocalPath ?? file.Name;
-            StatusText.Text = loc.Get("Status_ExportSuccess", file.Name);
+            StatusText.Text = localizationService.Get("Status_ExportSuccess", file.Name);
             ShowExportSuccessModal(file.Name, fullPath);
         }
         catch (Exception ex)
         {
-            StatusText.Text = loc.Get("Status_ErrorSaveSlice", ex.Message);
+            StatusText.Text = localizationService.Get("Status_ErrorSaveSlice", ex.Message);
         }
         finally
         {
@@ -4325,17 +4334,17 @@ public partial class MainWindow : Window
     /// </summary>
     private void ShowExportSuccessModal(string fileName, string fullPath)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         _lastExportedFilePath = fullPath;
 
-        ExportSuccessModalTitle.Text = loc["Export_ModalTitle"];
-        ExportSuccessModalSubtitle.Text = loc["Export_ModalSubtitle"];
-        ExportSuccessFileLabel.Text = loc["Export_ModalFileLabel"];
-        ExportSuccessPathLabel.Text = loc["Export_ModalPathLabel"];
+        ExportSuccessModalTitle.Text = localizationService["Export_ModalTitle"];
+        ExportSuccessModalSubtitle.Text = localizationService["Export_ModalSubtitle"];
+        ExportSuccessFileLabel.Text = localizationService["Export_ModalFileLabel"];
+        ExportSuccessPathLabel.Text = localizationService["Export_ModalPathLabel"];
         ExportSuccessFileName.Text = fileName;
         ExportSuccessFilePath.Text = fullPath;
-        ExportSuccessOpenFolderButton.Content = loc["Export_ModalOpenFolder"];
-        ExportSuccessCloseButton.Content = loc["Export_ModalOk"];
+        ExportSuccessOpenFolderButton.Content = localizationService["Export_ModalOpenFolder"];
+        ExportSuccessCloseButton.Content = localizationService["Export_ModalOk"];
 
         ExportSuccessOverlay.IsVisible = true;
     }
@@ -4394,11 +4403,11 @@ public partial class MainWindow : Window
 
     private void ShowLayoutConfirmModal()
     {
-        var loc = LocalizationService.Instance;
-        LayoutConfirmModalTitle.Text = loc["Layout_ConfirmTitle"];
-        LayoutConfirmModalSubtitle.Text = loc["Layout_ConfirmMessage"];
-        LayoutConfirmCancelButton.Content = loc["Layout_ConfirmCancel"];
-        LayoutConfirmApplyButton.Content = loc["Layout_ConfirmApply"];
+        var localizationService = LocalizationService.Instance;
+        LayoutConfirmModalTitle.Text = localizationService["Layout_ConfirmTitle"];
+        LayoutConfirmModalSubtitle.Text = localizationService["Layout_ConfirmMessage"];
+        LayoutConfirmCancelButton.Content = localizationService["Layout_ConfirmCancel"];
+        LayoutConfirmApplyButton.Content = localizationService["Layout_ConfirmApply"];
         LayoutConfirmOverlay.IsVisible = true;
     }
 
@@ -4772,15 +4781,15 @@ public partial class MainWindow : Window
         }
 
         var vcsType = VcsService.Instance.DetectVcsType(_currentFolderPath);
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
 
         GitBranchPopupTitle.Text = vcsType == VcsType.Svn
-            ? loc["Svn_SwitchBranchTitle"]
-            : loc["Git_SwitchBranchTitle"];
+            ? localizationService["Svn_SwitchBranchTitle"]
+            : localizationService["Git_SwitchBranchTitle"];
 
         GitBranchSearchBox.Watermark = vcsType == VcsType.Svn
-            ? loc["Svn_SearchBranchWatermark"]
-            : loc["Git_SearchBranchWatermark"];
+            ? localizationService["Svn_SearchBranchWatermark"]
+            : localizationService["Git_SearchBranchWatermark"];
 
         _allVcsBranches = VcsService.Instance.GetBranches(_currentFolderPath);
         GitBranchSearchBox.Text = string.Empty;
@@ -4828,12 +4837,12 @@ public partial class MainWindow : Window
 
         if (string.IsNullOrEmpty(_currentFolderPath)) return;
 
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var switchingMessageKey = selectedBranch.VcsType == VcsType.Svn ? "Svn_SwitchingBranch" : "Git_SwitchingBranch";
         var successMessageKey = selectedBranch.VcsType == VcsType.Svn ? "Svn_SwitchSuccess" : "Git_SwitchSuccess";
         var errorMessageKey = selectedBranch.VcsType == VcsType.Svn ? "Svn_SwitchError" : "Git_SwitchError";
 
-        ShowLoading(loc.Get(switchingMessageKey, selectedBranch.Name), loc["Status_Ready"]);
+        ShowLoading(localizationService.Get(switchingMessageKey, selectedBranch.Name), localizationService["Status_Ready"]);
         await Task.Delay(16);
 
         try
@@ -4843,16 +4852,16 @@ public partial class MainWindow : Window
             {
                 UpdateVcsBranchStatus(_currentFolderPath);
                 await AnalyzeAndLoadFolderAsync(_currentFolderPath, forceReanalyze: true);
-                StatusText.Text = loc.Get(successMessageKey, selectedBranch.Name);
+                StatusText.Text = localizationService.Get(successMessageKey, selectedBranch.Name);
             }
             else
             {
-                StatusText.Text = loc.Get(errorMessageKey, error ?? "Unknown error");
+                StatusText.Text = localizationService.Get(errorMessageKey, error ?? "Unknown error");
             }
         }
         catch (Exception ex)
         {
-            StatusText.Text = loc.Get(errorMessageKey, ex.Message);
+            StatusText.Text = localizationService.Get(errorMessageKey, ex.Message);
         }
         finally
         {
@@ -4891,8 +4900,8 @@ public partial class MainWindow : Window
     /// </summary>
     private async Task CheckForUpdatesManualAsync()
     {
-        var loc = LocalizationService.Instance;
-        StatusText.Text = loc["Update_Checking"];
+        var localizationService = LocalizationService.Instance;
+        StatusText.Text = localizationService["Update_Checking"];
 
         try
         {
@@ -4903,12 +4912,12 @@ public partial class MainWindow : Window
             }
             else
             {
-                StatusText.Text = loc.Get("Update_NoUpdates", UpdateService.CurrentVersionString);
+                StatusText.Text = localizationService.Get("Update_NoUpdates", UpdateService.CurrentVersionString);
             }
         }
         catch (Exception ex)
         {
-            StatusText.Text = loc.Get("Status_ErrorCheckUpdates", ex.Message);
+            StatusText.Text = localizationService.Get("Status_ErrorCheckUpdates", ex.Message);
         }
     }
 
@@ -4918,14 +4927,14 @@ public partial class MainWindow : Window
     private void ShowUpdateModal(AppUpdateInfo update)
     {
         _availableUpdate = update;
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
 
-        UpdateModalTitle.Text = loc["Update_AvailableTitle"];
-        UpdateModalSubtitle.Text = loc.Get("Update_AvailableSubtitle", update.VersionString, UpdateService.CurrentVersionString);
-        UpdateModalNotesLabel.Text = loc["Update_NotesLabel"];
-        UpdateModalNotes.Text = update.GetReleaseNotes(loc.CurrentLanguage == AppLanguage.Italian ? "it" : "en");
-        UpdateLaterButton.Content = loc["Update_ButtonLater"];
-        UpdateNowButton.Content = loc["Update_ButtonNow"];
+        UpdateModalTitle.Text = localizationService["Update_AvailableTitle"];
+        UpdateModalSubtitle.Text = localizationService.Get("Update_AvailableSubtitle", update.VersionString, UpdateService.CurrentVersionString);
+        UpdateModalNotesLabel.Text = localizationService["Update_NotesLabel"];
+        UpdateModalNotes.Text = update.GetReleaseNotes(localizationService.CurrentLanguage == AppLanguage.Italian ? "it" : "en");
+        UpdateLaterButton.Content = localizationService["Update_ButtonLater"];
+        UpdateNowButton.Content = localizationService["Update_ButtonNow"];
 
         UpdateOverlay.IsVisible = true;
     }
@@ -4943,8 +4952,8 @@ public partial class MainWindow : Window
     /// </summary>
     private void ApplyUpdateAndOpenDownload()
     {
-        var loc = LocalizationService.Instance;
-        StatusText.Text = loc["Update_OpeningDownload"];
+        var localizationService = LocalizationService.Instance;
+        StatusText.Text = localizationService["Update_OpeningDownload"];
         UpdateOverlay.IsVisible = false;
         UpdateService.Instance.OpenDownloadPage(_availableUpdate?.DownloadUrl);
     }
@@ -5111,7 +5120,7 @@ public partial class MainWindow : Window
     /// </summary>
     private void UpdateWelcomeView(string? pendingFolder = null)
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var settings = SettingsService.Instance.Settings;
 
         // 1. Gestione card progetto recente in sospeso (senza cache)
@@ -5122,10 +5131,10 @@ public partial class MainWindow : Window
             WelcomePendingCard.IsVisible = true;
             WelcomePendingPathText.Text = targetPending;
             WelcomePendingPathText.Tag = targetPending;
-            WelcomePendingTitleText.Text = loc.Get("Welcome_PendingTitle");
-            WelcomePendingBadgeText.Text = loc.Get("Welcome_CacheNeeded");
-            WelcomePendingDescText.Text = loc.Get("Welcome_PendingNoCache");
-            WelcomePendingAnalyzeButtonText.Text = loc.Get("Welcome_AnalyzeNow");
+            WelcomePendingTitleText.Text = localizationService.Get("Welcome_PendingTitle");
+            WelcomePendingBadgeText.Text = localizationService.Get("Welcome_CacheNeeded");
+            WelcomePendingDescText.Text = localizationService.Get("Welcome_PendingNoCache");
+            WelcomePendingAnalyzeButtonText.Text = localizationService.Get("Welcome_AnalyzeNow");
         }
         else
         {
@@ -5143,10 +5152,10 @@ public partial class MainWindow : Window
                 ? recent.Paths[0]
                 : string.Join(", ", recent.Paths);
 
-            var badgeText = isCached ? loc["Welcome_CacheReady"] : loc["Welcome_CacheNeeded"];
+            var badgeText = isCached ? localizationService["Welcome_CacheReady"] : localizationService["Welcome_CacheNeeded"];
             var badgeBg = isCached ? "#1B4D3E" : "#3D2A10";
             var badgeFg = isCached ? "#10B981" : "#FFB74D";
-            var badgeTooltip = isCached ? loc["Welcome_CacheReadyTooltip"] : loc["Welcome_CacheNeededTooltip"];
+            var badgeTooltip = isCached ? localizationService["Welcome_CacheReadyTooltip"] : localizationService["Welcome_CacheNeededTooltip"];
 
             recentItems.Add(new WelcomeRecentItem
             {
@@ -5204,194 +5213,194 @@ public partial class MainWindow : Window
 
     private void UpdateLocalizedUI()
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
 
         // Schermata di Benvenuto
-        WelcomeHeaderTitle.Text = loc["Welcome_Title"];
-        WelcomeHeaderSub.Text = loc["Welcome_Subtitle"];
-        WelcomeQuickStartTitle.Text = loc["Welcome_QuickStart"];
-        WelcomeOpenProjectTitle.Text = loc["Welcome_OpenProject"];
-        WelcomeOpenProjectSub.Text = loc["Welcome_OpenProjectDesc"];
-        WelcomeOpenFolderTitle.Text = loc["Welcome_OpenFolder"];
-        WelcomeOpenFolderSub.Text = loc["Welcome_OpenFolderDesc"];
-        WelcomeLoadFixturesTitle.Text = loc["Welcome_LoadFixtures"];
-        WelcomeLoadFixturesSub.Text = loc["Welcome_LoadFixturesDesc"];
-        WelcomePendingTitleText.Text = loc["Welcome_PendingTitle"];
-        WelcomePendingBadgeText.Text = loc["Welcome_CacheNeeded"];
-        WelcomePendingDescText.Text = loc["Welcome_PendingNoCache"];
-        WelcomePendingAnalyzeButtonText.Text = loc["Welcome_AnalyzeNow"];
-        WelcomeRecentTitle.Text = loc["Welcome_RecentProjects"];
-        WelcomeNoRecentText.Text = loc["Welcome_NoRecent"];
+        WelcomeHeaderTitle.Text = localizationService["Welcome_Title"];
+        WelcomeHeaderSub.Text = localizationService["Welcome_Subtitle"];
+        WelcomeQuickStartTitle.Text = localizationService["Welcome_QuickStart"];
+        WelcomeOpenProjectTitle.Text = localizationService["Welcome_OpenProject"];
+        WelcomeOpenProjectSub.Text = localizationService["Welcome_OpenProjectDesc"];
+        WelcomeOpenFolderTitle.Text = localizationService["Welcome_OpenFolder"];
+        WelcomeOpenFolderSub.Text = localizationService["Welcome_OpenFolderDesc"];
+        WelcomeLoadFixturesTitle.Text = localizationService["Welcome_LoadFixtures"];
+        WelcomeLoadFixturesSub.Text = localizationService["Welcome_LoadFixturesDesc"];
+        WelcomePendingTitleText.Text = localizationService["Welcome_PendingTitle"];
+        WelcomePendingBadgeText.Text = localizationService["Welcome_CacheNeeded"];
+        WelcomePendingDescText.Text = localizationService["Welcome_PendingNoCache"];
+        WelcomePendingAnalyzeButtonText.Text = localizationService["Welcome_AnalyzeNow"];
+        WelcomeRecentTitle.Text = localizationService["Welcome_RecentProjects"];
+        WelcomeNoRecentText.Text = localizationService["Welcome_NoRecent"];
         UpdateWelcomeView();
 
         // Menu File
-        FileMenu.Header = loc["Menu_File"];
-        OpenSubMenu.Header = loc["Menu_Open"];
-        OpenProjectFilesMenuItem.Header = loc["Menu_OpenProjectFiles"];
-        OpenFolderMenuItem.Header = loc["Menu_OpenFolder"];
+        FileMenu.Header = localizationService["Menu_File"];
+        OpenSubMenu.Header = localizationService["Menu_Open"];
+        OpenProjectFilesMenuItem.Header = localizationService["Menu_OpenProjectFiles"];
+        OpenFolderMenuItem.Header = localizationService["Menu_OpenFolder"];
         UpdateRecentProjectsMenu();
-        RefreshProjectMenuItem.Header = loc["Menu_RefreshProject"];
-        LoadFixturesMenuItem.Header = loc["Menu_LoadFixtures"];
-        GenerateFakeMenuItem.Header = loc["Menu_GenerateFake"];
-        ExportMarkdownMenuItem.Header = loc["Menu_ExportMarkdown"];
-        ExportJsonMenuItem.Header = loc["Menu_ExportJson"];
-        ImportJsonMenuItem.Header = loc["Menu_ImportJson"];
-        ExportSliceMenuItem.Header = loc["Menu_ExportSlice"];
-        SettingsMenuItem.Header = loc["Menu_Settings"];
-        ExitMenuItem.Header = loc["Menu_Exit"];
+        RefreshProjectMenuItem.Header = localizationService["Menu_RefreshProject"];
+        LoadFixturesMenuItem.Header = localizationService["Menu_LoadFixtures"];
+        GenerateFakeMenuItem.Header = localizationService["Menu_GenerateFake"];
+        ExportMarkdownMenuItem.Header = localizationService["Menu_ExportMarkdown"];
+        ExportJsonMenuItem.Header = localizationService["Menu_ExportJson"];
+        ImportJsonMenuItem.Header = localizationService["Menu_ImportJson"];
+        ExportSliceMenuItem.Header = localizationService["Menu_ExportSlice"];
+        SettingsMenuItem.Header = localizationService["Menu_Settings"];
+        ExitMenuItem.Header = localizationService["Menu_Exit"];
 
         // Menu Visualizza
-        ViewMenu.Header = loc["Menu_View"];
-        ToggleExplorerMenuItem.Header = loc["Menu_ToggleExplorer"];
-        ToggleInspectorMenuItem.Header = loc["Menu_ToggleInspector"];
-        ResetViewMenuItem.Header = loc["Menu_ResetView"];
-        ExpandAllMenuItem.Header = loc["Menu_ExpandAll"];
-        CollapseAllMenuItem.Header = loc["Menu_CollapseAll"];
-        FilterDetailLevelMenuItem.Header = loc["Menu_FilterDetailLevel"];
-        FilterProjectsMenuItem.Header = loc["Menu_FilterProjects"];
-        FilterAllMenuItem.Header = loc["Filter_AllMembers"];
-        FilterMethodsPropsMenuItem.Header = loc["Filter_MethodsAndProperties"];
-        FilterContainersOnlyMenuItem.Header = loc["Filter_ContainersOnly"];
-        FilterMethodsMenuItem.Header = loc["Filter_ShowMethods"];
-        FilterPropertiesMenuItem.Header = loc["Filter_ShowProperties"];
-        FilterFieldsMenuItem.Header = loc["Filter_ShowFields"];
-        FilterConstantsMenuItem.Header = loc["Filter_ShowConstants"];
-        FilterTypesMenuItem.Header = loc["Filter_ShowTypesEnums"];
-        GraphLayoutMenuItem.Header = loc["Menu_GraphLayout"];
-        LayoutStandardMenuItem.Header = loc["Layout_StandardRadial"];
-        LayoutAffinityMenuItem.Header = loc["Layout_AffinityRadial"];
-        LayoutIslandsMenuItem.Header = loc["Layout_ClusteredIslands"];
-        LayoutForceMenuItem.Header = loc["Layout_ForceDirected"];
-        ToggleHoverSelectionMenuItem.Header = loc["Menu_HoverSelection"];
-        ToggleTabLabelsMenuItem.Header = loc["Menu_ToggleTabLabels"];
-        VisibleTabsMenuItem.Header = loc["Menu_VisibleTabs"];
-        ToggleTabGraphMenuItem.Header = loc["Tab_GraphView"];
-        ToggleTabDsmMenuItem.Header = loc["Tab_DsmMatrix"];
-        ToggleTabTreemapMenuItem.Header = loc["Tab_TreemapMetrics"];
-        ToggleTabHotspotMenuItem.Header = loc["Tab_RiskHotspots"];
-        ToggleTabScreenFlowMenuItem.Header = loc["Tab_ScreenFlow"];
-        ToggleTabControlFlowMenuItem.Header = loc["Tab_ControlFlow"];
-        ToggleTabMartinMenuItem.Header = loc["Tab_MartinMetrics"];
-        ToggleTabDeadCodeMenuItem.Header = loc["Tab_DeadCode"];
-        ToggleTabSharedStateMenuItem.Header = loc["Tab_SharedState"];
-        ToggleTabTemporalCouplingMenuItem.Header = loc["Tab_TemporalCoupling"];
-        ToggleTabArchitecturalFlowMenuItem.Header = loc["Tab_ArchitecturalFlow"];
-        ToggleTabCodeCityMenuItem.Header = loc["Tab_CodeCity"];
-        ToggleTabCohesionMenuItem.Header = loc["Tab_Cohesion"];
-        ToggleTabMaintainabilityMenuItem.Header = loc["Tab_Maintainability"];
-        ToggleTabArchitecturalRulesMenuItem.Header = loc["Tab_ArchitecturalRules"];
-        ToggleTabCodeCloneMenuItem.Header = loc["Tab_CodeClone"];
-        ToggleTabSocialCodeMenuItem.Header = loc["Tab_SocialCode"];
-        ToggleTabDataFlowMenuItem.Header = loc["Tab_DataFlow"];
-        ToggleTabApiDiffMenuItem.Header = loc["Tab_ApiDiff"];
-        ToggleTabCrudMatrixMenuItem.Header = loc["Tab_CrudMatrix"];
-        ToggleTabBlastRadiusGridMenuItem.Header = loc["Tab_BlastRadiusGrid"];
+        ViewMenu.Header = localizationService["Menu_View"];
+        ToggleExplorerMenuItem.Header = localizationService["Menu_ToggleExplorer"];
+        ToggleInspectorMenuItem.Header = localizationService["Menu_ToggleInspector"];
+        ResetViewMenuItem.Header = localizationService["Menu_ResetView"];
+        ExpandAllMenuItem.Header = localizationService["Menu_ExpandAll"];
+        CollapseAllMenuItem.Header = localizationService["Menu_CollapseAll"];
+        FilterDetailLevelMenuItem.Header = localizationService["Menu_FilterDetailLevel"];
+        FilterProjectsMenuItem.Header = localizationService["Menu_FilterProjects"];
+        FilterAllMenuItem.Header = localizationService["Filter_AllMembers"];
+        FilterMethodsPropsMenuItem.Header = localizationService["Filter_MethodsAndProperties"];
+        FilterContainersOnlyMenuItem.Header = localizationService["Filter_ContainersOnly"];
+        FilterMethodsMenuItem.Header = localizationService["Filter_ShowMethods"];
+        FilterPropertiesMenuItem.Header = localizationService["Filter_ShowProperties"];
+        FilterFieldsMenuItem.Header = localizationService["Filter_ShowFields"];
+        FilterConstantsMenuItem.Header = localizationService["Filter_ShowConstants"];
+        FilterTypesMenuItem.Header = localizationService["Filter_ShowTypesEnums"];
+        GraphLayoutMenuItem.Header = localizationService["Menu_GraphLayout"];
+        LayoutStandardMenuItem.Header = localizationService["Layout_StandardRadial"];
+        LayoutAffinityMenuItem.Header = localizationService["Layout_AffinityRadial"];
+        LayoutIslandsMenuItem.Header = localizationService["Layout_ClusteredIslands"];
+        LayoutForceMenuItem.Header = localizationService["Layout_ForceDirected"];
+        ToggleHoverSelectionMenuItem.Header = localizationService["Menu_HoverSelection"];
+        ToggleTabLabelsMenuItem.Header = localizationService["Menu_ToggleTabLabels"];
+        VisibleTabsMenuItem.Header = localizationService["Menu_VisibleTabs"];
+        ToggleTabGraphMenuItem.Header = localizationService["Tab_GraphView"];
+        ToggleTabDsmMenuItem.Header = localizationService["Tab_DsmMatrix"];
+        ToggleTabTreemapMenuItem.Header = localizationService["Tab_TreemapMetrics"];
+        ToggleTabHotspotMenuItem.Header = localizationService["Tab_RiskHotspots"];
+        ToggleTabScreenFlowMenuItem.Header = localizationService["Tab_ScreenFlow"];
+        ToggleTabControlFlowMenuItem.Header = localizationService["Tab_ControlFlow"];
+        ToggleTabMartinMenuItem.Header = localizationService["Tab_MartinMetrics"];
+        ToggleTabDeadCodeMenuItem.Header = localizationService["Tab_DeadCode"];
+        ToggleTabSharedStateMenuItem.Header = localizationService["Tab_SharedState"];
+        ToggleTabTemporalCouplingMenuItem.Header = localizationService["Tab_TemporalCoupling"];
+        ToggleTabArchitecturalFlowMenuItem.Header = localizationService["Tab_ArchitecturalFlow"];
+        ToggleTabCodeCityMenuItem.Header = localizationService["Tab_CodeCity"];
+        ToggleTabCohesionMenuItem.Header = localizationService["Tab_Cohesion"];
+        ToggleTabMaintainabilityMenuItem.Header = localizationService["Tab_Maintainability"];
+        ToggleTabArchitecturalRulesMenuItem.Header = localizationService["Tab_ArchitecturalRules"];
+        ToggleTabCodeCloneMenuItem.Header = localizationService["Tab_CodeClone"];
+        ToggleTabSocialCodeMenuItem.Header = localizationService["Tab_SocialCode"];
+        ToggleTabDataFlowMenuItem.Header = localizationService["Tab_DataFlow"];
+        ToggleTabApiDiffMenuItem.Header = localizationService["Tab_ApiDiff"];
+        ToggleTabCrudMatrixMenuItem.Header = localizationService["Tab_CrudMatrix"];
+        ToggleTabBlastRadiusGridMenuItem.Header = localizationService["Tab_BlastRadiusGrid"];
 
         // Menu Analisi
-        AnalysisMenu.Header = loc["Menu_Analysis"];
-        BlastRadiusMenuItem.Header = loc["Menu_BlastRadius"];
-        ShowCallersMenuItem.Header = loc["Menu_ShowCallers"];
-        ShowCalleesMenuItem.Header = loc["Menu_ShowCallees"];
-        ClearHighlightMenuItem.Header = loc["Menu_ClearHighlight"];
+        AnalysisMenu.Header = localizationService["Menu_Analysis"];
+        BlastRadiusMenuItem.Header = localizationService["Menu_BlastRadius"];
+        ShowCallersMenuItem.Header = localizationService["Menu_ShowCallers"];
+        ShowCalleesMenuItem.Header = localizationService["Menu_ShowCallees"];
+        ClearHighlightMenuItem.Header = localizationService["Menu_ClearHighlight"];
 
         // Menu Aiuto
-        HelpMenu.Header = loc["Menu_Help"];
-        InfoMenuItem.Header = loc["Menu_HelpInfo"];
-        CheckUpdatesMenuItem.Header = loc["Menu_CheckUpdates"];
-        ResetSettingsMenuItem.Header = loc["Menu_ResetSettings"];
-        ToolTip.SetTip(ResetSettingsMenuItem, loc["Tooltip_ResetSettings"]);
-        ClearCacheMenuItem.Header = loc["Menu_ClearCache"];
-        ToolTip.SetTip(ClearCacheMenuItem, loc["Tooltip_ClearCache"]);
+        HelpMenu.Header = localizationService["Menu_Help"];
+        InfoMenuItem.Header = localizationService["Menu_HelpInfo"];
+        CheckUpdatesMenuItem.Header = localizationService["Menu_CheckUpdates"];
+        ResetSettingsMenuItem.Header = localizationService["Menu_ResetSettings"];
+        ToolTip.SetTip(ResetSettingsMenuItem, localizationService["Tooltip_ResetSettings"]);
+        ClearCacheMenuItem.Header = localizationService["Menu_ClearCache"];
+        ToolTip.SetTip(ClearCacheMenuItem, localizationService["Tooltip_ClearCache"]);
 
         // Caption Buttons Tooltips
-        ToolTip.SetTip(ToggleExplorerTopButton, loc["Tooltip_ToggleExplorer"]);
-        ToolTip.SetTip(ToggleInspectorTopButton, loc["Tooltip_ToggleInspector"]);
-        ToolTip.SetTip(SettingsButton, loc["Tooltip_Settings"]);
-        ToolTip.SetTip(MinimizeButton, loc["Tooltip_Minimize"]);
-        ToolTip.SetTip(MaximizeButton, loc["Tooltip_Maximize"]);
-        ToolTip.SetTip(CloseButton, loc["Tooltip_Close"]);
+        ToolTip.SetTip(ToggleExplorerTopButton, localizationService["Tooltip_ToggleExplorer"]);
+        ToolTip.SetTip(ToggleInspectorTopButton, localizationService["Tooltip_ToggleInspector"]);
+        ToolTip.SetTip(SettingsButton, localizationService["Tooltip_Settings"]);
+        ToolTip.SetTip(MinimizeButton, localizationService["Tooltip_Minimize"]);
+        ToolTip.SetTip(MaximizeButton, localizationService["Tooltip_Maximize"]);
+        ToolTip.SetTip(CloseButton, localizationService["Tooltip_Close"]);
 
         // Floating HUD Tooltips
-        ToolTip.SetTip(ResetViewButton, loc["Tooltip_ResetView"]);
-        ToolTip.SetTip(ExpandAllButton, loc["Tooltip_ExpandAll"]);
-        ToolTip.SetTip(CollapseAllButton, loc["Tooltip_CollapseAll"]);
-        ToolTip.SetTip(RefreshProjectButton, loc["Tooltip_RefreshProject"]);
-        ToolTip.SetTip(BlastRadiusButton, loc["Tooltip_BlastRadius"]);
-        ToolTip.SetTip(ShowCallersButton, loc["Tooltip_ShowCallers"]);
-        ToolTip.SetTip(ShowCalleesButton, loc["Tooltip_ShowCallees"]);
-        ToolTip.SetTip(ClearHighlightButton, loc["Tooltip_ClearHighlight"]);
-        ToolTip.SetTip(ExportMarkdownButton, loc["Tooltip_ExportMarkdown"]);
-        ToolTip.SetTip(ExportJsonButton, loc["Tooltip_ExportJson"]);
-        ToolTip.SetTip(ImportJsonButton, loc["Tooltip_ImportJson"]);
+        ToolTip.SetTip(ResetViewButton, localizationService["Tooltip_ResetView"]);
+        ToolTip.SetTip(ExpandAllButton, localizationService["Tooltip_ExpandAll"]);
+        ToolTip.SetTip(CollapseAllButton, localizationService["Tooltip_CollapseAll"]);
+        ToolTip.SetTip(RefreshProjectButton, localizationService["Tooltip_RefreshProject"]);
+        ToolTip.SetTip(BlastRadiusButton, localizationService["Tooltip_BlastRadius"]);
+        ToolTip.SetTip(ShowCallersButton, localizationService["Tooltip_ShowCallers"]);
+        ToolTip.SetTip(ShowCalleesButton, localizationService["Tooltip_ShowCallees"]);
+        ToolTip.SetTip(ClearHighlightButton, localizationService["Tooltip_ClearHighlight"]);
+        ToolTip.SetTip(ExportMarkdownButton, localizationService["Tooltip_ExportMarkdown"]);
+        ToolTip.SetTip(ExportJsonButton, localizationService["Tooltip_ExportJson"]);
+        ToolTip.SetTip(ImportJsonButton, localizationService["Tooltip_ImportJson"]);
 
         // Grid Toolbar Tooltips
-        ToolTip.SetTip(RefreshGridButton, loc["Tooltip_RecalculateAudit"]);
+        ToolTip.SetTip(RefreshGridButton, localizationService["Tooltip_RecalculateAudit"]);
 
         // Ricerca
-        SearchBox.Watermark = loc["Search_Watermark"];
+        SearchBox.Watermark = localizationService["Search_Watermark"];
 
         // Explorer & Inspector & Context Menus
-        ExplorerTitleText.Text = loc["Explorer_Title"];
-        InspectorTitleText.Text = loc["Inspector_Title"];
-        CtxExplorerOpenFile.Header = loc["Explorer_OpenOriginalFile"];
-        CtxExplorerOpenFolder.Header = loc["Explorer_OpenContainingFolder"];
-        CtxExplorerCopyPath.Header = loc["Explorer_CopyFilePath"];
-        CtxNodeExportMarkdown.Header = loc["Ctx_Node_ExportMarkdown"];
-        CtxNodeExportJson.Header = loc["Ctx_Node_ExportJson"];
-        CtxNodeBlastRadius.Header = loc["Ctx_Node_BlastRadius"];
-        CtxNodeShowCallers.Header = loc["Ctx_Node_ShowCallers"];
-        CtxNodeShowCallees.Header = loc["Ctx_Node_ShowCallees"];
-        ToolTip.SetTip(InspectorOpenFileButton, loc["Inspector_Tooltip_OpenFile"]);
-        ToolTip.SetTip(InspectorOpenFolderButton, loc["Inspector_Tooltip_OpenFolder"]);
+        ExplorerTitleText.Text = localizationService["Explorer_Title"];
+        InspectorTitleText.Text = localizationService["Inspector_Title"];
+        CtxExplorerOpenFile.Header = localizationService["Explorer_OpenOriginalFile"];
+        CtxExplorerOpenFolder.Header = localizationService["Explorer_OpenContainingFolder"];
+        CtxExplorerCopyPath.Header = localizationService["Explorer_CopyFilePath"];
+        CtxNodeExportMarkdown.Header = localizationService["Ctx_Node_ExportMarkdown"];
+        CtxNodeExportJson.Header = localizationService["Ctx_Node_ExportJson"];
+        CtxNodeBlastRadius.Header = localizationService["Ctx_Node_BlastRadius"];
+        CtxNodeShowCallers.Header = localizationService["Ctx_Node_ShowCallers"];
+        CtxNodeShowCallees.Header = localizationService["Ctx_Node_ShowCallees"];
+        ToolTip.SetTip(InspectorOpenFileButton, localizationService["Inspector_Tooltip_OpenFile"]);
+        ToolTip.SetTip(InspectorOpenFolderButton, localizationService["Inspector_Tooltip_OpenFolder"]);
         if (_graph is not null)
         {
             ExplorerTree.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds) };
         }
 
         // Tab Centrali
-        GraphTabHeader.Text = loc["Tab_GraphView"];
-        DsmTabHeader.Text = loc["Tab_DsmMatrix"];
-        TreemapTabHeader.Text = loc["Tab_TreemapMetrics"];
-        HotspotTabHeader.Text = loc["Tab_RiskHotspots"];
-        ScreenFlowTabHeader.Text = loc["Tab_ScreenFlow"];
-        ControlFlowTabHeader.Text = loc["Tab_ControlFlow"];
-        MartinTabHeader.Text = loc["Tab_MartinMetrics"];
-        DeadCodeTabHeader.Text = loc["Tab_DeadCode"];
-        SharedStateTabHeader.Text = loc["Tab_SharedState"];
-        TemporalCouplingTabHeader.Text = loc["Tab_TemporalCoupling"];
-        ArchitecturalFlowTabHeader.Text = loc["Tab_ArchitecturalFlow"];
-        CodeCityTabHeader.Text = loc["Tab_CodeCity"];
-        CohesionTabHeader.Text = loc["Tab_Cohesion"];
-        MaintainabilityTabHeader.Text = loc["Tab_Maintainability"];
-        ArchitecturalRulesTabHeader.Text = loc["Tab_ArchitecturalRules"];
-        CodeCloneTabHeader.Text = loc["Tab_CodeClone"];
-        SocialCodeTabHeader.Text = loc["Tab_SocialCode"];
-        DataFlowTabHeader.Text = loc["Tab_DataFlow"];
-        ApiDiffTabHeader.Text = loc["Tab_ApiDiff"];
-        CrudMatrixTabHeader.Text = loc["Tab_CrudMatrix"];
-        GridTabHeader.Text = loc["Tab_BlastRadiusGrid"];
+        GraphTabHeader.Text = localizationService["Tab_GraphView"];
+        DsmTabHeader.Text = localizationService["Tab_DsmMatrix"];
+        TreemapTabHeader.Text = localizationService["Tab_TreemapMetrics"];
+        HotspotTabHeader.Text = localizationService["Tab_RiskHotspots"];
+        ScreenFlowTabHeader.Text = localizationService["Tab_ScreenFlow"];
+        ControlFlowTabHeader.Text = localizationService["Tab_ControlFlow"];
+        MartinTabHeader.Text = localizationService["Tab_MartinMetrics"];
+        DeadCodeTabHeader.Text = localizationService["Tab_DeadCode"];
+        SharedStateTabHeader.Text = localizationService["Tab_SharedState"];
+        TemporalCouplingTabHeader.Text = localizationService["Tab_TemporalCoupling"];
+        ArchitecturalFlowTabHeader.Text = localizationService["Tab_ArchitecturalFlow"];
+        CodeCityTabHeader.Text = localizationService["Tab_CodeCity"];
+        CohesionTabHeader.Text = localizationService["Tab_Cohesion"];
+        MaintainabilityTabHeader.Text = localizationService["Tab_Maintainability"];
+        ArchitecturalRulesTabHeader.Text = localizationService["Tab_ArchitecturalRules"];
+        CodeCloneTabHeader.Text = localizationService["Tab_CodeClone"];
+        SocialCodeTabHeader.Text = localizationService["Tab_SocialCode"];
+        DataFlowTabHeader.Text = localizationService["Tab_DataFlow"];
+        ApiDiffTabHeader.Text = localizationService["Tab_ApiDiff"];
+        CrudMatrixTabHeader.Text = localizationService["Tab_CrudMatrix"];
+        GridTabHeader.Text = localizationService["Tab_BlastRadiusGrid"];
 
-        ToolTip.SetTip(GraphTabItem, loc["Tab_GraphView_Tip"]);
-        ToolTip.SetTip(DsmTabItem, loc["Tab_DsmMatrix_Tip"]);
-        ToolTip.SetTip(TreemapTabItem, loc["Tab_TreemapMetrics_Tip"]);
-        ToolTip.SetTip(HotspotTabItem, loc["Tab_RiskHotspots_Tip"]);
-        ToolTip.SetTip(ScreenFlowTabItem, loc["Tab_ScreenFlow_Tip"]);
-        ToolTip.SetTip(ControlFlowTabItem, loc["Tab_ControlFlow_Tip"]);
-        ToolTip.SetTip(MartinTabItem, loc["Tab_MartinMetrics_Tip"]);
-        ToolTip.SetTip(DeadCodeTabItem, loc["Tab_DeadCode_Tip"]);
-        ToolTip.SetTip(SharedStateTabItem, loc["Tab_SharedState_Tip"]);
-        ToolTip.SetTip(TemporalCouplingTabItem, loc["Tab_TemporalCoupling_Tip"]);
-        ToolTip.SetTip(ArchitecturalFlowTabItem, loc["Tab_ArchitecturalFlow_Tip"]);
-        ToolTip.SetTip(CodeCityTabItem, loc["Tab_CodeCity_Tip"]);
-        ToolTip.SetTip(CohesionTabItem, loc["Tab_Cohesion_Tip"]);
-        ToolTip.SetTip(MaintainabilityTabItem, loc["Tab_Maintainability_Tip"]);
-        ToolTip.SetTip(ArchitecturalRulesTabItem, loc["Tab_ArchitecturalRules_Tip"]);
-        ToolTip.SetTip(CodeCloneTabItem, loc["Tab_CodeClone_Tip"]);
-        ToolTip.SetTip(SocialCodeTabItem, loc["Tab_SocialCode_Tip"]);
-        ToolTip.SetTip(DataFlowTabItem, loc["Tab_DataFlow_Tip"]);
-        ToolTip.SetTip(ApiDiffTabItem, loc["Tab_ApiDiff_Tip"]);
-        ToolTip.SetTip(CrudMatrixTabItem, loc["Tab_CrudMatrix_Tip"]);
-        ToolTip.SetTip(GridTabItem, loc["Tab_BlastRadiusGrid_Tip"]);
+        ToolTip.SetTip(GraphTabItem, localizationService["Tab_GraphView_Tip"]);
+        ToolTip.SetTip(DsmTabItem, localizationService["Tab_DsmMatrix_Tip"]);
+        ToolTip.SetTip(TreemapTabItem, localizationService["Tab_TreemapMetrics_Tip"]);
+        ToolTip.SetTip(HotspotTabItem, localizationService["Tab_RiskHotspots_Tip"]);
+        ToolTip.SetTip(ScreenFlowTabItem, localizationService["Tab_ScreenFlow_Tip"]);
+        ToolTip.SetTip(ControlFlowTabItem, localizationService["Tab_ControlFlow_Tip"]);
+        ToolTip.SetTip(MartinTabItem, localizationService["Tab_MartinMetrics_Tip"]);
+        ToolTip.SetTip(DeadCodeTabItem, localizationService["Tab_DeadCode_Tip"]);
+        ToolTip.SetTip(SharedStateTabItem, localizationService["Tab_SharedState_Tip"]);
+        ToolTip.SetTip(TemporalCouplingTabItem, localizationService["Tab_TemporalCoupling_Tip"]);
+        ToolTip.SetTip(ArchitecturalFlowTabItem, localizationService["Tab_ArchitecturalFlow_Tip"]);
+        ToolTip.SetTip(CodeCityTabItem, localizationService["Tab_CodeCity_Tip"]);
+        ToolTip.SetTip(CohesionTabItem, localizationService["Tab_Cohesion_Tip"]);
+        ToolTip.SetTip(MaintainabilityTabItem, localizationService["Tab_Maintainability_Tip"]);
+        ToolTip.SetTip(ArchitecturalRulesTabItem, localizationService["Tab_ArchitecturalRules_Tip"]);
+        ToolTip.SetTip(CodeCloneTabItem, localizationService["Tab_CodeClone_Tip"]);
+        ToolTip.SetTip(SocialCodeTabItem, localizationService["Tab_SocialCode_Tip"]);
+        ToolTip.SetTip(DataFlowTabItem, localizationService["Tab_DataFlow_Tip"]);
+        ToolTip.SetTip(ApiDiffTabItem, localizationService["Tab_ApiDiff_Tip"]);
+        ToolTip.SetTip(CrudMatrixTabItem, localizationService["Tab_CrudMatrix_Tip"]);
+        ToolTip.SetTip(GridTabItem, localizationService["Tab_BlastRadiusGrid_Tip"]);
 
         Dsm.InvalidateVisual();
         Treemap.InvalidateVisual();
@@ -5403,66 +5412,66 @@ public partial class MainWindow : Window
         CodeCity.InvalidateVisual();
 
         // Project Explorer Toolbar
-        ExplorerProjectsSelectAllButton.Content = loc["HUD_SelectAll"];
+        ExplorerProjectsSelectAllButton.Content = localizationService["HUD_SelectAll"];
         UpdateProjectsBadgeText();
 
         // Floating HUD
-        HudLayoutLabel.Text = loc["HUD_LayoutLabel"];
-        LayoutItemStandard.Content = loc["Layout_StandardRadial"];
-        LayoutItemAffinity.Content = loc["Layout_AffinityRadial"];
-        LayoutItemIslands.Content = loc["Layout_ClusteredIslands"];
-        LayoutItemForce.Content = loc["Layout_ForceDirected"];
-        HudFilterLabel.Text = loc["HUD_FilterLabel"];
-        HudFilterButtonText.Text = loc["HUD_FilterButton"];
-        DetailItemAll.Content = loc["Filter_AllMembers"];
-        DetailItemMethodsProps.Content = loc["Filter_MethodsAndProperties"];
-        DetailItemContainers.Content = loc["Filter_ContainersOnly"];
-        DetailItemCustom.Content = loc["Filter_Custom"];
-        FilterMethodsCheckBox.Content = loc["Filter_ShowMethods"];
-        FilterPropertiesCheckBox.Content = loc["Filter_ShowProperties"];
-        FilterFieldsCheckBox.Content = loc["Filter_ShowFields"];
-        FilterConstantsCheckBox.Content = loc["Filter_ShowConstants"];
-        FilterTypesCheckBox.Content = loc["Filter_ShowTypesEnums"];
-        ToolTip.SetTip(FilterOptionsButton, loc["Tooltip_FilterMethods"]);
-        ToolTip.SetTip(LegendMethodButton, loc["Tooltip_LegendToggle"]);
-        ToolTip.SetTip(LegendPropertyButton, loc["Tooltip_LegendToggle"]);
-        ToolTip.SetTip(LegendFieldButton, loc["Tooltip_LegendToggle"]);
-        ToolTip.SetTip(LegendTypeButton, loc["Tooltip_LegendToggle"]);
+        HudLayoutLabel.Text = localizationService["HUD_LayoutLabel"];
+        LayoutItemStandard.Content = localizationService["Layout_StandardRadial"];
+        LayoutItemAffinity.Content = localizationService["Layout_AffinityRadial"];
+        LayoutItemIslands.Content = localizationService["Layout_ClusteredIslands"];
+        LayoutItemForce.Content = localizationService["Layout_ForceDirected"];
+        HudFilterLabel.Text = localizationService["HUD_FilterLabel"];
+        HudFilterButtonText.Text = localizationService["HUD_FilterButton"];
+        DetailItemAll.Content = localizationService["Filter_AllMembers"];
+        DetailItemMethodsProps.Content = localizationService["Filter_MethodsAndProperties"];
+        DetailItemContainers.Content = localizationService["Filter_ContainersOnly"];
+        DetailItemCustom.Content = localizationService["Filter_Custom"];
+        FilterMethodsCheckBox.Content = localizationService["Filter_ShowMethods"];
+        FilterPropertiesCheckBox.Content = localizationService["Filter_ShowProperties"];
+        FilterFieldsCheckBox.Content = localizationService["Filter_ShowFields"];
+        FilterConstantsCheckBox.Content = localizationService["Filter_ShowConstants"];
+        FilterTypesCheckBox.Content = localizationService["Filter_ShowTypesEnums"];
+        ToolTip.SetTip(FilterOptionsButton, localizationService["Tooltip_FilterMethods"]);
+        ToolTip.SetTip(LegendMethodButton, localizationService["Tooltip_LegendToggle"]);
+        ToolTip.SetTip(LegendPropertyButton, localizationService["Tooltip_LegendToggle"]);
+        ToolTip.SetTip(LegendFieldButton, localizationService["Tooltip_LegendToggle"]);
+        ToolTip.SetTip(LegendTypeButton, localizationService["Tooltip_LegendToggle"]);
 
         // Legenda Grafo
-        LegendTitleText.Text = loc["Legend_Title"];
-        LegendFormText.Text = loc["Legend_Forms"];
-        LegendModuleText.Text = loc["Legend_Modules"];
-        LegendClassText.Text = loc["Legend_Classes"];
-        LegendControlText.Text = loc["Legend_Controls"];
-        LegendMethodText.Text = loc["Legend_Methods"];
-        LegendPropertyText.Text = loc["Legend_Properties"];
-        LegendFieldText.Text = loc["Legend_Fields"];
-        LegendTypeText.Text = loc["Legend_Types"];
-        LegendCallsText.Text = loc["Legend_Calls"];
-        LegendInstantiatesText.Text = loc["Legend_Instantiates"];
-        HudResetViewText.Text = loc["HUD_ResetView"];
-        HudExpandAllText.Text = loc["HUD_ExpandAll"];
-        HudCollapseAllText.Text = loc["HUD_CollapseAll"];
-        HudRefreshText.Text = loc["HUD_Refresh"];
-        HudBlastRadiusText.Text = loc["HUD_BlastRadius"];
-        HudShowCallersText.Text = loc["HUD_ShowCallers"];
-        HudShowCalleesText.Text = loc["HUD_ShowCallees"];
-        HudClearHighlightText.Text = loc["HUD_ClearFilter"];
-        HudExportMarkdownText.Text = loc["HUD_ExportMarkdown"];
-        HudExportJsonText.Text = loc["HUD_ExportJson"];
-        HudImportJsonText.Text = loc["HUD_ImportJson"];
+        LegendTitleText.Text = localizationService["Legend_Title"];
+        LegendFormText.Text = localizationService["Legend_Forms"];
+        LegendModuleText.Text = localizationService["Legend_Modules"];
+        LegendClassText.Text = localizationService["Legend_Classes"];
+        LegendControlText.Text = localizationService["Legend_Controls"];
+        LegendMethodText.Text = localizationService["Legend_Methods"];
+        LegendPropertyText.Text = localizationService["Legend_Properties"];
+        LegendFieldText.Text = localizationService["Legend_Fields"];
+        LegendTypeText.Text = localizationService["Legend_Types"];
+        LegendCallsText.Text = localizationService["Legend_Calls"];
+        LegendInstantiatesText.Text = localizationService["Legend_Instantiates"];
+        HudResetViewText.Text = localizationService["HUD_ResetView"];
+        HudExpandAllText.Text = localizationService["HUD_ExpandAll"];
+        HudCollapseAllText.Text = localizationService["HUD_CollapseAll"];
+        HudRefreshText.Text = localizationService["HUD_Refresh"];
+        HudBlastRadiusText.Text = localizationService["HUD_BlastRadius"];
+        HudShowCallersText.Text = localizationService["HUD_ShowCallers"];
+        HudShowCalleesText.Text = localizationService["HUD_ShowCallees"];
+        HudClearHighlightText.Text = localizationService["HUD_ClearFilter"];
+        HudExportMarkdownText.Text = localizationService["HUD_ExportMarkdown"];
+        HudExportJsonText.Text = localizationService["HUD_ExportJson"];
+        HudImportJsonText.Text = localizationService["HUD_ImportJson"];
 
         // Grid Toolbar
-        GridFilterLabel.Text = loc["Grid_FilterLabel"];
-        GridFilterTextBox.Watermark = loc["Grid_FilterWatermark"];
-        GridRiskLabel.Text = loc["Grid_RiskLabel"];
-        RiskItemAll.Content = loc["Grid_AllRisks"];
-        RiskItemCritical.Content = loc["Risk_Critical"];
-        RiskItemHigh.Content = loc["Risk_High"];
-        RiskItemMedium.Content = loc["Risk_Medium"];
-        RiskItemLow.Content = loc["Risk_Low"];
-        RefreshGridButtonText.Text = loc["Grid_Recalculate"];
+        GridFilterLabel.Text = localizationService["Grid_FilterLabel"];
+        GridFilterTextBox.Watermark = localizationService["Grid_FilterWatermark"];
+        GridRiskLabel.Text = localizationService["Grid_RiskLabel"];
+        RiskItemAll.Content = localizationService["Grid_AllRisks"];
+        RiskItemCritical.Content = localizationService["Risk_Critical"];
+        RiskItemHigh.Content = localizationService["Risk_High"];
+        RiskItemMedium.Content = localizationService["Risk_Medium"];
+        RiskItemLow.Content = localizationService["Risk_Low"];
+        RefreshGridButtonText.Text = localizationService["Grid_Recalculate"];
 
         // VCS (Git & SVN) Popup & Tooltip
         if (!string.IsNullOrEmpty(_currentFolderPath))
@@ -5471,98 +5480,98 @@ public partial class MainWindow : Window
             if (vcsType != VcsType.None && !string.IsNullOrEmpty(currentBranch))
             {
                 var tooltipKey = vcsType == VcsType.Svn ? "Svn_BranchTooltip" : "Git_BranchTooltip";
-                ToolTip.SetTip(GitBranchButton, loc.Get(tooltipKey, currentBranch));
-                GitBranchPopupTitle.Text = vcsType == VcsType.Svn ? loc["Svn_SwitchBranchTitle"] : loc["Git_SwitchBranchTitle"];
-                GitBranchSearchBox.Watermark = vcsType == VcsType.Svn ? loc["Svn_SearchBranchWatermark"] : loc["Git_SearchBranchWatermark"];
+                ToolTip.SetTip(GitBranchButton, localizationService.Get(tooltipKey, currentBranch));
+                GitBranchPopupTitle.Text = vcsType == VcsType.Svn ? localizationService["Svn_SwitchBranchTitle"] : localizationService["Git_SwitchBranchTitle"];
+                GitBranchSearchBox.Watermark = vcsType == VcsType.Svn ? localizationService["Svn_SearchBranchWatermark"] : localizationService["Git_SearchBranchWatermark"];
             }
         }
 
         // DataGrid Colonne
         if (BlastRadiusDataGrid?.Columns.Count >= 10)
         {
-            BlastRadiusDataGrid.Columns[0].Header = loc["Col_Project"];
-            BlastRadiusDataGrid.Columns[1].Header = loc["Col_Routine"];
-            BlastRadiusDataGrid.Columns[2].Header = loc["Col_Module"];
-            BlastRadiusDataGrid.Columns[3].Header = loc["Col_DirectCallers"];
-            BlastRadiusDataGrid.Columns[4].Header = loc["Col_IndirectCallers"];
-            BlastRadiusDataGrid.Columns[5].Header = loc["Col_Depth"];
-            BlastRadiusDataGrid.Columns[6].Header = loc["Col_Risk"];
-            BlastRadiusDataGrid.Columns[7].Header = loc["Col_Forms"];
-            BlastRadiusDataGrid.Columns[8].Header = loc["Col_TotalImpact"];
-            BlastRadiusDataGrid.Columns[9].Header = loc["Col_Action"];
+            BlastRadiusDataGrid.Columns[0].Header = localizationService["Col_Project"];
+            BlastRadiusDataGrid.Columns[1].Header = localizationService["Col_Routine"];
+            BlastRadiusDataGrid.Columns[2].Header = localizationService["Col_Module"];
+            BlastRadiusDataGrid.Columns[3].Header = localizationService["Col_DirectCallers"];
+            BlastRadiusDataGrid.Columns[4].Header = localizationService["Col_IndirectCallers"];
+            BlastRadiusDataGrid.Columns[5].Header = localizationService["Col_Depth"];
+            BlastRadiusDataGrid.Columns[6].Header = localizationService["Col_Risk"];
+            BlastRadiusDataGrid.Columns[7].Header = localizationService["Col_Forms"];
+            BlastRadiusDataGrid.Columns[8].Header = localizationService["Col_TotalImpact"];
+            BlastRadiusDataGrid.Columns[9].Header = localizationService["Col_Action"];
         }
 
         // Inspector
-        InspectorTitleText.Text = loc["Inspector_Title"];
-        InspectorEmptyTitle.Text = loc["Inspector_NoSelection"];
-        InspectorEmptyHint1.Text = loc["Inspector_Hint1"];
-        InspectorEmptyHint2.Text = loc["Inspector_Hint2"];
-        InspectorEmptyHint3.Text = loc["Inspector_Hint3"];
-        InspectorSecSymbol.Text = loc["Inspector_Sec_Symbol"];
-        InspectorSecKind.Text = loc["Inspector_Sec_Kind"];
-        InspectorSecVisibility.Text = loc["Inspector_Sec_Visibility"];
-        InspectorSecLanguage.Text = loc["Inspector_Sec_Language"];
-        InspectorSecType.Text = loc["Inspector_Sec_Type"];
-        InspectorSecParams.Text = loc["Inspector_Sec_Params"];
-        InspectorSecFile.Text = loc["Inspector_Sec_File"];
-        InspectorSecAiContext.Text = loc["Inspector_Sec_AIContext"];
-        InspectorAiContextDesc.Text = loc["Inspector_AiContextDesc"];
-        CopyLlmSliceButtonText.Text = loc["Inspector_CopyLlmSlice"];
-        SaveLlmSliceButtonText.Text = loc["Inspector_SaveLlmSlice"];
-        ToolTip.SetTip(CopyLlmSliceButton, loc["Tooltip_CopyLlmSlice"]);
-        ToolTip.SetTip(SaveLlmSliceButton, loc["Tooltip_SaveLlmSlice"]);
-        InspectorSecBlast.Text = loc["Inspector_Sec_BlastRadius"];
-        InspectorLabelDirectCallers.Text = loc["Inspector_DirectCallersCount"];
-        InspectorLabelIndirectCallers.Text = loc["Inspector_IndirectCallersCount"];
-        InspectorLabelMaxDepth.Text = loc["Inspector_MaxDepth"];
-        InspectorSecForms.Text = loc["Inspector_Sec_Forms"];
-        InspectorSecClasses.Text = loc["Inspector_Sec_Classes"];
-        InspectorSecPaths.Text = loc["Inspector_Sec_Paths"];
-        InspectorSecCallers.Text = loc["Inspector_Sec_WhoCallsMe"];
-        InspectorSecCallees.Text = loc["Inspector_Sec_WhatDoICall"];
-        InspectorSecInstantiates.Text = loc["Inspector_Sec_Instantiates"];
+        InspectorTitleText.Text = localizationService["Inspector_Title"];
+        InspectorEmptyTitle.Text = localizationService["Inspector_NoSelection"];
+        InspectorEmptyHint1.Text = localizationService["Inspector_Hint1"];
+        InspectorEmptyHint2.Text = localizationService["Inspector_Hint2"];
+        InspectorEmptyHint3.Text = localizationService["Inspector_Hint3"];
+        InspectorSecSymbol.Text = localizationService["Inspector_Sec_Symbol"];
+        InspectorSecKind.Text = localizationService["Inspector_Sec_Kind"];
+        InspectorSecVisibility.Text = localizationService["Inspector_Sec_Visibility"];
+        InspectorSecLanguage.Text = localizationService["Inspector_Sec_Language"];
+        InspectorSecType.Text = localizationService["Inspector_Sec_Type"];
+        InspectorSecParams.Text = localizationService["Inspector_Sec_Params"];
+        InspectorSecFile.Text = localizationService["Inspector_Sec_File"];
+        InspectorSecAiContext.Text = localizationService["Inspector_Sec_AIContext"];
+        InspectorAiContextDesc.Text = localizationService["Inspector_AiContextDesc"];
+        CopyLlmSliceButtonText.Text = localizationService["Inspector_CopyLlmSlice"];
+        SaveLlmSliceButtonText.Text = localizationService["Inspector_SaveLlmSlice"];
+        ToolTip.SetTip(CopyLlmSliceButton, localizationService["Tooltip_CopyLlmSlice"]);
+        ToolTip.SetTip(SaveLlmSliceButton, localizationService["Tooltip_SaveLlmSlice"]);
+        InspectorSecBlast.Text = localizationService["Inspector_Sec_BlastRadius"];
+        InspectorLabelDirectCallers.Text = localizationService["Inspector_DirectCallersCount"];
+        InspectorLabelIndirectCallers.Text = localizationService["Inspector_IndirectCallersCount"];
+        InspectorLabelMaxDepth.Text = localizationService["Inspector_MaxDepth"];
+        InspectorSecForms.Text = localizationService["Inspector_Sec_Forms"];
+        InspectorSecClasses.Text = localizationService["Inspector_Sec_Classes"];
+        InspectorSecPaths.Text = localizationService["Inspector_Sec_Paths"];
+        InspectorSecCallers.Text = localizationService["Inspector_Sec_WhoCallsMe"];
+        InspectorSecCallees.Text = localizationService["Inspector_Sec_WhatDoICall"];
+        InspectorSecInstantiates.Text = localizationService["Inspector_Sec_Instantiates"];
 
         // Modal Notifica Aggiornamento (se visibile)
         if (UpdateOverlay.IsVisible && _availableUpdate != null)
         {
-            UpdateModalTitle.Text = loc["Update_AvailableTitle"];
-            UpdateModalSubtitle.Text = loc.Get("Update_AvailableSubtitle", _availableUpdate.VersionString, UpdateService.CurrentVersionString);
-            UpdateModalNotesLabel.Text = loc["Update_NotesLabel"];
-            UpdateModalNotes.Text = _availableUpdate.GetReleaseNotes(loc.CurrentLanguage == AppLanguage.Italian ? "it" : "en");
-            UpdateLaterButton.Content = loc["Update_ButtonLater"];
-            UpdateNowButton.Content = loc["Update_ButtonNow"];
+            UpdateModalTitle.Text = localizationService["Update_AvailableTitle"];
+            UpdateModalSubtitle.Text = localizationService.Get("Update_AvailableSubtitle", _availableUpdate.VersionString, UpdateService.CurrentVersionString);
+            UpdateModalNotesLabel.Text = localizationService["Update_NotesLabel"];
+            UpdateModalNotes.Text = _availableUpdate.GetReleaseNotes(localizationService.CurrentLanguage == AppLanguage.Italian ? "it" : "en");
+            UpdateLaterButton.Content = localizationService["Update_ButtonLater"];
+            UpdateNowButton.Content = localizationService["Update_ButtonNow"];
         }
 
         // Overlay Conferma Esportazione (se visibile)
         if (ExportSuccessOverlay.IsVisible)
         {
-            ExportSuccessModalTitle.Text = loc["Export_ModalTitle"];
-            ExportSuccessModalSubtitle.Text = loc["Export_ModalSubtitle"];
-            ExportSuccessFileLabel.Text = loc["Export_ModalFileLabel"];
-            ExportSuccessPathLabel.Text = loc["Export_ModalPathLabel"];
-            ExportSuccessOpenFolderButton.Content = loc["Export_ModalOpenFolder"];
-            ExportSuccessCloseButton.Content = loc["Export_ModalOk"];
+            ExportSuccessModalTitle.Text = localizationService["Export_ModalTitle"];
+            ExportSuccessModalSubtitle.Text = localizationService["Export_ModalSubtitle"];
+            ExportSuccessFileLabel.Text = localizationService["Export_ModalFileLabel"];
+            ExportSuccessPathLabel.Text = localizationService["Export_ModalPathLabel"];
+            ExportSuccessOpenFolderButton.Content = localizationService["Export_ModalOpenFolder"];
+            ExportSuccessCloseButton.Content = localizationService["Export_ModalOk"];
         }
 
         // Overlay Caricamento
-        LoadingCancelButton.Content = loc["Loading_Cancel"];
+        LoadingCancelButton.Content = localizationService["Loading_Cancel"];
 
         // Overlay Conferma Cambio Layout
-        LayoutConfirmModalTitle.Text = loc["Layout_ConfirmTitle"];
-        LayoutConfirmModalSubtitle.Text = loc["Layout_ConfirmMessage"];
-        LayoutConfirmCancelButton.Content = loc["Layout_ConfirmCancel"];
-        LayoutConfirmApplyButton.Content = loc["Layout_ConfirmApply"];
+        LayoutConfirmModalTitle.Text = localizationService["Layout_ConfirmTitle"];
+        LayoutConfirmModalSubtitle.Text = localizationService["Layout_ConfirmMessage"];
+        LayoutConfirmCancelButton.Content = localizationService["Layout_ConfirmCancel"];
+        LayoutConfirmApplyButton.Content = localizationService["Layout_ConfirmApply"];
 
         // Refresh dynamic strings in Grid and Status
         UpdateStatsBar();
         ApplyGridFilters();
         if (_selectedNode == null)
         {
-            StatusText.Text = loc["Status_Ready"];
+            StatusText.Text = localizationService["Status_Ready"];
         }
         else
         {
-            StatusText.Text = loc.Get("Status_Selected", _selectedNode.Kind, _selectedNode.QualifiedName);
+            StatusText.Text = localizationService.Get("Status_Selected", _selectedNode.Kind, _selectedNode.QualifiedName);
             if (_selectedNode.SemanticSymbol is { } sym && _graph?.Queries is { } q && q.TryGetCachedImpactReport(sym, 10, out var cachedReport) && cachedReport != null)
             {
                 UpdateInspectorImpactDetails(cachedReport, q.GetDirectCallees(sym), q.GetInstantiatedClasses(sym));

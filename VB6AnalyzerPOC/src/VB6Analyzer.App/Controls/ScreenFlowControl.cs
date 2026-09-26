@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -222,12 +222,12 @@ public sealed class ScreenFlowControl : Control
     {
         context.FillRectangle(_backgroundBrush, new Rect(Bounds.Size));
 
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
         var graph = Graph;
         if (graph is null || graph.Screens.Count == 0)
         {
             var placeholder = new FormattedText(
-                loc["ScreenFlow_Placeholder"],
+                localizationService["ScreenFlow_Placeholder"],
                 CultureInfo.InvariantCulture,
                 FlowDirection.LeftToRight,
                 LabelTypeface,
@@ -341,18 +341,18 @@ public sealed class ScreenFlowControl : Control
 
                     if (screen.IsStartupScreen)
                     {
-                        var startBadgeFmt = new FormattedText(loc["ScreenFlow_StartupBadge"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, BadgeTypeface, 8, _startupBadgeBrush);
+                        var startBadgeFmt = new FormattedText(localizationService["ScreenFlow_StartupBadge"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, BadgeTypeface, 8, _startupBadgeBrush);
                         context.DrawText(startBadgeFmt, new Point(screen.X + screen.Width - startBadgeFmt.Width - 6, screen.Y + 8));
                     }
 
                     // Corpo Card: Metriche Controlli ed Eventi
-                    var ctrlFmt = new FormattedText(loc.Get("ScreenFlow_ControlsCount", screen.ControlsCount), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _textMutedBrush);
+                    var ctrlFmt = new FormattedText(localizationService.Get("ScreenFlow_ControlsCount", screen.ControlsCount), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _textMutedBrush);
                     context.DrawText(ctrlFmt, new Point(screen.X + 8, screen.Y + 34));
 
-                    var evtCountFmt = new FormattedText(loc.Get("ScreenFlow_EventHandlersCount", screen.EventHandlersCount), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _textMutedBrush);
+                    var evtCountFmt = new FormattedText(localizationService.Get("ScreenFlow_EventHandlersCount", screen.EventHandlersCount), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _textMutedBrush);
                     context.DrawText(evtCountFmt, new Point(screen.X + 8, screen.Y + 50));
 
-                    var transFmt = new FormattedText(loc.Get("ScreenFlow_TransitionsCount", screen.OutgoingTransitionsCount, screen.IncomingTransitionsCount), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 9, _transSubTextBrush);
+                    var transFmt = new FormattedText(localizationService.Get("ScreenFlow_TransitionsCount", screen.OutgoingTransitionsCount, screen.IncomingTransitionsCount), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 9, _transSubTextBrush);
                     context.DrawText(transFmt, new Point(screen.X + 8, screen.Y + 70));
                 }
 

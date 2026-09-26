@@ -222,7 +222,7 @@
                         <StackPanel Spacing="16">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Panoramica &amp; Funzionamento di Macondo" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                <TextBlock Text="Strumento di analisi semantica e reverse engineering per progetti legacy Visual Basic 6.0 e C#." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                <TextBlock Text="Strumento di analisi semantica e reverse engineering per progetti software (VB6, C# e architetture complesse)." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
                             <Border Classes="info-card">
@@ -257,7 +257,7 @@
                         <StackPanel Spacing="16">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Macondo Overview &amp; Architecture" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                <TextBlock Text="Static semantic analysis and reverse engineering platform for legacy Visual Basic 6.0 and C# projects." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                <TextBlock Text="Static semantic analysis and reverse engineering platform for software projects (VB6, C#, and complex codebases)." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
                             <Border Classes="info-card">

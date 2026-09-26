@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -293,33 +293,33 @@ public sealed class TemporalCouplingControl : UserControl
 
     private void UpdateLocalizedTexts()
     {
-        var loc = LocalizationService.Instance;
+        var localizationService = LocalizationService.Instance;
 
-        _kpiPairsTitle.Text = loc["Temporal_Kpi_Pairs"];
-        _kpiStrongTitle.Text = loc["Temporal_Kpi_Strong"];
-        _kpiHiddenTitle.Text = loc["Temporal_Kpi_Hidden"];
-        _kpiCommitsTitle.Text = loc["Temporal_Kpi_Commits"];
+        _kpiPairsTitle.Text = localizationService["Temporal_Kpi_Pairs"];
+        _kpiStrongTitle.Text = localizationService["Temporal_Kpi_Strong"];
+        _kpiHiddenTitle.Text = localizationService["Temporal_Kpi_Hidden"];
+        _kpiCommitsTitle.Text = localizationService["Temporal_Kpi_Commits"];
 
-        _searchLabel.Text = loc["Temporal_Filter_Search"];
-        _searchBox.Watermark = loc["Temporal_Filter_Search_Watermark"];
+        _searchLabel.Text = localizationService["Temporal_Filter_Search"];
+        _searchBox.Watermark = localizationService["Temporal_Filter_Search_Watermark"];
 
-        _thresholdLabel.Text = $"{loc["Temporal_Filter_Threshold"]}: {_thresholdSlider.Value:F0}%";
-        _hiddenOnlyCheck.Content = loc["Temporal_Filter_HiddenOnly"];
+        _thresholdLabel.Text = $"{localizationService["Temporal_Filter_Threshold"]}: {_thresholdSlider.Value:F0}%";
+        _hiddenOnlyCheck.Content = localizationService["Temporal_Filter_HiddenOnly"];
 
         if (_pairsDataGrid.Columns.Count >= 7)
         {
-            _pairsDataGrid.Columns[0].Header = loc["Temporal_Col_Jaccard"];
-            _pairsDataGrid.Columns[1].Header = loc["Temporal_Col_StaticDep"];
-            _pairsDataGrid.Columns[2].Header = loc["Temporal_Col_FileA"];
-            _pairsDataGrid.Columns[3].Header = loc["Temporal_Col_FileB"];
-            _pairsDataGrid.Columns[4].Header = loc["Temporal_Col_CoChanges"];
-            _pairsDataGrid.Columns[5].Header = loc["Temporal_Col_ConfAtoB"];
-            _pairsDataGrid.Columns[6].Header = loc["Temporal_Col_ConfBtoA"];
+            _pairsDataGrid.Columns[0].Header = localizationService["Temporal_Col_Jaccard"];
+            _pairsDataGrid.Columns[1].Header = localizationService["Temporal_Col_StaticDep"];
+            _pairsDataGrid.Columns[2].Header = localizationService["Temporal_Col_FileA"];
+            _pairsDataGrid.Columns[3].Header = localizationService["Temporal_Col_FileB"];
+            _pairsDataGrid.Columns[4].Header = localizationService["Temporal_Col_CoChanges"];
+            _pairsDataGrid.Columns[5].Header = localizationService["Temporal_Col_ConfAtoB"];
+            _pairsDataGrid.Columns[6].Header = localizationService["Temporal_Col_ConfBtoA"];
         }
 
         if (_allPairs.Count > 0)
         {
-            _statsTextBlock.Text = loc.Get("Temporal_Stats_Shown", _rows.Count, _allPairs.Count);
+            _statsTextBlock.Text = localizationService.Get("Temporal_Stats_Shown", _rows.Count, _allPairs.Count);
         }
     }
 

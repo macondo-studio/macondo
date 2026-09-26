@@ -147,7 +147,7 @@ public static class WindowsNotificationService
                 uID = NotificationIconId,
                 uFlags = NIF_INFO | NIF_TIP | (hIcon != IntPtr.Zero ? NIF_ICON : 0),
                 hIcon = hIcon,
-                szTip = "Macondo VB6 Analyzer",
+                szTip = "Macondo Code Analyzer",
                 szInfoTitle = safeTitle,
                 szInfo = safeMessage,
                 dwInfoFlags = NIIF_INFO | NIIF_LARGE_ICON

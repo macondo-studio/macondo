@@ -757,8 +757,8 @@
                             <!-- Header Benvenuto -->
                             <StackPanel HorizontalAlignment="Center" Spacing="8">
                                 <Image Source="avares://Macondo/Assets/Icons/icon1_star_knot_512.png" Width="54" Height="54" HorizontalAlignment="Center" Margin="0,0,0,4" RenderOptions.BitmapInterpolationMode="HighQuality" />
-                                <TextBlock x:Name="WelcomeHeaderTitle" Text="Macondo - VB6 Code Analyzer" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" HorizontalAlignment="Center" />
-                                <TextBlock x:Name="WelcomeHeaderSub" Text="Analisi semantica statica, grafo delle dipendenze e raggio d'impatto per progetti legacy Visual Basic 6.0" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="620" TextWrapping="Wrap" />
+                                <TextBlock x:Name="WelcomeHeaderTitle" Text="Macondo - Code Analyzer" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" HorizontalAlignment="Center" />
+                                <TextBlock x:Name="WelcomeHeaderSub" Text="Analisi semantica statica, grafo delle dipendenze e raggio d'impatto per basi di codice complesse (VB6, C#)" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="620" TextWrapping="Wrap" />
                             </StackPanel>
 
                             <!-- Card Progetto Recente in Sospeso (Nessuna Cache Trovata) -->
@@ -828,7 +828,7 @@
                                         </Grid>
                                     </Border>
 
-                                    <!-- Card Apri Cartella VB6 -->
+                                    <!-- Card Apri Cartella -->
                                     <Border Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
                                             BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
                                             BorderThickness="1" CornerRadius="8" Padding="14,12" Cursor="Hand"
@@ -838,7 +838,7 @@
                                                 <PathIcon Data="{StaticResource IconFolder}" Width="16" Height="16" Foreground="#D4A72C" VerticalAlignment="Center" HorizontalAlignment="Center" />
                                             </Border>
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                <TextBlock x:Name="WelcomeOpenFolderTitle" Text="Apri Cartella VB6..." FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                                <TextBlock x:Name="WelcomeOpenFolderTitle" Text="Apri Cartella..." FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                                 <TextBlock x:Name="WelcomeOpenFolderSub" Text="Scansiona un'intera cartella di codice" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
                                             </StackPanel>
                                             <Border Grid.Column="2" Background="{DynamicResource ThemeBackgroundElevatedBrush}" CornerRadius="3" Padding="5,1" VerticalAlignment="Center">
@@ -1232,7 +1232,7 @@
                                 <StackPanel x:Name="LegendContentPanel" Spacing="6" IsVisible="True">
                                     <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,1" />
 
-                                    <!-- Moduli e File VB6 (Contenitori) -->
+                                    <!-- Moduli e File (Contenitori) -->
                                     <UniformGrid Columns="2" Margin="0,2">
                                         <!-- Form -->
                                         <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">

@@ -53,11 +53,11 @@ public static class KeyboardShortcutsCatalog
             new()
             {
                 KeyBadges = new[] { "Ctrl", "O" },
-                ActionName = isEn ? "Open VB6 Folder" : "Apri Cartella VB6",
+                ActionName = isEn ? "Open Folder" : "Apri Cartella",
                 Category = "File",
                 Description = isEn
-                    ? "Opens a folder picker to analyze and visualize any VB6 source directory."
-                    : "Apre il selettore cartella per analizzare un nuovo progetto VB6."
+                    ? "Opens a folder picker to analyze and visualize any project source directory."
+                    : "Apre il selettore cartella per analizzare un nuovo progetto."
             },
             new()
             {
@@ -92,8 +92,8 @@ public static class KeyboardShortcutsCatalog
                 ActionName = isEn ? "Exit Application" : "Esci dall'Applicazione",
                 Category = isEn ? "General" : "Generale",
                 Description = isEn
-                    ? "Safely terminates the VB6 Analyzer application."
-                    : "Chiude in sicurezza l'applicazione VB6 Analyzer."
+                    ? "Safely terminates the Macondo application."
+                    : "Chiude in sicurezza l'applicazione Macondo."
             },
 
             // Categoria: Analisi e Grafo
