@@ -136,13 +136,13 @@ public static class DeadCodeAnalyzer
                 case SymbolKind.Method:
                 case SymbolKind.Property:
                     category = DeadCodeCategory.UnreachableRoutine;
-                    reason = "Nessuna chiamata diretta o indiretta rilevata da alcun punto di ingresso dell'applicazione.";
+                    reason = "No direct or indirect calls detected from any application entry point.";
                     break;
 
                 case SymbolKind.Field:
                 case SymbolKind.Constant:
                     category = DeadCodeCategory.UnusedFieldOrConstant;
-                    reason = "Variabile o costante dichiarata ma mai referenziata o letta.";
+                    reason = "Variable or constant declared but never referenced or read.";
                     break;
 
                 case SymbolKind.Class:
@@ -152,18 +152,18 @@ public static class DeadCodeAnalyzer
                 case SymbolKind.Record:
                 case SymbolKind.Struct:
                     category = DeadCodeCategory.OrphanContainer;
-                    reason = "Componente mai istanziato, referenziato o caricato nel flusso del programma.";
+                    reason = "Component never instantiated, referenced, or loaded in the program flow.";
                     break;
 
                 case SymbolKind.Type:
                 case SymbolKind.Enum:
                     category = DeadCodeCategory.UnusedType;
-                    reason = "Tipo o Enumerazione definita ma mai utilizzata per tipizzare campi o variabili.";
+                    reason = "Type or Enum defined but never used as a field, parameter, or variable type.";
                     break;
 
                 default:
                     category = DeadCodeCategory.UnreachableRoutine;
-                    reason = "Simbolo non raggiungibile.";
+                    reason = "Unreachable symbol.";
                     break;
             }
 

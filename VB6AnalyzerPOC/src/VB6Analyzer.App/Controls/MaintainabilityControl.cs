@@ -31,9 +31,9 @@ public sealed class MaintainabilityGridRow
 
     public string RatingText => Item.Rating switch
     {
-        MaintainabilityRating.High => "Alta (80-100)",
-        MaintainabilityRating.Moderate => "Moderata (20-79)",
-        _ => "Bassa / Critica (0-19)"
+        MaintainabilityRating.High => LocalizationService.Instance["Maintainability_Rating_High"],
+        MaintainabilityRating.Moderate => LocalizationService.Instance["Maintainability_Rating_Moderate"],
+        _ => LocalizationService.Instance["Maintainability_Rating_Low"]
     };
 
     public string RatingBadgeBg => Item.Rating switch
@@ -78,10 +78,10 @@ public sealed class MaintainabilityControl : UserControl
         // 1. KPI Cards Header
         var kpiPanel = new UniformGrid { Columns = 4, Margin = new Thickness(0, 0, 0, 12) };
 
-        var card1 = CreateKpiCard("Maintainability Index Medio", out _kpiAvgMiValue, "#3B82F6");
-        var card2 = CreateKpiCard("Alta Qualità (MI ≥ 80)", out _kpiHighMiValue, "#10B981");
-        var card3 = CreateKpiCard("Moderata (20 ≤ MI < 80)", out _kpiModMiValue, "#F59E0B");
-        var card4 = CreateKpiCard("Critica / Bassa (MI < 20)", out _kpiLowMiValue, "#EF4444");
+        var card1 = CreateKpiCard(LocalizationService.Instance["Maintainability_Kpi_AvgMi"], out _kpiAvgMiValue, "#3B82F6");
+        var card2 = CreateKpiCard(LocalizationService.Instance["Maintainability_Kpi_HighQuality"], out _kpiHighMiValue, "#10B981");
+        var card3 = CreateKpiCard(LocalizationService.Instance["Maintainability_Kpi_Moderate"], out _kpiModMiValue, "#F59E0B");
+        var card4 = CreateKpiCard(LocalizationService.Instance["Maintainability_Kpi_Critical"], out _kpiLowMiValue, "#EF4444");
 
         kpiPanel.Children.Add(card1);
         kpiPanel.Children.Add(card2);
@@ -100,7 +100,7 @@ public sealed class MaintainabilityControl : UserControl
 
         _searchBox = new TextBox
         {
-            Watermark = "Cerca classe, modulo o file...",
+            Watermark = LocalizationService.Instance["Maintainability_SearchWatermark"],
             Width = 280,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -120,16 +120,16 @@ public sealed class MaintainabilityControl : UserControl
             HeadersVisibility = DataGridHeadersVisibility.Column
         };
 
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Nome", Binding = new Binding(nameof(MaintainabilityGridRow.Name)), Width = new DataGridLength(200) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Indice MI", Binding = new Binding(nameof(MaintainabilityGridRow.MaintainabilityIndex)), Width = new DataGridLength(90) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Valutazione", Binding = new Binding(nameof(MaintainabilityGridRow.RatingText)), Width = new DataGridLength(150) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "LOC", Binding = new Binding(nameof(MaintainabilityGridRow.LinesOfCode)), Width = new DataGridLength(70) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "CC", Binding = new Binding(nameof(MaintainabilityGridRow.CyclomaticComplexity)), Width = new DataGridLength(70) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Volume Halstead", Binding = new Binding(nameof(MaintainabilityGridRow.Volume)), Width = new DataGridLength(110) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Difficoltà", Binding = new Binding(nameof(MaintainabilityGridRow.Difficulty)), Width = new DataGridLength(90) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Sforzo", Binding = new Binding(nameof(MaintainabilityGridRow.Effort)), Width = new DataGridLength(90) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Bug Stimati", Binding = new Binding(nameof(MaintainabilityGridRow.EstimatedBugs)), Width = new DataGridLength(90) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "File", Binding = new Binding(nameof(MaintainabilityGridRow.FilePath)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Maintainability_Col_Name"], Binding = new Binding(nameof(MaintainabilityGridRow.Name)), Width = new DataGridLength(200) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Maintainability_Col_Mi"], Binding = new Binding(nameof(MaintainabilityGridRow.MaintainabilityIndex)), Width = new DataGridLength(90) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Maintainability_Col_Rating"], Binding = new Binding(nameof(MaintainabilityGridRow.RatingText)), Width = new DataGridLength(150) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Maintainability_Col_Loc"], Binding = new Binding(nameof(MaintainabilityGridRow.LinesOfCode)), Width = new DataGridLength(70) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Maintainability_Col_Cc"], Binding = new Binding(nameof(MaintainabilityGridRow.CyclomaticComplexity)), Width = new DataGridLength(70) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Maintainability_Col_Volume"], Binding = new Binding(nameof(MaintainabilityGridRow.Volume)), Width = new DataGridLength(110) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Maintainability_Col_Difficulty"], Binding = new Binding(nameof(MaintainabilityGridRow.Difficulty)), Width = new DataGridLength(90) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Maintainability_Col_Effort"], Binding = new Binding(nameof(MaintainabilityGridRow.Effort)), Width = new DataGridLength(90) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Maintainability_Col_Bugs"], Binding = new Binding(nameof(MaintainabilityGridRow.EstimatedBugs)), Width = new DataGridLength(90) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Social_Col_File"], Binding = new Binding(nameof(MaintainabilityGridRow.FilePath)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
 
         Grid.SetRow(_grid, 2);
         mainGrid.Children.Add(_grid);
@@ -137,7 +137,7 @@ public sealed class MaintainabilityControl : UserControl
         // 4. Footer stats
         _statsText = new TextBlock
         {
-            Text = "Nessun dato caricato.",
+            Text = LocalizationService.Instance["Maintainability_Placeholder"],
             Foreground = Brushes.Gray,
             Margin = new Thickness(0, 8, 0, 0)
         };
@@ -188,7 +188,7 @@ public sealed class MaintainabilityControl : UserControl
             _kpiHighMiValue.Text = "0";
             _kpiModMiValue.Text = "0";
             _kpiLowMiValue.Text = "0";
-            _statsText.Text = "Nessun dato.";
+            _statsText.Text = LocalizationService.Instance["Maintainability_Placeholder"];
             return;
         }
 
@@ -215,7 +215,7 @@ public sealed class MaintainabilityControl : UserControl
             _rows.Add(new MaintainabilityGridRow { Item = item });
         }
 
-        _statsText.Text = $"Elementi visualizzati: {_rows.Count} / {_allItems.Count}";
+        _statsText.Text = LocalizationService.Instance.Get("Maintainability_StatsFormat", _rows.Count, _allItems.Count);
     }
 
     public void ApplyTheme(ThemeDefinition theme) { }

@@ -170,7 +170,7 @@ public static class TaintAnalyzer
                 {
                     VariableSymbol = f,
                     AnomalyType = "DeadStore",
-                    Description = $"Il campo o variabile '{f.Name}' riceve assegnazioni/scritture ma non viene mai letto altrove nel programma."
+                    Description = $"The field or variable '{f.Name}' is written/assigned to but never read anywhere in the program."
                 });
             }
         }

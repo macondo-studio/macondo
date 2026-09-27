@@ -73,7 +73,7 @@ public sealed class TaintPath
     public int HopCount => Math.Max(0, PropagationChain.Count - 1);
 
     /// <summary>Descrizione del rischio di sicurezza o integrità.</summary>
-    public string Description => $"Flusso non sanificato da [{SourceKind}] '{SourceSymbol.Name}' a [{SinkKind}] '{SinkSymbol.Name}' ({HopCount} passaggi).";
+    public string Description => $"Unsanitized flow from [{SourceKind}] '{SourceSymbol.Name}' to [{SinkKind}] '{SinkSymbol.Name}' ({HopCount} hops).";
 }
 
 /// <summary>

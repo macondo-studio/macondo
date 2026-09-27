@@ -18,7 +18,9 @@ public sealed class CodeCloneGridRow
 {
     public required CodeCloneGroup Group { get; init; }
 
-    public string TypeText => Group.Type == CloneType.Type1Exact ? "Tipo 1 (Esatto)" : "Tipo 2 (Strutturale)";
+    public string TypeText => Group.Type == CloneType.Type1Exact
+        ? LocalizationService.Instance["CodeClone_Type1"]
+        : LocalizationService.Instance["CodeClone_Type2"];
     public int LineCount => Group.LineCount;
     public int OccurrencesCount => Group.Occurrences.Count;
     public int RedundantLines => Group.RedundantLines;
@@ -60,10 +62,10 @@ public sealed class CodeCloneControl : UserControl
         // 1. KPI Cards Header
         var kpiPanel = new UniformGrid { Columns = 4, Margin = new Thickness(0, 0, 0, 12) };
 
-        var card1 = CreateKpiCard("Gruppi Duplicati", out _kpiGroupsValue, "#3B82F6");
-        var card2 = CreateKpiCard("Occorrenze Totali", out _kpiOccurrencesValue, "#F59E0B");
-        var card3 = CreateKpiCard("Righe Ridondanti", out _kpiRedundantLinesValue, "#EF4444");
-        var card4 = CreateKpiCard("Cloni Esatti (Tipo 1)", out _kpiExactClonesValue, "#8B5CF6");
+        var card1 = CreateKpiCard(LocalizationService.Instance["CodeClone_Kpi_Groups"], out _kpiGroupsValue, "#3B82F6");
+        var card2 = CreateKpiCard(LocalizationService.Instance["CodeClone_Kpi_Occurrences"], out _kpiOccurrencesValue, "#F59E0B");
+        var card3 = CreateKpiCard(LocalizationService.Instance["CodeClone_Kpi_RedundantLines"], out _kpiRedundantLinesValue, "#EF4444");
+        var card4 = CreateKpiCard(LocalizationService.Instance["CodeClone_Kpi_ExactClones"], out _kpiExactClonesValue, "#8B5CF6");
 
         kpiPanel.Children.Add(card1);
         kpiPanel.Children.Add(card2);
@@ -82,7 +84,7 @@ public sealed class CodeCloneControl : UserControl
 
         _searchBox = new TextBox
         {
-            Watermark = "Cerca per modulo o percorso...",
+            Watermark = LocalizationService.Instance["CodeClone_SearchWatermark"],
             Width = 280,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -102,11 +104,11 @@ public sealed class CodeCloneControl : UserControl
             HeadersVisibility = DataGridHeadersVisibility.Column
         };
 
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Tipo Clone", Binding = new Binding(nameof(CodeCloneGridRow.TypeText)), Width = new DataGridLength(150) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Righe Frammento", Binding = new Binding(nameof(CodeCloneGridRow.LineCount)), Width = new DataGridLength(120) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Occorrenze", Binding = new Binding(nameof(CodeCloneGridRow.OccurrencesCount)), Width = new DataGridLength(100) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Righe Risparmiabili", Binding = new Binding(nameof(CodeCloneGridRow.RedundantLines)), Width = new DataGridLength(130) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Componenti Coinvolti", Binding = new Binding(nameof(CodeCloneGridRow.AllOccurrencesSummary)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["CodeClone_Col_Type"], Binding = new Binding(nameof(CodeCloneGridRow.TypeText)), Width = new DataGridLength(150) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["CodeClone_Col_Lines"], Binding = new Binding(nameof(CodeCloneGridRow.LineCount)), Width = new DataGridLength(120) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["CodeClone_Col_Occurrences"], Binding = new Binding(nameof(CodeCloneGridRow.OccurrencesCount)), Width = new DataGridLength(100) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["CodeClone_Col_Redundant"], Binding = new Binding(nameof(CodeCloneGridRow.RedundantLines)), Width = new DataGridLength(130) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["CodeClone_Col_Summary"], Binding = new Binding(nameof(CodeCloneGridRow.AllOccurrencesSummary)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
 
         Grid.SetRow(_grid, 2);
         mainGrid.Children.Add(_grid);
@@ -114,7 +116,7 @@ public sealed class CodeCloneControl : UserControl
         // 4. Footer stats
         _statsText = new TextBlock
         {
-            Text = "Nessun dato caricato.",
+            Text = LocalizationService.Instance["CodeClone_Placeholder"],
             Foreground = Brushes.Gray,
             Margin = new Thickness(0, 8, 0, 0)
         };
@@ -165,7 +167,7 @@ public sealed class CodeCloneControl : UserControl
             _kpiOccurrencesValue.Text = "0";
             _kpiRedundantLinesValue.Text = "0";
             _kpiExactClonesValue.Text = "0";
-            _statsText.Text = "Nessun dato.";
+            _statsText.Text = LocalizationService.Instance["CodeClone_Placeholder"];
             return;
         }
 
@@ -192,7 +194,7 @@ public sealed class CodeCloneControl : UserControl
             _rows.Add(new CodeCloneGridRow { Group = g });
         }
 
-        _statsText.Text = $"Gruppi visualizzati: {_rows.Count} / {_allGroups.Count}";
+        _statsText.Text = LocalizationService.Instance.Get("CodeClone_StatsFormat", _rows.Count, _allGroups.Count);
     }
 
     public void ApplyTheme(ThemeDefinition theme) { }

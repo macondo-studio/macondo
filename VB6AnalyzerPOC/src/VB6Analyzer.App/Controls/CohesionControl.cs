@@ -31,7 +31,9 @@ public sealed class CohesionGridRow
     public int Rfc => Item.ResponseForClass;
     public int ClusterCount => Item.Clusters.Count;
 
-    public string StatusBadgeText => Item.IsRefactoringCandidate ? "Split Candidate" : "Cohesive";
+    public string StatusBadgeText => Item.IsRefactoringCandidate
+        ? LocalizationService.Instance["Cohesion_CandidateBadge"]
+        : LocalizationService.Instance["Cohesion_CohesiveBadge"];
     public string StatusBadgeBg => Item.IsRefactoringCandidate ? "#B81D2D" : "#2E7D32";
 }
 
@@ -70,10 +72,10 @@ public sealed class CohesionControl : UserControl
         // 1. KPI Cards Header
         var kpiPanel = new UniformGrid { Columns = 4, Margin = new Thickness(0, 0, 0, 12) };
 
-        var card1 = CreateKpiCard("Classi / Moduli", out _kpiTotalContainersValue, "#3B82F6");
-        var card2 = CreateKpiCard("LCOM4 Medio", out _kpiAvgLcomValue, "#10B981");
-        var card3 = CreateKpiCard("TCC Medio (%)", out _kpiAvgTccValue, "#8B5CF6");
-        var card4 = CreateKpiCard("Candidati Split / Refactor", out _kpiCandidatesValue, "#EF4444");
+        var card1 = CreateKpiCard(LocalizationService.Instance["Cohesion_Kpi_Containers"], out _kpiTotalContainersValue, "#3B82F6");
+        var card2 = CreateKpiCard(LocalizationService.Instance["Cohesion_Kpi_AvgLcom"], out _kpiAvgLcomValue, "#10B981");
+        var card3 = CreateKpiCard(LocalizationService.Instance["Cohesion_Kpi_AvgTcc"], out _kpiAvgTccValue, "#8B5CF6");
+        var card4 = CreateKpiCard(LocalizationService.Instance["Cohesion_Kpi_Candidates"], out _kpiCandidatesValue, "#EF4444");
 
         kpiPanel.Children.Add(card1);
         kpiPanel.Children.Add(card2);
@@ -92,7 +94,7 @@ public sealed class CohesionControl : UserControl
 
         _searchBox = new TextBox
         {
-            Watermark = "Cerca classe, modulo o file...",
+            Watermark = LocalizationService.Instance["Cohesion_SearchWatermark"],
             Width = 280,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -100,7 +102,7 @@ public sealed class CohesionControl : UserControl
 
         _candidatesOnlyCheck = new CheckBox
         {
-            Content = "Mostra solo candidati al refactoring (LCOM4 ≥ 2)",
+            Content = LocalizationService.Instance["Cohesion_CandidatesOnly"],
             IsChecked = false,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -121,16 +123,16 @@ public sealed class CohesionControl : UserControl
             HeadersVisibility = DataGridHeadersVisibility.Column
         };
 
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Nome", Binding = new Binding(nameof(CohesionGridRow.Name)), Width = new DataGridLength(200) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "LCOM4", Binding = new Binding(nameof(CohesionGridRow.Lcom4)), Width = new DataGridLength(80) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "TCC %", Binding = new Binding(nameof(CohesionGridRow.Tcc)), Width = new DataGridLength(80) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "LCC %", Binding = new Binding(nameof(CohesionGridRow.Lcc)), Width = new DataGridLength(80) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Metodi", Binding = new Binding(nameof(CohesionGridRow.MethodCount)), Width = new DataGridLength(80) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Campi", Binding = new Binding(nameof(CohesionGridRow.FieldCount)), Width = new DataGridLength(80) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "WMC", Binding = new Binding(nameof(CohesionGridRow.Wmc)), Width = new DataGridLength(80) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "CBO", Binding = new Binding(nameof(CohesionGridRow.Cbo)), Width = new DataGridLength(80) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "RFC", Binding = new Binding(nameof(CohesionGridRow.Rfc)), Width = new DataGridLength(80) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "File", Binding = new Binding(nameof(CohesionGridRow.FilePath)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Cohesion_Col_Name"], Binding = new Binding(nameof(CohesionGridRow.Name)), Width = new DataGridLength(200) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Cohesion_Col_Lcom4"], Binding = new Binding(nameof(CohesionGridRow.Lcom4)), Width = new DataGridLength(80) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Cohesion_Col_Tcc"], Binding = new Binding(nameof(CohesionGridRow.Tcc)), Width = new DataGridLength(80) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Cohesion_Col_Lcc"], Binding = new Binding(nameof(CohesionGridRow.Lcc)), Width = new DataGridLength(80) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Cohesion_Col_Methods"], Binding = new Binding(nameof(CohesionGridRow.MethodCount)), Width = new DataGridLength(80) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Cohesion_Col_Fields"], Binding = new Binding(nameof(CohesionGridRow.FieldCount)), Width = new DataGridLength(80) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Cohesion_Col_Wmc"], Binding = new Binding(nameof(CohesionGridRow.Wmc)), Width = new DataGridLength(80) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Cohesion_Col_Cbo"], Binding = new Binding(nameof(CohesionGridRow.Cbo)), Width = new DataGridLength(80) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Cohesion_Col_Rfc"], Binding = new Binding(nameof(CohesionGridRow.Rfc)), Width = new DataGridLength(80) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Social_Col_File"], Binding = new Binding(nameof(CohesionGridRow.FilePath)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
 
         Grid.SetRow(_grid, 2);
         mainGrid.Children.Add(_grid);
@@ -138,7 +140,7 @@ public sealed class CohesionControl : UserControl
         // 4. Footer stats
         _statsText = new TextBlock
         {
-            Text = "Nessun dato caricato.",
+            Text = LocalizationService.Instance["Cohesion_Placeholder"],
             Foreground = Brushes.Gray,
             Margin = new Thickness(0, 8, 0, 0)
         };
@@ -189,7 +191,7 @@ public sealed class CohesionControl : UserControl
             _kpiAvgLcomValue.Text = "0.0";
             _kpiAvgTccValue.Text = "0.0";
             _kpiCandidatesValue.Text = "0";
-            _statsText.Text = "Nessun dato.";
+            _statsText.Text = LocalizationService.Instance["Cohesion_Placeholder"];
             return;
         }
 
@@ -220,7 +222,7 @@ public sealed class CohesionControl : UserControl
             _rows.Add(new CohesionGridRow { Item = item });
         }
 
-        _statsText.Text = $"Elementi visualizzati: {_rows.Count} / {_allItems.Count}";
+        _statsText.Text = LocalizationService.Instance.Get("Cohesion_StatsFormat", _rows.Count, _allItems.Count);
     }
 
     public void ApplyTheme(ThemeDefinition theme) { }

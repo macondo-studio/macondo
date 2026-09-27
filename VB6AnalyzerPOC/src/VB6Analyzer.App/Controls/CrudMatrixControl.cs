@@ -28,10 +28,10 @@ public sealed class CrudCellGridRow
         get
         {
             var ops = new List<string>();
-            if (Cell.HasCreate) ops.Add("Create");
-            if (Cell.HasRead) ops.Add("Read");
-            if (Cell.HasUpdate) ops.Add("Update");
-            if (Cell.HasDelete) ops.Add("Delete");
+            if (Cell.HasCreate) ops.Add(LocalizationService.Instance["Crud_Op_Create"]);
+            if (Cell.HasRead) ops.Add(LocalizationService.Instance["Crud_Op_Read"]);
+            if (Cell.HasUpdate) ops.Add(LocalizationService.Instance["Crud_Op_Update"]);
+            if (Cell.HasDelete) ops.Add(LocalizationService.Instance["Crud_Op_Delete"]);
             return string.Join(", ", ops);
         }
     }
@@ -81,10 +81,10 @@ public sealed class CrudMatrixControl : UserControl
         // 1. KPI Cards Header
         var kpiPanel = new UniformGrid { Columns = 4, Margin = new Thickness(0, 0, 0, 12) };
 
-        var card1 = CreateKpiCard("Entità / Tabelle Rilevate", out _kpiTotalEntitiesValue, "#3B82F6");
-        var card2 = CreateKpiCard("Operazioni CRUD Totali", out _kpiTotalOperationsValue, "#8B5CF6");
-        var card3 = CreateKpiCard("Operazioni Create / Insert", out _kpiCreateOpsValue, "#10B981");
-        var card4 = CreateKpiCard("Operazioni Delete / Drop", out _kpiDeleteOpsValue, "#EF4444");
+        var card1 = CreateKpiCard(LocalizationService.Instance["Crud_Kpi_Entities"], out _kpiTotalEntitiesValue, "#3B82F6");
+        var card2 = CreateKpiCard(LocalizationService.Instance["Crud_Kpi_TotalOps"], out _kpiTotalOperationsValue, "#8B5CF6");
+        var card3 = CreateKpiCard(LocalizationService.Instance["Crud_Kpi_CreateOps"], out _kpiCreateOpsValue, "#10B981");
+        var card4 = CreateKpiCard(LocalizationService.Instance["Crud_Kpi_DeleteOps"], out _kpiDeleteOpsValue, "#EF4444");
 
         kpiPanel.Children.Add(card1);
         kpiPanel.Children.Add(card2);
@@ -103,7 +103,7 @@ public sealed class CrudMatrixControl : UserControl
 
         _searchBox = new TextBox
         {
-            Watermark = "Cerca per entità, tabella, routine o file...",
+            Watermark = LocalizationService.Instance["Crud_SearchWatermark"],
             Width = 320,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -123,12 +123,12 @@ public sealed class CrudMatrixControl : UserControl
             HeadersVisibility = DataGridHeadersVisibility.Column
         };
 
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Entità / Tabella", Binding = new Binding(nameof(CrudCellGridRow.EntityName)), Width = new DataGridLength(180) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Pattern CRUD", Binding = new Binding(nameof(CrudCellGridRow.CrudString)), Width = new DataGridLength(110) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Operazioni", Binding = new Binding(nameof(CrudCellGridRow.OperationsText)), Width = new DataGridLength(160) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Routine Accessor", Binding = new Binding(nameof(CrudCellGridRow.RoutineName)), Width = new DataGridLength(180) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Modulo / Classe", Binding = new Binding(nameof(CrudCellGridRow.ContainerName)), Width = new DataGridLength(160) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "File Sorgente", Binding = new Binding(nameof(CrudCellGridRow.FilePath)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Crud_Col_Entity"], Binding = new Binding(nameof(CrudCellGridRow.EntityName)), Width = new DataGridLength(180) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Crud_Col_Crud"], Binding = new Binding(nameof(CrudCellGridRow.CrudString)), Width = new DataGridLength(110) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Crud_Col_Operations"], Binding = new Binding(nameof(CrudCellGridRow.OperationsText)), Width = new DataGridLength(160) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Crud_Col_Routine"], Binding = new Binding(nameof(CrudCellGridRow.RoutineName)), Width = new DataGridLength(180) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Crud_Col_Container"], Binding = new Binding(nameof(CrudCellGridRow.ContainerName)), Width = new DataGridLength(160) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Social_Col_File"], Binding = new Binding(nameof(CrudCellGridRow.FilePath)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
 
         Grid.SetRow(_grid, 2);
         mainGrid.Children.Add(_grid);
@@ -136,7 +136,7 @@ public sealed class CrudMatrixControl : UserControl
         // 4. Footer stats
         _statsText = new TextBlock
         {
-            Text = "Nessun dato caricato.",
+            Text = LocalizationService.Instance["Crud_Placeholder"],
             Foreground = Brushes.Gray,
             Margin = new Thickness(0, 8, 0, 0)
         };
@@ -187,7 +187,7 @@ public sealed class CrudMatrixControl : UserControl
             _kpiTotalOperationsValue.Text = "0";
             _kpiCreateOpsValue.Text = "0";
             _kpiDeleteOpsValue.Text = "0";
-            _statsText.Text = "Nessun dato.";
+            _statsText.Text = LocalizationService.Instance["Crud_Placeholder"];
             return;
         }
 
@@ -216,7 +216,7 @@ public sealed class CrudMatrixControl : UserControl
             _rows.Add(new CrudCellGridRow { Cell = c });
         }
 
-        _statsText.Text = $"Operazioni visualizzate: {_rows.Count} / {_allCells.Count}";
+        _statsText.Text = LocalizationService.Instance.Get("Crud_StatsFormat", _rows.Count, _allCells.Count);
     }
 
     public void ApplyTheme(ThemeDefinition theme) { }

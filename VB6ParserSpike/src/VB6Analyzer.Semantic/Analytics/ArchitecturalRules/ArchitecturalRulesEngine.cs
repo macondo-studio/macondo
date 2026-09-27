@@ -39,7 +39,7 @@ public static class ArchitecturalRulesEngine
             new ArchitecturalRule
             {
                 Name = "Domain Isolation (Clean Architecture)",
-                Description = "Il layer di Dominio / Modelli non deve avere dipendenze verso i layer esterni (UI, Controller o DataAccess).",
+                Description = "The Domain / Model layer must not depend on outer layers (UI, Controller, or DataAccess).",
                 Type = RuleType.ForbiddenDependency,
                 Severity = RuleSeverity.Critical,
                 SourceSelector = new ComponentSelector { Name = "Domain", Pattern = "*Domain*;*Model*;*Entity*" },
@@ -48,7 +48,7 @@ public static class ArchitecturalRulesEngine
             new ArchitecturalRule
             {
                 Name = "No Direct DB Access from UI / Forms",
-                Description = "I Form e i controlli UI non devono invocare direttamente componenti o repository di accesso ai dati senza passare da servizi.",
+                Description = "Forms and UI controls must not directly invoke database access components or repositories without passing through services.",
                 Type = RuleType.ForbiddenDependency,
                 Severity = RuleSeverity.Error,
                 SourceSelector = new ComponentSelector { Name = "UI / Forms", Pattern = "*.frm;*View*;*Form*", KindFilter = SymbolKind.Form },
@@ -57,7 +57,7 @@ public static class ArchitecturalRulesEngine
             new ArchitecturalRule
             {
                 Name = "Standard Modules Must Not Instantiate Forms",
-                Description = "I moduli di utilità pura (.bas o classi Helper) non devono istanziare né dipendere direttamente da interfacce grafiche/Form.",
+                Description = "Utility modules (.bas or Helper classes) must not instantiate or directly depend on UI Forms.",
                 Type = RuleType.ForbiddenDependency,
                 Severity = RuleSeverity.Warning,
                 SourceSelector = new ComponentSelector { Name = "Standard Modules", Pattern = "*.bas;*Helper*;*Util*", KindFilter = SymbolKind.Module },
@@ -157,7 +157,7 @@ public static class ArchitecturalRulesEngine
                         SourceSymbol = actualSrc ?? srcCont,
                         TargetSymbol = actualTgt ?? tgtCont,
                         Relationship = rel,
-                        Message = $"Violazione '{rule.Name}': '{srcCont.Name}' non può dipendere da '{tgtCont.Name}' (relazione: {rel.Kind})."
+                        Message = $"Violation '{rule.Name}': '{srcCont.Name}' cannot depend on '{tgtCont.Name}' (relationship: {rel.Kind})."
                     });
                 }
             }
@@ -200,7 +200,7 @@ public static class ArchitecturalRulesEngine
                             SourceSymbol = actualSrc ?? srcCont,
                             TargetSymbol = actualTgt ?? tgtCont,
                             Relationship = rel,
-                            Message = $"Violazione astrazione '{rule.Name}': '{srcCont.Name}' accede direttamente alla classe concreta '{tgtCont.Name}' invece di un'interfaccia."
+                            Message = $"Abstraction violation '{rule.Name}': '{srcCont.Name}' directly accesses concrete class '{tgtCont.Name}' instead of an interface."
                         });
                     }
                 }
@@ -241,7 +241,7 @@ public static class ArchitecturalRulesEngine
                         SourceSymbol = actualSrc ?? srcCont,
                         TargetSymbol = actualTgt ?? tgtCont,
                         Relationship = rel,
-                        Message = $"Violazione componente isolato '{rule.Name}': '{srcCont.Name}' tenta di accedere al componente interno riservato '{tgtCont.Name}'."
+                        Message = $"Isolated component violation '{rule.Name}': '{srcCont.Name}' attempts to access restricted internal component '{tgtCont.Name}'."
                     });
                 }
             }

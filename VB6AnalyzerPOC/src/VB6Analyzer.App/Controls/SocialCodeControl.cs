@@ -27,10 +27,10 @@ public sealed class SocialCodeGridRow
     public double KnowledgeEntropy => Report.KnowledgeEntropy;
     public string RiskText => Report.Risk switch
     {
-        BusFactorRisk.Orphan => "Codice Orfano",
-        BusFactorRisk.High => "Rischio Alto (Bus = 1)",
-        BusFactorRisk.Medium => "Rischio Medio",
-        _ => "Basso Rischio"
+        BusFactorRisk.Orphan => LocalizationService.Instance["Social_Risk_Orphan"],
+        BusFactorRisk.High => LocalizationService.Instance["Social_Risk_High"],
+        BusFactorRisk.Medium => LocalizationService.Instance["Social_Risk_Medium"],
+        _ => LocalizationService.Instance["Social_Risk_Low"]
     };
 
     public string RiskBadgeBg => Report.Risk switch
@@ -76,10 +76,10 @@ public sealed class SocialCodeControl : UserControl
         // 1. KPI Cards Header
         var kpiPanel = new UniformGrid { Columns = 4, Margin = new Thickness(0, 0, 0, 12) };
 
-        var card1 = CreateKpiCard("Bus Factor Medio", out _kpiAvgBusFactorValue, "#3B82F6");
-        var card2 = CreateKpiCard("File ad Alto Rischio (BF = 1)", out _kpiHighRiskValue, "#EF4444");
-        var card3 = CreateKpiCard("File Orfani (Autore Inattivo)", out _kpiOrphanFilesValue, "#8B5CF6");
-        var card4 = CreateKpiCard("Autori Totali", out _kpiTotalAuthorsValue, "#10B981");
+        var card1 = CreateKpiCard(LocalizationService.Instance["Social_Kpi_AvgBusFactor"], out _kpiAvgBusFactorValue, "#3B82F6");
+        var card2 = CreateKpiCard(LocalizationService.Instance["Social_Kpi_HighRisk"], out _kpiHighRiskValue, "#EF4444");
+        var card3 = CreateKpiCard(LocalizationService.Instance["Social_Kpi_Orphan"], out _kpiOrphanFilesValue, "#8B5CF6");
+        var card4 = CreateKpiCard(LocalizationService.Instance["Social_Kpi_TotalAuthors"], out _kpiTotalAuthorsValue, "#10B981");
 
         kpiPanel.Children.Add(card1);
         kpiPanel.Children.Add(card2);
@@ -98,7 +98,7 @@ public sealed class SocialCodeControl : UserControl
 
         _searchBox = new TextBox
         {
-            Watermark = "Cerca per file o autore...",
+            Watermark = LocalizationService.Instance["Social_SearchWatermark"],
             Width = 280,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -118,13 +118,13 @@ public sealed class SocialCodeControl : UserControl
             HeadersVisibility = DataGridHeadersVisibility.Column
         };
 
-        _grid.Columns.Add(new DataGridTextColumn { Header = "File", Binding = new Binding(nameof(SocialCodeGridRow.FileName)), Width = new DataGridLength(200) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Autore Principale", Binding = new Binding(nameof(SocialCodeGridRow.PrimaryAuthor)), Width = new DataGridLength(160) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Ownership %", Binding = new Binding(nameof(SocialCodeGridRow.PrimaryOwnership)), Width = new DataGridLength(110) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Bus Factor", Binding = new Binding(nameof(SocialCodeGridRow.BusFactor)), Width = new DataGridLength(90) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Rischio Conway", Binding = new Binding(nameof(SocialCodeGridRow.RiskText)), Width = new DataGridLength(160) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Autori Coinvolti", Binding = new Binding(nameof(SocialCodeGridRow.TotalAuthors)), Width = new DataGridLength(120) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Percorso File", Binding = new Binding(nameof(SocialCodeGridRow.FilePath)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Social_Col_File"], Binding = new Binding(nameof(SocialCodeGridRow.FileName)), Width = new DataGridLength(200) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Social_Col_PrimaryAuthor"], Binding = new Binding(nameof(SocialCodeGridRow.PrimaryAuthor)), Width = new DataGridLength(160) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Social_Col_Ownership"], Binding = new Binding(nameof(SocialCodeGridRow.PrimaryOwnership)), Width = new DataGridLength(110) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Social_Col_BusFactor"], Binding = new Binding(nameof(SocialCodeGridRow.BusFactor)), Width = new DataGridLength(90) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Social_Col_Risk"], Binding = new Binding(nameof(SocialCodeGridRow.RiskText)), Width = new DataGridLength(160) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Social_Col_Authors"], Binding = new Binding(nameof(SocialCodeGridRow.TotalAuthors)), Width = new DataGridLength(120) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["Social_Col_File"], Binding = new Binding(nameof(SocialCodeGridRow.FilePath)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
 
         Grid.SetRow(_grid, 2);
         mainGrid.Children.Add(_grid);
@@ -132,7 +132,7 @@ public sealed class SocialCodeControl : UserControl
         // 4. Footer stats
         _statsText = new TextBlock
         {
-            Text = "Nessun dato caricato.",
+            Text = LocalizationService.Instance["Social_Placeholder"],
             Foreground = Brushes.Gray,
             Margin = new Thickness(0, 8, 0, 0)
         };
@@ -183,7 +183,7 @@ public sealed class SocialCodeControl : UserControl
             _kpiHighRiskValue.Text = "0";
             _kpiOrphanFilesValue.Text = "0";
             _kpiTotalAuthorsValue.Text = "0";
-            _statsText.Text = "Nessun dato.";
+            _statsText.Text = LocalizationService.Instance["Social_Placeholder"];
             return;
         }
 
@@ -212,7 +212,7 @@ public sealed class SocialCodeControl : UserControl
             _rows.Add(new SocialCodeGridRow { Report = f });
         }
 
-        _statsText.Text = $"File visualizzati: {_rows.Count} / {_allFiles.Count}";
+        _statsText.Text = LocalizationService.Instance.Get("Social_StatsFormat", _rows.Count, _allFiles.Count);
     }
 
     public void ApplyTheme(ThemeDefinition theme) { }

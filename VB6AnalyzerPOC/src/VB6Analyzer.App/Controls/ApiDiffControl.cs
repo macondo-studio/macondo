@@ -20,14 +20,32 @@ public sealed class ApiDiffGridRow
 
     public string QualifiedName => Item.SymbolQualifiedName;
     public string KindText => Item.SymbolKind.ToString();
-    public string ChangeKindText => Item.ChangeKind.ToString();
+    public string ChangeKindText => Item.ChangeKind switch
+    {
+        ApiChangeKind.AddedSymbol => LocalizationService.Instance["ApiDiff_Change_AddedSymbol"],
+        ApiChangeKind.RemovedSymbol => LocalizationService.Instance["ApiDiff_Change_RemovedSymbol"],
+        ApiChangeKind.ChangedAccessibility => LocalizationService.Instance["ApiDiff_Change_ChangedAccessibility"],
+        ApiChangeKind.ChangedParameters => LocalizationService.Instance["ApiDiff_Change_ChangedParameters"],
+        ApiChangeKind.ChangedReturnType => LocalizationService.Instance["ApiDiff_Change_ChangedReturnType"],
+        ApiChangeKind.ModifiedBodyOnly => LocalizationService.Instance["ApiDiff_Change_ModifiedBodyOnly"],
+        _ => Item.ChangeKind.ToString()
+    };
     public string ImpactText => Item.Impact switch
     {
-        ApiChangeImpact.MajorBreaking => "Major (Breaking)",
-        ApiChangeImpact.Minor => "Minor (Addition)",
-        _ => "Patch (Internal)"
+        ApiChangeImpact.MajorBreaking => LocalizationService.Instance["ApiDiff_Impact_Major"],
+        ApiChangeImpact.Minor => LocalizationService.Instance["ApiDiff_Impact_Minor"],
+        _ => LocalizationService.Instance["ApiDiff_Impact_Patch"]
     };
-    public string Description => Item.Description;
+    public string Description => Item.ChangeKind switch
+    {
+        ApiChangeKind.RemovedSymbol => LocalizationService.Instance.Get("ApiDiff_Desc_Removed", Item.SymbolQualifiedName),
+        ApiChangeKind.ChangedParameters => LocalizationService.Instance.Get("ApiDiff_Desc_Parameters", Item.SymbolQualifiedName),
+        ApiChangeKind.ChangedAccessibility => LocalizationService.Instance.Get("ApiDiff_Desc_Accessibility", Item.SymbolQualifiedName),
+        ApiChangeKind.ChangedReturnType => LocalizationService.Instance.Get("ApiDiff_Desc_ReturnType", Item.SymbolQualifiedName),
+        ApiChangeKind.AddedSymbol => LocalizationService.Instance.Get("ApiDiff_Desc_Added", Item.SymbolQualifiedName),
+        ApiChangeKind.ModifiedBodyOnly => LocalizationService.Instance.Get("ApiDiff_Desc_Body", Item.SymbolQualifiedName),
+        _ => LocalizationService.Instance.Get("ApiDiff_Desc_Generic", Item.SymbolQualifiedName)
+    };
 
     public string ImpactBadgeBg => Item.Impact switch
     {
@@ -71,10 +89,10 @@ public sealed class ApiDiffControl : UserControl
         // 1. KPI Cards Header
         var kpiPanel = new UniformGrid { Columns = 4, Margin = new Thickness(0, 0, 0, 12) };
 
-        var card1 = CreateKpiCard("Rilascio Consigliato (SemVer)", out _kpiRecommendedBumpValue, "#8B5CF6");
-        var card2 = CreateKpiCard("Breaking Changes (Major)", out _kpiBreakingChangesValue, "#EF4444");
-        var card3 = CreateKpiCard("Nuove API (Minor)", out _kpiAdditionsValue, "#10B981");
-        var card4 = CreateKpiCard("Modifiche Totali API", out _kpiTotalChangesValue, "#3B82F6");
+        var card1 = CreateKpiCard(LocalizationService.Instance["ApiDiff_Kpi_RecommendedBump"], out _kpiRecommendedBumpValue, "#8B5CF6");
+        var card2 = CreateKpiCard(LocalizationService.Instance["ApiDiff_Kpi_BreakingChanges"], out _kpiBreakingChangesValue, "#EF4444");
+        var card3 = CreateKpiCard(LocalizationService.Instance["ApiDiff_Kpi_Additions"], out _kpiAdditionsValue, "#10B981");
+        var card4 = CreateKpiCard(LocalizationService.Instance["ApiDiff_Kpi_TotalChanges"], out _kpiTotalChangesValue, "#3B82F6");
 
         kpiPanel.Children.Add(card1);
         kpiPanel.Children.Add(card2);
@@ -93,7 +111,7 @@ public sealed class ApiDiffControl : UserControl
 
         _searchBox = new TextBox
         {
-            Watermark = "Cerca per simbolo o descrizione...",
+            Watermark = LocalizationService.Instance["ApiDiff_SearchWatermark"],
             Width = 300,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -113,11 +131,11 @@ public sealed class ApiDiffControl : UserControl
             HeadersVisibility = DataGridHeadersVisibility.Column
         };
 
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Simbolo Pubblico", Binding = new Binding(nameof(ApiDiffGridRow.QualifiedName)), Width = new DataGridLength(220) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Tipo Simbolo", Binding = new Binding(nameof(ApiDiffGridRow.KindText)), Width = new DataGridLength(110) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Tipo Modifica", Binding = new Binding(nameof(ApiDiffGridRow.ChangeKindText)), Width = new DataGridLength(140) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Impatto SemVer", Binding = new Binding(nameof(ApiDiffGridRow.ImpactText)), Width = new DataGridLength(140) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Dettaglio Compatibilità", Binding = new Binding(nameof(ApiDiffGridRow.Description)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["ApiDiff_Col_Symbol"], Binding = new Binding(nameof(ApiDiffGridRow.QualifiedName)), Width = new DataGridLength(220) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["ApiDiff_Col_Kind"], Binding = new Binding(nameof(ApiDiffGridRow.KindText)), Width = new DataGridLength(110) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["ApiDiff_Col_ChangeKind"], Binding = new Binding(nameof(ApiDiffGridRow.ChangeKindText)), Width = new DataGridLength(140) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["ApiDiff_Col_Impact"], Binding = new Binding(nameof(ApiDiffGridRow.ImpactText)), Width = new DataGridLength(140) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["ApiDiff_Col_Description"], Binding = new Binding(nameof(ApiDiffGridRow.Description)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
 
         Grid.SetRow(_grid, 2);
         mainGrid.Children.Add(_grid);
@@ -125,7 +143,7 @@ public sealed class ApiDiffControl : UserControl
         // 4. Footer stats
         _statsText = new TextBlock
         {
-            Text = "Nessun dato caricato.",
+            Text = LocalizationService.Instance["ApiDiff_Placeholder"],
             Foreground = Brushes.Gray,
             Margin = new Thickness(0, 8, 0, 0)
         };
@@ -176,7 +194,7 @@ public sealed class ApiDiffControl : UserControl
             _kpiBreakingChangesValue.Text = "0";
             _kpiAdditionsValue.Text = "0";
             _kpiTotalChangesValue.Text = "0";
-            _statsText.Text = "Nessun dato.";
+            _statsText.Text = LocalizationService.Instance["ApiDiff_Placeholder"];
             return;
         }
 
@@ -204,7 +222,7 @@ public sealed class ApiDiffControl : UserControl
             _rows.Add(new ApiDiffGridRow { Item = d });
         }
 
-        _statsText.Text = $"Modifiche visualizzate: {_rows.Count} / {_allDifferences.Count}";
+        _statsText.Text = LocalizationService.Instance.Get("ApiDiff_StatsFormat", _rows.Count, _allDifferences.Count);
     }
 
     public void ApplyTheme(ThemeDefinition theme) { }

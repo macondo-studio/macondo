@@ -69,7 +69,7 @@ public static class ApiDiffAnalyzer
                         SymbolKind = oldSym.Kind,
                         ChangeKind = ApiChangeKind.ChangedAccessibility,
                         Impact = ApiChangeImpact.MajorBreaking,
-                        Description = $"Rottura di compatibilità API: il simbolo pubblico '{qName}' ha ridotto la sua visibilità a '{stillExistsPrivate.Accessibility}'.",
+                        Description = $"Breaking API change: public symbol '{qName}' reduced its visibility to '{stillExistsPrivate.Accessibility}'.",
                         OldSymbol = oldSym,
                         NewSymbol = stillExistsPrivate
                     });
@@ -83,7 +83,7 @@ public static class ApiDiffAnalyzer
                         SymbolKind = oldSym.Kind,
                         ChangeKind = ApiChangeKind.RemovedSymbol,
                         Impact = ApiChangeImpact.MajorBreaking,
-                        Description = $"Rottura di compatibilità API: il simbolo pubblico '{qName}' è stato eliminato dall'interfaccia esportata.",
+                        Description = $"Breaking API change: public symbol '{qName}' was removed from the exported interface.",
                         OldSymbol = oldSym
                     });
                 }
@@ -109,7 +109,7 @@ public static class ApiDiffAnalyzer
                     SymbolKind = newSym.Kind,
                     ChangeKind = ApiChangeKind.AddedSymbol,
                     Impact = ApiChangeImpact.Minor,
-                    Description = $"Nuova API pubblica retrocompatibile aggiunta: '{qName}' ({newSym.Kind}).",
+                    Description = $"Backward-compatible public API added: '{qName}' ({newSym.Kind}).",
                     NewSymbol = newSym
                 });
             }
@@ -147,8 +147,8 @@ public static class ApiDiffAnalyzer
                 ChangeKind = ApiChangeKind.ChangedParameters,
                 Impact = isBreaking ? ApiChangeImpact.MajorBreaking : ApiChangeImpact.Minor,
                 Description = isBreaking
-                    ? $"Rottura firma: il metodo '{oldSym.QualifiedName}' ha modificato il numero di parametri obbligatori da {oldParamCount} a {newParamCount}."
-                    : $"Modifica retrocompatibile: aggiunti parametri opzionali al metodo '{oldSym.QualifiedName}'.",
+                    ? $"Signature break: method '{oldSym.QualifiedName}' changed required parameters count from {oldParamCount} to {newParamCount}."
+                    : $"Backward-compatible change: optional parameters added to method '{oldSym.QualifiedName}'.",
                 OldSymbol = oldSym,
                 NewSymbol = newSym
             });

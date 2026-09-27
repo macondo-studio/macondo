@@ -19,12 +19,34 @@ public sealed class TaintPathGridRow
     public required TaintPath Path { get; init; }
 
     public string SourceName => Path.SourceSymbol.Name;
-    public string SourceKindText => Path.SourceKind.ToString();
+    public string SourceKindText => Path.SourceKind switch
+    {
+        TaintSourceKind.UserInput => LocalizationService.Instance["DataFlow_Source_UserInput"],
+        TaintSourceKind.NetworkOrApi => LocalizationService.Instance["DataFlow_Source_NetworkOrApi"],
+        TaintSourceKind.FileOrFileSystem => LocalizationService.Instance["DataFlow_Source_FileOrFileSystem"],
+        TaintSourceKind.RegistryOrConfig => LocalizationService.Instance["DataFlow_Source_RegistryOrConfig"],
+        TaintSourceKind.EnvironmentVariable => LocalizationService.Instance["DataFlow_Source_EnvironmentVariable"],
+        _ => LocalizationService.Instance["DataFlow_Source_Custom"]
+    };
     public string SinkName => Path.SinkSymbol.Name;
-    public string SinkKindText => Path.SinkKind.ToString();
+    public string SinkKindText => Path.SinkKind switch
+    {
+        TaintSinkKind.SqlExecution => LocalizationService.Instance["DataFlow_Sink_Sql"],
+        TaintSinkKind.ShellOrProcessExecution => LocalizationService.Instance["DataFlow_Sink_Shell"],
+        TaintSinkKind.FileSystemWrite => LocalizationService.Instance["DataFlow_Sink_FileSystem"],
+        TaintSinkKind.ReflectionOrLateBinding => LocalizationService.Instance["DataFlow_Sink_Reflection"],
+        TaintSinkKind.CryptoOrSecuritySensitive => LocalizationService.Instance["DataFlow_Sink_Crypto"],
+        _ => LocalizationService.Instance["DataFlow_Sink_Custom"]
+    };
     public int HopCount => Path.HopCount;
     public string PropagationChainText => string.Join(" → ", Path.PropagationChain.Select(s => s.Name));
-    public string Description => Path.Description;
+    public string Description => LocalizationService.Instance.Get(
+        "DataFlow_Desc_TaintPath",
+        SourceKindText,
+        Path.SourceSymbol.Name,
+        SinkKindText,
+        Path.SinkSymbol.Name,
+        Path.HopCount);
 
     public string SinkBadgeBg => Path.SinkKind switch
     {
@@ -69,10 +91,10 @@ public sealed class DataFlowControl : UserControl
         // 1. KPI Cards Header
         var kpiPanel = new UniformGrid { Columns = 4, Margin = new Thickness(0, 0, 0, 12) };
 
-        var card1 = CreateKpiCard("Percorsi Taint (Source-Sink)", out _kpiTotalPathsValue, "#3B82F6");
-        var card2 = CreateKpiCard("Rischi Query SQL", out _kpiSqlRisksValue, "#EF4444");
-        var card3 = CreateKpiCard("Rischi Shell / Command", out _kpiCommandRisksValue, "#DC2626");
-        var card4 = CreateKpiCard("Dead Stores (Def-Use)", out _kpiDeadStoresValue, "#F59E0B");
+        var card1 = CreateKpiCard(LocalizationService.Instance["DataFlow_Kpi_TaintPaths"], out _kpiTotalPathsValue, "#3B82F6");
+        var card2 = CreateKpiCard(LocalizationService.Instance["DataFlow_Kpi_SqlRisks"], out _kpiSqlRisksValue, "#EF4444");
+        var card3 = CreateKpiCard(LocalizationService.Instance["DataFlow_Kpi_CommandRisks"], out _kpiCommandRisksValue, "#DC2626");
+        var card4 = CreateKpiCard(LocalizationService.Instance["DataFlow_Kpi_DeadStores"], out _kpiDeadStoresValue, "#F59E0B");
 
         kpiPanel.Children.Add(card1);
         kpiPanel.Children.Add(card2);
@@ -91,7 +113,7 @@ public sealed class DataFlowControl : UserControl
 
         _searchBox = new TextBox
         {
-            Watermark = "Cerca sorgente, destinazione o percorso...",
+            Watermark = LocalizationService.Instance["DataFlow_SearchWatermark"],
             Width = 300,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -111,12 +133,12 @@ public sealed class DataFlowControl : UserControl
             HeadersVisibility = DataGridHeadersVisibility.Column
         };
 
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Sorgente Non Controllata", Binding = new Binding(nameof(TaintPathGridRow.SourceName)), Width = new DataGridLength(180) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Tipo Sorgente", Binding = new Binding(nameof(TaintPathGridRow.SourceKindText)), Width = new DataGridLength(120) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Punto Critico (Sink)", Binding = new Binding(nameof(TaintPathGridRow.SinkName)), Width = new DataGridLength(180) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Tipo Sink", Binding = new Binding(nameof(TaintPathGridRow.SinkKindText)), Width = new DataGridLength(130) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Salti", Binding = new Binding(nameof(TaintPathGridRow.HopCount)), Width = new DataGridLength(70) });
-        _grid.Columns.Add(new DataGridTextColumn { Header = "Catena di Propagazione", Binding = new Binding(nameof(TaintPathGridRow.PropagationChainText)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["DataFlow_Col_Source"], Binding = new Binding(nameof(TaintPathGridRow.SourceName)), Width = new DataGridLength(180) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["DataFlow_Col_SourceKind"], Binding = new Binding(nameof(TaintPathGridRow.SourceKindText)), Width = new DataGridLength(120) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["DataFlow_Col_Sink"], Binding = new Binding(nameof(TaintPathGridRow.SinkName)), Width = new DataGridLength(180) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["DataFlow_Col_SinkKind"], Binding = new Binding(nameof(TaintPathGridRow.SinkKindText)), Width = new DataGridLength(130) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["DataFlow_Col_Hops"], Binding = new Binding(nameof(TaintPathGridRow.HopCount)), Width = new DataGridLength(70) });
+        _grid.Columns.Add(new DataGridTextColumn { Header = LocalizationService.Instance["DataFlow_Col_Chain"], Binding = new Binding(nameof(TaintPathGridRow.PropagationChainText)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
 
         Grid.SetRow(_grid, 2);
         mainGrid.Children.Add(_grid);
@@ -124,7 +146,7 @@ public sealed class DataFlowControl : UserControl
         // 4. Footer stats
         _statsText = new TextBlock
         {
-            Text = "Nessun dato caricato.",
+            Text = LocalizationService.Instance["DataFlow_Placeholder"],
             Foreground = Brushes.Gray,
             Margin = new Thickness(0, 8, 0, 0)
         };
@@ -175,7 +197,7 @@ public sealed class DataFlowControl : UserControl
             _kpiSqlRisksValue.Text = "0";
             _kpiCommandRisksValue.Text = "0";
             _kpiDeadStoresValue.Text = "0";
-            _statsText.Text = "Nessun dato.";
+            _statsText.Text = LocalizationService.Instance["DataFlow_Placeholder"];
             return;
         }
 
@@ -204,7 +226,7 @@ public sealed class DataFlowControl : UserControl
             _rows.Add(new TaintPathGridRow { Path = p });
         }
 
-        _statsText.Text = $"Percorsi visualizzati: {_rows.Count} / {_allPaths.Count}";
+        _statsText.Text = LocalizationService.Instance.Get("DataFlow_StatsFormat", _rows.Count, _allPaths.Count);
     }
 
     public void ApplyTheme(ThemeDefinition theme) { }
