@@ -23,7 +23,7 @@ public sealed class SharedVariableAccessor
     public string ContainerName { get; init; } = string.Empty;
     public string FilePath { get; init; } = string.Empty;
     public int Line { get; init; }
-    public SharedStateAccessKind AccessKind { get; init; }
+    public SharedStateAccessKind AccessKind { get; set; }
     public bool IsCrossModule { get; init; }
 }
 

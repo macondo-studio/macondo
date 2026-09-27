@@ -82,17 +82,28 @@ public static class SharedStateAnalyzer
                     _ => SharedStateAccessKind.Read
                 };
 
-                accessorsByVar[targetVar.Id].Add(new SharedVariableAccessor
+                var existingAccessor = accessorsByVar[targetVar.Id].FirstOrDefault(a => a.RoutineId == sourceSym.Id);
+                if (existingAccessor != null)
                 {
-                    RoutineId = sourceSym.Id,
-                    RoutineName = sourceSym.Name,
-                    RoutineQualifiedName = sourceSym.QualifiedName,
-                    ContainerName = sourceContainer?.Name ?? Path.GetFileName(sourceSym.FilePath),
-                    FilePath = sourceSym.FilePath,
-                    Line = rel.Line ?? sourceSym.LineStart,
-                    AccessKind = accessKind,
-                    IsCrossModule = isCrossModule
-                });
+                    if (existingAccessor.AccessKind != accessKind)
+                    {
+                        existingAccessor.AccessKind = SharedStateAccessKind.ReadWrite;
+                    }
+                }
+                else
+                {
+                    accessorsByVar[targetVar.Id].Add(new SharedVariableAccessor
+                    {
+                        RoutineId = sourceSym.Id,
+                        RoutineName = sourceSym.Name,
+                        RoutineQualifiedName = sourceSym.QualifiedName,
+                        ContainerName = sourceContainer?.Name ?? Path.GetFileName(sourceSym.FilePath),
+                        FilePath = sourceSym.FilePath,
+                        Line = rel.Line ?? sourceSym.LineStart,
+                        AccessKind = accessKind,
+                        IsCrossModule = isCrossModule
+                    });
+                }
             }
         }
 

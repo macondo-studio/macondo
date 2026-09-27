@@ -107,10 +107,6 @@ public static class TemporalCouplingAnalyzer
         // =========================================================================
         foreach (var (pairKey, coChanges) in coChangeCounts)
         {
-            // Scarta coppie con meno di 2 co-modifiche storiche
-            if (coChanges < 2)
-                continue;
-
             var (fileA, fileB) = pairKey;
             var commitsA = fileCommitCounts.GetValueOrDefault(fileA, coChanges);
             var commitsB = fileCommitCounts.GetValueOrDefault(fileB, coChanges);

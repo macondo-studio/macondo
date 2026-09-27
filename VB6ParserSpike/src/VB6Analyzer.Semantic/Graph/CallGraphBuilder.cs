@@ -162,14 +162,15 @@ public sealed class CallGraphBuilder
                     var baseType = _symbolResolver.TypeResolver.ResolveType(inh.BaseOrInterfaceTypeName).UserTypeSymbol;
                     if (baseType != null)
                     {
-                        // Se il tipo bersaglio è un'interfaccia -> relazione IMPLEMENTS; altrimenti -> INHERITS
-                        if (baseType.Kind == SymbolKind.Interface)
+                        // Se il tipo derivato è un'interfaccia o il bersaglio è una classe -> INHERITS;
+                        // Se una classe/struct implementa un'interfaccia -> IMPLEMENTS
+                        if (inh.DerivedTypeSymbol.Kind == SymbolKind.Interface || baseType.Kind != SymbolKind.Interface)
                         {
-                            _graph.AddImplements(inh.DerivedTypeSymbol, baseType, inh.Line);
+                            _graph.AddInherits(inh.DerivedTypeSymbol, baseType, inh.Line);
                         }
                         else
                         {
-                            _graph.AddInherits(inh.DerivedTypeSymbol, baseType, inh.Line);
+                            _graph.AddImplements(inh.DerivedTypeSymbol, baseType, inh.Line);
                         }
                     }
                 }

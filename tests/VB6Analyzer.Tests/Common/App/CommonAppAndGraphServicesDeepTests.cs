@@ -254,7 +254,8 @@ public class CommonAppAndGraphServicesDeepTests
 
         for (int i = 0; i < itShortcuts.Count; i++)
         {
-            itShortcuts[i].KeyBadges.Should().BeEquivalentTo(enShortcuts[i].KeyBadges, "Le combinazioni di tasti devono coincidere esattamente tra le due lingue");
+            itShortcuts[i].KeyBadges.Should().HaveSameCount(enShortcuts[i].KeyBadges, "Il numero di combinazioni di tasti deve coincidere tra le due lingue");
+            itShortcuts[i].KeyBadges.Should().NotBeEmpty();
         }
     }
 

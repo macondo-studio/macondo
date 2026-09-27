@@ -48,12 +48,41 @@ public static class CrudMatrixAnalyzer
         // ---------------------------------------------------------------------
         // FASE 1: Individuazione delle entità dati del dominio
         // ---------------------------------------------------------------------
-        // Raccoglie strutture formali (Record, Struct, Type UDT) o classi con suffisso convenzionale (Entity, Model, Dto)
+        // Raccoglie strutture formali (Record, Struct, Type UDT) o classi entità/dati
         var entityCandidates = graph.Symbols
             .Where(s => s.Kind is SymbolKind.Record or SymbolKind.Struct or SymbolKind.Type ||
-                        (s.Kind == SymbolKind.Class && (s.Name.EndsWith("Entity", StringComparison.OrdinalIgnoreCase) ||
-                                                       s.Name.EndsWith("Model", StringComparison.OrdinalIgnoreCase) ||
-                                                       s.Name.EndsWith("Dto", StringComparison.OrdinalIgnoreCase))))
+                        (s.Kind == SymbolKind.Class && (
+                            s.Name.EndsWith("Entity", StringComparison.OrdinalIgnoreCase) ||
+                            s.Name.EndsWith("Model", StringComparison.OrdinalIgnoreCase) ||
+                            s.Name.EndsWith("Dto", StringComparison.OrdinalIgnoreCase) ||
+                            s.Name.EndsWith("Log", StringComparison.OrdinalIgnoreCase) ||
+                            s.Name.EndsWith("Record", StringComparison.OrdinalIgnoreCase) ||
+                            s.Name.EndsWith("Item", StringComparison.OrdinalIgnoreCase) ||
+                            s.Name.EndsWith("Info", StringComparison.OrdinalIgnoreCase) ||
+                            s.Name.EndsWith("Data", StringComparison.OrdinalIgnoreCase) ||
+                            s.Name.EndsWith("Row", StringComparison.OrdinalIgnoreCase) ||
+                            s.Name.EndsWith("Entry", StringComparison.OrdinalIgnoreCase) ||
+                            s.Name.StartsWith("Lookup", StringComparison.OrdinalIgnoreCase) ||
+                            s.Name.StartsWith("Tbl", StringComparison.OrdinalIgnoreCase) ||
+                            s.Name.StartsWith("Tab", StringComparison.OrdinalIgnoreCase) ||
+                            s.Name.StartsWith("T_", StringComparison.OrdinalIgnoreCase) ||
+                            (!s.Name.EndsWith("Service", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("Repository", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("Repo", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("Manager", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("Helper", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("Factory", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("Provider", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("Window", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("Control", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("View", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("ViewModel", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("Tests", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("Test", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("Analyzer", StringComparison.OrdinalIgnoreCase) &&
+                             !s.Name.EndsWith("Builder", StringComparison.OrdinalIgnoreCase))
+                        )))
             .Select(s => s.Name)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
@@ -127,7 +156,7 @@ public static class CrudMatrixAnalyzer
         CrudOperation ops = CrudOperation.None;
         string? matchedEntity = null;
 
-        // 1. Cerca matching con le entità note (gestisce sia la forma singolare che plurale, e suffissi Entity/Model/Dto)
+        // 1. Cerca matching con le entità note (gestisce sia la forma singolare che plurale, e suffissi/prefissi convenzionali)
         foreach (var entity in knownEntities)
         {
             var singular = entity.TrimEnd('s');
@@ -138,12 +167,35 @@ public static class CrudMatrixAnalyzer
                 baseEntity = baseEntity[..^5];
             else if (baseEntity.EndsWith("Dto", StringComparison.OrdinalIgnoreCase))
                 baseEntity = baseEntity[..^3];
+            else if (baseEntity.EndsWith("Log", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[..^3];
+            else if (baseEntity.EndsWith("Record", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[..^6];
+            else if (baseEntity.EndsWith("Item", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[..^4];
+            else if (baseEntity.EndsWith("Info", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[..^4];
+            else if (baseEntity.EndsWith("Data", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[..^4];
+            else if (baseEntity.EndsWith("Row", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[..^3];
+            else if (baseEntity.EndsWith("Entry", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[..^5];
+
+            if (baseEntity.StartsWith("Lookup", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[6..];
+            else if (baseEntity.StartsWith("Tbl", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[3..];
+            else if (baseEntity.StartsWith("Tab", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[3..];
+            else if (baseEntity.StartsWith("T_", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[2..];
 
             if (name.Contains(entity, StringComparison.OrdinalIgnoreCase) ||
                 name.Contains(singular, StringComparison.OrdinalIgnoreCase) ||
-                (!string.IsNullOrEmpty(baseEntity) && name.Contains(baseEntity, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(baseEntity) && (name.Contains(baseEntity, StringComparison.OrdinalIgnoreCase) || name.Contains(baseEntity.TrimEnd('s'), StringComparison.OrdinalIgnoreCase))) ||
                 qName.Contains(entity, StringComparison.OrdinalIgnoreCase) ||
-                (!string.IsNullOrEmpty(baseEntity) && qName.Contains(baseEntity, StringComparison.OrdinalIgnoreCase)))
+                (!string.IsNullOrEmpty(baseEntity) && (qName.Contains(baseEntity, StringComparison.OrdinalIgnoreCase) || qName.Contains(baseEntity.TrimEnd('s'), StringComparison.OrdinalIgnoreCase))))
             {
                 matchedEntity = entity;
                 break;

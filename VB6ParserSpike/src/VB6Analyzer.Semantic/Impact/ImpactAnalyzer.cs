@@ -51,10 +51,11 @@ public sealed class ImpactAnalyzer
             return AnalyzeRoutineImpact(target, maxDepth, cancellationToken);
         }
 
-        // 2. Se il simbolo è un tipo composito o modulo (Classe, Form, Modulo, UserControl, UDT, Enum),
-        //    aggrega l'impatto di tutti i suoi membri e delle istanziazioni / dipendenze di tipo
+        // 2. Se il simbolo è un tipo composito, interfaccia o modulo (Classe, Interfaccia, Struct, Record, Form, Modulo, UserControl, UDT, Enum),
+        //    aggrega l'impatto di tutti i suoi membri e delle istanziazioni / dipendenze di tipo / implementazioni / ereditarietà
         if (target.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module
-                         or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum)
+                         or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum
+                         or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
         {
             return AnalyzeTypeImpact(target, maxDepth, cancellationToken);
         }
@@ -297,10 +298,10 @@ public sealed class ImpactAnalyzer
             .ToList();
 
         // ---------------------------------------------------------------------
-        // PILASTRO 3: Individua i simboli che usano questo tipo come tipo di campo/parametro/ritorno (USES_TYPE)
+        // PILASTRO 3: Individua i simboli che usano questo tipo (USES_TYPE, IMPLEMENTS, INHERITS)
         // ---------------------------------------------------------------------
         var typeDependents = _graph.Relationships
-            .Where(r => r.Kind == RelationshipKind.UsesType && r.TargetId == typeSymbol.Id)
+            .Where(r => (r.Kind is RelationshipKind.UsesType or RelationshipKind.Implements or RelationshipKind.Inherits) && r.TargetId == typeSymbol.Id)
             .Select(r => _graph.FindSymbolById(r.SourceId))
             .Where(s => s != null)
             .Select(s => s!)
@@ -367,7 +368,8 @@ public sealed class ImpactAnalyzer
     {
         // Se il simbolo è già un contenitore di primo livello, termina la risalita
         if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module
-                        or SymbolKind.UserControl or SymbolKind.Project)
+                        or SymbolKind.UserControl or SymbolKind.Project
+                        or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
         {
             return symbol;
         }
