@@ -1,0 +1,159 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="using:Macondo.App.Models"
+             x:Class="Macondo.App.Views.BlastRadiusGridView">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+        <!-- Toolbar della Griglia: Filtri e Statistiche -->
+        <Border x:Name="GridToolbarBorder" Grid.Row="0"
+                Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                BorderThickness="0,0,0,1" Padding="12,8">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                <!-- Filtro Testo nella Tabella -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <TextBlock x:Name="GridFilterLabel" Text="Filtra:" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                    <TextBox x:Name="GridFilterTextBox"
+                             Width="180"
+                             Watermark="Nome routine o modulo..."
+                             FontSize="11"
+                             TextChanged="OnGridFilterTextChanged" />
+                </StackPanel>
+
+                <!-- Filtro Livello di Rischio -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="16,0,0,0">
+                    <TextBlock x:Name="GridRiskLabel" Text="Rischio:" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                    <ComboBox x:Name="RiskFilterComboBox" SelectedIndex="0" FontSize="11" Width="130" SelectionChanged="OnRiskFilterChanged">
+                        <ComboBoxItem x:Name="RiskItemAll" Content="Tutti i Livelli" />
+                        <ComboBoxItem x:Name="RiskItemCritical" Content="Critico" />
+                        <ComboBoxItem x:Name="RiskItemHigh" Content="Alto" />
+                        <ComboBoxItem x:Name="RiskItemMedium" Content="Medio" />
+                        <ComboBoxItem x:Name="RiskItemLow" Content="Basso" />
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Contatore Riassuntivo -->
+                <TextBlock Grid.Column="2" x:Name="GridStatsTextBlock"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Right"
+                           FontSize="11"
+                           Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                           Margin="0,0,16,0" />
+
+                <!-- Pulsante Aggiorna / Ricalcola Audit -->
+                <Button Grid.Column="3" x:Name="RefreshGridButton"
+                        FontSize="11"
+                        Padding="10,5"
+                        ToolTip.Tip="Ricalcola la matrice di rischio e impatto per tutte le routine"
+                        Click="OnRefreshGridClicked">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="{StaticResource IconRefresh}" Width="11" Height="11" Foreground="#4AE8D0" VerticalAlignment="Center" />
+                        <TextBlock x:Name="RefreshGridButtonText" Text="Ricalcola Audit" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Barra di avanzamento calcolo Audit Blast Radius -->
+        <ProgressBar Grid.Row="1" x:Name="GridLoadingProgressBar"
+                     Height="3"
+                     Minimum="0" Maximum="100" Value="0"
+                     Foreground="#4AE8D0"
+                     Background="Transparent"
+                     IsVisible="False" />
+
+        <!-- Tabella Risultati Blast Radius (DataGrid) -->
+        <DataGrid Grid.Row="2" x:Name="BlastRadiusDataGrid"
+                  x:DataType="models:BlastRadiusGridRow"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserSortColumns="True"
+                  CanUserResizeColumns="True"
+                  GridLinesVisibility="Horizontal"
+                  BorderThickness="0"
+                  Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                  RowBackground="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                  SelectionMode="Single"
+                  SelectionChanged="OnGridRowSelectionChanged"
+                  DoubleTapped="OnGridRowDoubleTapped">
+            <DataGrid.Columns>
+                <!-- Progetto / Workspace -->
+                <DataGridTextColumn Header="Progetto"
+                                    Binding="{Binding ProjectName}"
+                                    Width="1.2*" />
+
+                <!-- Simbolo / Routine -->
+                <DataGridTextColumn Header="Routine / Simbolo"
+                                    Binding="{Binding Name}"
+                                    Width="2*" />
+
+                <!-- Modulo / Container -->
+                <DataGridTextColumn Header="Modulo / Container"
+                                    Binding="{Binding ContainerName}"
+                                    Width="1.5*" />
+
+                <!-- Chiamanti Diretti -->
+                <DataGridTextColumn Header="Chiamanti Diretti"
+                                    Binding="{Binding DirectCallersCount}"
+                                    Width="120" />
+
+                <!-- Chiamanti Indiretti -->
+                <DataGridTextColumn Header="Chiamanti Indiretti"
+                                    Binding="{Binding IndirectCallersCount}"
+                                    Width="130" />
+
+                <!-- Profondità Max -->
+                <DataGridTextColumn Header="Profondità"
+                                    Binding="{Binding MaxDepth}"
+                                    Width="90" />
+
+                <!-- Livello di Rischio (Badge Colorato) -->
+                <DataGridTemplateColumn Header="Rischio" Width="100" SortMemberPath="RiskLevel">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="models:BlastRadiusGridRow">
+                            <Border Background="{Binding RiskBadgeBackground}"
+                                    CornerRadius="3"
+                                    Padding="6,2"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                <TextBlock Text="{Binding RiskText}"
+                                           FontSize="10"
+                                           FontWeight="Bold"
+                                           Foreground="{Binding RiskBadgeForeground}" />
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Form UI Impattate -->
+                <DataGridTextColumn Header="Form Impattate"
+                                    Binding="{Binding AffectedFormsCount}"
+                                    Width="110" />
+
+                <!-- Totale Entità Impattate -->
+                <DataGridTextColumn Header="Tot. Impatto"
+                                    Binding="{Binding TotalImpactedCount}"
+                                    Width="95" />
+
+                <!-- Azione Rapida -->
+                <DataGridTemplateColumn Header="Azione" Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="models:BlastRadiusGridRow">
+                            <Button FontSize="10"
+                                    Padding="8,3"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    ToolTip.Tip="{Binding ActionButtonTooltip}"
+                                    Click="OnShowInGraphButtonClicked">
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <PathIcon Data="{StaticResource IconTarget}" Width="10" Height="10" Foreground="#4AE8D0" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding ActionButtonText}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Macondo.App.Views.LoadingOverlayView">
+
+    <Grid Background="#75101018">
+        <Border Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Padding="32,24"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                BoxShadow="0 8 32 0 #80000000">
+            <Border.Styles>
+                <Style Selector="Path.spinner">
+                    <Style.Animations>
+                        <Animation Duration="0:0:1" IterationCount="Infinite">
+                            <KeyFrame Cue="0%">
+                                <Setter Property="RotateTransform.Angle" Value="0"/>
+                            </KeyFrame>
+                            <KeyFrame Cue="100%">
+                                <Setter Property="RotateTransform.Angle" Value="360"/>
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+            </Border.Styles>
+            <StackPanel Spacing="14" HorizontalAlignment="Center" Width="340">
+                <!-- Icona Spinner Rotante -->
+                <Panel Width="44" Height="44" HorizontalAlignment="Center">
+                    <Ellipse Width="44" Height="44" Stroke="{DynamicResource ThemeBorderDefaultBrush}" StrokeThickness="3.5" />
+                    <Path Classes="spinner"
+                          Width="44" Height="44"
+                          Stroke="{DynamicResource ThemeAccentBrush}" StrokeThickness="3.5"
+                          StrokeLineCap="Round"
+                          Data="M 22 4 A 18 18 0 0 1 40 22"
+                          RenderTransformOrigin="50%,50%">
+                        <Path.RenderTransform>
+                            <RotateTransform />
+                        </Path.RenderTransform>
+                    </Path>
+                </Panel>
+
+                <!-- Titolo e Sottotitolo -->
+                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                    <TextBlock x:Name="LoadingTitle"
+                               Text="Calcolo Blast Radius in corso..."
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource ThemeTextPrimaryBrush}"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center" />
+                    <TextBlock x:Name="LoadingSubtitle"
+                               Text="Esplorazione chiamanti e percorsi di chiamata..."
+                               FontSize="11"
+                               Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+
+                <!-- Barra di Avanzamento con Dettagli File/Nodi -->
+                <StackPanel Spacing="6">
+                    <ProgressBar x:Name="LoadingProgressBar"
+                                 IsIndeterminate="True"
+                                 Height="6"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 Value="0"
+                                 Foreground="{DynamicResource ThemeAccentBrush}"
+                                 Background="{DynamicResource ThemeBorderDefaultBrush}"
+                                 CornerRadius="3"
+                                 Margin="0,2,0,0" />
+                    <Grid ColumnDefinitions="*,Auto" Margin="2,0">
+                        <TextBlock x:Name="LoadingProgressCount"
+                                   Grid.Column="0"
+                                   Text="0 / 0 file analizzati"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                                   HorizontalAlignment="Left"
+                                   IsVisible="False" />
+                        <TextBlock x:Name="LoadingProgressStats"
+                                   Grid.Column="1"
+                                   Text="0 nodi rilevati"
+                                   FontSize="11"
+                                   FontWeight="Medium"
+                                   Foreground="{DynamicResource ThemeAccentBrush}"
+                                   HorizontalAlignment="Right"
+                                   IsVisible="False" />
+                    </Grid>
+                </StackPanel>
+
+                <!-- Pulsante Annulla Analisi -->
+                <Button x:Name="LoadingCancelButton"
+                        Content="Annulla"
+                        Click="OnCancelClicked"
+                        HorizontalAlignment="Center"
+                        Padding="22,6"
+                        Margin="0,6,0,0"
+                        Background="Transparent"
+                        Foreground="{DynamicResource ThemeTextSecondaryBrush}"
+                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        FontSize="12"
+                        Cursor="Hand" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

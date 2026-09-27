@@ -89,10 +89,6 @@ public partial class MainWindow : Window
         Graph.AddHandler(Control.ContextRequestedEvent, OnGraphContextRequested, RoutingStrategies.Tunnel);
         Graph.NodeMoved += (_, _) => OnGraphNodeMoved();
 
-        // Pulsanti Dialog Aggiornamento Software
-        UpdateLaterButton.Click += (_, _) => DismissUpdateModal();
-        UpdateNowButton.Click += (_, _) => ApplyUpdateAndOpenDownload();
-
         // Menu Bar Superiore - File (Command + Click per massima affidabilità)
         OpenProjectFilesMenuItem.Command = new ActionCommand(async () => await OpenProjectFilesAsync());
         OpenFolderMenuItem.Command = new ActionCommand(async () => await OpenFolderAsync());
@@ -196,9 +192,6 @@ public partial class MainWindow : Window
         ExportMarkdownButton.Click += async (_, _) => await ExportMarkdownAsync();
         ExportJsonButton.Click += async (_, _) => await ExportJsonAsync();
         ImportJsonButton.Click += async (_, _) => await ImportJsonAsync();
-
-        // Pulsante Ricalcola Audit nella Grid Toolbar
-        RefreshGridButton.Click += async (_, _) => await PopulateBlastRadiusGridAsync();
 
         // Pulsante Mostra/Nascondi Contenuto Legenda Grafo
         ToggleLegendButton.Click += (_, _) =>
@@ -520,7 +513,6 @@ public partial class MainWindow : Window
         LocalizationService.Instance.LanguageChanged += (_, lang) =>
         {
             UpdateLocalizedUI();
-            ApplyGridFilters();
             SettingsService.Instance.Update(s => s.Language = lang);
         };
 
@@ -546,9 +538,6 @@ public partial class MainWindow : Window
         ApplyTabLabelsVisibility(settings.ShowTabLabels);
         ApplyTabsVisibility(settings);
         UpdateLocalizedUI();
-
-        // Ripristino Filtro di Rischio salvato
-        RiskFilterComboBox.SelectedIndex = Math.Clamp(settings.DefaultRiskFilterIndex, 0, 4);
 
         // Caricamento del Progetto: Gestione Intelligente in base a StartupMode
         var startupMode = settings.StartupMode;
@@ -640,40 +629,11 @@ public partial class MainWindow : Window
         _loadingCts?.Dispose();
         _loadingCts = canCancel ? new CancellationTokenSource() : null;
 
-        LoadingTitle.Text = title;
-        LoadingSubtitle.Text = subtitle;
-        LoadingProgressBar.IsIndeterminate = isIndeterminate;
-        LoadingProgressBar.Minimum = 0;
-        LoadingProgressBar.Maximum = progressMax > 0 ? progressMax : 100;
-        LoadingProgressBar.Value = progressValue;
-
-        LoadingCancelButton.IsVisible = canCancel;
-        LoadingCancelButton.IsEnabled = true;
-        LoadingCancelButton.Content = LocalizationService.Instance["Loading_Cancel"];
-
-        if (!string.IsNullOrEmpty(countText))
+        LoadingOverlayControl.Show(title, subtitle, canCancel);
+        if (!isIndeterminate || !string.IsNullOrEmpty(countText) || !string.IsNullOrEmpty(statsText))
         {
-            LoadingProgressCount.Text = countText;
-            LoadingProgressCount.IsVisible = true;
+            LoadingOverlayControl.UpdateProgress((int)progressValue, (int)progressMax, countText ?? string.Empty, statsText ?? string.Empty);
         }
-        else
-        {
-            LoadingProgressCount.Text = string.Empty;
-            LoadingProgressCount.IsVisible = false;
-        }
-
-        if (!string.IsNullOrEmpty(statsText))
-        {
-            LoadingProgressStats.Text = statsText;
-            LoadingProgressStats.IsVisible = true;
-        }
-        else
-        {
-            LoadingProgressStats.Text = string.Empty;
-            LoadingProgressStats.IsVisible = false;
-        }
-
-        LoadingOverlay.IsVisible = true;
     }
 
     /// <summary>
@@ -686,46 +646,20 @@ public partial class MainWindow : Window
         string? countText = null,
         string? statsText = null)
     {
-        LoadingProgressBar.IsIndeterminate = false;
-        LoadingProgressBar.Minimum = 0;
-        LoadingProgressBar.Maximum = total > 0 ? total : 100;
-        LoadingProgressBar.Value = current;
-
         if (subtitle != null)
         {
-            LoadingSubtitle.Text = subtitle;
+            LoadingOverlayControl.Show(LoadingOverlayControl.LoadingTitle.Text ?? string.Empty, subtitle, LoadingOverlayControl.LoadingCancelButton.IsVisible);
         }
-
-        if (!string.IsNullOrEmpty(countText))
-        {
-            LoadingProgressCount.Text = countText;
-            LoadingProgressCount.IsVisible = true;
-        }
-        else
-        {
-            LoadingProgressCount.IsVisible = false;
-        }
-
-        if (!string.IsNullOrEmpty(statsText))
-        {
-            LoadingProgressStats.Text = statsText;
-            LoadingProgressStats.IsVisible = true;
-        }
-        else
-        {
-            LoadingProgressStats.IsVisible = false;
-        }
+        LoadingOverlayControl.UpdateProgress((int)current, (int)total, countText ?? string.Empty, statsText ?? string.Empty);
     }
 
     /// <summary>
     /// Gestisce il click sul pulsante Annulla all'interno del popup di caricamento / analisi.
     /// </summary>
-    private void LoadingCancelButton_Click(object? sender, RoutedEventArgs e)
+    private void OnLoadingCancelRequested(object? sender, EventArgs e)
     {
         if (_loadingCts != null && !_loadingCts.IsCancellationRequested)
         {
-            LoadingCancelButton.IsEnabled = false;
-            LoadingSubtitle.Text = LocalizationService.Instance["Loading_Cancelling"];
             _loadingCts.Cancel();
         }
     }
@@ -735,11 +669,7 @@ public partial class MainWindow : Window
     /// </summary>
     private void HideLoading()
     {
-        LoadingOverlay.IsVisible = false;
-        LoadingProgressBar.IsIndeterminate = true;
-        LoadingProgressBar.Value = 0;
-        LoadingProgressCount.IsVisible = false;
-        LoadingProgressStats.IsVisible = false;
+        LoadingOverlayControl.Hide();
         _loadingCts?.Dispose();
         _loadingCts = null;
     }
@@ -1251,14 +1181,14 @@ public partial class MainWindow : Window
 
         if (precalculatedRows != null && precalculatedRows.Count > 0)
         {
-            _allBlastRadiusRows = precalculatedRows;
-            ApplyGridFilters();
+            BlastRadiusGridControl.AllRows = precalculatedRows;
+            BlastRadiusGridControl.SetHiddenProjects(Graph.HiddenProjectIds);
         }
         else
         {
-            _allBlastRadiusRows = new();
-            ApplyGridFilters();
-            _ = PopulateBlastRadiusGridAsync();
+            BlastRadiusGridControl.Clear();
+            BlastRadiusGridControl.SetHiddenProjects(Graph.HiddenProjectIds);
+            _ = BlastRadiusGridControl.PopulateBlastRadiusGridAsync(_graph, _currentFolderPath, _hasUserMovedNodes);
         }
     }
 
@@ -2345,7 +2275,7 @@ public partial class MainWindow : Window
 
         UpdateProjectsBadgeText();
         UpdateStatsBar();
-        ApplyGridFilters();
+        BlastRadiusGridControl.SetHiddenProjects(Graph.HiddenProjectIds);
         InvalidateAnalyticsViews();
     }
 
@@ -2480,22 +2410,9 @@ public partial class MainWindow : Window
     {
         _selectedNode = node;
 
-        if (!_isSyncingSelection && CentralTabControl?.SelectedIndex == 6 && node != null)
+        if (!_isSyncingSelection && node != null)
         {
-            var matchingRow = _allBlastRadiusRows.FirstOrDefault(r => r.NodeId == node.Id);
-            if (matchingRow != null && BlastRadiusDataGrid.SelectedItem != matchingRow)
-            {
-                _isSyncingSelection = true;
-                try
-                {
-                    BlastRadiusDataGrid.SelectedItem = matchingRow;
-                    BlastRadiusDataGrid.ScrollIntoView(matchingRow, null);
-                }
-                finally
-                {
-                    _isSyncingSelection = false;
-                }
-            }
+            BlastRadiusGridControl.SelectNode(node.Id);
         }
 
         if (node is null)
@@ -3494,273 +3411,24 @@ public partial class MainWindow : Window
 
         if (CentralTabControl.SelectedItem == GridTabItem && _selectedNode != null)
         {
-            var matchingRow = _allBlastRadiusRows.FirstOrDefault(r => r.NodeId == _selectedNode.Id);
-            if (matchingRow != null && BlastRadiusDataGrid.SelectedItem != matchingRow)
-            {
-                _isSyncingSelection = true;
-                try
-                {
-                    BlastRadiusDataGrid.SelectedItem = matchingRow;
-                    BlastRadiusDataGrid.ScrollIntoView(matchingRow, null);
-                }
-                finally
-                {
-                    _isSyncingSelection = false;
-                }
-            }
+            BlastRadiusGridControl.SelectNode(_selectedNode.Id);
         }
     }
 
     /// <summary>
-    /// Calcola in background l'impatto semantico e il Blast Radius per tutte le routine del workspace (metodi e proprietà),
-    /// popolando la griglia tabellare con conteggi chiamanti, profondità, form coinvolte e livello di rischio,
-    /// salvando contemporaneamente il risultato nella cache del progetto.
+    /// Calcola in background l'impatto semantico e il Blast Radius per tutte le routine del workspace tramite <see cref="BlastRadiusGridView"/>.
     /// </summary>
     private async Task PopulateBlastRadiusGridAsync()
     {
-        if (_graph is null)
-        {
-            _allBlastRadiusRows = new();
-            if (BlastRadiusDataGrid != null) BlastRadiusDataGrid.ItemsSource = null;
-            if (GridStatsTextBlock != null) GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_StatsFormat", 0, 0);
-            if (GridLoadingProgressBar != null) GridLoadingProgressBar.IsVisible = false;
-            return;
-        }
-
-        var graph = _graph;
-        var queries = graph.Queries;
-        if (queries == null) return;
-
-        // Raccogliamo tutti i nodi di tipo routine (Method e Property)
-        var routineNodes = graph.Nodes
-            .Where(n => n.SemanticSymbol is not null &&
-                        (n.SemanticSymbol.Kind == SymbolKind.Method || n.SemanticSymbol.Kind == SymbolKind.Property))
-            .ToList();
-
-        if (routineNodes.Count == 0)
-        {
-            _allBlastRadiusRows = new();
-            if (BlastRadiusDataGrid != null) BlastRadiusDataGrid.ItemsSource = null;
-            if (GridStatsTextBlock != null) GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_StatsFormat", 0, 0);
-            if (GridLoadingProgressBar != null) GridLoadingProgressBar.IsVisible = false;
-            return;
-        }
-
-        // Mostra e configura la barra di avanzamento del calcolo
-        if (GridLoadingProgressBar != null)
-        {
-            GridLoadingProgressBar.Minimum = 0;
-            GridLoadingProgressBar.Maximum = routineNodes.Count;
-            GridLoadingProgressBar.Value = 0;
-            GridLoadingProgressBar.IsVisible = true;
-        }
-
-        if (GridStatsTextBlock != null)
-            GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_Calculating", routineNodes.Count);
-
-        try
-        {
-            var totalCount = routineNodes.Count;
-            var processedCount = 0;
-            var lastReportTime = DateTime.UtcNow;
-
-            var rows = await Task.Run(() =>
-            {
-                var result = new List<BlastRadiusGridRow>(totalCount);
-                for (int i = 0; i < totalCount; i++)
-                {
-                    var node = routineNodes[i];
-                    var sym = node.SemanticSymbol!;
-                    var report = queries.GetImpactReport(sym);
-                    string containerName = "(globale)";
-                    if (node.ParentId.HasValue && graph.GetNode(node.ParentId.Value) is { } parentNode)
-                    {
-                        containerName = parentNode.Name;
-                    }
-                    else if (!string.IsNullOrEmpty(sym.FilePath))
-                    {
-                        containerName = Path.GetFileName(sym.FilePath);
-                    }
-                    var affectedForms = report.AffectedForms.Select(f => f.Name).ToList();
-
-                    result.Add(new BlastRadiusGridRow
-                    {
-                        TargetSymbol = sym,
-                        NodeId = node.Id,
-                        ProjectId = node.ProjectId ?? (node.Kind == SymbolKind.Project ? node.Id : null),
-                        ProjectName = node.ProjectName ?? "(predefinito)",
-                        Name = sym.Name,
-                        QualifiedName = sym.QualifiedName,
-                        ContainerName = containerName,
-                        Kind = sym.Kind.ToString(),
-                        DirectCallersCount = report.DirectCallers.Count,
-                        IndirectCallersCount = report.IndirectCallers.Count,
-                        MaxDepth = report.MaxDependencyDepth,
-                        RiskLevel = report.RiskLevel,
-                        AffectedFormsCount = report.AffectedForms.Count,
-                        AffectedFormsSummary = affectedForms.Count > 0 ? string.Join(", ", affectedForms) : "-",
-                        TotalImpactedCount = report.DirectCallers.Count + report.IndirectCallers.Count + report.AffectedForms.Count + report.AffectedClasses.Count + report.AffectedModules.Count
-                    });
-
-                    processedCount++;
-
-                    // Notifica periodica dell'avanzamento sulla UI
-                    var now = DateTime.UtcNow;
-                    if (processedCount % 25 == 0 || (now - lastReportTime).TotalMilliseconds >= 100 || processedCount == totalCount)
-                    {
-                        lastReportTime = now;
-                        var current = processedCount;
-                        var percent = (int)((double)current / totalCount * 100);
-                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                        {
-                            if (GridLoadingProgressBar != null && GridLoadingProgressBar.IsVisible)
-                            {
-                                GridLoadingProgressBar.Value = current;
-                            }
-                            if (GridStatsTextBlock != null)
-                            {
-                                GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_CalculatingProgress", current, totalCount, percent);
-                            }
-                        });
-                    }
-                }
-
-                // Ordinamento predefinito: Rischio decrescente (Critical -> High -> Medium -> Low), poi Impatto Totale decrescente
-                return result
-                    .OrderByDescending(r => r.RiskLevel)
-                    .ThenByDescending(r => r.TotalImpactedCount)
-                    .ToList();
-            });
-
-            _allBlastRadiusRows = rows;
-            ApplyGridFilters();
-
-            // Salva in background nella cache persistente se stiamo analizzando una cartella su disco
-            if (!string.IsNullOrEmpty(_currentFolderPath) && _graph != null)
-            {
-                _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _graph, _allBlastRadiusRows, _hasUserMovedNodes);
-            }
-        }
-        catch (Exception ex)
-        {
-            StatusText.Text = LocalizationService.Instance.Get("Status_ErrorGridCalc", ex.Message);
-        }
-        finally
-        {
-            if (GridLoadingProgressBar != null)
-            {
-                GridLoadingProgressBar.IsVisible = false;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Applica i criteri di filtro correnti (testo di ricerca, livello di rischio e visibilità per progetto)
-    /// alla lista completa delle righe di Blast Radius (<see cref="_allBlastRadiusRows"/>), aggiornando
-    /// la sorgente dati della griglia (<see cref="BlastRadiusDataGrid"/>), il contatore delle statistiche
-    /// e riallineando la selezione con il nodo correntemente attivo nel grafo.
-    /// </summary>
-    private void ApplyGridFilters()
-    {
-        if (BlastRadiusDataGrid == null || GridStatsTextBlock == null) return;
-
-        var filterText = GridFilterTextBox?.Text?.Trim() ?? string.Empty;
-        var selectedRiskIndex = RiskFilterComboBox?.SelectedIndex ?? 0;
-
-        IEnumerable<BlastRadiusGridRow> query = _allBlastRadiusRows;
-
-        if (Graph.HiddenProjectIds.Count > 0)
-        {
-            query = query.Where(r => !r.ProjectId.HasValue || !Graph.HiddenProjectIds.Contains(r.ProjectId.Value));
-        }
-
-        if (!string.IsNullOrEmpty(filterText))
-        {
-            query = query.Where(r =>
-                r.Name.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
-                r.ContainerName.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
-                r.ProjectName.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
-                r.QualifiedName.Contains(filterText, StringComparison.OrdinalIgnoreCase));
-        }
-
-        if (selectedRiskIndex > 0)
-        {
-            var targetRisk = selectedRiskIndex switch
-            {
-                1 => ImpactRiskLevel.Critical,
-                2 => ImpactRiskLevel.High,
-                3 => ImpactRiskLevel.Medium,
-                4 => ImpactRiskLevel.Low,
-                _ => (ImpactRiskLevel?)null
-            };
-
-            if (targetRisk.HasValue)
-            {
-                query = query.Where(r => r.RiskLevel == targetRisk.Value);
-            }
-        }
-
-        var filteredList = query.ToList();
-        BlastRadiusDataGrid.ItemsSource = filteredList;
-        GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_StatsFormat", filteredList.Count, _allBlastRadiusRows.Count);
-
-        // Se c'è un nodo selezionato, sincronizza la riga corrispondente
-        if (_selectedNode != null)
-        {
-            var matchingRow = filteredList.FirstOrDefault(r => r.NodeId == _selectedNode.Id);
-            if (matchingRow != null && BlastRadiusDataGrid.SelectedItem != matchingRow)
-            {
-                _isSyncingSelection = true;
-                try
-                {
-                    BlastRadiusDataGrid.SelectedItem = matchingRow;
-                    BlastRadiusDataGrid.ScrollIntoView(matchingRow, null);
-                }
-                finally
-                {
-                    _isSyncingSelection = false;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gestisce la variazione del testo nel campo di ricerca/filtro della griglia Blast Radius.
-    /// </summary>
-    private void OnGridFilterTextChanged(object? sender, TextChangedEventArgs e)
-    {
-        ApplyGridFilters();
-    }
-
-    /// <summary>
-    /// Gestisce il cambio di selezione nel ComboBox del filtro di rischio della griglia Blast Radius, salvando la preferenza nelle impostazioni.
-    /// </summary>
-    private void OnRiskFilterChanged(object? sender, SelectionChangedEventArgs e)
-    {
-        ApplyGridFilters();
-        if (RiskFilterComboBox != null)
-        {
-            SettingsService.Instance.Update(s => s.DefaultRiskFilterIndex = RiskFilterComboBox.SelectedIndex);
-        }
-    }
-
-    /// <summary>
-    /// Gestisce il click sul pulsante "Ricalcola Audit" nella barra strumenti della griglia.
-    /// </summary>
-    private void OnRefreshGridClicked(object? sender, RoutedEventArgs e)
-    {
-        _ = PopulateBlastRadiusGridAsync();
+        await BlastRadiusGridControl.PopulateBlastRadiusGridAsync(_graph, _currentFolderPath, _hasUserMovedNodes);
     }
 
     /// <summary>
     /// Gestisce la selezione di una riga all'interno della griglia Blast Radius, selezionando e ispezionando il relativo nodo nel grafo.
     /// </summary>
-    private void OnGridRowSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void OnGridControlRowSelected(object? sender, BlastRadiusGridRow row)
     {
-        if (_isSyncingSelection || BlastRadiusDataGrid.SelectedItem is not BlastRadiusGridRow row)
-            return;
-
-        if (_graph == null) return;
+        if (_isSyncingSelection || _graph == null) return;
         var node = _graph.GetNode(row.NodeId);
         if (node != null && node != _selectedNode)
         {
@@ -3786,25 +3454,19 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Gestisce il doppio click su una riga della griglia Blast Radius per navigare e visualizzare il nodo nel canvas del grafo.
+    /// Gestisce la richiesta di navigazione verso un nodo del grafo proveniente dalla griglia Blast Radius.
     /// </summary>
-    private void OnGridRowDoubleTapped(object? sender, TappedEventArgs e)
+    private void OnGridControlNavigateToNodeRequested(object? sender, Guid nodeId)
     {
-        if (BlastRadiusDataGrid.SelectedItem is BlastRadiusGridRow row)
-        {
-            NavigateToNodeInGraph(row.NodeId);
-        }
+        NavigateToNodeInGraph(nodeId);
     }
 
     /// <summary>
-    /// Gestisce il click sul pulsante "Mostra nel grafo" presente nella colonna azioni della griglia Blast Radius.
+    /// Gestisce la richiesta di ricalcolo dell'audit completo dalla griglia Blast Radius.
     /// </summary>
-    private void OnShowInGraphButtonClicked(object? sender, RoutedEventArgs e)
+    private async void OnGridControlRecalculateAuditRequested(object? sender, EventArgs e)
     {
-        if (sender is Button { DataContext: BlastRadiusGridRow row })
-        {
-            NavigateToNodeInGraph(row.NodeId);
-        }
+        await PopulateBlastRadiusGridAsync();
     }
 
     /// <summary>
@@ -3977,10 +3639,7 @@ public partial class MainWindow : Window
         {
             var surfaceBrush = new SolidColorBrush(bgSurface);
             ProjectExplorerControl.Background = surfaceBrush;
-            GridToolbarBorder.Background = surfaceBrush;
             SymbolInspectorControl.Background = surfaceBrush;
-            BlastRadiusDataGrid.Background = surfaceBrush;
-            BlastRadiusDataGrid.RowBackground = surfaceBrush;
         }
 
         if (Color.TryParse(theme.BorderDefault, out var borderCol))
@@ -3991,7 +3650,6 @@ public partial class MainWindow : Window
             StatusBarBorder.BorderBrush = borderBrush;
             FloatingHudBorder.BorderBrush = borderBrush;
             ProjectExplorerControl.BorderBrush = borderBrush;
-            GridToolbarBorder.BorderBrush = borderBrush;
             SymbolInspectorControl.BorderBrush = borderBrush;
             LeftGridSplitter.Background = borderBrush;
             RightGridSplitter.Background = borderBrush;
@@ -4017,6 +3675,7 @@ public partial class MainWindow : Window
         DataFlow.ApplyTheme(theme);
         ApiDiff.ApplyTheme(theme);
         CrudMatrix.ApplyTheme(theme);
+        BlastRadiusGridControl.ApplyTheme(theme);
     }
 
     #endregion
@@ -4290,46 +3949,20 @@ public partial class MainWindow : Window
         }
     }
 
-    private string? _lastExportedFilePath;
-
     /// <summary>
     /// Mostra il popup modale di conferma per l'esportazione completata con successo.
     /// </summary>
     private void ShowExportSuccessModal(string fileName, string fullPath)
     {
-        var localizationService = LocalizationService.Instance;
-        _lastExportedFilePath = fullPath;
-
-        ExportSuccessModalTitle.Text = localizationService["Export_ModalTitle"];
-        ExportSuccessModalSubtitle.Text = localizationService["Export_ModalSubtitle"];
-        ExportSuccessFileLabel.Text = localizationService["Export_ModalFileLabel"];
-        ExportSuccessPathLabel.Text = localizationService["Export_ModalPathLabel"];
-        ExportSuccessFileName.Text = fileName;
-        ExportSuccessFilePath.Text = fullPath;
-        ExportSuccessOpenFolderButton.Content = localizationService["Export_ModalOpenFolder"];
-        ExportSuccessCloseButton.Content = localizationService["Export_ModalOk"];
-
-        ExportSuccessOverlay.IsVisible = true;
+        ExportSuccessModalControl.Show(fileName, fullPath);
     }
 
-    /// <summary>
-    /// Gestisce la chiusura della modale di conferma esportazione.
-    /// </summary>
-    private void OnExportSuccessCloseClicked(object? sender, RoutedEventArgs e)
+    private void OnExportSuccessOpenFolderRequested(object? sender, string fullPath)
     {
-        ExportSuccessOverlay.IsVisible = false;
-    }
-
-    /// <summary>
-    /// Gestisce il click sul pulsante "Apri cartella" della modale di conferma esportazione, rivelando il file generato in Esplora File.
-    /// </summary>
-    private void OnExportSuccessOpenFolderClicked(object? sender, RoutedEventArgs e)
-    {
-        if (!string.IsNullOrEmpty(_lastExportedFilePath))
+        if (!string.IsNullOrEmpty(fullPath))
         {
-            OpenContainingFolder(_lastExportedFilePath);
+            OpenContainingFolder(fullPath);
         }
-        ExportSuccessOverlay.IsVisible = false;
     }
 
     #endregion
@@ -4376,38 +4009,17 @@ public partial class MainWindow : Window
     /// </summary>
     private void ShowLayoutConfirmModal()
     {
-        var localizationService = LocalizationService.Instance;
-        LayoutConfirmModalTitle.Text = localizationService["Layout_ConfirmTitle"];
-        LayoutConfirmModalSubtitle.Text = localizationService["Layout_ConfirmMessage"];
-        LayoutConfirmCancelButton.Content = localizationService["Layout_ConfirmCancel"];
-        LayoutConfirmApplyButton.Content = localizationService["Layout_ConfirmApply"];
-        LayoutConfirmOverlay.IsVisible = true;
-    }
-
-    /// <summary>
-    /// Gestisce l'annullamento del cambio di layout dal popup di conferma, ripristinando la selezione precedente nella ComboBox.
-    /// </summary>
-    private void OnLayoutConfirmCancelClicked(object? sender, RoutedEventArgs e)
-    {
-        LayoutConfirmOverlay.IsVisible = false;
-        _pendingLayoutMode = null;
-        // Ripristina l'indice selezionato nella ComboBox senza scatenare nuovo evento
-        LayoutComboBox.SelectedIndex = (int)_currentLayoutMode;
-    }
-
-    /// <summary>
-    /// Gestisce la conferma del cambio layout dal popup, applicando il nuovo algoritmo e azzerando le posizioni personalizzate.
-    /// </summary>
-    private void OnLayoutConfirmApplyClicked(object? sender, RoutedEventArgs e)
-    {
-        LayoutConfirmOverlay.IsVisible = false;
         if (_pendingLayoutMode.HasValue)
         {
-            var mode = _pendingLayoutMode.Value;
-            _pendingLayoutMode = null;
-            _hasUserMovedNodes = false;
-            SetLayoutMode(mode, resetView: true);
+            LayoutConfirmModalControl.Show(_pendingLayoutMode.Value);
         }
+    }
+
+    private void OnLayoutConfirmModalConfirmed(object? sender, Layout.GraphLayoutMode mode)
+    {
+        _pendingLayoutMode = null;
+        _hasUserMovedNodes = false;
+        SetLayoutMode(mode, resetView: true);
     }
 
     /// <summary>
@@ -4943,16 +4555,7 @@ public partial class MainWindow : Window
     private void ShowUpdateModal(AppUpdateInfo update)
     {
         _availableUpdate = update;
-        var localizationService = LocalizationService.Instance;
-
-        UpdateModalTitle.Text = localizationService["Update_AvailableTitle"];
-        UpdateModalSubtitle.Text = localizationService.Get("Update_AvailableSubtitle", update.VersionString, UpdateService.CurrentVersionString);
-        UpdateModalNotesLabel.Text = localizationService["Update_NotesLabel"];
-        UpdateModalNotes.Text = update.GetReleaseNotes(localizationService.CurrentLanguage == AppLanguage.Italian ? "it" : "en");
-        UpdateLaterButton.Content = localizationService["Update_ButtonLater"];
-        UpdateNowButton.Content = localizationService["Update_ButtonNow"];
-
-        UpdateOverlay.IsVisible = true;
+        UpdateModalControl.Show(update);
     }
 
     /// <summary>
@@ -4960,18 +4563,20 @@ public partial class MainWindow : Window
     /// </summary>
     private void DismissUpdateModal()
     {
-        UpdateOverlay.IsVisible = false;
+        UpdateModalControl.Hide();
     }
 
-    /// <summary>
-    /// Gestisce il click sul pulsante "Aggiorna ora", aprendo la pagina di download nel browser.
-    /// </summary>
-    private void ApplyUpdateAndOpenDownload()
+    private void OnUpdateModalNowRequested(object? sender, AppUpdateInfo update)
     {
         var localizationService = LocalizationService.Instance;
         StatusText.Text = localizationService["Update_OpeningDownload"];
-        UpdateOverlay.IsVisible = false;
-        UpdateService.Instance.OpenDownloadPage(_availableUpdate?.DownloadUrl);
+        UpdateModalControl.Hide();
+        UpdateService.Instance.OpenDownloadPage(update?.DownloadUrl);
+    }
+
+    private void OnUpdateModalLaterRequested(object? sender, EventArgs e)
+    {
+        DismissUpdateModal();
     }
 
     #endregion
@@ -5314,9 +4919,6 @@ public partial class MainWindow : Window
         ToolTip.SetTip(ExportJsonButton, localizationService["Tooltip_ExportJson"]);
         ToolTip.SetTip(ImportJsonButton, localizationService["Tooltip_ImportJson"]);
 
-        // Grid Toolbar Tooltips
-        ToolTip.SetTip(RefreshGridButton, localizationService["Tooltip_RecalculateAudit"]);
-
         // Ricerca
         SearchBox.Watermark = localizationService["Search_Watermark"];
 
@@ -5432,17 +5034,6 @@ public partial class MainWindow : Window
         HudExportJsonText.Text = localizationService["HUD_ExportJson"];
         HudImportJsonText.Text = localizationService["HUD_ImportJson"];
 
-        // Grid Toolbar
-        GridFilterLabel.Text = localizationService["Grid_FilterLabel"];
-        GridFilterTextBox.Watermark = localizationService["Grid_FilterWatermark"];
-        GridRiskLabel.Text = localizationService["Grid_RiskLabel"];
-        RiskItemAll.Content = localizationService["Grid_AllRisks"];
-        RiskItemCritical.Content = localizationService["Risk_Critical"];
-        RiskItemHigh.Content = localizationService["Risk_High"];
-        RiskItemMedium.Content = localizationService["Risk_Medium"];
-        RiskItemLow.Content = localizationService["Risk_Low"];
-        RefreshGridButtonText.Text = localizationService["Grid_Recalculate"];
-
         // VCS (Git & SVN) Popup & Tooltip
         if (!string.IsNullOrEmpty(_currentFolderPath))
         {
@@ -5456,59 +5047,17 @@ public partial class MainWindow : Window
             }
         }
 
-        // DataGrid Colonne
-        if (BlastRadiusDataGrid?.Columns.Count >= 10)
-        {
-            BlastRadiusDataGrid.Columns[0].Header = localizationService["Col_Project"];
-            BlastRadiusDataGrid.Columns[1].Header = localizationService["Col_Routine"];
-            BlastRadiusDataGrid.Columns[2].Header = localizationService["Col_Module"];
-            BlastRadiusDataGrid.Columns[3].Header = localizationService["Col_DirectCallers"];
-            BlastRadiusDataGrid.Columns[4].Header = localizationService["Col_IndirectCallers"];
-            BlastRadiusDataGrid.Columns[5].Header = localizationService["Col_Depth"];
-            BlastRadiusDataGrid.Columns[6].Header = localizationService["Col_Risk"];
-            BlastRadiusDataGrid.Columns[7].Header = localizationService["Col_Forms"];
-            BlastRadiusDataGrid.Columns[8].Header = localizationService["Col_TotalImpact"];
-            BlastRadiusDataGrid.Columns[9].Header = localizationService["Col_Action"];
-        }
-
         // Sub-views localizations
         ProjectExplorerControl?.UpdateLocalizedUI();
         SymbolInspectorControl?.UpdateLocalizedUI();
-
-        // Modal Notifica Aggiornamento (se visibile)
-        if (UpdateOverlay.IsVisible && _availableUpdate != null)
-        {
-            UpdateModalTitle.Text = localizationService["Update_AvailableTitle"];
-            UpdateModalSubtitle.Text = localizationService.Get("Update_AvailableSubtitle", _availableUpdate.VersionString, UpdateService.CurrentVersionString);
-            UpdateModalNotesLabel.Text = localizationService["Update_NotesLabel"];
-            UpdateModalNotes.Text = _availableUpdate.GetReleaseNotes(localizationService.CurrentLanguage == AppLanguage.Italian ? "it" : "en");
-            UpdateLaterButton.Content = localizationService["Update_ButtonLater"];
-            UpdateNowButton.Content = localizationService["Update_ButtonNow"];
-        }
-
-        // Overlay Conferma Esportazione (se visibile)
-        if (ExportSuccessOverlay.IsVisible)
-        {
-            ExportSuccessModalTitle.Text = localizationService["Export_ModalTitle"];
-            ExportSuccessModalSubtitle.Text = localizationService["Export_ModalSubtitle"];
-            ExportSuccessFileLabel.Text = localizationService["Export_ModalFileLabel"];
-            ExportSuccessPathLabel.Text = localizationService["Export_ModalPathLabel"];
-            ExportSuccessOpenFolderButton.Content = localizationService["Export_ModalOpenFolder"];
-            ExportSuccessCloseButton.Content = localizationService["Export_ModalOk"];
-        }
-
-        // Overlay Caricamento
-        LoadingCancelButton.Content = localizationService["Loading_Cancel"];
-
-        // Overlay Conferma Cambio Layout
-        LayoutConfirmModalTitle.Text = localizationService["Layout_ConfirmTitle"];
-        LayoutConfirmModalSubtitle.Text = localizationService["Layout_ConfirmMessage"];
-        LayoutConfirmCancelButton.Content = localizationService["Layout_ConfirmCancel"];
-        LayoutConfirmApplyButton.Content = localizationService["Layout_ConfirmApply"];
+        BlastRadiusGridControl?.UpdateLocalizedUI();
+        LoadingOverlayControl?.UpdateLocalizedUI();
+        UpdateModalControl?.UpdateLocalizedUI();
+        ExportSuccessModalControl?.UpdateLocalizedUI();
+        LayoutConfirmModalControl?.UpdateLocalizedUI();
 
         // Refresh dynamic strings in Grid and Status
         UpdateStatsBar();
-        ApplyGridFilters();
         if (_selectedNode == null)
         {
             StatusText.Text = localizationService["Status_Ready"];
