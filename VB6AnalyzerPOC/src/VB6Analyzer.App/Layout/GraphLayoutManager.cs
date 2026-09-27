@@ -10,23 +10,35 @@ public static class GraphLayoutManager
     /// <summary>
     /// Applica l'algoritmo di disposizione spaziale specificato al grafo visuale.
     /// </summary>
+    /// <param name="graph">Il grafo visuale su cui calcolare e assegnare le posizioni dei nodi.</param>
+    /// <param name="mode">La modalità o algoritmo di layout selezionato dall'utente.</param>
     public static void ApplyLayout(VisualCodeGraph graph, GraphLayoutMode mode)
     {
+        // Smista l'esecuzione verso l'engine di layout specifico in base alla modalità selezionata
         switch (mode)
         {
             case GraphLayoutMode.StandardRadial:
+                // Layout radiale concentrico standard (moduli sull'anello principale, membri su satelliti)
                 RadialLayoutEngine.Apply(graph);
                 break;
+
             case GraphLayoutMode.AffinityRadial:
+                // Layout radiale con ottimizzazione angolare per affinità semantica (TSP / Nearest Neighbor)
                 AffinityRadialLayoutEngine.Apply(graph);
                 break;
+
             case GraphLayoutMode.ClusteredIslands:
+                // Layout a isole funzionali basato su componenti connesse (Union-Find)
                 ClusteredIslandsLayoutEngine.Apply(graph);
                 break;
+
             case GraphLayoutMode.ForceDirected:
+                // Layout fisico a forze repulsive ed elastiche (Fruchterman-Reingold con Simulated Annealing)
                 ForceDirectedLayoutEngine.Apply(graph);
                 break;
+
             default:
+                // Fallback di sicurezza su modalità radiale standard
                 RadialLayoutEngine.Apply(graph);
                 break;
         }

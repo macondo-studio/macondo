@@ -30,12 +30,17 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
     /// </remarks>
     public static void Apply(VisualCodeGraph graph)
     {
+        // 1. Recupero di tutti i nodi container (classi, moduli, form, ecc.)
         var containers = graph.Nodes.Where(n => n.IsContainer).ToList();
         if (containers.Count == 0) return;
 
         var projects = graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
-
         var n = containers.Count;
+
+        // =========================================================================
+        // PASSO 1: Mappa di appartenenza nodo -> container
+        // Mappa ciascun nodo membro (metodo, proprietà, campo) al proprio container genitore.
+        // =========================================================================
         var nodeToContainerMap = new Dictionary<Guid, Guid>();
         foreach (var c in containers)
         {
@@ -46,7 +51,11 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
             }
         }
 
-        // Posizionamento iniziale su cerchio per stabilità
+        // =========================================================================
+        // PASSO 2: Posizionamento circolare iniziale (Seed Stabile)
+        // Disporre i container su un anello preliminare evita singolarità o minimi locali
+        // caotici prima dell'avvio della simulazione fisica Fruchterman-Reingold.
+        // =========================================================================
         var initialRadius = Math.Max(350.0, n * 30.0);
         for (var i = 0; i < n; i++)
         {
@@ -55,7 +64,13 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
             containers[i].Y = Math.Sin(angle) * initialRadius;
         }
 
-        // Parametri di simulazione Fruchterman-Reingold
+        // =========================================================================
+        // PASSO 3: Inizializzazione dei parametri del modello fisico (Fruchterman-Reingold)
+        // - k: distanza ideale di equilibrio tra due nodi (scala con l'area virtuale del canvas)
+        // - iterations: numero di iterazioni di simulazione dinamica
+        // - temp: temperatura iniziale (escursione massima consentita per passo)
+        // - coolingFactor: tasso geometrico di raffreddamento (Simulated Annealing)
+        // =========================================================================
         var optimalDistance = Math.Max(220.0, Math.Sqrt((1200.0 * 1200.0) / Math.Max(n, 1)));
         var k = optimalDistance;
         var kSquared = k * k;
@@ -65,10 +80,17 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
         var temp = initialTemp;
         var coolingFactor = 0.95;
 
+        // Buffer riutilizzabili per gli spostamenti netti calcolati ad ogni iterazione
         var dispX = new double[n];
         var dispY = new double[n];
 
-        // Mappa archi tra container con pesi
+        // =========================================================================
+        // PASSO 4: Mappatura degli archi semantici tra container con pesi differenziati
+        // Proietta le relazioni tra membri su archi equivalenti tra container genitore:
+        // - Calls (3.0): attrazione forte per moduli che si chiamano reciprocamente
+        // - Instantiates (2.5): attrazione per modulo factory/creatore
+        // - UsesType (1.5): attrazione per dipendenza di tipo
+        // =========================================================================
         var containerEdges = new List<(int SrcIdx, int TgtIdx, double Weight)>();
         var containerIndexById = containers.Select((c, idx) => (c.Id, idx)).ToDictionary(x => x.Id, x => x.idx);
 
@@ -91,13 +113,17 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
             }
         }
 
-        // Loop di simulazione fisica
+        // =========================================================================
+        // PASSO 5: Ciclo principale di simulazione dinamica (Physics Loop)
+        // =========================================================================
         for (var iter = 0; iter < iterations; iter++)
         {
+            // Reset dei vettori di spostamento accumulati
             Array.Clear(dispX, 0, n);
             Array.Clear(dispY, 0, n);
 
-            // 1. Forze repulsive tra tutti i nodi container
+            // 5a. Forze repulsive elettrostatiche tra tutte le coppie di nodi (O(N^2))
+            // Formula di Coulomb: F_rep = k^2 / dist
             for (var i = 0; i < n; i++)
             {
                 var c1 = containers[i];
@@ -107,6 +133,8 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
                     var dx = c1.X - c2.X;
                     var dy = c1.Y - c2.Y;
                     var dist = Math.Sqrt(dx * dx + dy * dy);
+
+                    // Protezione contro singolarità (sovrapposizione esatta di due nodi)
                     if (dist < 0.001)
                     {
                         dx = (i + 1) * 0.1;
@@ -118,6 +146,7 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
                     var fx = (dx / dist) * repForce;
                     var fy = (dy / dist) * repForce;
 
+                    // I nodi si respingono a vicenda lungo la congiungente
                     dispX[i] += fx;
                     dispY[i] += fy;
                     dispX[j] -= fx;
@@ -125,7 +154,8 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
                 }
             }
 
-            // 2. Forze attrattive lungo gli archi semantici
+            // 5b. Forze attrattive elastiche lungo gli archi semantici attivi (Legge di Hooke)
+            // Formula di Hooke: F_att = (dist^2 / k) * peso
             foreach (var (srcIdx, tgtIdx, weight) in containerEdges)
             {
                 var c1 = containers[srcIdx];
@@ -139,13 +169,15 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
                 var fx = (dx / dist) * attForce;
                 var fy = (dy / dist) * attForce;
 
+                // I nodi collegati si attraggono reciprocamente
                 dispX[srcIdx] -= fx;
                 dispY[srcIdx] -= fy;
                 dispX[tgtIdx] += fx;
                 dispY[tgtIdx] += fy;
             }
 
-            // 3. Gravità centrale verso l'origine (0, 0)
+            // 5c. Forza di gravità centripeta verso l'origine (0, 0)
+            // Evita che nodi disconnessi o cluster periferici si allontanino all'infinito
             for (var i = 0; i < n; i++)
             {
                 var c = containers[i];
@@ -157,7 +189,7 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
                 }
             }
 
-            // 4. Applicazione degli spostamenti limitati dalla temperatura
+            // 5d. Applicazione degli spostamenti limitati dalla soglia di temperatura (Annealing)
             for (var i = 0; i < n; i++)
             {
                 var dLen = Math.Sqrt(dispX[i] * dispX[i] + dispY[i] * dispY[i]);
@@ -169,18 +201,20 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
                 }
             }
 
-            // Raffreddamento
+            // 5e. Raffreddamento progressivo del sistema per convergenza dolce
             temp *= coolingFactor;
         }
 
-        // 5. Posizionamento dei membri attorno ai rispettivi container
+        // =========================================================================
+        // PASSO 6: Posizionamento dei membri satelliti attorno ai rispettivi container
+        // =========================================================================
         foreach (var container in containers)
         {
             var members = graph.GetChildren(container.Id).ToList();
             var memberCount = Math.Max(members.Count, 1);
             var memberRingRadius = Math.Max(80.0, memberCount * 13.0);
 
-            for (var j = 0; j < members.Count; j++)
+            for (var j = 0; j < memberCount; j++)
             {
                 var memberAngle = 2 * Math.PI * j / memberCount;
                 var member = members[j];
@@ -189,7 +223,9 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
             }
         }
 
-        // Posiziona i nodi Project al centroide dei propri container
+        // =========================================================================
+        // PASSO 7: Posizionamento dei nodi Progetto al centroide geometrico dei moduli
+        // =========================================================================
         foreach (var proj in projects)
         {
             var projContainers = graph.GetChildren(proj.Id).ToList();
