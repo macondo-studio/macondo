@@ -21,33 +21,77 @@ public sealed class CodeGraph
     public List<Relationship> Relationships { get; } = new();
 
     // =========================================================================
-    // INDICI INTERNI AD ALTE PRESTAZIONI (O(1))
+    // INDICI INTERNI AD ALTE PRESTAZIONI (O(1)) E THREAD-SAFE
     // =========================================================================
 
-    private readonly HashSet<(Guid SourceId, Guid TargetId, RelationshipKind Kind)> _relationshipKeys = new();
-    private readonly Dictionary<Guid, Symbol> _symbolsById = new();
-    private readonly Dictionary<Guid, List<Symbol>> _childrenByParentId = new();
-    private int _lastIndexedSymbolCount = -1;
-    private int _lastIndexedRelCount = -1;
+    /// <summary>
+    /// Oggetto di sincronizzazione dedicato per l'accesso e la ricostruzione degli indici interni.
+    /// Utilizzato per proteggere le mutazioni concorrenti su collezioni non thread-safe durante
+    /// le elaborazioni parallele di analisi (Blast Radius, Treemap, Dead Code, Temporal Coupling, ecc.).
+    /// </summary>
+    private readonly object _syncLock = new();
 
     /// <summary>
-    /// Sincronizza gli indici interni dei simboli se la lista <see cref="Symbols"/> è stata modificata direttamente.
+    /// Insieme di tuple (Sorgente, Destinazione, TipoRelazione) per la deduplicazione O(1) rapida delle relazioni.
+    /// </summary>
+    private HashSet<(Guid SourceId, Guid TargetId, RelationshipKind Kind)> _relationshipKeys = new();
+
+    /// <summary>
+    /// Mappa indicizzata ID Simbolo -> Oggetto Simbolo per ricerche O(1) immediate.
+    /// </summary>
+    private Dictionary<Guid, Symbol> _symbolsById = new();
+
+    /// <summary>
+    /// Mappa indicizzata ID Padre -> Lista dei Simboli Figli (relazione CONTAINS) per navigazione gerarchica O(1).
+    /// </summary>
+    private Dictionary<Guid, List<Symbol>> _childrenByParentId = new();
+
+    /// <summary>
+    /// Conteggio dei simboli all'ultima sincronizzazione dell'indice (marcato volatile per visibilità cross-thread).
+    /// </summary>
+    private volatile int _lastIndexedSymbolCount = -1;
+
+    /// <summary>
+    /// Conteggio delle relazioni all'ultima sincronizzazione dell'indice (marcato volatile per visibilità cross-thread).
+    /// </summary>
+    private volatile int _lastIndexedRelCount = -1;
+
+    /// <summary>
+    /// Sincronizza gli indici interni dei simboli se la lista <see cref="Symbols"/> è stata modificata o popolata.
+    /// 
+    /// STRATEGIA THREAD-SAFE:
+    /// 1. Fast-path lock-free: se il conteggio corrente coincide con l'ultimo indicizzato, ritorna istantaneamente.
+    /// 2. Double-checked locking: se un aggiornamento è richiesto, acquisisce <see cref="_syncLock"/> e ricontrolla.
+    /// 3. Sostituzione atomica: crea un nuovo dizionario locale isolato e sostituisce il riferimento di <see cref="_symbolsById"/>
+    ///    in modo atomico, garantendo che i thread lettori concorrenti non subiscano blocchi né leggano collezioni in corso di mutazione.
     /// </summary>
     private void EnsureSymbolsIndexed()
     {
-        if (_symbolsById.Count == Symbols.Count && _lastIndexedSymbolCount == Symbols.Count)
+        if (_lastIndexedSymbolCount == Symbols.Count)
             return;
 
-        _symbolsById.Clear();
-        foreach (var sym in Symbols)
+        lock (_syncLock)
         {
-            _symbolsById[sym.Id] = sym;
+            if (_lastIndexedSymbolCount == Symbols.Count)
+                return;
+
+            var newSymbolsById = new Dictionary<Guid, Symbol>(Symbols.Count);
+            foreach (var sym in Symbols)
+            {
+                newSymbolsById[sym.Id] = sym;
+            }
+
+            _symbolsById = newSymbolsById;
+            _lastIndexedSymbolCount = Symbols.Count;
         }
-        _lastIndexedSymbolCount = Symbols.Count;
     }
 
     /// <summary>
-    /// Sincronizza l'indice gerarchico di contenimento se le relazioni sono state modificate.
+    /// Sincronizza l'indice gerarchico di contenimento (relazioni CONTAINS) e le chiavi di deduplicazione.
+    /// 
+    /// STRATEGIA THREAD-SAFE:
+    /// Costruisce una nuova mappa di adiacenza e un nuovo set di deduplicazione in isolamento locale,
+    /// scambiando i riferimenti <see cref="_childrenByParentId"/> e <see cref="_relationshipKeys"/> atomicamente.
     /// </summary>
     private void EnsureContainsIndexed()
     {
@@ -56,15 +100,55 @@ public sealed class CodeGraph
         if (_lastIndexedRelCount == Relationships.Count)
             return;
 
-        _childrenByParentId.Clear();
-        _relationshipKeys.Clear();
-
-        foreach (var rel in Relationships)
+        lock (_syncLock)
         {
+            if (_lastIndexedRelCount == Relationships.Count)
+                return;
+
+            var newKeys = new HashSet<(Guid SourceId, Guid TargetId, RelationshipKind Kind)>(Relationships.Count);
+            var newChildren = new Dictionary<Guid, List<Symbol>>();
+            var currentSymbols = _symbolsById;
+
+            foreach (var rel in Relationships)
+            {
+                newKeys.Add((rel.SourceId, rel.TargetId, rel.Kind));
+
+                if (rel.Kind == RelationshipKind.Contains)
+                {
+                    if (!newChildren.TryGetValue(rel.SourceId, out var list))
+                    {
+                        list = new List<Symbol>();
+                        newChildren[rel.SourceId] = list;
+                    }
+
+                    if (currentSymbols.TryGetValue(rel.TargetId, out var childSym))
+                    {
+                        list.Add(childSym);
+                    }
+                }
+            }
+
+            _relationshipKeys = newKeys;
+            _childrenByParentId = newChildren;
+            _lastIndexedRelCount = Relationships.Count;
+        }
+    }
+
+    /// <summary>
+    /// Registra internamente una relazione mantenendo sincronizzato l'indice O(1) delle chiavi e del contenimento.
+    /// Thread-safe: serializza l'aggiunta e l'aggiornamento incrementale delle strutture.
+    /// </summary>
+    private void RegisterRelationship(Relationship rel)
+    {
+        lock (_syncLock)
+        {
+            Relationships.Add(rel);
             _relationshipKeys.Add((rel.SourceId, rel.TargetId, rel.Kind));
+            _lastIndexedRelCount = Relationships.Count;
 
             if (rel.Kind == RelationshipKind.Contains)
             {
+                EnsureSymbolsIndexed();
                 if (!_childrenByParentId.TryGetValue(rel.SourceId, out var list))
                 {
                     list = new List<Symbol>();
@@ -75,33 +159,6 @@ public sealed class CodeGraph
                 {
                     list.Add(childSym);
                 }
-            }
-        }
-
-        _lastIndexedRelCount = Relationships.Count;
-    }
-
-    /// <summary>
-    /// Registra internamente una relazione mantenendo sincronizzato l'indice O(1) delle chiavi e del contenimento.
-    /// </summary>
-    private void RegisterRelationship(Relationship rel)
-    {
-        Relationships.Add(rel);
-        _relationshipKeys.Add((rel.SourceId, rel.TargetId, rel.Kind));
-        _lastIndexedRelCount = Relationships.Count;
-
-        if (rel.Kind == RelationshipKind.Contains)
-        {
-            EnsureSymbolsIndexed();
-            if (!_childrenByParentId.TryGetValue(rel.SourceId, out var list))
-            {
-                list = new List<Symbol>();
-                _childrenByParentId[rel.SourceId] = list;
-            }
-
-            if (_symbolsById.TryGetValue(rel.TargetId, out var childSym))
-            {
-                list.Add(childSym);
             }
         }
     }
@@ -172,7 +229,7 @@ public sealed class CodeGraph
 
     /// <summary>
     /// Aggiunge una relazione di gestione evento (HANDLES_EVENT) tra la sorgente dell'evento (Form, Controllo o Oggetto) e la routine gestore.
-    /// Deduplicazione istantanea O(1).
+    /// Deduplicazione istantanea O(1) e thread-safe.
     /// </summary>
     /// <param name="source">La Form, Controllo o Oggetto che genera l'evento.</param>
     /// <param name="eventHandler">La procedura Sub che gestisce l'evento.</param>
@@ -184,168 +241,191 @@ public sealed class CodeGraph
         int? line = null,
         ResolutionConfidence confidence = ResolutionConfidence.Exact)
     {
-        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-        if (_relationshipKeys.Contains((source.Id, eventHandler.Id, RelationshipKind.HandlesEvent)))
-            return;
-
-        RegisterRelationship(new Relationship
+        lock (_syncLock)
         {
-            SourceId = source.Id,
-            TargetId = eventHandler.Id,
-            Kind = RelationshipKind.HandlesEvent,
-            Line = line,
-            Confidence = confidence
-        });
+            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+            if (_relationshipKeys.Contains((source.Id, eventHandler.Id, RelationshipKind.HandlesEvent)))
+                return;
+
+            RegisterRelationship(new Relationship
+            {
+                SourceId = source.Id,
+                TargetId = eventHandler.Id,
+                Kind = RelationshipKind.HandlesEvent,
+                Line = line,
+                Confidence = confidence
+            });
+        }
     }
 
     /// <summary>
     /// Aggiunge una relazione di ereditarietà (INHERITS) da una classe/tipo derivato verso la classe base.
-    /// Deduplicazione istantanea O(1).
+    /// Deduplicazione istantanea O(1) e thread-safe.
     /// </summary>
     public void AddInherits(Symbol derivedType, Symbol baseType, int? line = null)
     {
-        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-        if (_relationshipKeys.Contains((derivedType.Id, baseType.Id, RelationshipKind.Inherits)))
-            return;
-
-        RegisterRelationship(new Relationship
+        lock (_syncLock)
         {
-            SourceId = derivedType.Id,
-            TargetId = baseType.Id,
-            Kind = RelationshipKind.Inherits,
-            Line = line,
-            Confidence = ResolutionConfidence.Exact
-        });
+            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+            if (_relationshipKeys.Contains((derivedType.Id, baseType.Id, RelationshipKind.Inherits)))
+                return;
+
+            RegisterRelationship(new Relationship
+            {
+                SourceId = derivedType.Id,
+                TargetId = baseType.Id,
+                Kind = RelationshipKind.Inherits,
+                Line = line,
+                Confidence = ResolutionConfidence.Exact
+            });
+        }
     }
 
     /// <summary>
     /// Aggiunge una relazione di implementazione di interfaccia (IMPLEMENTS) tra una classe/struttura e l'interfaccia.
-    /// Deduplicazione istantanea O(1).
+    /// Deduplicazione istantanea O(1) e thread-safe.
     /// </summary>
     public void AddImplements(Symbol implementingType, Symbol interfaceType, int? line = null)
     {
-        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-        if (_relationshipKeys.Contains((implementingType.Id, interfaceType.Id, RelationshipKind.Implements)))
-            return;
-
-        RegisterRelationship(new Relationship
+        lock (_syncLock)
         {
-            SourceId = implementingType.Id,
-            TargetId = interfaceType.Id,
-            Kind = RelationshipKind.Implements,
-            Line = line,
-            Confidence = ResolutionConfidence.Exact
-        });
+            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+            if (_relationshipKeys.Contains((implementingType.Id, interfaceType.Id, RelationshipKind.Implements)))
+                return;
+
+            RegisterRelationship(new Relationship
+            {
+                SourceId = implementingType.Id,
+                TargetId = interfaceType.Id,
+                Kind = RelationshipKind.Implements,
+                Line = line,
+                Confidence = ResolutionConfidence.Exact
+            });
+        }
     }
 
     /// <summary>
     /// Aggiunge una relazione di dipendenza di tipo (USES_TYPE) da un simbolo verso il tipo utilizzato.
-    /// Deduplicazione istantanea O(1).
+    /// Deduplicazione istantanea O(1) e thread-safe.
     /// </summary>
     /// <param name="source">Il simbolo che dichiara o usa il tipo (variabile, routine, modulo).</param>
     /// <param name="targetType">Il simbolo del tipo utilizzato (Class, UDT, Enum, Form).</param>
     /// <param name="line">Numero di riga nel sorgente.</param>
     public void AddUsesType(Symbol source, Symbol targetType, int? line = null)
     {
-        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-        if (_relationshipKeys.Contains((source.Id, targetType.Id, RelationshipKind.UsesType)))
-            return;
-
-        RegisterRelationship(new Relationship
+        lock (_syncLock)
         {
-            SourceId = source.Id,
-            TargetId = targetType.Id,
-            Kind = RelationshipKind.UsesType,
-            Line = line,
-            Confidence = ResolutionConfidence.Exact
-        });
+            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+            if (_relationshipKeys.Contains((source.Id, targetType.Id, RelationshipKind.UsesType)))
+                return;
+
+            RegisterRelationship(new Relationship
+            {
+                SourceId = source.Id,
+                TargetId = targetType.Id,
+                Kind = RelationshipKind.UsesType,
+                Line = line,
+                Confidence = ResolutionConfidence.Exact
+            });
+        }
     }
 
     /// <summary>
     /// Aggiunge una relazione di lettura di stato (READS) da una routine o simbolo verso un campo o proprietà.
-    /// Deduplicazione istantanea O(1).
+    /// Deduplicazione istantanea O(1) e thread-safe.
     /// </summary>
     public void AddReads(Symbol source, Symbol targetField, int? line = null)
     {
-        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-        if (_relationshipKeys.Contains((source.Id, targetField.Id, RelationshipKind.Reads)))
-            return;
-
-        RegisterRelationship(new Relationship
+        lock (_syncLock)
         {
-            SourceId = source.Id,
-            TargetId = targetField.Id,
-            Kind = RelationshipKind.Reads,
-            Line = line,
-            Confidence = ResolutionConfidence.Exact
-        });
+            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+            if (_relationshipKeys.Contains((source.Id, targetField.Id, RelationshipKind.Reads)))
+                return;
+
+            RegisterRelationship(new Relationship
+            {
+                SourceId = source.Id,
+                TargetId = targetField.Id,
+                Kind = RelationshipKind.Reads,
+                Line = line,
+                Confidence = ResolutionConfidence.Exact
+            });
+        }
     }
 
     /// <summary>
     /// Aggiunge una relazione di scrittura o assegnazione di stato (WRITES) verso un campo o proprietà.
-    /// Deduplicazione istantanea O(1).
+    /// Deduplicazione istantanea O(1) e thread-safe.
     /// </summary>
     public void AddWrites(Symbol source, Symbol targetField, int? line = null)
     {
-        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-        if (_relationshipKeys.Contains((source.Id, targetField.Id, RelationshipKind.Writes)))
-            return;
-
-        RegisterRelationship(new Relationship
+        lock (_syncLock)
         {
-            SourceId = source.Id,
-            TargetId = targetField.Id,
-            Kind = RelationshipKind.Writes,
-            Line = line,
-            Confidence = ResolutionConfidence.Exact
-        });
+            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+            if (_relationshipKeys.Contains((source.Id, targetField.Id, RelationshipKind.Writes)))
+                return;
+
+            RegisterRelationship(new Relationship
+            {
+                SourceId = source.Id,
+                TargetId = targetField.Id,
+                Kind = RelationshipKind.Writes,
+                Line = line,
+                Confidence = ResolutionConfidence.Exact
+            });
+        }
     }
 
     /// <summary>
     /// Aggiunge una relazione di riferimento generico (REFERENCES) tra simboli.
-    /// Deduplicazione istantanea O(1).
+    /// Deduplicazione istantanea O(1) e thread-safe.
     /// </summary>
     public void AddReferences(Symbol source, Symbol target, int? line = null)
     {
-        if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-        if (_relationshipKeys.Contains((source.Id, target.Id, RelationshipKind.References)))
-            return;
-
-        RegisterRelationship(new Relationship
+        lock (_syncLock)
         {
-            SourceId = source.Id,
-            TargetId = target.Id,
-            Kind = RelationshipKind.References,
-            Line = line,
-            Confidence = ResolutionConfidence.Exact
-        });
+            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
+
+            if (_relationshipKeys.Contains((source.Id, target.Id, RelationshipKind.References)))
+                return;
+
+            RegisterRelationship(new Relationship
+            {
+                SourceId = source.Id,
+                TargetId = target.Id,
+                Kind = RelationshipKind.References,
+                Line = line,
+                Confidence = ResolutionConfidence.Exact
+            });
+        }
     }
 
     /// <summary>
     /// Restituisce tutti i simboli figli direttamente contenuti all'interno del simbolo specificato.
-    /// Esecuzione istantanea O(1) tramite indice di adiacenza gerarchico.
+    /// Esecuzione istantanea O(1) tramite indice di adiacenza gerarchico. Thread-safe.
     /// </summary>
     /// <param name="parentId">ID del simbolo padre.</param>
     public IEnumerable<Symbol> GetChildren(Guid parentId)
     {
         EnsureContainsIndexed();
-        return _childrenByParentId.TryGetValue(parentId, out var children) ? children : Enumerable.Empty<Symbol>();
+        var map = _childrenByParentId;
+        return map.TryGetValue(parentId, out var children) ? children : Enumerable.Empty<Symbol>();
     }
 
     /// <summary>
     /// Recupera un simbolo dal grafo tramite il suo ID univoco.
-    /// Esecuzione istantanea O(1) tramite dizionario indicizzato.
+    /// Esecuzione istantanea O(1) tramite dizionario indicizzato. Thread-safe.
     /// </summary>
     public Symbol? FindSymbolById(Guid id)
     {
         EnsureSymbolsIndexed();
-        return _symbolsById.TryGetValue(id, out var symbol) ? symbol : null;
+        var map = _symbolsById;
+        return map.TryGetValue(id, out var symbol) ? symbol : null;
     }
 }
