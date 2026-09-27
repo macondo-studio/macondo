@@ -86,6 +86,11 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
     public List<string> LikelyEventHandlerNames { get; } = new();
 
     /// <summary>
+    /// Elenco delle interfacce implementate tramite 'Implements' individuate nel modulo.
+    /// </summary>
+    public List<(string InterfaceName, int Line)> ImplementedInterfaces { get; } = new();
+
+    /// <summary>
     /// Inizializza l'estrattore semantico per un modulo VB6.
     /// </summary>
     /// <param name="graph">Il CodeGraph in-memory condiviso.</param>
@@ -530,6 +535,44 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         }
         _containerStack.Pop();
 
+        return null;
+    }
+
+    // =========================================================================
+    // ESTRAZIONE EVENTI ED INTERFACCE (Event, Implements)
+    // =========================================================================
+
+    /// <summary>
+    /// Visita la dichiarazione di un evento VB6 ('eventStmt').
+    /// Sintassi: [Public|Private|Friend] Event NomeEvento([argList])
+    /// </summary>
+    public override object? VisitEventStmt(VisualBasic6Parser.EventStmtContext context)
+    {
+        var name = context.ambiguousIdentifier().GetText();
+        var symbol = CreateChildSymbol(SymbolKind.Event, name, context);
+        symbol.Accessibility = GetAccessibility(context.visibility());
+
+        if (context.argList() != null)
+        {
+            var parameters = ExtractParameters(context.argList());
+            symbol.Parameters.AddRange(parameters);
+        }
+
+        _graph.Symbols.Add(symbol);
+        _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
+        return null;
+    }
+
+    /// <summary>
+    /// Visita la dichiarazione di un'interfaccia implementata tramite 'Implements' ('implementsStmt').
+    /// </summary>
+    public override object? VisitImplementsStmt(VisualBasic6Parser.ImplementsStmtContext context)
+    {
+        var ifaceName = context.ambiguousIdentifier()?.GetText();
+        if (!string.IsNullOrWhiteSpace(ifaceName))
+        {
+            ImplementedInterfaces.Add((ifaceName, context.Start.Line));
+        }
         return null;
     }
 

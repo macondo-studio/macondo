@@ -166,7 +166,8 @@ public class GraphAndFlowUncoveredEdgeCasesAndBugsHunterTests
         // Assert
         dsm.Should().NotBeNull();
         dsm.Size.Should().Be(1);
-        dsm.TotalDependencies.Should().Be(1);
+        dsm.TotalDependencies.Should().Be(0);
+        dsm.Items[0].HasCircularDependencies.Should().BeFalse();
     }
 
     #endregion

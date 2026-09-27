@@ -285,10 +285,14 @@ public class Vb6DeepLanguageAndGrammarEdgeCasesTests
         result.ParseErrors.Should().BeEmpty();
 
         var itemProperties = graph.Symbols.Where(s => s.Name == "Item").ToList();
-        itemProperties.Should().HaveCount(2);
+        itemProperties.Should().HaveCount(1);
+        itemProperties[0].Kind.Should().Be(SymbolKind.Property);
+        itemProperties[0].Parameters.Should().HaveCount(2);
 
         var matrixProperties = graph.Symbols.Where(s => s.Name == "Matrix").ToList();
-        matrixProperties.Should().HaveCount(2);
+        matrixProperties.Should().HaveCount(1);
+        matrixProperties[0].Kind.Should().Be(SymbolKind.Property);
+        matrixProperties[0].Parameters.Should().HaveCount(3);
     }
 
     #endregion

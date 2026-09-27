@@ -85,6 +85,17 @@ public sealed class CallGraphBuilder
                     _graph.AddInstantiates(sourceSymbol, inst.TargetClassSymbol, inst.Line, inst.Confidence);
                 }
             }
+
+            // 1c. Generazione delle relazioni IMPLEMENTS da istruzioni 'Implements InterfaceName'
+            foreach (var (ifaceName, line) in extraction.ImplementedInterfaces)
+            {
+                var targetType = _symbolResolver.TypeResolver.ResolveType(ifaceName).UserTypeSymbol
+                                 ?? _graph.Symbols.FirstOrDefault(s => s.Kind is SymbolKind.Class or SymbolKind.Interface && string.Equals(s.Name, ifaceName, StringComparison.OrdinalIgnoreCase));
+                if (targetType != null)
+                {
+                    _graph.AddImplements(extraction.ModuleSymbol, targetType, line);
+                }
+            }
         }
 
         // =========================================================================

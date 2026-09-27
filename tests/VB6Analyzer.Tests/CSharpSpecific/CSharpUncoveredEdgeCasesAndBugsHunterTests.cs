@@ -51,7 +51,7 @@ public class CSharpUncoveredEdgeCasesAndBugsHunterTests
         result.ParseErrors.Should().BeEmpty();
 
         var procClass = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Class && s.Name == "OrderProcessor");
-        var metricStruct = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Class && s.Name == "MetricPoint");
+        var metricStruct = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Struct && s.Name == "MetricPoint");
 
         procClass.Should().NotBeNull();
         metricStruct.Should().NotBeNull();

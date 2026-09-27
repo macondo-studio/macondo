@@ -21,6 +21,9 @@ public sealed class ModuleExtractionResult
     /// <summary>Nomi delle procedure Sub che corrispondono alla convenzione di event handler.</summary>
     public required IReadOnlyList<string> LikelyEventHandlerNames { get; init; }
 
+    /// <summary>Elenco delle interfacce implementate dal modulo tramite clausola 'Implements'.</summary>
+    public IReadOnlyList<(string InterfaceName, int Line)> ImplementedInterfaces { get; init; } = Array.Empty<(string, int)>();
+
     /// <summary>
     /// Parse tree generato da ANTLR (<see cref="VisualBasic6Parser.StartRuleContext"/>).
     /// Mantenuto in memoria temporaneamente per consentire a successivi analizzatori (es. <see cref="Macondo.Semantic.Resolution.RoutineInvocationAnalyzer"/>)
@@ -99,11 +102,13 @@ public static class ModuleExtractor
         // Esecuzione resiliente (best-effort): estrae comunque tutti i simboli validi dal parse tree anche
         // in presenza di errori sintattici su singole istruzioni.
         var likelyEventHandlers = Array.Empty<string>();
+        var implementedInterfaces = Array.Empty<(string, int)>();
         if (tree != null)
         {
             var extractor = new SymbolExtractor(graph, moduleSymbol, filePath);
             extractor.Visit(tree);
             likelyEventHandlers = extractor.LikelyEventHandlerNames.ToArray();
+            implementedInterfaces = extractor.ImplementedInterfaces.ToArray();
         }
 
         return new ModuleExtractionResult
@@ -111,6 +116,7 @@ public static class ModuleExtractor
             ModuleSymbol = moduleSymbol,
             ParseErrors = errors,
             LikelyEventHandlerNames = likelyEventHandlers,
+            ImplementedInterfaces = implementedInterfaces,
             ParseTree = tree
         };
     }
