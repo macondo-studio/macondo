@@ -64,6 +64,8 @@ public partial class MainWindow : Window
     private bool _isInspectorVisible = true;
     private bool _isSyncingFilterUi;
     private CancellationTokenSource? _loadingCts;
+    private CodeGraph? _apiDiffBaselineGraph;
+    private string? _apiDiffBaselineName;
 
     #endregion
 
@@ -424,6 +426,11 @@ public partial class MainWindow : Window
                 OpenOriginalFile(b.FilePath, 1);
             }
         };
+
+        // Eventi di gestione Baseline per il tab API Diff & SemVer
+        ApiDiff.SetCurrentAsBaselineRequested += (_, _) => OnApiDiffSetCurrentAsBaseline();
+        ApiDiff.LoadBaselineRequested += async (_, _) => await OnApiDiffLoadBaselineAsync();
+        ApiDiff.ClearBaselineRequested += (_, _) => OnApiDiffClearBaseline();
 
         // Inizializzazione Impostazioni e Preferenze Utente (%APPDATA%\Macondo\settings.json)
         var settings = SettingsService.Instance.Settings;
@@ -1874,7 +1881,8 @@ public partial class MainWindow : Window
             {
                 if (s.ShowTabApiDiff && _dirtyAnalyticsTabs.Contains(ApiDiffTabItem))
                 {
-                    var apiDiffReport = ApiDiffAnalyzer.Compare(new CodeGraph(), targetGraph);
+                    var baseline = _apiDiffBaselineGraph;
+                    var apiDiffReport = baseline != null ? ApiDiffAnalyzer.Compare(baseline, targetGraph) : null;
                     if (!token.IsCancellationRequested)
                     {
                         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
@@ -2109,9 +2117,10 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == ApiDiffTabItem)
         {
+            var baseline = _apiDiffBaselineGraph;
             _ = Task.Run(() =>
             {
-                var report = ApiDiffAnalyzer.Compare(new CodeGraph(), targetGraph);
+                var report = baseline != null ? ApiDiffAnalyzer.Compare(baseline, targetGraph) : null;
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
                     ApiDiff.Report = report;
@@ -3272,7 +3281,7 @@ public partial class MainWindow : Window
     /// </summary>
     private void ShowEmptyInspector()
     {
-        SymbolInspectorControl.ShowEmpty();
+        SymbolInspectorControl.ShowEmpty(_graph != null);
         UpdateStatusLanguage();
     }
 
@@ -4363,6 +4372,104 @@ public partial class MainWindow : Window
     /// <summary>Alterna la visibilità del tab Griglia Blast Radius nelle impostazioni.</summary>
     private void OnToggleTabBlastRadiusGridMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabBlastRadiusGrid = !s.ShowTabBlastRadiusGrid);
+
+    #endregion
+
+    #region Gestione Baseline API Diff & SemVer
+
+    /// <summary>
+    /// Fissa lo snapshot del grafo corrente del workspace come baseline per il confronto API e SemVer.
+    /// </summary>
+    private void OnApiDiffSetCurrentAsBaseline()
+    {
+        if (_graph?.SemanticGraph == null)
+        {
+            StatusText.Text = LocalizationService.Instance["ApiDiff_Msg_NoProjectOpen"];
+            return;
+        }
+
+        var targetGraph = GetTargetSemanticGraph();
+        _apiDiffBaselineGraph = targetGraph;
+        _apiDiffBaselineName = !string.IsNullOrEmpty(_currentFolderPath)
+            ? Path.GetFileName(_currentFolderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+            : LocalizationService.Instance["ApiDiff_CurrentWorkspace"];
+
+        var publicCount = CountPublicSymbols(_apiDiffBaselineGraph);
+        ApiDiff.SetBaselineInfo(_apiDiffBaselineName, publicCount);
+
+        var report = ApiDiffAnalyzer.Compare(_apiDiffBaselineGraph, targetGraph);
+        ApiDiff.Report = report;
+
+        StatusText.Text = LocalizationService.Instance.Get("ApiDiff_Msg_BaselineSet", publicCount);
+    }
+
+    /// <summary>
+    /// Apre un selettore di cartelle per caricare una versione o release precedente come baseline di confronto API.
+    /// </summary>
+    private async Task OnApiDiffLoadBaselineAsync()
+    {
+        var localizationService = LocalizationService.Instance;
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = localizationService["ApiDiff_PickBaselineTitle"],
+            AllowMultiple = false
+        });
+
+        if (folders.Count == 0) return;
+
+        var baselineFolder = folders[0].Path.LocalPath;
+        if (string.IsNullOrWhiteSpace(baselineFolder) || !Directory.Exists(baselineFolder)) return;
+
+        StatusText.Text = localizationService.Get("Loading_AnalyzeProjectSub", Path.GetFileName(baselineFolder));
+
+        try
+        {
+            var visualGraph = await Task.Run(() => ProjectAnalysisService.AnalyzePaths(new[] { baselineFolder }));
+            var baselineGraph = visualGraph.SemanticGraph;
+
+            _apiDiffBaselineGraph = baselineGraph;
+            _apiDiffBaselineName = Path.GetFileName(baselineFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+            var publicCount = CountPublicSymbols(_apiDiffBaselineGraph);
+            ApiDiff.SetBaselineInfo(_apiDiffBaselineName, publicCount);
+
+            if (_graph?.SemanticGraph != null)
+            {
+                var targetGraph = GetTargetSemanticGraph();
+                var report = ApiDiffAnalyzer.Compare(baselineGraph, targetGraph);
+                ApiDiff.Report = report;
+            }
+
+            StatusText.Text = localizationService.Get("ApiDiff_Msg_BaselineLoaded", _apiDiffBaselineName, publicCount);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = localizationService.Get("ApiDiff_Msg_ErrorLoadingBaseline", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Rimuove la baseline di riferimento corrente ripristinando lo stato di attesa iniziale del tab API Diff.
+    /// </summary>
+    private void OnApiDiffClearBaseline()
+    {
+        _apiDiffBaselineGraph = null;
+        _apiDiffBaselineName = null;
+        ApiDiff.SetBaselineInfo(null, null);
+        ApiDiff.Report = null;
+        StatusText.Text = LocalizationService.Instance["ApiDiff_Status_NoBaseline"];
+    }
+
+    /// <summary>
+    /// Conta i simboli pubblici esportati da un grafo per la baseline.
+    /// </summary>
+    private static int CountPublicSymbols(CodeGraph? graph)
+    {
+        if (graph == null) return 0;
+        return graph.Symbols.Count(s =>
+            s.Kind is not (SymbolKind.Project or SymbolKind.Namespace) &&
+            (s.Accessibility is Accessibility.Public or Accessibility.Global or Accessibility.Protected or Accessibility.ProtectedInternal or Accessibility.Default));
+    }
 
     #endregion
 

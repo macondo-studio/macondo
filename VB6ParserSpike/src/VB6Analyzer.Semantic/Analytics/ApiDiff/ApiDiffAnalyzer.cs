@@ -29,6 +29,21 @@ public static class ApiDiffAnalyzer
     };
 
     /// <summary>
+    /// Genera una chiave di firma univoca per il simbolo esportato, includendo tipo, nome qualificato e parametri formali.
+    /// Questo consente di distinguere sovraccarichi (overloads) di metodi o costruttori ed evitare collisioni.
+    /// </summary>
+    private static string GetApiSignatureKey(Symbol sym)
+    {
+        if (sym.Kind is SymbolKind.Method or SymbolKind.Property && sym.Parameters.Count > 0)
+        {
+            var paramSignature = string.Join(",", sym.Parameters.Select(p => p.DeclaredTypeName ?? "Variant"));
+            return $"{sym.Kind}:{sym.QualifiedName}({paramSignature})";
+        }
+
+        return $"{sym.Kind}:{sym.QualifiedName}";
+    }
+
+    /// <summary>
     /// Confronta la superficie pubblica esportata tra due snapshot di CodeGraph e produce il report dettagliato SemVer.
     /// </summary>
     /// <param name="baselineGraph">Grafo dello snapshot di riferimento (es. versione rilasciata precedente).</param>
@@ -39,59 +54,87 @@ public static class ApiDiffAnalyzer
         var report = new ApiDiffReport();
 
         // =========================================================================
-        // PASSO 1: Indicizzazione delle API pubbliche nei due snapshot
+        // PASSO 1: Indicizzazione robusta delle API pubbliche nei due snapshot
         // Isola i simboli pubblici (Classi, Interfacce, Metodi, Proprietà, Costanti)
-        // di ciascun grafo indicizzandoli per QualifiedName univoco per lookup O(1).
+        // indicizzandoli per chiave di firma univoca per supportare sovraccarichi
+        // e classi parziali senza incorrere in ArgumentException su chiavi duplicate.
         // =========================================================================
-        var oldPublic = baselineGraph.Symbols
-            .Where(s => IsPublicApi(s))
-            .ToDictionary(s => s.QualifiedName, StringComparer.OrdinalIgnoreCase);
+        var oldPublic = new Dictionary<string, Symbol>(StringComparer.OrdinalIgnoreCase);
+        foreach (var sym in baselineGraph.Symbols.Where(IsPublicApi))
+        {
+            var key = GetApiSignatureKey(sym);
+            oldPublic.TryAdd(key, sym);
+        }
 
-        var newPublic = currentGraph.Symbols
-            .Where(s => IsPublicApi(s))
-            .ToDictionary(s => s.QualifiedName, StringComparer.OrdinalIgnoreCase);
+        var newPublic = new Dictionary<string, Symbol>(StringComparer.OrdinalIgnoreCase);
+        foreach (var sym in currentGraph.Symbols.Where(IsPublicApi))
+        {
+            var key = GetApiSignatureKey(sym);
+            newPublic.TryAdd(key, sym);
+        }
+
+        var processedNewKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // =========================================================================
         // PASSO 2: Rilevamento rimozioni, declassamenti di visibilità e modifiche di firma
         // Itera su tutti i simboli pubblici della versione precedente (baseline).
         // =========================================================================
-        foreach (var (qName, oldSym) in oldPublic)
+        foreach (var (key, oldSym) in oldPublic)
         {
-            if (!newPublic.TryGetValue(qName, out var newSym))
+            if (newPublic.TryGetValue(key, out var newSym))
             {
-                // 2a. Verifica se il simbolo esiste ancora nel grafo attuale ma con accessibilità ridotta (es. Public -> Private/Internal)
-                var stillExistsPrivate = currentGraph.Symbols.FirstOrDefault(s => s.QualifiedName.Equals(qName, StringComparison.OrdinalIgnoreCase));
+                processedNewKeys.Add(key);
+                // Il simbolo con la stessa firma esiste in entrambe le versioni
+                CompareSignatures(oldSym, newSym, report);
+            }
+            else
+            {
+                // 2a. Verifica se il simbolo esiste ancora nel grafo attuale ma con visibilità ridotta (es. Public -> Private/Internal)
+                var stillExistsPrivate = currentGraph.Symbols.FirstOrDefault(s =>
+                    s.QualifiedName.Equals(oldSym.QualifiedName, StringComparison.OrdinalIgnoreCase) &&
+                    s.Kind == oldSym.Kind &&
+                    !IsPublicApi(s));
+
                 if (stillExistsPrivate != null)
                 {
                     report.Differences.Add(new ApiDifferenceItem
                     {
-                        SymbolQualifiedName = qName,
+                        SymbolQualifiedName = oldSym.QualifiedName,
                         SymbolKind = oldSym.Kind,
                         ChangeKind = ApiChangeKind.ChangedAccessibility,
                         Impact = ApiChangeImpact.MajorBreaking,
-                        Description = $"Breaking API change: public symbol '{qName}' reduced its visibility to '{stillExistsPrivate.Accessibility}'.",
+                        Description = $"Breaking API change: public symbol '{oldSym.QualifiedName}' reduced its visibility to '{stillExistsPrivate.Accessibility}'.",
                         OldSymbol = oldSym,
                         NewSymbol = stillExistsPrivate
                     });
                 }
                 else
                 {
-                    // 2b. Il simbolo è stato rimosso integralmente dal codice sorgente
-                    report.Differences.Add(new ApiDifferenceItem
+                    // 2b. Verifica se è una modifica di firma per un metodo con lo stesso QualifiedName
+                    var sameNameCandidate = newPublic.Values.FirstOrDefault(s =>
+                        s.QualifiedName.Equals(oldSym.QualifiedName, StringComparison.OrdinalIgnoreCase) &&
+                        s.Kind == oldSym.Kind &&
+                        !processedNewKeys.Contains(GetApiSignatureKey(s)));
+
+                    if (sameNameCandidate != null)
                     {
-                        SymbolQualifiedName = qName,
-                        SymbolKind = oldSym.Kind,
-                        ChangeKind = ApiChangeKind.RemovedSymbol,
-                        Impact = ApiChangeImpact.MajorBreaking,
-                        Description = $"Breaking API change: public symbol '{qName}' was removed from the exported interface.",
-                        OldSymbol = oldSym
-                    });
+                        processedNewKeys.Add(GetApiSignatureKey(sameNameCandidate));
+                        CompareSignatures(oldSym, sameNameCandidate, report);
+                    }
+                    else
+                    {
+                        // 2c. Il simbolo è stato rimosso integralmente
+                        report.Differences.Add(new ApiDifferenceItem
+                        {
+                            SymbolQualifiedName = oldSym.QualifiedName,
+                            SymbolKind = oldSym.Kind,
+                            ChangeKind = ApiChangeKind.RemovedSymbol,
+                            Impact = ApiChangeImpact.MajorBreaking,
+                            Description = $"Breaking API change: public symbol '{oldSym.QualifiedName}' was removed from the exported interface.",
+                            OldSymbol = oldSym
+                        });
+                    }
                 }
-            }
-            else
-            {
-                // 2c. Il simbolo è presente in entrambe le versioni: confronta le firme dei parametri per rilevare modifiche
-                CompareSignatures(oldSym, newSym, report);
             }
         }
 
@@ -99,17 +142,17 @@ public static class ApiDiffAnalyzer
         // PASSO 3: Rilevamento nuove API pubbliche (Minor Feature retrocompatibile)
         // Itera sui simboli pubblici correnti assenti nella baseline.
         // =========================================================================
-        foreach (var (qName, newSym) in newPublic)
+        foreach (var (key, newSym) in newPublic)
         {
-            if (!oldPublic.ContainsKey(qName))
+            if (!processedNewKeys.Contains(key))
             {
                 report.Differences.Add(new ApiDifferenceItem
                 {
-                    SymbolQualifiedName = qName,
+                    SymbolQualifiedName = newSym.QualifiedName,
                     SymbolKind = newSym.Kind,
                     ChangeKind = ApiChangeKind.AddedSymbol,
                     Impact = ApiChangeImpact.Minor,
-                    Description = $"Backward-compatible public API added: '{qName}' ({newSym.Kind}).",
+                    Description = $"Backward-compatible public API added: '{newSym.QualifiedName}' ({newSym.Kind}).",
                     NewSymbol = newSym
                 });
             }
@@ -168,4 +211,3 @@ public static class ApiDiffAnalyzer
         return PublicAccessibilities.Contains(symbol.Accessibility);
     }
 }
-
