@@ -226,54 +226,9 @@ public sealed class ProjectCacheService
     }
 
     /// <summary>
-    /// Aggiorna in background solo le coordinate geometriche del layout nello snapshot di cache esistente su disco.
+    /// Aggiorna le coordinate geometriche del layout nello snapshot di cache esistente su disco.
     /// </summary>
-    public async Task UpdateLayoutSnapshotAsync(string folderPath, VisualCodeGraph graph, bool hasCustomUserLayout = false)
-    {
-        if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath) || graph is null)
-            return;
-
-        try
-        {
-            var cacheFile = GetCacheFilePath(folderPath);
-            if (!File.Exists(cacheFile))
-                return;
-
-            ProjectCacheSnapshot? snapshot;
-            await using (var stream = File.OpenRead(cacheFile))
-            {
-                snapshot = await JsonSerializer.DeserializeAsync<ProjectCacheSnapshot>(stream, _jsonOptions);
-            }
-
-            if (snapshot is null) return;
-
-            snapshot.HasCustomUserLayout = hasCustomUserLayout;
-            snapshot.LayoutNodes = graph.Nodes.Select(n => new NodeLayoutSnapshot
-            {
-                Id = n.Id,
-                X = n.X,
-                Y = n.Y,
-                IsExpanded = n.IsExpanded
-            }).ToList();
-
-            var tempFile = cacheFile + ".tmp";
-            await using (var fs = new FileStream(tempFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
-            {
-                await JsonSerializer.SerializeAsync(fs, snapshot, _jsonOptions);
-            }
-
-            File.Move(tempFile, cacheFile, overwrite: true);
-        }
-        catch
-        {
-            // Tolleranza agli errori in background
-        }
-    }
-
-    /// <summary>
-    /// Versione sincrona per il salvataggio immediato delle coordinate del layout alla chiusura dell'applicazione.
-    /// </summary>
-    public void UpdateLayoutSnapshotSync(string folderPath, VisualCodeGraph graph, bool hasCustomUserLayout = false)
+    public void UpdateLayoutSnapshot(string folderPath, VisualCodeGraph graph, bool hasCustomUserLayout = false)
     {
         if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath) || graph is null)
             return;
@@ -307,6 +262,12 @@ public sealed class ProjectCacheService
             // Tolleranza agli errori
         }
     }
+
+    /// <summary>
+    /// Versione asincrona che esegue l'aggiornamento del layout su thread di background.
+    /// </summary>
+    public Task UpdateLayoutSnapshotAsync(string folderPath, VisualCodeGraph graph, bool hasCustomUserLayout = false)
+        => Task.Run(() => UpdateLayoutSnapshot(folderPath, graph, hasCustomUserLayout));
 
     /// <summary>
     /// Controlla se i file sorgente su disco sono cambiati rispetto allo snapshot della cache.

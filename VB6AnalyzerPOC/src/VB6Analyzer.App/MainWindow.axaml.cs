@@ -4098,7 +4098,7 @@ public partial class MainWindow : Window
         var folder = _currentFolderPath;
         var graph = _graph;
         var hasMoved = _hasUserMovedNodes;
-        _ = Task.Run(async () => await ProjectCacheService.Instance.UpdateLayoutSnapshotAsync(folder, graph, hasMoved));
+        _ = ProjectCacheService.Instance.UpdateLayoutSnapshotAsync(folder, graph, hasMoved);
     }
 
     /// <summary>
@@ -4111,7 +4111,7 @@ public partial class MainWindow : Window
             return;
 
         _hasUnsavedLayoutChanges = false;
-        ProjectCacheService.Instance.UpdateLayoutSnapshotSync(_currentFolderPath, _graph, _hasUserMovedNodes);
+        ProjectCacheService.Instance.UpdateLayoutSnapshot(_currentFolderPath, _graph, _hasUserMovedNodes);
     }
 
     /// <summary>

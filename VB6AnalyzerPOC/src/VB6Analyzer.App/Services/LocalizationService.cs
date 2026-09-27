@@ -784,7 +784,43 @@ public sealed class LocalizationService
         ["Grid_Calculating"] = "Calcolo matrice di impatto in corso ({0} routine)...",
         ["Grid_CalculatingProgress"] = "Calcolo matrice di impatto: {0:N0} di {1:N0} ({2}%)",
         ["Grid_StatsFormat"] = "Elementi visualizzati: {0:N0} di {1:N0}",
-        ["Status_ErrorGridCalc"] = "Errore durante il calcolo della matrice Blast Radius: {0}"
+        ["Status_ErrorGridCalc"] = "Errore durante il calcolo della matrice Blast Radius: {0}",
+
+        // Keyboard Shortcuts
+        ["Shortcut_Category_Navigation"] = "Navigazione",
+        ["Shortcut_Category_File"] = "File",
+        ["Shortcut_Category_General"] = "Generale",
+        ["Shortcut_Category_Analysis"] = "Analisi",
+        ["Shortcut_Category_Interactivity"] = "Interattività",
+        ["Shortcut_Key_DoubleClick"] = "Doppio Clic",
+        ["Shortcut_Key_MouseDrag"] = "Trascina Mouse",
+        ["Shortcut_Key_MouseWheel"] = "Rotella Mouse",
+        ["Shortcut_SearchSymbol_Action"] = "Cerca Simbolo",
+        ["Shortcut_SearchSymbol_Desc"] = "Sposta il cursore direttamente nella barra di ricerca selezionando tutto il testo.",
+        ["Shortcut_ToggleExplorer_Action"] = "Mostra/Nascondi Explorer",
+        ["Shortcut_ToggleExplorer_Desc"] = "Mostra o nasconde il pannello sinistro Project Explorer.",
+        ["Shortcut_ToggleInspector_Action"] = "Mostra/Nascondi Inspector",
+        ["Shortcut_ToggleInspector_Desc"] = "Mostra o nasconde il pannello destro Symbol Inspector e Blast Radius.",
+        ["Shortcut_Dismiss_Action"] = "Chiudi Risultati / Annulla",
+        ["Shortcut_Dismiss_Desc"] = "Chiude il menu a tendina dei risultati di ricerca o dialoghi attivi.",
+        ["Shortcut_OpenFolder_Action"] = "Apri Cartella",
+        ["Shortcut_OpenFolder_Desc"] = "Apre il selettore cartella per analizzare un nuovo progetto.",
+        ["Shortcut_ReloadProject_Action"] = "Ricarica Progetto",
+        ["Shortcut_ReloadProject_Desc"] = "Forza la rilettura e l'analisi da disco del progetto corrente aggiornando la cache locale.",
+        ["Shortcut_OpenSettings_Action"] = "Apri Impostazioni",
+        ["Shortcut_OpenSettings_Desc"] = "Apre la finestra delle impostazioni (Temi, Lingua e Scorciatoie).",
+        ["Shortcut_Guide_Action"] = "Guida & Concetti",
+        ["Shortcut_Guide_Desc"] = "Apre la guida concettuale con spiegazioni dettagliate di Treemap, CFG, DSM e architettura.",
+        ["Shortcut_Exit_Action"] = "Esci dall'Applicazione",
+        ["Shortcut_Exit_Desc"] = "Chiude in sicurezza l'applicazione Macondo.",
+        ["Shortcut_ComputeBlastRadius_Action"] = "Calcola Blast Radius",
+        ["Shortcut_ComputeBlastRadius_Desc"] = "Calcola l'impatto di modifica, i chiamanti transitivi e il livello di rischio.",
+        ["Shortcut_FocusExpand_Action"] = "Centra / Espandi",
+        ["Shortcut_FocusExpand_Desc"] = "Nella Griglia: salta al nodo nel Grafo. Nel Grafo/Albero: espande/comprime modulo.",
+        ["Shortcut_PanMove_Action"] = "Pan Vista / Sposta Nodi",
+        ["Shortcut_PanMove_Desc"] = "Sposta la visuale libera sul canvas o trascina i nodi per riorganizzarli.",
+        ["Shortcut_Zoom_Action"] = "Zoom Avanti / Indietro",
+        ["Shortcut_Zoom_Desc"] = "Esegue lo zoom fluido della vista grafo centrato sul cursore del mouse."
     };
 
     private readonly Dictionary<string, string> _enStrings = new()
@@ -1560,7 +1596,43 @@ public sealed class LocalizationService
         ["Grid_Calculating"] = "Calculating impact matrix ({0} routines)...",
         ["Grid_CalculatingProgress"] = "Calculating impact matrix: {0:N0} of {1:N0} ({2}%)",
         ["Grid_StatsFormat"] = "Displayed items: {0:N0} of {1:N0}",
-        ["Status_ErrorGridCalc"] = "Error calculating Blast Radius matrix: {0}"
+        ["Status_ErrorGridCalc"] = "Error calculating Blast Radius matrix: {0}",
+
+        // Keyboard Shortcuts
+        ["Shortcut_Category_Navigation"] = "Navigation",
+        ["Shortcut_Category_File"] = "File",
+        ["Shortcut_Category_General"] = "General",
+        ["Shortcut_Category_Analysis"] = "Analysis",
+        ["Shortcut_Category_Interactivity"] = "Interactivity",
+        ["Shortcut_Key_DoubleClick"] = "Double Click",
+        ["Shortcut_Key_MouseDrag"] = "Mouse Drag",
+        ["Shortcut_Key_MouseWheel"] = "Mouse Wheel",
+        ["Shortcut_SearchSymbol_Action"] = "Search Symbol",
+        ["Shortcut_SearchSymbol_Desc"] = "Places focus directly in the search bar and selects existing text.",
+        ["Shortcut_ToggleExplorer_Action"] = "Toggle Project Explorer",
+        ["Shortcut_ToggleExplorer_Desc"] = "Toggles visibility of the left Project Explorer panel.",
+        ["Shortcut_ToggleInspector_Action"] = "Toggle Symbol Inspector",
+        ["Shortcut_ToggleInspector_Desc"] = "Toggles visibility of the right Symbol Inspector and Blast Radius panel.",
+        ["Shortcut_Dismiss_Action"] = "Dismiss / Close Popup",
+        ["Shortcut_Dismiss_Desc"] = "Closes search results dropdown or clears active dialogs.",
+        ["Shortcut_OpenFolder_Action"] = "Open Folder",
+        ["Shortcut_OpenFolder_Desc"] = "Opens a folder picker to analyze and visualize any project source directory.",
+        ["Shortcut_ReloadProject_Action"] = "Reload Project",
+        ["Shortcut_ReloadProject_Desc"] = "Forces a re-scan and analysis of the current project from disk and updates local cache.",
+        ["Shortcut_OpenSettings_Action"] = "Open Settings",
+        ["Shortcut_OpenSettings_Desc"] = "Opens the settings dialog to customize themes, language, and shortcuts.",
+        ["Shortcut_Guide_Action"] = "Guide & Concepts",
+        ["Shortcut_Guide_Desc"] = "Opens the documentation and concept guide explaining Treemap, CFG, DSM, and architecture.",
+        ["Shortcut_Exit_Action"] = "Exit Application",
+        ["Shortcut_Exit_Desc"] = "Safely terminates the Macondo application.",
+        ["Shortcut_ComputeBlastRadius_Action"] = "Compute Blast Radius",
+        ["Shortcut_ComputeBlastRadius_Desc"] = "Calculates dependency impact paths and risk level for the selected routine.",
+        ["Shortcut_FocusExpand_Action"] = "Focus / Expand",
+        ["Shortcut_FocusExpand_Desc"] = "In Grid: jumps to node in Graph view. In Tree/Graph: expands/collapses container.",
+        ["Shortcut_PanMove_Action"] = "Pan / Move",
+        ["Shortcut_PanMove_Desc"] = "Pan across the graph canvas or drag individual nodes to reorganize the layout.",
+        ["Shortcut_Zoom_Action"] = "Zoom In / Out",
+        ["Shortcut_Zoom_Desc"] = "Smoothly zooms the graph view in or out centered at cursor position."
     };
 
     private LocalizationService() { }
@@ -1572,9 +1644,9 @@ public sealed class LocalizationService
         LanguageChanged?.Invoke(this, language);
     }
 
-    public string Get(string key, params object[] args)
+    public string GetForLanguage(string key, AppLanguage language, params object[] args)
     {
-        var dict = CurrentLanguage == AppLanguage.English ? _enStrings : _itStrings;
+        var dict = language == AppLanguage.English ? _enStrings : _itStrings;
         if (!dict.TryGetValue(key, out var template))
         {
             if (!_itStrings.TryGetValue(key, out template))
@@ -1583,6 +1655,8 @@ public sealed class LocalizationService
 
         return args.Length > 0 ? string.Format(template, args) : template;
     }
+
+    public string Get(string key, params object[] args) => GetForLanguage(key, CurrentLanguage, args);
 
     public string GetRiskLevel(Macondo.Semantic.Model.ImpactRiskLevel risk) => risk switch
     {

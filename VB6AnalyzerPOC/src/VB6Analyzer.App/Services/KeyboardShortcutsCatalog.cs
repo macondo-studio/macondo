@@ -3,11 +3,20 @@ using Macondo.App.Models;
 
 namespace Macondo.App.Services;
 
+/// <summary>
+/// Catalogo di tutte le scorciatoie da tastiera e combinazioni di tasti dell'applicazione,
+/// localizzato tramite <see cref="LocalizationService"/>.
+/// </summary>
 public static class KeyboardShortcutsCatalog
 {
+    /// <summary>
+    /// Restituisce l'elenco completo delle scorciatoie da tastiera localizzate per la lingua specificata.
+    /// </summary>
+    /// <param name="language">La lingua dell'interfaccia utente (Italiano o Inglese).</param>
+    /// <returns>La lista in sola lettura degli elementi di scorciatoia (<see cref="ShortcutItem"/>).</returns>
     public static IReadOnlyList<ShortcutItem> GetShortcuts(AppLanguage language)
     {
-        var isEn = language == AppLanguage.English;
+        var localizationService = LocalizationService.Instance;
 
         return new List<ShortcutItem>
         {
@@ -15,124 +24,104 @@ public static class KeyboardShortcutsCatalog
             new()
             {
                 KeyBadges = new[] { "Ctrl", "F" },
-                ActionName = isEn ? "Search Symbol" : "Cerca Simbolo",
-                Category = isEn ? "Navigation" : "Navigazione",
-                Description = isEn
-                    ? "Places focus directly in the search bar and selects existing text."
-                    : "Sposta il cursore direttamente nella barra di ricerca selezionando tutto il testo."
+                ActionName = localizationService.GetForLanguage("Shortcut_SearchSymbol_Action", language),
+                Category = localizationService.GetForLanguage("Shortcut_Category_Navigation", language),
+                Description = localizationService.GetForLanguage("Shortcut_SearchSymbol_Desc", language)
             },
             new()
             {
                 KeyBadges = new[] { "Ctrl", "B" },
-                ActionName = isEn ? "Toggle Project Explorer" : "Mostra/Nascondi Explorer",
-                Category = isEn ? "Navigation" : "Navigazione",
-                Description = isEn
-                    ? "Toggles visibility of the left Project Explorer panel."
-                    : "Mostra o nasconde il pannello sinistro Project Explorer."
+                ActionName = localizationService.GetForLanguage("Shortcut_ToggleExplorer_Action", language),
+                Category = localizationService.GetForLanguage("Shortcut_Category_Navigation", language),
+                Description = localizationService.GetForLanguage("Shortcut_ToggleExplorer_Desc", language)
             },
             new()
             {
                 KeyBadges = new[] { "Ctrl", "I" },
-                ActionName = isEn ? "Toggle Symbol Inspector" : "Mostra/Nascondi Inspector",
-                Category = isEn ? "Navigation" : "Navigazione",
-                Description = isEn
-                    ? "Toggles visibility of the right Symbol Inspector and Blast Radius panel."
-                    : "Mostra o nasconde il pannello destro Symbol Inspector e Blast Radius."
+                ActionName = localizationService.GetForLanguage("Shortcut_ToggleInspector_Action", language),
+                Category = localizationService.GetForLanguage("Shortcut_Category_Navigation", language),
+                Description = localizationService.GetForLanguage("Shortcut_ToggleInspector_Desc", language)
             },
             new()
             {
                 KeyBadges = new[] { "Escape" },
-                ActionName = isEn ? "Dismiss / Close Popup" : "Chiudi Risultati / Annulla",
-                Category = isEn ? "Navigation" : "Navigazione",
-                Description = isEn
-                    ? "Closes search results dropdown or clears active dialogs."
-                    : "Chiude il menu a tendina dei risultati di ricerca o dialoghi attivi."
+                ActionName = localizationService.GetForLanguage("Shortcut_Dismiss_Action", language),
+                Category = localizationService.GetForLanguage("Shortcut_Category_Navigation", language),
+                Description = localizationService.GetForLanguage("Shortcut_Dismiss_Desc", language)
             },
 
             // Categoria: File e Progetto
             new()
             {
                 KeyBadges = new[] { "Ctrl", "O" },
-                ActionName = isEn ? "Open Folder" : "Apri Cartella",
-                Category = "File",
-                Description = isEn
-                    ? "Opens a folder picker to analyze and visualize any project source directory."
-                    : "Apre il selettore cartella per analizzare un nuovo progetto."
+                ActionName = localizationService.GetForLanguage("Shortcut_OpenFolder_Action", language),
+                Category = localizationService.GetForLanguage("Shortcut_Category_File", language),
+                Description = localizationService.GetForLanguage("Shortcut_OpenFolder_Desc", language)
             },
             new()
             {
                 KeyBadges = new[] { "Ctrl", "R" },
-                ActionName = isEn ? "Reload Project" : "Ricarica Progetto",
-                Category = "File",
-                Description = isEn
-                    ? "Forces a re-scan and analysis of the current project from disk and updates local cache."
-                    : "Forza la rilettura e l'analisi da disco del progetto corrente aggiornando la cache locale."
+                ActionName = localizationService.GetForLanguage("Shortcut_ReloadProject_Action", language),
+                Category = localizationService.GetForLanguage("Shortcut_Category_File", language),
+                Description = localizationService.GetForLanguage("Shortcut_ReloadProject_Desc", language)
             },
             new()
             {
                 KeyBadges = new[] { "Ctrl", "," },
-                ActionName = isEn ? "Open Settings" : "Apri Impostazioni",
-                Category = isEn ? "General" : "Generale",
-                Description = isEn
-                    ? "Opens the settings dialog to customize themes, language, and shortcuts."
-                    : "Apre la finestra delle impostazioni (Temi, Lingua e Scorciatoie)."
+                ActionName = localizationService.GetForLanguage("Shortcut_OpenSettings_Action", language),
+                Category = localizationService.GetForLanguage("Shortcut_Category_General", language),
+                Description = localizationService.GetForLanguage("Shortcut_OpenSettings_Desc", language)
             },
             new()
             {
                 KeyBadges = new[] { "F1" },
-                ActionName = isEn ? "Guide & Concepts" : "Guida & Concetti",
-                Category = isEn ? "General" : "Generale",
-                Description = isEn
-                    ? "Opens the documentation and concept guide explaining Treemap, CFG, DSM, and architecture."
-                    : "Apre la guida concettuale con spiegazioni dettagliate di Treemap, CFG, DSM e architettura."
+                ActionName = localizationService.GetForLanguage("Shortcut_Guide_Action", language),
+                Category = localizationService.GetForLanguage("Shortcut_Category_General", language),
+                Description = localizationService.GetForLanguage("Shortcut_Guide_Desc", language)
             },
             new()
             {
                 KeyBadges = new[] { "Alt", "F4" },
-                ActionName = isEn ? "Exit Application" : "Esci dall'Applicazione",
-                Category = isEn ? "General" : "Generale",
-                Description = isEn
-                    ? "Safely terminates the Macondo application."
-                    : "Chiude in sicurezza l'applicazione Macondo."
+                ActionName = localizationService.GetForLanguage("Shortcut_Exit_Action", language),
+                Category = localizationService.GetForLanguage("Shortcut_Category_General", language),
+                Description = localizationService.GetForLanguage("Shortcut_Exit_Desc", language)
             },
 
             // Categoria: Analisi e Grafo
             new()
             {
                 KeyBadges = new[] { "F5" },
-                ActionName = isEn ? "Compute Blast Radius" : "Calcola Blast Radius",
-                Category = isEn ? "Analysis" : "Analisi",
-                Description = isEn
-                    ? "Calculates dependency impact paths and risk level for the selected routine."
-                    : "Calcola l'impatto di modifica, i chiamanti transitivi e il livello di rischio."
+                ActionName = localizationService.GetForLanguage("Shortcut_ComputeBlastRadius_Action", language),
+                Category = localizationService.GetForLanguage("Shortcut_Category_Analysis", language),
+                Description = localizationService.GetForLanguage("Shortcut_ComputeBlastRadius_Desc", language)
             },
             new()
             {
-                KeyBadges = new[] { isEn ? "Double Click" : "Doppio Clic" },
-                ActionName = isEn ? "Focus / Expand" : "Centra / Espandi",
-                Category = isEn ? "Interactivity" : "Interattività",
-                Description = isEn
-                    ? "In Grid: jumps to node in Graph view. In Tree/Graph: expands/collapses container."
-                    : "Nella Griglia: salta al nodo nel Grafo. Nel Grafo/Albero: espande/comprime modulo."
+                KeyBadges = new[] { localizationService.GetForLanguage("Shortcut_Key_DoubleClick", language) },
+                ActionName = localizationService.GetForLanguage("Shortcut_FocusExpand_Action", language),
+                Category = localizationService.GetForLanguage("Shortcut_Category_Interactivity", language),
+                Description = localizationService.GetForLanguage("Shortcut_FocusExpand_Desc", language)
             },
             new()
             {
-                KeyBadges = new[] { isEn ? "Mouse Drag" : "Trascina Mouse" },
-                ActionName = isEn ? "Pan / Move" : "Pan Vista / Sposta Nodi",
-                Category = isEn ? "Interactivity" : "Interattività",
-                Description = isEn
-                    ? "Pan across the graph canvas or drag individual nodes to reorganize the layout."
-                    : "Sposta la visuale libera sul canvas o trascina i nodi per riorganizzarli."
+                KeyBadges = new[] { localizationService.GetForLanguage("Shortcut_Key_MouseDrag", language) },
+                ActionName = localizationService.GetForLanguage("Shortcut_PanMove_Action", language),
+                Category = localizationService.GetForLanguage("Shortcut_Category_Interactivity", language),
+                Description = localizationService.GetForLanguage("Shortcut_PanMove_Desc", language)
             },
             new()
             {
-                KeyBadges = new[] { isEn ? "Mouse Wheel" : "Rotella Mouse" },
-                ActionName = isEn ? "Zoom In / Out" : "Zoom Avanti / Indietro",
-                Category = isEn ? "Interactivity" : "Interattività",
-                Description = isEn
-                    ? "Smoothly zooms the graph view in or out centered at cursor position."
-                    : "Esegue lo zoom fluido della vista grafo centrato sul cursore del mouse."
+                KeyBadges = new[] { localizationService.GetForLanguage("Shortcut_Key_MouseWheel", language) },
+                ActionName = localizationService.GetForLanguage("Shortcut_Zoom_Action", language),
+                Category = localizationService.GetForLanguage("Shortcut_Category_Interactivity", language),
+                Description = localizationService.GetForLanguage("Shortcut_Zoom_Desc", language)
             }
         };
     }
+
+    /// <summary>
+    /// Restituisce l'elenco completo delle scorciatoie da tastiera localizzate per la lingua correntemente attiva.
+    /// </summary>
+    public static IReadOnlyList<ShortcutItem> GetShortcuts()
+        => GetShortcuts(LocalizationService.Instance.CurrentLanguage);
 }
