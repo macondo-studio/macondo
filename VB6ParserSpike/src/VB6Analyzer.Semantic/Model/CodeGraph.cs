@@ -57,6 +57,11 @@ public sealed class CodeGraph
     private volatile int _lastIndexedRelCount = -1;
 
     /// <summary>
+    /// Conteggio dei simboli all'ultima sincronizzazione dell'indice di contenimento.
+    /// </summary>
+    private volatile int _lastIndexedContainsSymbolCount = -1;
+
+    /// <summary>
     /// Sincronizza gli indici interni dei simboli se la lista <see cref="Symbols"/> è stata modificata o popolata.
     /// 
     /// STRATEGIA THREAD-SAFE:
@@ -97,12 +102,12 @@ public sealed class CodeGraph
     {
         EnsureSymbolsIndexed();
 
-        if (_lastIndexedRelCount == Relationships.Count)
+        if (_lastIndexedRelCount == Relationships.Count && _lastIndexedContainsSymbolCount == Symbols.Count)
             return;
 
         lock (_syncLock)
         {
-            if (_lastIndexedRelCount == Relationships.Count)
+            if (_lastIndexedRelCount == Relationships.Count && _lastIndexedContainsSymbolCount == Symbols.Count)
                 return;
 
             var newKeys = new HashSet<(Guid SourceId, Guid TargetId, RelationshipKind Kind)>(Relationships.Count);
@@ -131,6 +136,7 @@ public sealed class CodeGraph
             _relationshipKeys = newKeys;
             _childrenByParentId = newChildren;
             _lastIndexedRelCount = Relationships.Count;
+            _lastIndexedContainsSymbolCount = Symbols.Count;
         }
     }
 
@@ -142,8 +148,17 @@ public sealed class CodeGraph
     {
         lock (_syncLock)
         {
+            if (_lastIndexedRelCount != Relationships.Count || _lastIndexedContainsSymbolCount != Symbols.Count)
+            {
+                EnsureContainsIndexed();
+            }
+
+            if (!_relationshipKeys.Add((rel.SourceId, rel.TargetId, rel.Kind)))
+            {
+                return;
+            }
+
             Relationships.Add(rel);
-            _relationshipKeys.Add((rel.SourceId, rel.TargetId, rel.Kind));
             _lastIndexedRelCount = Relationships.Count;
 
             if (rel.Kind == RelationshipKind.Contains)
@@ -241,22 +256,14 @@ public sealed class CodeGraph
         int? line = null,
         ResolutionConfidence confidence = ResolutionConfidence.Exact)
     {
-        lock (_syncLock)
+        RegisterRelationship(new Relationship
         {
-            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-            if (_relationshipKeys.Contains((source.Id, eventHandler.Id, RelationshipKind.HandlesEvent)))
-                return;
-
-            RegisterRelationship(new Relationship
-            {
-                SourceId = source.Id,
-                TargetId = eventHandler.Id,
-                Kind = RelationshipKind.HandlesEvent,
-                Line = line,
-                Confidence = confidence
-            });
-        }
+            SourceId = source.Id,
+            TargetId = eventHandler.Id,
+            Kind = RelationshipKind.HandlesEvent,
+            Line = line,
+            Confidence = confidence
+        });
     }
 
     /// <summary>
@@ -265,22 +272,14 @@ public sealed class CodeGraph
     /// </summary>
     public void AddInherits(Symbol derivedType, Symbol baseType, int? line = null)
     {
-        lock (_syncLock)
+        RegisterRelationship(new Relationship
         {
-            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-            if (_relationshipKeys.Contains((derivedType.Id, baseType.Id, RelationshipKind.Inherits)))
-                return;
-
-            RegisterRelationship(new Relationship
-            {
-                SourceId = derivedType.Id,
-                TargetId = baseType.Id,
-                Kind = RelationshipKind.Inherits,
-                Line = line,
-                Confidence = ResolutionConfidence.Exact
-            });
-        }
+            SourceId = derivedType.Id,
+            TargetId = baseType.Id,
+            Kind = RelationshipKind.Inherits,
+            Line = line,
+            Confidence = ResolutionConfidence.Exact
+        });
     }
 
     /// <summary>
@@ -289,22 +288,14 @@ public sealed class CodeGraph
     /// </summary>
     public void AddImplements(Symbol implementingType, Symbol interfaceType, int? line = null)
     {
-        lock (_syncLock)
+        RegisterRelationship(new Relationship
         {
-            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-            if (_relationshipKeys.Contains((implementingType.Id, interfaceType.Id, RelationshipKind.Implements)))
-                return;
-
-            RegisterRelationship(new Relationship
-            {
-                SourceId = implementingType.Id,
-                TargetId = interfaceType.Id,
-                Kind = RelationshipKind.Implements,
-                Line = line,
-                Confidence = ResolutionConfidence.Exact
-            });
-        }
+            SourceId = implementingType.Id,
+            TargetId = interfaceType.Id,
+            Kind = RelationshipKind.Implements,
+            Line = line,
+            Confidence = ResolutionConfidence.Exact
+        });
     }
 
     /// <summary>
@@ -316,22 +307,14 @@ public sealed class CodeGraph
     /// <param name="line">Numero di riga nel sorgente.</param>
     public void AddUsesType(Symbol source, Symbol targetType, int? line = null)
     {
-        lock (_syncLock)
+        RegisterRelationship(new Relationship
         {
-            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-            if (_relationshipKeys.Contains((source.Id, targetType.Id, RelationshipKind.UsesType)))
-                return;
-
-            RegisterRelationship(new Relationship
-            {
-                SourceId = source.Id,
-                TargetId = targetType.Id,
-                Kind = RelationshipKind.UsesType,
-                Line = line,
-                Confidence = ResolutionConfidence.Exact
-            });
-        }
+            SourceId = source.Id,
+            TargetId = targetType.Id,
+            Kind = RelationshipKind.UsesType,
+            Line = line,
+            Confidence = ResolutionConfidence.Exact
+        });
     }
 
     /// <summary>
@@ -340,22 +323,14 @@ public sealed class CodeGraph
     /// </summary>
     public void AddReads(Symbol source, Symbol targetField, int? line = null)
     {
-        lock (_syncLock)
+        RegisterRelationship(new Relationship
         {
-            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-            if (_relationshipKeys.Contains((source.Id, targetField.Id, RelationshipKind.Reads)))
-                return;
-
-            RegisterRelationship(new Relationship
-            {
-                SourceId = source.Id,
-                TargetId = targetField.Id,
-                Kind = RelationshipKind.Reads,
-                Line = line,
-                Confidence = ResolutionConfidence.Exact
-            });
-        }
+            SourceId = source.Id,
+            TargetId = targetField.Id,
+            Kind = RelationshipKind.Reads,
+            Line = line,
+            Confidence = ResolutionConfidence.Exact
+        });
     }
 
     /// <summary>
@@ -364,22 +339,14 @@ public sealed class CodeGraph
     /// </summary>
     public void AddWrites(Symbol source, Symbol targetField, int? line = null)
     {
-        lock (_syncLock)
+        RegisterRelationship(new Relationship
         {
-            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-            if (_relationshipKeys.Contains((source.Id, targetField.Id, RelationshipKind.Writes)))
-                return;
-
-            RegisterRelationship(new Relationship
-            {
-                SourceId = source.Id,
-                TargetId = targetField.Id,
-                Kind = RelationshipKind.Writes,
-                Line = line,
-                Confidence = ResolutionConfidence.Exact
-            });
-        }
+            SourceId = source.Id,
+            TargetId = targetField.Id,
+            Kind = RelationshipKind.Writes,
+            Line = line,
+            Confidence = ResolutionConfidence.Exact
+        });
     }
 
     /// <summary>
@@ -388,22 +355,14 @@ public sealed class CodeGraph
     /// </summary>
     public void AddReferences(Symbol source, Symbol target, int? line = null)
     {
-        lock (_syncLock)
+        RegisterRelationship(new Relationship
         {
-            if (_lastIndexedRelCount != Relationships.Count) EnsureContainsIndexed();
-
-            if (_relationshipKeys.Contains((source.Id, target.Id, RelationshipKind.References)))
-                return;
-
-            RegisterRelationship(new Relationship
-            {
-                SourceId = source.Id,
-                TargetId = target.Id,
-                Kind = RelationshipKind.References,
-                Line = line,
-                Confidence = ResolutionConfidence.Exact
-            });
-        }
+            SourceId = source.Id,
+            TargetId = target.Id,
+            Kind = RelationshipKind.References,
+            Line = line,
+            Confidence = ResolutionConfidence.Exact
+        });
     }
 
     /// <summary>

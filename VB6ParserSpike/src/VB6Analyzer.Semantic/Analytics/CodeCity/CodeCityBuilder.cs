@@ -48,6 +48,16 @@ public static class CodeCityBuilder
 
         int districtCol = 0;
 
+        // Indicizzazione O(1) delle chiamate uscenti per ogni simbolo sorgente
+        var outgoingCallsCount = new Dictionary<Guid, int>();
+        foreach (var r in graph.Relationships)
+        {
+            if (r.Kind == RelationshipKind.Calls)
+            {
+                outgoingCallsCount[r.SourceId] = outgoingCallsCount.GetValueOrDefault(r.SourceId) + 1;
+            }
+        }
+
         // =========================================================================
         // PASSO 3: Costruzione degli edifici (CityBuilding) per ciascun distretto
         // =========================================================================
@@ -68,10 +78,10 @@ public static class CodeCityBuilder
 
                 // Complessità ciclomatica media e massima dei metodi del componente
                 var cc = children.Count > 0
-                    ? children.Average(ch => 1.0 + (graph.Relationships.Count(r => r.SourceId == ch.Id && r.Kind == RelationshipKind.Calls) * 1.5) + (ch.Parameters.Count * 0.8))
+                    ? children.Average(ch => 1.0 + (outgoingCallsCount.GetValueOrDefault(ch.Id) * 1.5) + (ch.Parameters.Count * 0.8))
                     : 1.0;
                 var maxCc = children.Count > 0
-                    ? children.Max(ch => 1.0 + (graph.Relationships.Count(r => r.SourceId == ch.Id && r.Kind == RelationshipKind.Calls) * 1.5) + (ch.Parameters.Count * 0.8))
+                    ? children.Max(ch => 1.0 + (outgoingCallsCount.GetValueOrDefault(ch.Id) * 1.5) + (ch.Parameters.Count * 0.8))
                     : 1.0;
 
                 // 3a. Dimensioni della base (W x D) proporzionali alla radice quadrata di LOC
