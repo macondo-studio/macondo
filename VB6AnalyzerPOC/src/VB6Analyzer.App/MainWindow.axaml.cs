@@ -4426,11 +4426,12 @@ public partial class MainWindow : Window
         {
             var visualGraph = await Task.Run(() => ProjectAnalysisService.AnalyzePaths(new[] { baselineFolder }));
             var baselineGraph = visualGraph.SemanticGraph;
+            if (baselineGraph == null) return;
 
             _apiDiffBaselineGraph = baselineGraph;
             _apiDiffBaselineName = Path.GetFileName(baselineFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
-            var publicCount = CountPublicSymbols(_apiDiffBaselineGraph);
+            var publicCount = CountPublicSymbols(baselineGraph);
             ApiDiff.SetBaselineInfo(_apiDiffBaselineName, publicCount);
 
             if (_graph?.SemanticGraph != null)
