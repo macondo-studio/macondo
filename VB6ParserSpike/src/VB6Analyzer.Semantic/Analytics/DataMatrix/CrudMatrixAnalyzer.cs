@@ -127,13 +127,23 @@ public static class CrudMatrixAnalyzer
         CrudOperation ops = CrudOperation.None;
         string? matchedEntity = null;
 
-        // 1. Cerca matching con le entità note (gestisce sia la forma singolare che plurale)
+        // 1. Cerca matching con le entità note (gestisce sia la forma singolare che plurale, e suffissi Entity/Model/Dto)
         foreach (var entity in knownEntities)
         {
             var singular = entity.TrimEnd('s');
+            var baseEntity = entity;
+            if (baseEntity.EndsWith("Entity", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[..^6];
+            else if (baseEntity.EndsWith("Model", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[..^5];
+            else if (baseEntity.EndsWith("Dto", StringComparison.OrdinalIgnoreCase))
+                baseEntity = baseEntity[..^3];
+
             if (name.Contains(entity, StringComparison.OrdinalIgnoreCase) ||
                 name.Contains(singular, StringComparison.OrdinalIgnoreCase) ||
-                qName.Contains(entity, StringComparison.OrdinalIgnoreCase))
+                (!string.IsNullOrEmpty(baseEntity) && name.Contains(baseEntity, StringComparison.OrdinalIgnoreCase)) ||
+                qName.Contains(entity, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(baseEntity) && qName.Contains(baseEntity, StringComparison.OrdinalIgnoreCase)))
             {
                 matchedEntity = entity;
                 break;

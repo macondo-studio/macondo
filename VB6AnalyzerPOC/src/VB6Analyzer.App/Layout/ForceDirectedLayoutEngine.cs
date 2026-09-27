@@ -211,7 +211,8 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
         foreach (var container in containers)
         {
             var members = graph.GetChildren(container.Id).ToList();
-            var memberCount = Math.Max(members.Count, 1);
+            if (members.Count == 0) continue;
+            var memberCount = members.Count;
             var memberRingRadius = Math.Max(80.0, memberCount * 13.0);
 
             for (var j = 0; j < memberCount; j++)

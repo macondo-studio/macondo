@@ -115,11 +115,18 @@ public static class TaintAnalyzer
 
         foreach (var rel in graph.Relationships)
         {
-            if (rel.Kind is RelationshipKind.Calls or RelationshipKind.Reads or RelationshipKind.Writes)
+            if (rel.Kind is RelationshipKind.Calls or RelationshipKind.Writes)
             {
                 if (adj.TryGetValue(rel.SourceId, out var neighbors))
                 {
                     neighbors.Add(rel.TargetId);
+                }
+            }
+            else if (rel.Kind is RelationshipKind.Reads)
+            {
+                if (adj.TryGetValue(rel.TargetId, out var neighbors))
+                {
+                    neighbors.Add(rel.SourceId);
                 }
             }
         }

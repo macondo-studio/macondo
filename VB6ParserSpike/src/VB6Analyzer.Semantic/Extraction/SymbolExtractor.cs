@@ -227,6 +227,33 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         return null;
     }
 
+    /// <summary>
+    /// Visita la regola ANTLR 'declareStmt' (dichiarazione di una funzione/sub esterna Win32/DLL).
+    /// Sintassi VB6: [Private|Public] Declare Function/Sub Nome Lib "..." [Alias "..."] ([argList]) [As Tipo]
+    /// </summary>
+    public override object? VisitDeclareStmt(VisualBasic6Parser.DeclareStmtContext context)
+    {
+        var name = context.ambiguousIdentifier().GetText();
+
+        var symbol = CreateChildSymbol(SymbolKind.Method, name, context);
+        symbol.Accessibility = GetAccessibility(context.visibility());
+
+        var returnType = ExtractTypeName(context.asTypeClause());
+        symbol.ReturnType = returnType;
+        symbol.DeclaredTypeName = returnType;
+
+        if (context.argList() != null)
+        {
+            var parameters = ExtractParameters(context.argList());
+            symbol.Parameters.AddRange(parameters);
+        }
+
+        _graph.Symbols.Add(symbol);
+        _graph.AddContains(CurrentContainer, symbol, context.Start.Line);
+
+        return null;
+    }
+
     // =========================================================================
     // ESTRAZIONE PROPRIETÀ (Property Get / Let / Set con unificazione)
     // =========================================================================

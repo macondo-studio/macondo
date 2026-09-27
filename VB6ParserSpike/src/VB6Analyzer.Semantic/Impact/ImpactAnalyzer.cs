@@ -206,7 +206,13 @@ public sealed class ImpactAnalyzer
         var executionPaths = executionPathsList.DistinctBy(p => p.ToString()).ToList();
 
         // 5. Verifica dipendenze di tipo e istanziazioni dirette sulla routine
-        var instantiators = _queries.GetDirectCallers(routine); // per routine tipicamente vuoto o delegate
+        var instantiators = _graph.Relationships
+            .Where(r => r.Kind == RelationshipKind.Instantiates && r.TargetId == routine.Id)
+            .Select(r => _graph.FindSymbolById(r.SourceId))
+            .Where(s => s != null)
+            .Select(s => s!)
+            .DistinctBy(s => s.Id)
+            .ToList();
         var typeDependents = GetTypeDependentsForSymbol(routine);
 
         return new ImpactReport
