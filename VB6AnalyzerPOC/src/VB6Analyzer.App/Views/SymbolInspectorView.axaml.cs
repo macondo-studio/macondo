@@ -46,10 +46,11 @@ public partial class SymbolInspectorView : UserControl
 
     /// <summary>
     /// Mostra lo stato vuoto dell'Inspector quando nessun simbolo è selezionato nel grafo.
+    /// Se non c'è alcun progetto in analisi (hasProject = false), nasconde il pannello dei suggerimenti.
     /// </summary>
-    public void ShowEmpty()
+    public void ShowEmpty(bool hasProject = true)
     {
-        InspectorEmptyPanel.IsVisible = true;
+        InspectorEmptyPanel.IsVisible = hasProject;
         InspectorDetailsPanel.IsVisible = false;
     }
 
@@ -267,22 +268,22 @@ public partial class SymbolInspectorView : UserControl
         var localizationService = LocalizationService.Instance;
 
         InspectorTitleText.Text = localizationService["Inspector_Title"];
-        InspectorEmptyTitle.Text = localizationService["Inspector_EmptyTitle"];
-        InspectorEmptyHint1.Text = localizationService["Inspector_EmptyHint1"];
-        InspectorEmptyHint2.Text = localizationService["Inspector_EmptyHint2"];
-        InspectorEmptyHint3.Text = localizationService["Inspector_EmptyHint3"];
-        InspectorSecSymbol.Text = localizationService["Inspector_SecSymbol"];
-        InspectorSecKind.Text = localizationService["Inspector_SecKind"];
-        InspectorSecVisibility.Text = localizationService["Inspector_SecVisibility"];
-        InspectorSecLanguage.Text = localizationService["Inspector_SecLanguage"];
-        InspectorSecType.Text = localizationService["Inspector_SecType"];
-        InspectorSecParams.Text = localizationService["Inspector_SecParams"];
-        InspectorSecFile.Text = localizationService["Inspector_SecFile"];
-        ToolTip.SetTip(InspectorOpenFileButton, localizationService["Tooltip_OpenFile"]);
-        ToolTip.SetTip(InspectorOpenFolderButton, localizationService["Tooltip_OpenFolder"]);
+        InspectorEmptyTitle.Text = localizationService["Inspector_NoSelection"];
+        InspectorEmptyHint1.Text = localizationService["Inspector_Hint1"];
+        InspectorEmptyHint2.Text = localizationService["Inspector_Hint2"];
+        InspectorEmptyHint3.Text = localizationService["Inspector_Hint3"];
+        InspectorSecSymbol.Text = localizationService["Inspector_Sec_Symbol"];
+        InspectorSecKind.Text = localizationService["Inspector_Sec_Kind"];
+        InspectorSecVisibility.Text = localizationService["Inspector_Sec_Visibility"];
+        InspectorSecLanguage.Text = localizationService["Inspector_Sec_Language"];
+        InspectorSecType.Text = localizationService["Inspector_Sec_Type"];
+        InspectorSecParams.Text = localizationService["Inspector_Sec_Params"];
+        InspectorSecFile.Text = localizationService["Inspector_Sec_File"];
+        ToolTip.SetTip(InspectorOpenFileButton, localizationService["Inspector_Tooltip_OpenFile"]);
+        ToolTip.SetTip(InspectorOpenFolderButton, localizationService["Inspector_Tooltip_OpenFolder"]);
 
         // AI Context
-        InspectorSecAiContext.Text = localizationService["Inspector_SecAiContext"];
+        InspectorSecAiContext.Text = localizationService["Inspector_Sec_AIContext"];
         InspectorAiContextDesc.Text = localizationService["Inspector_AiContextDesc"];
         CopyLlmSliceButtonText.Text = localizationService["Inspector_CopyLlmSlice"];
         SaveLlmSliceButtonText.Text = localizationService["Inspector_SaveLlmSlice"];
@@ -290,16 +291,16 @@ public partial class SymbolInspectorView : UserControl
         ToolTip.SetTip(SaveLlmSliceButton, localizationService["Tooltip_SaveLlmSlice"]);
 
         // Blast Radius
-        InspectorSecBlast.Text = localizationService["Inspector_SecBlast"];
-        InspectorLabelDirectCallers.Text = localizationService["Inspector_DirectCallers"];
-        InspectorLabelIndirectCallers.Text = localizationService["Inspector_IndirectCallers"];
+        InspectorSecBlast.Text = localizationService["Inspector_Sec_BlastRadius"];
+        InspectorLabelDirectCallers.Text = localizationService["Inspector_DirectCallersCount"];
+        InspectorLabelIndirectCallers.Text = localizationService["Inspector_IndirectCallersCount"];
         InspectorLabelMaxDepth.Text = localizationService["Inspector_MaxDepth"];
-        InspectorSecForms.Text = localizationService["Inspector_SecForms"];
-        InspectorSecClasses.Text = localizationService["Inspector_SecClasses"];
-        InspectorSecPaths.Text = localizationService["Inspector_SecPaths"];
-        InspectorSecCallers.Text = localizationService["Inspector_SecCallers"];
-        InspectorSecCallees.Text = localizationService["Inspector_SecCallees"];
-        InspectorSecInstantiates.Text = localizationService["Inspector_SecInstantiates"];
+        InspectorSecForms.Text = localizationService["Inspector_Sec_Forms"];
+        InspectorSecClasses.Text = localizationService["Inspector_Sec_Classes"];
+        InspectorSecPaths.Text = localizationService["Inspector_Sec_Paths"];
+        InspectorSecCallers.Text = localizationService["Inspector_Sec_WhoCallsMe"];
+        InspectorSecCallees.Text = localizationService["Inspector_Sec_WhatDoICall"];
+        InspectorSecInstantiates.Text = localizationService["Inspector_Sec_Instantiates"];
     }
 
     private void OnOpenFileClicked(object? sender, RoutedEventArgs e)

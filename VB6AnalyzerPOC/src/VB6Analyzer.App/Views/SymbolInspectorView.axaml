@@ -16,7 +16,7 @@
                 </Grid>
 
                 <!-- Messaggio Nodo Non Selezionato -->
-                <StackPanel x:Name="InspectorEmptyPanel" Spacing="6" Margin="4,8">
+                <StackPanel x:Name="InspectorEmptyPanel" Spacing="6" Margin="4,8" IsVisible="False">
                     <TextBlock x:Name="InspectorEmptyTitle" Text="Nessun simbolo selezionato." Foreground="{DynamicResource ThemeTextSecondaryBrush}" FontWeight="Medium" />
                     <TextBlock x:Name="InspectorEmptyHint1" Text="• Clicca su un nodo per visualizzare dettagli semantici, tipi, parametri e chiamate." Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="11" TextWrapping="Wrap" />
                     <TextBlock x:Name="InspectorEmptyHint2" Text="• Clicca su 'Blast Radius' per calcolare il raggio di impatto e il rischio di regressione." Foreground="{DynamicResource ThemeTextMutedBrush}" FontSize="11" TextWrapping="Wrap" />
