@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+
+    <!-- Top Arm (Bright to Vibrant Emerald) -->
+    <linearGradient id="g-top-left" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#12e886"/>
+      <stop offset="60%" stop-color="#05c872"/>
+      <stop offset="100%" stop-color="#00a86b"/>
+    </linearGradient>
+    <linearGradient id="g-top-right" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#05c872"/>
+      <stop offset="50%" stop-color="#00a86b"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+
+    <!-- Right Arm (Medium to Forest Green) -->
+    <linearGradient id="g-right-top" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="50%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="g-right-bottom" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="60%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </linearGradient>
+
+    <!-- Bottom Arm (Deep Forest to Dark Emerald) -->
+    <linearGradient id="g-bottom-right" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#047857"/>
+      <stop offset="60%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </linearGradient>
+    <linearGradient id="g-bottom-left" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="50%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </linearGradient>
+
+    <!-- Left Arm (Forest to Bright Emerald) -->
+    <linearGradient id="g-left-bottom" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="60%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#065f46"/>
+    </linearGradient>
+    <linearGradient id="g-left-top" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#05c872"/>
+      <stop offset="60%" stop-color="#12e886"/>
+      <stop offset="100%" stop-color="#22e88a"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(512, 505) scale(1.17)">
+    <!-- 1. Left arm bottom layer -->
+    <path d="M -410,0 C -300,55 -200,120 -140,140 C -85,155 -30,120 0,65 C -65,100 -125,75 -195,0 Z"
+          fill="url(#g-left-bottom)" />
+
+    <!-- 2. Bottom arm left facet -->
+    <path d="M 0,410 C -55,300 -120,200 -140,140 C -155,85 -120,30 -65,0 C -100,65 -75,125 0,195 Z"
+          fill="url(#g-bottom-left)" />
+
+    <!-- 3. Bottom arm right facet (over right arm) -->
+    <path d="M 0,410 C 55,300 120,200 140,140 C 155,85 120,30 65,0 C 100,65 75,125 0,195 Z"
+          fill="url(#g-bottom-right)" filter="url(#shadow)" />
+
+    <!-- 4. Right arm bottom facet (under bottom arm) -->
+    <path d="M 410,0 C 300,55 200,120 140,140 C 85,155 30,120 0,65 C 65,100 125,75 195,0 Z"
+          fill="url(#g-right-bottom)" />
+
+    <!-- 5. Right arm top facet (over top arm) -->
+    <path d="M 410,0 C 300,-55 200,-120 140,-140 C 85,-155 30,-120 0,-65 C 65,-100 125,-75 195,0 Z"
+          fill="url(#g-right-top)" filter="url(#shadow)" />
+
+    <!-- 6. Top arm right facet (under right arm) -->
+    <path d="M 0,-410 C 55,-300 120,-200 140,-140 C 155,-85 120,-30 65,0 C 100,-65 75,-125 0,-195 Z"
+          fill="url(#g-top-right)" />
+
+    <!-- 7. Top arm left facet (over left arm) -->
+    <path d="M 0,-410 C -55,-300 -120,-200 -140,-140 C -155,-85 -120,-30 -65,0 C -100,-65 -75,-125 0,-195 Z"
+          fill="url(#g-top-left)" filter="url(#shadow)" />
+
+    <!-- 8. Left arm top facet (over top arm) -->
+    <path d="M -410,0 C -300,-55 -200,-120 -140,-140 C -85,-155 -30,-120 0,-65 C -65,-100 -125,-75 -195,0 Z"
+          fill="url(#g-left-top)" filter="url(#shadow)" />
+  </g>
+</svg>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Release Notes &amp; Changelog • Macondo</title>
+  <meta name="description" content="Official release notes, changelog, and download links for all versions of Macondo Visual Code Graph &amp; Blast Radius analyzer.">
+  <meta name="robots" content="index, follow">
+
+  <!-- Canonical & Multilingual Hreflang -->
+  <link rel="canonical" href="https://macondo-studio.com/releases.html">
+  <link rel="alternate" hreflang="en" href="https://macondo-studio.com/releases.html">
+  <link rel="alternate" hreflang="it" href="https://macondo-studio.com/releases-it.html">
+  <link rel="alternate" hreflang="x-default" href="https://macondo-studio.com/releases.html">
+
+  <!-- Auto Language Detection -->
+  <script>
+    (function() {
+      try {
+        var pref = localStorage.getItem('macondo_lang');
+        var isIt = pref ? (pref === 'it') : ((navigator.languages && navigator.languages.some(function(l) { return l.toLowerCase().startsWith('it'); })) || (navigator.language || '').toLowerCase().startsWith('it'));
+        if (isIt) {
+          window.location.replace('releases-it.html' + window.location.search + window.location.hash);
+        }
+      } catch (e) {}
+    })();
+  </script>
+
+  <!-- Open Graph / Facebook / LinkedIn -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://macondo-studio.com/releases.html">
+  <meta property="og:title" content="Release Notes &amp; Changelog • Macondo">
+  <meta property="og:description" content="Official release notes, changelog, and download links for all versions of Macondo Visual Code Graph &amp; Blast Radius analyzer.">
+  <meta property="og:image" content="https://macondo-studio.com/VistaGrafoEng.png">
+  <meta property="og:site_name" content="Macondo">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://macondo-studio.com/releases.html">
+  <meta name="twitter:title" content="Release Notes &amp; Changelog • Macondo">
+  <meta name="twitter:description" content="Official release notes, changelog, and download links for all versions of Macondo Visual Code Graph &amp; Blast Radius analyzer.">
+  <meta name="twitter:image" content="https://macondo-studio.com/VistaGrafoEng.png">
+
+  <!-- Favicon & Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="alternate icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="favicon-192x192.png">
+</head>
+<body>
+
+  <!-- Minimal Header -->
+  <header class="header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="logo.svg" alt="Macondo Logo" class="brand-icon">
+        <span>Macondo</span>
+      </a>
+
+      <nav>
+        <ul class="nav">
+          <li><a href="index.html#graph">Graph</a></li>
+          <li><a href="index.html#blast">Blast Radius</a></li>
+          <li><a href="index.html#ai">AI &amp; Modernization</a></li>
+          <li><a href="index.html#specs">Specifications</a></li>
+          <li><a href="releases.html" style="color: var(--text-headline); font-weight: 500;">Releases</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-right">
+        <a href="releases-it.html" class="lang-btn" title="Passa all'Italiano">
+          <span>IT</span> / <span class="current">EN</span>
+        </a>
+        <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-primary">Download</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Releases Content Section -->
+  <main class="legal-page">
+    <div class="container">
+      <div class="legal-box" style="max-width: 900px;">
+        
+        <div class="legal-nav-back">
+          <a href="index.html" class="back-link">&larr; Back to Home</a>
+        </div>
+
+        <div class="legal-header">
+          <div class="hero-pill" style="margin-bottom: 12px; display: inline-flex;">
+            <span class="hero-pill-badge">GitHub</span>
+            <span>Official Releases &amp; Changelog</span>
+          </div>
+          <h1 class="legal-title">Release Notes</h1>
+          <p class="legal-subtitle">Comprehensive history of all Macondo updates, new architectural features, bug fixes, and performance improvements.</p>
+          
+          <div class="releases-header-actions">
+            <a href="https://github.com/macondo-studio/macondo/releases" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+              View on GitHub &rarr;
+            </a>
+            <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-accent btn-sm">
+              Download Latest (Macondo.exe)
+            </a>
+          </div>
+        </div>
+
+        <!-- Dynamic Releases Container -->
+        <div id="releases-container">
+          <div class="releases-loading">
+            <div class="releases-spinner"></div>
+            <div>Loading latest release notes from GitHub...</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Minimal Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>&copy; <span id="current-year">2026</span> Macondo</span>
+      <div class="footer-links">
+        <a href="https://github.com/macondo-studio" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://github.com/macondo-studio/macondo/issues" target="_blank" rel="noopener noreferrer">Issues</a>
+        <a href="mailto:info@macondo-studio.com">Contact</a>
+        <a href="LICENSE.md" target="_blank">License</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="releases.html">Releases</a>
+      </div>
+    </div>
+    <div class="container">
+      <p class="footer-disclaimer">
+        Macondo is an independent, closed-source freeware developer tool. All mentioned product names and trademarks belong to their respective holders.
+      </p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

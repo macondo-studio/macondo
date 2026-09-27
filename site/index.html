@@ -1,0 +1,345 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Macondo • Visual Code Graph & Blast Radius for Legacy Software</title>
+  <meta name="description" content="Deterministic semantic code graph and Blast Radius impact analyzer for legacy codebases, currently specialized for Visual Basic 6.0. 100% offline, absolute privacy, engineered for AI-guided migration.">
+  <meta name="keywords" content="Visual Basic 6, VB6, legacy code analyzer, blast radius, code graph, AST parser, software architecture, dependency analysis, legacy modernization, C# migration, code intelligence, reverse engineering, static analysis">
+  <meta name="author" content="Macondo Studio">
+  <meta name="robots" content="index, follow">
+
+  <!-- Canonical & Multilingual Hreflang -->
+  <link rel="canonical" href="https://macondo-studio.com/">
+  <link rel="alternate" hreflang="en" href="https://macondo-studio.com/">
+  <link rel="alternate" hreflang="it" href="https://macondo-studio.com/it.html">
+  <link rel="alternate" hreflang="x-default" href="https://macondo-studio.com/">
+
+  <!-- Auto Language Detection -->
+  <script>
+    (function() {
+      try {
+        var pref = localStorage.getItem('macondo_lang');
+        var isIt = pref ? (pref === 'it') : ((navigator.languages && navigator.languages.some(function(l) { return l.toLowerCase().startsWith('it'); })) || (navigator.language || '').toLowerCase().startsWith('it'));
+        if (isIt) {
+          var target = window.location.pathname.indexOf('privacy.html') !== -1 ? 'privacy-it.html' : 'it.html';
+          window.location.replace(target + window.location.search + window.location.hash);
+        }
+      } catch (e) {}
+    })();
+  </script>
+
+  <!-- Open Graph / Facebook / LinkedIn -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://macondo-studio.com/">
+  <meta property="og:title" content="Macondo • Visual Code Graph & Blast Radius for Legacy Code">
+  <meta property="og:description" content="Deterministic semantic code graph and Blast Radius impact analyzer for legacy codebases, currently specialized for Visual Basic 6.0. 100% offline, absolute privacy, engineered for AI-guided migration.">
+  <meta property="og:image" content="https://macondo-studio.com/VistaGrafoEng.png">
+  <meta property="og:image:alt" content="Macondo Visual Code Graph & Blast Radius UI">
+  <meta property="og:site_name" content="Macondo">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="it_IT">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://macondo-studio.com/">
+  <meta name="twitter:title" content="Macondo • Visual Code Graph & Blast Radius for Legacy Code">
+  <meta name="twitter:description" content="Deterministic semantic code graph and Blast Radius impact analyzer for legacy codebases, currently specialized for Visual Basic 6.0. 100% offline, absolute privacy, engineered for AI-guided migration.">
+  <meta name="twitter:image" content="https://macondo-studio.com/VistaGrafoEng.png">
+
+  <!-- Favicon & Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="alternate icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="favicon-192x192.png">
+
+  <!-- Structured Data: SoftwareApplication (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Macondo",
+    "operatingSystem": "Windows 10, Windows 11 (64-bit)",
+    "applicationCategory": "DeveloperApplication",
+    "inLanguage": "en",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "Deterministic semantic code graph, dependency matrix, and Blast Radius impact analyzer for legacy codebases (with current complete support for Visual Basic 6.0). 100% offline and engineered for AI context and modernization.",
+    "softwareVersion": "1.3.0",
+    "downloadUrl": "https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe",
+    "screenshot": "https://macondo-studio.com/VistaGrafoEng.png",
+    "author": {
+      "@type": "Organization",
+      "name": "Macondo Studio",
+      "url": "https://macondo-studio.com"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Minimal Header -->
+  <header class="header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="logo.svg" alt="Macondo Logo" class="brand-icon">
+        <span>Macondo</span>
+      </a>
+
+      <nav>
+        <ul class="nav">
+          <li><a href="#graph">Graph</a></li>
+          <li><a href="#blast">Blast Radius</a></li>
+          <li><a href="#ai">AI &amp; Modernization</a></li>
+          <li><a href="#specs">Specifications</a></li>
+          <li><a href="releases.html">Releases</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-right">
+        <a href="it.html" class="lang-btn" title="Passa all'Italiano">
+          <span>IT</span> / <span class="current">EN</span>
+        </a>
+        <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-primary">Download</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <a href="releases.html" class="hero-pill" style="text-decoration: none; cursor: pointer;" title="View Release Notes &amp; Changelog">
+        <span class="hero-pill-badge">Release</span>
+        <span class="hero-pill-text">Macondo v1.3.0 for Windows • Free</span>
+      </a>
+
+      <h1 class="hero-title">
+        <span>See the structure.</span><br>
+        <span class="dimmed">Master the legacy.</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Deterministic semantic code graph and Blast Radius impact analyzer for legacy codebases, currently specialized for Visual Basic 6.0. 100% offline, absolute privacy, engineered for AI-guided migration.
+      </p>
+
+      <div class="hero-cta">
+        <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-accent btn-large">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5zM7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+          </svg>
+          <span>Download Macondo.exe</span>
+        </a>
+        <a href="#graph" class="btn btn-secondary btn-large">
+          <span>Explore features</span>
+        </a>
+      </div>
+
+      <div class="hero-note">
+        <span>Free • Single portable executable • 100% local</span>
+        <span class="dot-sep">&bull;</span>
+        <span class="release-date-text">Last updated September 10, 2026</span>
+      </div>
+
+      <!-- App Screenshot Showcase -->
+      <div class="showcase-window">
+        <div class="screenshot-holder">
+          <img id="graph-screenshot" src="VistaGrafoEng.png" alt="Macondo Semantic Graph UI" class="app-screenshot">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature 1: Visual Graph -->
+  <section id="graph" class="feature-block">
+    <div class="container feature-grid-2">
+      <div>
+        <div class="feature-tag">Visual Exploration</div>
+        <h2 class="feature-heading">Understand every dependency at a glance.</h2>
+        <p class="feature-desc">Exhaustive AST parsing of .vbp, .frm, .bas, .cls, and .ctl files. Explore call hierarchies with 4 tailored layout algorithms.</p>
+        <ul class="feature-points">
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span>Radial, Affinity, Clustered Islands, and Force-Directed physics layouts.</span>
+          </li>
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span>Dynamic member expansion for classes and modules with granular method mapping.</span>
+          </li>
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span>Fluid 60 FPS rendering even across large enterprise codebases with 10,000+ symbols.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="feature-card-visual">
+        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); line-height: 1.8;">
+          <div style="color: #ffffff; margin-bottom: 8px;">AST Resolution Pipeline:</div>
+          <div>&bull; 14 <span>Forms (.FRM) &rarr; UI Event Handlers</span></div>
+          <div>&bull; 22 <span>Standard Modules (.BAS) &rarr; Global Routines</span></div>
+          <div>&bull; 18 <span>Class Modules (.CLS) &rarr; Instantiations &amp; Members</span></div>
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle); color: var(--text-headline);">
+            Total: <strong>1,482 calls resolved</strong> (32ms cold parse)
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature 2: Blast Radius -->
+  <section id="blast" class="feature-block">
+    <div class="container feature-grid-2">
+      <div class="feature-card-visual">
+        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); line-height: 1.8;">
+          <div style="color: #ffffff; margin-bottom: 8px;">Recursive Impact Formula:</div>
+          <div><span>Depth:</span> <strong style="color: #ffffff;">6 levels</strong></div>
+          <div><span>Direct Callers:</span> <strong style="color: #ffffff;">18</strong> | <span>Indirect:</span> <strong style="color: #ffffff;">142</strong></div>
+          <div><span>Touched UI Forms:</span> <strong style="color: #ffffff;">11 forms</strong></div>
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle); color: #ff453a;">
+            Regression Risk Score: <strong>CRITICAL (94/100)</strong>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="feature-tag">Impact Analysis</div>
+        <h2 class="feature-heading">Refactor without fear of breaking production.</h2>
+        <p class="feature-desc">The Blast Radius matrix recursively traces all upstream callers. Know which UI forms or business entities will be touched before editing a single line.</p>
+        <ul class="feature-points">
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span>Automated regression risk ratings from Low to Critical.</span>
+          </li>
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span>Interactive audit grid sorted by total impact and call depth.</span>
+          </li>
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span>1-click instant navigation from audit rows to the exact graph node.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature 3: AI & Modernization -->
+  <section id="ai" class="feature-block">
+    <div class="container feature-grid-2">
+      <div>
+        <div class="feature-tag">AI &amp; Modernization</div>
+        <h2 class="feature-heading">The ideal bridge between legacy code and AI models.</h2>
+        <p class="feature-desc">Extract compact, structured Markdown Repo Maps and semantic context slices ready for Claude, ChatGPT, Gemini, Copilot, etc. to guide your C#/.NET or modern architecture rewrite.</p>
+        <ul class="feature-points">
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span>Targeted subgraphs that minimize token noise and maximize LLM accuracy.</span>
+          </li>
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span>Zero hallucinations: the LLM receives verified AST, CALLS relationships, and resolved types.</span>
+          </li>
+          <li class="feature-point">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+            <span>Headless CLI execution for CI/CD pipelines or as a tool for autonomous AI agents (Claude Code, Cursor, Antigravity, MCP, etc.).</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="feature-card-visual" style="align-self: center;">
+        <div style="font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.6; background: #000; padding: 16px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+          <div style="color: #888; margin-bottom: 4px;"># Export project Markdown Repo Map</div>
+          <div style="color: var(--accent); margin-bottom: 14px;">Macondo.exe analyze "C:\Projects\MyLegacyProject" --export-md "repo-map.md"</div>
+
+          <div style="color: #888; margin-bottom: 4px;"># Export complete semantic graph to JSON</div>
+          <div style="color: var(--accent); margin-bottom: 14px;">Macondo.exe analyze "C:\Projects\MyLegacyProject\App.vbp" --export-json "graph.json"</div>
+
+          <div style="color: #888; margin-bottom: 4px;"># Export both formats simultaneously</div>
+          <div style="color: var(--accent);">Macondo.exe analyze "C:\Projects\MyLegacyProject" --export-md "repo-map.md" --export-json "graph.json"</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Specifications 3-Column Grid -->
+  <section id="specs" class="feature-block">
+    <div class="container">
+      <div class="grid-3">
+        <div class="card-minimal">
+          <h3 class="card-title">100% Free</h3>
+          <p class="card-body">No subscriptions, no paywalls, no artificial limitations. Built as an open engineering tool for developers.</p>
+        </div>
+
+        <div class="card-minimal">
+          <h3 class="card-title">Absolute Privacy</h3>
+          <p class="card-body">Runs 100% locally on your machine. Zero source code or telemetry ever leaves your computer.</p>
+        </div>
+
+        <div class="card-minimal">
+          <h3 class="card-title">Cache &amp; Native Speed</h3>
+          <p class="card-body">Lightning-fast persistent disk cache: reopen complex enterprise projects with hundreds of files in milliseconds.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Minimal Download CTA -->
+  <section id="download" class="download-section">
+    <div class="container">
+      <div class="download-box">
+        <h2 class="download-title">Start analyzing today.</h2>
+        <p class="download-subtitle">Download the standalone Macondo.exe for Windows. No installer or zip archive required.</p>
+
+        <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-primary btn-large">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5zM7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+          </svg>
+          <span>Download Macondo.exe (Windows x64)</span>
+        </a>
+
+        <div class="download-meta">
+          <span class="release-date-text">Last updated September 10, 2026</span>
+          <span>&bull;</span>
+          <span>Compatible with Windows 10 &amp; Windows 11 (64-bit)</span>
+          <span>&bull;</span>
+          <span>Single Portable Executable (No Install)</span>
+        </div>
+
+        <div class="download-feedback">
+          <span>Found a bug or have a suggestion?</span>
+          <a href="https://github.com/macondo-studio/macondo/issues" target="_blank" rel="noopener noreferrer">Open GitHub Issue</a>
+          <span>&bull;</span>
+          <a href="mailto:info@macondo-studio.com">info@macondo-studio.com</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Minimal Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>&copy; <span id="current-year">2026</span> Macondo</span>
+      <div class="footer-links">
+        <a href="https://github.com/macondo-studio" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://github.com/macondo-studio/macondo/issues" target="_blank" rel="noopener noreferrer">Issues</a>
+        <a href="mailto:info@macondo-studio.com">Contact</a>
+        <a href="LICENSE.md" target="_blank">License</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="releases.html">Releases</a>
+        <a href="#graph">Graph</a>
+        <a href="#blast">Blast Radius</a>
+        <a href="#ai">AI &amp; Modernization</a>
+        <a href="#download">Download</a>
+      </div>
+    </div>
+    <div class="container footer-disclaimer">
+      <p>All trademarks, product names, and logos cited (including Claude, ChatGPT, Gemini, Copilot, Windows, Visual Basic, etc.) belong to their respective owners and are used strictly for descriptive, identification, and interoperability purposes.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
