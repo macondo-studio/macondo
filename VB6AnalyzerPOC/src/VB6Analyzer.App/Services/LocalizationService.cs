@@ -1690,7 +1690,7 @@ public sealed class LocalizationService
         ["Welcome_LoadFixturesDesc"] = "Explore a complete suite of sample forms and classes",
         ["Welcome_PendingTitle"] = "Last Project Detected",
         ["Welcome_PendingNoCache"] = "No cache snapshot found for this project. Start analysis to explore code.",
-        ["Welcome_AnalyzeNow"] = "⚡ Analyze Now",
+        ["Welcome_AnalyzeNow"] = "Analyze Now",
         ["Welcome_RecentProjects"] = "Recent Projects",
         ["Welcome_NoRecent"] = "No recent projects available.",
         ["Welcome_CacheReady"] = "Cached",

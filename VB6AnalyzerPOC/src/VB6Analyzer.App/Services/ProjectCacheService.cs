@@ -46,40 +46,63 @@ public sealed class ProjectCacheService
     }
 
     /// <summary>
-    /// Percorso del file di cache associato a una determinata cartella di progetto.
+    /// Normalizza un percorso di cartella o di file di progetto (.vbp, .csproj, .sln) restituendo il percorso assoluto della cartella di riferimento in minuscolo.
     /// </summary>
-    public string GetCacheFilePath(string folderPath)
+    public static string NormalizeFolderOrFilePath(string path)
     {
-        var normalized = Path.GetFullPath(folderPath)
+        if (string.IsNullOrWhiteSpace(path))
+            return string.Empty;
+
+        var fullPath = Path.GetFullPath(path);
+        if (File.Exists(fullPath))
+        {
+            fullPath = Path.GetDirectoryName(fullPath) ?? fullPath;
+        }
+
+        return fullPath
             .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
             .ToLowerInvariant();
+    }
 
+    /// <summary>
+    /// Percorso del file di cache associato a una determinata cartella o file di progetto.
+    /// </summary>
+    public string GetCacheFilePath(string folderOrFilePath)
+    {
+        var normalized = NormalizeFolderOrFilePath(folderOrFilePath);
         var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(normalized));
         var hashHex = Convert.ToHexString(hashBytes)[..16];
         return Path.Combine(_cacheDirectory, $"cache_{hashHex}.json");
     }
 
     /// <summary>
-    /// Verifica se esiste una cache su disco per la cartella specificata.
+    /// Verifica se esiste una cache su disco per la cartella o file di progetto specificato.
     /// </summary>
-    public bool HasCache(string folderPath)
+    public bool HasCache(string folderOrFilePath)
     {
-        if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
+        if (string.IsNullOrWhiteSpace(folderOrFilePath))
             return false;
 
-        var path = GetCacheFilePath(folderPath);
+        var normalized = NormalizeFolderOrFilePath(folderOrFilePath);
+        if (!Directory.Exists(normalized))
+            return false;
+
+        var path = GetCacheFilePath(folderOrFilePath);
         return File.Exists(path);
     }
 
     /// <summary>
-    /// Tenta di caricare lo snapshot di cache per la cartella specificata.
+    /// Tenta di caricare lo snapshot di cache per la cartella o file di progetto specificato.
     /// Restituisce null se la cache non esiste o non è valida.
     /// </summary>
-    public async Task<ProjectCacheSnapshot?> TryLoadSnapshotAsync(string folderPath)
+    public async Task<ProjectCacheSnapshot?> TryLoadSnapshotAsync(string folderOrFilePath)
     {
         try
         {
-            var cacheFile = GetCacheFilePath(folderPath);
+            if (string.IsNullOrWhiteSpace(folderOrFilePath))
+                return null;
+
+            var cacheFile = GetCacheFilePath(folderOrFilePath);
             if (!File.Exists(cacheFile))
                 return null;
 
@@ -157,15 +180,19 @@ public sealed class ProjectCacheService
     }
 
     /// <summary>
-    /// Salva in background uno snapshot completo di cache per la cartella analizzata.
+    /// Salva immediatamente e in modo sincrono uno snapshot completo di cache per la cartella o file analizzato.
     /// </summary>
-    public async Task SaveSnapshotAsync(
-        string folderPath,
+    public void SaveSnapshot(
+        string folderOrFilePath,
         VisualCodeGraph graph,
-        IReadOnlyList<BlastRadiusGridRow> rows,
+        IReadOnlyList<BlastRadiusGridRow>? rows,
         bool hasCustomUserLayout = false)
     {
-        if (graph.SemanticGraph is null || !Directory.Exists(folderPath))
+        if (graph?.SemanticGraph is null || string.IsNullOrWhiteSpace(folderOrFilePath))
+            return;
+
+        var folderPath = File.Exists(folderOrFilePath) ? (Path.GetDirectoryName(folderOrFilePath) ?? folderOrFilePath) : folderOrFilePath;
+        if (!Directory.Exists(folderPath))
             return;
 
         try
@@ -191,7 +218,7 @@ public sealed class ProjectCacheService
                     Y = n.Y,
                     IsExpanded = n.IsExpanded
                 }).ToList(),
-                BlastRadiusRows = rows.Select(r => new BlastRadiusRowSnapshot
+                BlastRadiusRows = (rows ?? Array.Empty<BlastRadiusGridRow>()).Select(r => new BlastRadiusRowSnapshot
                 {
                     NodeId = r.NodeId,
                     ProjectName = r.ProjectName,
@@ -209,14 +236,11 @@ public sealed class ProjectCacheService
                 }).ToList()
             };
 
-            var cacheFile = GetCacheFilePath(folderPath);
+            var cacheFile = GetCacheFilePath(folderOrFilePath);
             var tempFile = cacheFile + ".tmp";
 
-            await using (var fs = new FileStream(tempFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
-            {
-                await JsonSerializer.SerializeAsync(fs, snapshot, _jsonOptions);
-            }
-
+            var json = JsonSerializer.Serialize(snapshot, _jsonOptions);
+            File.WriteAllText(tempFile, json);
             File.Move(tempFile, cacheFile, overwrite: true);
         }
         catch
@@ -226,16 +250,30 @@ public sealed class ProjectCacheService
     }
 
     /// <summary>
+    /// Salva in background su thread dedicato uno snapshot completo di cache per la cartella o file analizzato.
+    /// </summary>
+    public Task SaveSnapshotAsync(
+        string folderOrFilePath,
+        VisualCodeGraph graph,
+        IReadOnlyList<BlastRadiusGridRow>? rows,
+        bool hasCustomUserLayout = false)
+        => Task.Run(() => SaveSnapshot(folderOrFilePath, graph, rows, hasCustomUserLayout));
+
+    /// <summary>
     /// Aggiorna le coordinate geometriche del layout nello snapshot di cache esistente su disco.
     /// </summary>
-    public void UpdateLayoutSnapshot(string folderPath, VisualCodeGraph graph, bool hasCustomUserLayout = false)
+    public void UpdateLayoutSnapshot(string folderOrFilePath, VisualCodeGraph graph, bool hasCustomUserLayout = false)
     {
-        if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath) || graph is null)
+        if (string.IsNullOrWhiteSpace(folderOrFilePath) || graph is null)
+            return;
+
+        var folderPath = File.Exists(folderOrFilePath) ? (Path.GetDirectoryName(folderOrFilePath) ?? folderOrFilePath) : folderOrFilePath;
+        if (!Directory.Exists(folderPath))
             return;
 
         try
         {
-            var cacheFile = GetCacheFilePath(folderPath);
+            var cacheFile = GetCacheFilePath(folderOrFilePath);
             if (!File.Exists(cacheFile))
                 return;
 
@@ -266,14 +304,15 @@ public sealed class ProjectCacheService
     /// <summary>
     /// Versione asincrona che esegue l'aggiornamento del layout su thread di background.
     /// </summary>
-    public Task UpdateLayoutSnapshotAsync(string folderPath, VisualCodeGraph graph, bool hasCustomUserLayout = false)
-        => Task.Run(() => UpdateLayoutSnapshot(folderPath, graph, hasCustomUserLayout));
+    public Task UpdateLayoutSnapshotAsync(string folderOrFilePath, VisualCodeGraph graph, bool hasCustomUserLayout = false)
+        => Task.Run(() => UpdateLayoutSnapshot(folderOrFilePath, graph, hasCustomUserLayout));
 
     /// <summary>
     /// Controlla se i file sorgente su disco sono cambiati rispetto allo snapshot della cache.
     /// </summary>
-    public bool CheckStaleness(ProjectCacheSnapshot snapshot, string folderPath)
+    public bool CheckStaleness(ProjectCacheSnapshot snapshot, string folderOrFilePath)
     {
+        var folderPath = File.Exists(folderOrFilePath) ? (Path.GetDirectoryName(folderOrFilePath) ?? folderOrFilePath) : folderOrFilePath;
         if (!Directory.Exists(folderPath))
             return false;
 
@@ -319,7 +358,7 @@ public sealed class ProjectCacheService
     }
 
     /// <summary>
-    /// Ispeziona i file sorgente VB6 (.cls, .bas, .frm, .ctl) nella directory specificata per calcolare
+    /// Ispeziona i file sorgente VB6 e C# (.cls, .bas, .frm, .ctl, .cs, .csproj, .sln, .vbp, .vbg, .vb) nella directory specificata per calcolare
     /// il numero totale di file e l'ultimo timestamp di modifica UTC, utile a verificare lo stato di staleness della cache.
     /// </summary>
     private static (int FileCount, DateTime LatestWriteUtc) GetFolderSourceStats(string folderPath)
@@ -328,7 +367,13 @@ public sealed class ProjectCacheService
             .Where(f => f.EndsWith(".cls", StringComparison.OrdinalIgnoreCase) ||
                         f.EndsWith(".bas", StringComparison.OrdinalIgnoreCase) ||
                         f.EndsWith(".frm", StringComparison.OrdinalIgnoreCase) ||
-                        f.EndsWith(".ctl", StringComparison.OrdinalIgnoreCase))
+                        f.EndsWith(".ctl", StringComparison.OrdinalIgnoreCase) ||
+                        f.EndsWith(".vbp", StringComparison.OrdinalIgnoreCase) ||
+                        f.EndsWith(".vbg", StringComparison.OrdinalIgnoreCase) ||
+                        f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
+                        f.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) ||
+                        f.EndsWith(".sln", StringComparison.OrdinalIgnoreCase) ||
+                        f.EndsWith(".vb", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         var maxTime = DateTime.MinValue;

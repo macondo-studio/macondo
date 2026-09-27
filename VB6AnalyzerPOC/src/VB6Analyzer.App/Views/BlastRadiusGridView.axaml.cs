@@ -147,6 +147,10 @@ public partial class BlastRadiusGridView : UserControl
         if (routineNodes.Count == 0)
         {
             Clear();
+            if (!string.IsNullOrEmpty(_currentFolderPath) && _currentGraph != null)
+            {
+                _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _currentGraph, Array.Empty<BlastRadiusGridRow>(), _hasUserMovedNodes);
+            }
             return;
         }
 

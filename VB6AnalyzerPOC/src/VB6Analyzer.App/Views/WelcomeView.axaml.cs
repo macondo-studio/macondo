@@ -48,16 +48,46 @@ public partial class WelcomeView : UserControl
     /// <summary>
     /// Aggiorna i contenuti dinamici della schermata di benvenuto (card di progetto in sospeso e lista recenti con badge cache).
     /// </summary>
-    /// <param name="pendingFolder">Percorso opzionale della cartella in sospeso da mostrare nella card.</param>
+    /// <param name="pendingFolder">Percorso opzionale (file o cartella) da mostrare nella card del progetto rilevato.</param>
     public void Refresh(string? pendingFolder = null)
     {
         var localizationService = LocalizationService.Instance;
         var settings = SettingsService.Instance.Settings;
 
-        // 1. Gestione card progetto recente in sospeso (senza cache)
-        var targetPending = pendingFolder ?? (!string.IsNullOrEmpty(settings.LastOpenedFolder) && Directory.Exists(settings.LastOpenedFolder) && !ProjectCacheService.Instance.HasCache(settings.LastOpenedFolder) ? settings.LastOpenedFolder : null);
+        // --------------------------------------------------------------------------------------------
+        // 1. Gestione card "Ultimo Progetto Rilevato" in sospeso (progetto senza cache pronta)
+        // --------------------------------------------------------------------------------------------
+        string? targetPending = pendingFolder;
+        if (string.IsNullOrEmpty(targetPending))
+        {
+            // Cerca prioritariamente il primo elemento della cronologia RecentProjects
+            if (settings.RecentProjects.Count > 0)
+            {
+                var topRecent = settings.RecentProjects[0];
+                var firstPath = topRecent.Paths.FirstOrDefault();
+                if (!string.IsNullOrEmpty(firstPath))
+                {
+                    // Calcola la cartella per verificare se esiste già una cache salvata su disco
+                    var cacheFolder = Directory.Exists(firstPath)
+                        ? firstPath
+                        : (File.Exists(firstPath) ? Path.GetDirectoryName(firstPath) : null);
 
-        if (!string.IsNullOrEmpty(targetPending) && Directory.Exists(targetPending))
+                    if (!string.IsNullOrEmpty(cacheFolder) && Directory.Exists(cacheFolder) && !ProjectCacheService.Instance.HasCache(cacheFolder))
+                    {
+                        targetPending = firstPath;
+                    }
+                }
+            }
+
+            // Se la cronologia non ha fornito un target senza cache, ricade sulla cartella salvata nelle impostazioni
+            if (string.IsNullOrEmpty(targetPending) && !string.IsNullOrEmpty(settings.LastOpenedFolder) && Directory.Exists(settings.LastOpenedFolder) && !ProjectCacheService.Instance.HasCache(settings.LastOpenedFolder))
+            {
+                targetPending = settings.LastOpenedFolder;
+            }
+        }
+
+        // Se è presente un progetto valido (cartella o file) privo di cache, visualizza la card con il pulsante di avvio analisi
+        if (!string.IsNullOrEmpty(targetPending) && (Directory.Exists(targetPending) || File.Exists(targetPending)))
         {
             WelcomePendingCard.IsVisible = true;
             WelcomePendingPathText.Text = targetPending;
@@ -72,12 +102,15 @@ public partial class WelcomeView : UserControl
             WelcomePendingCard.IsVisible = false;
         }
 
-        // 2. Popolamento lista progetti recenti con calcolo dinamico dello stato cache
+        // --------------------------------------------------------------------------------------------
+        // 2. Popolamento lista progetti recenti con calcolo dinamico dello stato cache per ciascun elemento
+        // --------------------------------------------------------------------------------------------
         var recentItems = new List<WelcomeRecentItem>();
         foreach (var recent in settings.RecentProjects)
         {
             var isFolder = recent.Paths.Count == 1 && Directory.Exists(recent.Paths[0]);
-            var isCached = isFolder && ProjectCacheService.Instance.HasCache(recent.Paths[0]);
+            var cacheFolder = isFolder ? recent.Paths[0] : (recent.Paths.Count == 1 && File.Exists(recent.Paths[0]) ? Path.GetDirectoryName(recent.Paths[0]) : null);
+            var isCached = !string.IsNullOrEmpty(cacheFolder) && ProjectCacheService.Instance.HasCache(cacheFolder);
 
             var pathSummary = recent.Paths.Count == 1
                 ? recent.Paths[0]
@@ -138,7 +171,7 @@ public partial class WelcomeView : UserControl
     /// </summary>
     private void OnWelcomePendingAnalyzeClicked(object? sender, RoutedEventArgs e)
     {
-        if (WelcomePendingPathText.Tag is string path && !string.IsNullOrEmpty(path) && Directory.Exists(path))
+        if (WelcomePendingPathText.Tag is string path && !string.IsNullOrEmpty(path) && (Directory.Exists(path) || File.Exists(path)))
         {
             PendingAnalyzeRequested?.Invoke(this, path);
         }

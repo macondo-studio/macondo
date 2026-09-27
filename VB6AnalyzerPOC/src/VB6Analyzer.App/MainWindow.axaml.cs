@@ -512,8 +512,12 @@ public partial class MainWindow : Window
                 s.ShowTypesAndEnums = Graph.ShowTypesAndEnums;
             });
 
-            // Salvataggio sincrono immediato di eventuali modifiche pendenti al layout dei nodi
+            // Salvataggio sincrono immediato di eventuali modifiche pendenti al layout dei nodi e dello snapshot di cache
             FlushPendingLayoutChangesSync();
+            if (!string.IsNullOrEmpty(_currentFolderPath) && _graph != null)
+            {
+                ProjectCacheService.Instance.SaveSnapshot(_currentFolderPath, _graph, BlastRadiusGridControl.AllRows, _hasUserMovedNodes);
+            }
         };
 
         // Servizi Reattivi: Localizzazione & Temi con Auto-Save
@@ -546,36 +550,57 @@ public partial class MainWindow : Window
         ApplyTabsVisibility(settings);
         UpdateLocalizedUI();
 
-        // Caricamento del Progetto: Gestione Intelligente in base a StartupMode
+        // ------------------------------------------------------------------------------------------------
+        // Caricamento del Progetto all'Avvio: Gestione Intelligente in base a StartupMode e Cronologia Recenti
+        // ------------------------------------------------------------------------------------------------
         var startupMode = settings.StartupMode;
-        var lastFolder = settings.LastOpenedFolder;
-        var hasValidLastFolder = !string.IsNullOrEmpty(lastFolder) && Directory.Exists(lastFolder);
 
-        if (startupMode == StartupLoadMode.OnlyIfCached && hasValidLastFolder)
+        // Recupera il target più recente prioritariamente dal primo elemento della cronologia RecentProjects.
+        // Se la cronologia è vuota, ricade sulla proprietà LastOpenedFolder memorizzata nelle impostazioni.
+        string? lastTarget = null;
+        if (settings.RecentProjects.Count > 0)
         {
-            var isCached = ProjectCacheService.Instance.HasCache(lastFolder!);
+            lastTarget = settings.RecentProjects[0].Paths.FirstOrDefault();
+        }
+        if (string.IsNullOrEmpty(lastTarget))
+        {
+            lastTarget = settings.LastOpenedFolder;
+        }
+
+        // Determina la cartella effettiva del progetto (directory diretta oppure directory padre se il target è un file .csproj/.vbp/.sln)
+        var targetFolder = !string.IsNullOrEmpty(lastTarget)
+            ? (Directory.Exists(lastTarget) ? lastTarget : (File.Exists(lastTarget) ? Path.GetDirectoryName(lastTarget) : null))
+            : null;
+        var hasValidTarget = !string.IsNullOrEmpty(lastTarget) && (Directory.Exists(lastTarget) || File.Exists(lastTarget));
+
+        if (startupMode == StartupLoadMode.OnlyIfCached && hasValidTarget && !string.IsNullOrEmpty(targetFolder) && Directory.Exists(targetFolder))
+        {
+            var isCached = ProjectCacheService.Instance.HasCache(targetFolder);
             if (isCached)
             {
-                // Caricamento istantaneo da cache
-                _ = AnalyzeAndLoadFolderAsync(lastFolder!);
+                // Caricamento istantaneo del progetto e del grafo direttamente dallo snapshot in cache
+                var targetPaths = settings.RecentProjects.Count > 0 ? settings.RecentProjects[0].Paths : new List<string> { lastTarget! };
+                _ = AnalyzeAndLoadPathsAsync(targetPaths);
             }
             else
             {
-                // Nessuna cache: mostra la schermata iniziale predisponendo il progetto in sospeso
-                _currentFolderPath = lastFolder;
-                _currentPaths = new List<string> { lastFolder! };
-                UpdateVcsBranchStatus(lastFolder);
-                ShowWelcomeScreen(pendingFolder: lastFolder);
-                StatusText.Text = LocalizationService.Instance.Get("Status_NoCachePending", Path.GetFileName(lastFolder!.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)));
+                // Nessuna cache disponibile: predispone la schermata di benvenuto mostrando la card del progetto in sospeso per l'analisi
+                _currentFolderPath = targetFolder;
+                _currentPaths = new List<string> { lastTarget! };
+                UpdateVcsBranchStatus(targetFolder);
+                ShowWelcomeScreen(pendingFolder: lastTarget);
+                StatusText.Text = LocalizationService.Instance.Get("Status_NoCachePending", Path.GetFileName(lastTarget!.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)));
             }
         }
-        else if (startupMode == StartupLoadMode.AlwaysAnalyze && hasValidLastFolder)
+        else if (startupMode == StartupLoadMode.AlwaysAnalyze && hasValidTarget)
         {
-            _ = AnalyzeAndLoadFolderAsync(lastFolder!);
+            // Modalità sempre analizza: avvia l'analisi completa all'avvio indipendentemente dalla cache
+            var targetPaths = settings.RecentProjects.Count > 0 ? settings.RecentProjects[0].Paths : new List<string> { lastTarget! };
+            _ = AnalyzeAndLoadPathsAsync(targetPaths);
         }
         else
         {
-            // EmptyWorkspace o nessun percorso recente salvato
+            // Modalità EmptyWorkspace o nessun percorso valido precedente: mostra la schermata iniziale di benvenuto
             ShowWelcomeScreen();
             StatusText.Text = LocalizationService.Instance["Status_StartupEmptyReady"];
         }
@@ -931,10 +956,15 @@ public partial class MainWindow : Window
         {
             await Task.Delay(16, token);
 
-            // 1. Tenta il ripristino ultra-rapido dalla cache solo se singola cartella e non forzato
-            if (!forceReanalyze && paths.Count == 1 && Directory.Exists(firstPath))
+            // Risolve la directory effettiva di riferimento sia per singola cartella che per file di progetto (.vbp, .csproj, .sln)
+            var targetFolder = Directory.Exists(firstPath)
+                ? firstPath
+                : (File.Exists(firstPath) ? Path.GetDirectoryName(firstPath) : null);
+
+            // 1. Tenta il ripristino ultra-rapido dalla cache solo se non forzato e se esiste uno snapshot valido su disco
+            if (!forceReanalyze && paths.Count == 1 && !string.IsNullOrEmpty(targetFolder) && Directory.Exists(targetFolder))
             {
-                var cachedSnapshot = await ProjectCacheService.Instance.TryLoadSnapshotAsync(firstPath);
+                var cachedSnapshot = await ProjectCacheService.Instance.TryLoadSnapshotAsync(targetFolder);
 #if !DEBUG
                 token.ThrowIfCancellationRequested();
 #endif
@@ -945,18 +975,17 @@ public partial class MainWindow : Window
                     token.ThrowIfCancellationRequested();
 #endif
                     _graph = cachedGraph;
-                    _currentFolderPath = firstPath;
+                    _currentFolderPath = targetFolder;
                     _currentPaths = paths.ToList();
-                    UpdateVcsBranchStatus(firstPath);
+                    UpdateVcsBranchStatus(targetFolder);
                     ApplyGraphToUI(cachedRows, applyAutomaticLayout: false);
                     _hasUserMovedNodes = cachedSnapshot.HasCustomUserLayout;
 
-                    // Salva l'ultima cartella aperta nelle impostazioni e aggiunge ai recenti
-                    SettingsService.Instance.Update(s => s.LastOpenedFolder = firstPath);
+                    // Registra l'apertura nella cronologia recenti e aggiorna LastOpenedFolder
                     AddToRecentProjects(paths);
 
                     // Rileva eventuali modifiche ai sorgenti intervenute dopo il salvataggio della cache
-                    var isStale = ProjectCacheService.Instance.CheckStaleness(cachedSnapshot, firstPath);
+                    var isStale = ProjectCacheService.Instance.CheckStaleness(cachedSnapshot, targetFolder);
                     if (isStale)
                     {
                         StatusText.Text = localizationService.Get("Status_CacheStale", cachedSnapshot.ProjectName);
@@ -982,34 +1011,40 @@ public partial class MainWindow : Window
 #if !DEBUG
             token.ThrowIfCancellationRequested();
 #endif
-            _currentFolderPath = firstPath;
+            _currentFolderPath = targetFolder ?? firstPath;
             _currentPaths = paths.ToList();
-            if (Directory.Exists(firstPath)) UpdateVcsBranchStatus(firstPath);
-            ApplyGraphToUI(); // Avvierà PopulateBlastRadiusGridAsync che poi salverà la cache aggiornata
+            if (!string.IsNullOrEmpty(targetFolder) && Directory.Exists(targetFolder))
+            {
+                UpdateVcsBranchStatus(targetFolder);
+            }
+            ApplyGraphToUI(); // Avvierà PopulateBlastRadiusGridAsync che poi aggiornerà la cache con i calcoli
 
-            var projectCount = _graph.Nodes.Count(n => n.Kind == SymbolKind.Project);
-            var crossCount = _graph.Edges.Count(e => e.IsCrossProject);
+            // Salva immediatamente lo snapshot iniziale del grafo su cache su thread in background
+            if (!string.IsNullOrEmpty(_currentFolderPath) && _graph != null)
+            {
+                _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _graph, BlastRadiusGridControl.AllRows, _hasUserMovedNodes);
+            }
+
+            var projectCount = _graph?.Nodes.Count(n => n.Kind == SymbolKind.Project) ?? 0;
+            var crossCount = _graph?.Edges.Count(e => e.IsCrossProject) ?? 0;
+            var nodeCount = _graph?.Nodes.Count ?? 0;
             if (projectCount > 1)
             {
-                StatusText.Text = localizationService.Get("Status_WorkspaceAnalyzed", projectCount, _graph.Nodes.Count, crossCount);
+                StatusText.Text = localizationService.Get("Status_WorkspaceAnalyzed", projectCount, nodeCount, crossCount);
             }
             else
             {
-                StatusText.Text = localizationService.Get("Status_Refreshed", titleName, _graph.Nodes.Count);
+                StatusText.Text = localizationService.Get("Status_Refreshed", titleName, nodeCount);
             }
 
-            // Salva l'ultima cartella aperta nelle impostazioni se singola cartella e aggiunge ai recenti
-            if (paths.Count == 1 && Directory.Exists(firstPath))
-            {
-                SettingsService.Instance.Update(s => s.LastOpenedFolder = firstPath);
-            }
+            // Registra l'apertura nella cronologia recenti e aggiorna LastOpenedFolder
             AddToRecentProjects(paths);
 
             // Lampeggio icona sulla barra di Windows e notifica di sistema
             WindowsNotificationService.NotifyAnalysisCompleted(
                 this,
                 localizationService["Notification_AnalysisCompleted_Title"],
-                localizationService.Get("Notification_AnalysisCompleted_Message", titleName, _graph.Nodes.Count));
+                localizationService.Get("Notification_AnalysisCompleted_Message", titleName, nodeCount));
         }
         catch (OperationCanceledException)
         {
@@ -1026,29 +1061,40 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Aggiunge un progetto, file o cartella alla lista dei progetti recenti e aggiorna il menu.
+    /// Aggiunge un progetto, file o cartella alla lista dei progetti recenti, aggiorna la cartella dell'ultimo progetto aperto nelle impostazioni e ricostruisce i menu e la schermata di benvenuto.
     /// </summary>
+    /// <param name="paths">Elenco dei percorsi aperti (cartella, file di progetto o file multipli).</param>
     private void AddToRecentProjects(IReadOnlyList<string> paths)
     {
         if (paths.Count == 0) return;
 
+        var firstPath = paths[0];
+        var isFolder = paths.Count == 1 && Directory.Exists(firstPath);
+        var targetFolder = Directory.Exists(firstPath)
+            ? firstPath
+            : (File.Exists(firstPath) ? Path.GetDirectoryName(firstPath) : null);
+
+        var displayName = paths.Count == 1
+            ? Path.GetFileName(firstPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+            : $"Workspace ({paths.Count} percorsi)";
+
+        if (string.IsNullOrEmpty(displayName))
+        {
+            displayName = firstPath;
+        }
+
         SettingsService.Instance.Update(settings =>
         {
-            var isFolder = paths.Count == 1 && Directory.Exists(paths[0]);
-            var firstPath = paths[0];
-            var displayName = paths.Count == 1
-                ? Path.GetFileName(firstPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
-                : $"Workspace ({paths.Count} percorsi)";
-
-            if (string.IsNullOrEmpty(displayName))
+            // Salva atomicamente l'ultima cartella valida per l'avvio e la card di analisi
+            if (!string.IsNullOrEmpty(targetFolder) && Directory.Exists(targetFolder))
             {
-                displayName = firstPath;
+                settings.LastOpenedFolder = targetFolder;
             }
 
-            // Rimuovi se già presente
+            // Rimuovi se già presente per evitare duplicati
             settings.RecentProjects.RemoveAll(r => r.Paths.SequenceEqual(paths, StringComparer.OrdinalIgnoreCase));
 
-            // Inserisci in cima
+            // Inserisci in cima alla cronologia
             settings.RecentProjects.Insert(0, new RecentProjectItem
             {
                 Paths = paths.ToList(),
@@ -1057,7 +1103,7 @@ public partial class MainWindow : Window
                 LastOpenedUtc = DateTime.UtcNow
             });
 
-            // Tieni solo gli ultimi 10
+            // Tieni solo gli ultimi 10 elementi
             if (settings.RecentProjects.Count > 10)
             {
                 settings.RecentProjects = settings.RecentProjects.Take(10).ToList();
@@ -1137,8 +1183,13 @@ public partial class MainWindow : Window
         }
         clearItem.Click += (_, _) =>
         {
-            SettingsService.Instance.Update(s => s.RecentProjects.Clear());
+            SettingsService.Instance.Update(s =>
+            {
+                s.RecentProjects.Clear();
+                s.LastOpenedFolder = null;
+            });
             UpdateRecentProjectsMenu();
+            WelcomeControl.Refresh();
         };
         RecentProjectsMenuItem.Items.Add(clearItem);
     }
