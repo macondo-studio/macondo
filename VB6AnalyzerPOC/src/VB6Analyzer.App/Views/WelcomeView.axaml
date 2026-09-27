@@ -1,0 +1,165 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="using:Macondo.App.Models"
+             x:Class="Macondo.App.Views.WelcomeView">
+
+    <ScrollViewer x:Name="WelcomePanel" VerticalScrollBarVisibility="Auto">
+        <Border Padding="32,24" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="920">
+            <StackPanel Spacing="24">
+                <!-- Header Benvenuto -->
+                <StackPanel HorizontalAlignment="Center" Spacing="8">
+                    <Image Source="avares://Macondo/Assets/Icons/icon1_star_knot_512.png" Width="54" Height="54" HorizontalAlignment="Center" Margin="0,0,0,4" RenderOptions.BitmapInterpolationMode="HighQuality" />
+                    <TextBlock x:Name="WelcomeHeaderTitle" Text="Macondo - Code Analyzer" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" HorizontalAlignment="Center" />
+                    <TextBlock x:Name="WelcomeHeaderSub" Text="Analisi semantica statica, grafo delle dipendenze e raggio d'impatto per basi di codice complesse (VB6, C#)" FontSize="12" Foreground="{DynamicResource ThemeTextSecondaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="620" TextWrapping="Wrap" />
+                </StackPanel>
+
+                <!-- Card Progetto Recente in Sospeso (Nessuna Cache Trovata) -->
+                <Border x:Name="WelcomePendingCard"
+                        IsVisible="False"
+                        Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                        BorderBrush="{DynamicResource ThemeAccentBrush}"
+                        BorderThickness="1.5"
+                        CornerRadius="8"
+                        Padding="18,14"
+                        BoxShadow="0 4 16 0 #30000000">
+                    <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8" Background="{DynamicResource ThemeAccentBrush}" Opacity="0.15" VerticalAlignment="Center" Margin="0,0,14,0" />
+                        <PathIcon Grid.Column="0" Data="{StaticResource IconFolder}" Width="20" Height="20" Foreground="#D4A72C" VerticalAlignment="Center" Margin="0,0,14,0" />
+                        
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3" Margin="0,0,14,0">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock x:Name="WelcomePendingTitleText" Text="Ultimo Progetto Rilevato" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
+                                <Border CornerRadius="4" Padding="6,1" Background="#3D2A10" BorderBrush="#D4A72C" BorderThickness="1" VerticalAlignment="Center">
+                                    <TextBlock x:Name="WelcomePendingBadgeText" Text="Nessuna Cache" FontSize="10" FontWeight="SemiBold" Foreground="#FFD54F" />
+                                </Border>
+                            </StackPanel>
+                            <TextBlock x:Name="WelcomePendingPathText" Text="C:\Percorso\Progetto" FontSize="11" FontFamily="Consolas, monospace" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock x:Name="WelcomePendingDescText" Text="Nessuna snapshot in cache presente per questo progetto. Avvia l'analisi per esplorare il codice." FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <Button Grid.Column="2" x:Name="WelcomePendingAnalyzeButton"
+                                Padding="16,8"
+                                Background="{DynamicResource ThemeAccentBrush}"
+                                Foreground="#FFFFFF"
+                                FontWeight="Bold"
+                                FontSize="12"
+                                CornerRadius="6"
+                                BorderThickness="0"
+                                VerticalAlignment="Center"
+                                Click="OnWelcomePendingAnalyzeClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <PathIcon Data="{StaticResource IconZap}" Width="12" Height="12" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                <TextBlock x:Name="WelcomePendingAnalyzeButtonText" Text="Analizza Ora" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Due Colonne: Inizia Subito & Progetti Recenti -->
+                <Grid ColumnDefinitions="*,20,*">
+                    <!-- Colonna Sinistra: Inizia Subito -->
+                    <StackPanel Grid.Column="0" Spacing="10">
+                        <TextBlock x:Name="WelcomeQuickStartTitle" Text="Inizia Subito" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource ThemeTextSecondaryBrush}" Margin="2,0,0,2" />
+                        
+                        <!-- Card Apri Progetto .vbp / .vbg -->
+                        <Border Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                BorderThickness="1" CornerRadius="8" Padding="14,12" Cursor="Hand"
+                                PointerPressed="OnWelcomeOpenProjectFilesClicked">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,12,0" VerticalAlignment="Center">
+                                    <PathIcon Data="{StaticResource IconFile}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock x:Name="WelcomeOpenProjectTitle" Text="Apri Progetto o Gruppo..." FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                    <TextBlock x:Name="WelcomeOpenProjectSub" Text="Seleziona file .vbp o file gruppo .vbg" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                                </StackPanel>
+                                <Border Grid.Column="2" Background="{DynamicResource ThemeBackgroundElevatedBrush}" CornerRadius="3" Padding="5,1" VerticalAlignment="Center">
+                                    <TextBlock Text="Ctrl+Shift+O" FontSize="9" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Card Apri Cartella -->
+                        <Border Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                BorderThickness="1" CornerRadius="8" Padding="14,12" Cursor="Hand"
+                                PointerPressed="OnWelcomeOpenFolderClicked">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,12,0" VerticalAlignment="Center">
+                                    <PathIcon Data="{StaticResource IconFolder}" Width="16" Height="16" Foreground="#D4A72C" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock x:Name="WelcomeOpenFolderTitle" Text="Apri Cartella..." FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                    <TextBlock x:Name="WelcomeOpenFolderSub" Text="Scansiona un'intera cartella di codice" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                                </StackPanel>
+                                <Border Grid.Column="2" Background="{DynamicResource ThemeBackgroundElevatedBrush}" CornerRadius="3" Padding="5,1" VerticalAlignment="Center">
+                                    <TextBlock Text="Ctrl+Shift+Alt+O" FontSize="9" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Card Carica Demo Fixture -->
+                        <Border Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                BorderThickness="1" CornerRadius="8" Padding="14,12" Cursor="Hand"
+                                PointerPressed="OnWelcomeLoadFixturesClicked">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,12,0" VerticalAlignment="Center">
+                                    <PathIcon Data="{StaticResource IconBeaker}" Width="16" Height="16" Foreground="#4AE8D0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock x:Name="WelcomeLoadFixturesTitle" Text="Carica Fixture Demo" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                    <TextBlock x:Name="WelcomeLoadFixturesSub" Text="Esplora un set completo di classi e form" FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Colonna Destra: Progetti Recenti -->
+                    <StackPanel Grid.Column="2" Spacing="10">
+                        <TextBlock x:Name="WelcomeRecentTitle" Text="Progetti Recenti" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource ThemeTextSecondaryBrush}" Margin="2,0,0,2" />
+                        
+                        <TextBlock x:Name="WelcomeNoRecentText" Text="Nessun progetto recente disponibile." FontSize="11" Foreground="{DynamicResource ThemeTextMutedBrush}" Margin="4,8" IsVisible="False" />
+
+                        <ScrollViewer MaxHeight="240" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="WelcomeRecentItemsList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="models:WelcomeRecentItem">
+                                        <Border Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                                BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="6"
+                                                Padding="12,10"
+                                                Margin="0,0,0,6"
+                                                Cursor="Hand"
+                                                PointerPressed="OnWelcomeRecentItemPointerPressed">
+                                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                                <PathIcon Grid.Column="0" Data="{StaticResource IconFolder}" Width="14" Height="14" Foreground="#D4A72C" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1" Margin="0,0,8,0">
+                                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{Binding PathSummary}" FontSize="10" FontFamily="Consolas, monospace" Foreground="{DynamicResource ThemeTextMutedBrush}" TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                                <Border Grid.Column="2"
+                                                        Background="{Binding CacheBadgeBackground}"
+                                                        CornerRadius="4"
+                                                        Padding="6,2"
+                                                        VerticalAlignment="Center"
+                                                        ToolTip.Tip="{Binding CacheBadgeTooltip}">
+                                                    <TextBlock Text="{Binding CacheBadgeText}"
+                                                               FontSize="10"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{Binding CacheBadgeForeground}" />
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </ScrollViewer>
+</UserControl>

@@ -1136,7 +1136,7 @@ public partial class MainWindow : Window
         });
 
         UpdateRecentProjectsMenu();
-        UpdateWelcomeView();
+        WelcomeControl.Refresh();
     }
 
     /// <summary>
@@ -1224,7 +1224,7 @@ public partial class MainWindow : Window
         if (_graph is null) return;
 
         // Mostra i Tab centrali di analisi e nasconde la Welcome View
-        WelcomePanel.IsVisible = false;
+        WelcomeControl.IsVisible = false;
         CentralTabControl.IsVisible = true;
 
         if (applyAutomaticLayout)
@@ -5414,7 +5414,7 @@ public partial class MainWindow : Window
         SetExplorerVisibility(true);
         SetInspectorVisibility(true);
         UpdateRecentProjectsMenu();
-        UpdateWelcomeView();
+        WelcomeControl.Refresh();
         StatusText.Text = LocalizationService.Instance["Status_SettingsReset"];
     }
 
@@ -5426,7 +5426,7 @@ public partial class MainWindow : Window
         var count = ProjectCacheService.Instance.ClearAllCache();
         _graph?.Queries?.ClearCache();
         StatusText.Text = LocalizationService.Instance.Get("Status_CacheCleared", count);
-        UpdateWelcomeView();
+        WelcomeControl.Refresh();
     }
 
     #endregion
@@ -5440,128 +5440,51 @@ public partial class MainWindow : Window
     {
         _graph = null;
         CentralTabControl.IsVisible = false;
-        WelcomePanel.IsVisible = true;
+        WelcomeControl.IsVisible = true;
         ExplorerTree.ItemsSource = null;
         ShowEmptyInspector();
         UpdateStatsBar();
-        UpdateWelcomeView(pendingFolder);
+        WelcomeControl.Refresh(pendingFolder);
     }
 
     /// <summary>
-    /// Aggiorna i contenuti dinamici della schermata di benvenuto (card di progetto in sospeso e lista recenti con badge cache).
+    /// Gestisce la richiesta di analisi rapida dalla card di progetto in sospeso della vista di benvenuto.
     /// </summary>
-    private void UpdateWelcomeView(string? pendingFolder = null)
+    private async void OnWelcomePendingAnalyzeRequested(object? sender, string folderPath)
     {
-        var localizationService = LocalizationService.Instance;
-        var settings = SettingsService.Instance.Settings;
-
-        // 1. Gestione card progetto recente in sospeso (senza cache)
-        var targetPending = pendingFolder ?? (_graph == null && !string.IsNullOrEmpty(settings.LastOpenedFolder) && Directory.Exists(settings.LastOpenedFolder) && !ProjectCacheService.Instance.HasCache(settings.LastOpenedFolder) ? settings.LastOpenedFolder : null);
-
-        if (!string.IsNullOrEmpty(targetPending) && Directory.Exists(targetPending))
-        {
-            WelcomePendingCard.IsVisible = true;
-            WelcomePendingPathText.Text = targetPending;
-            WelcomePendingPathText.Tag = targetPending;
-            WelcomePendingTitleText.Text = localizationService.Get("Welcome_PendingTitle");
-            WelcomePendingBadgeText.Text = localizationService.Get("Welcome_CacheNeeded");
-            WelcomePendingDescText.Text = localizationService.Get("Welcome_PendingNoCache");
-            WelcomePendingAnalyzeButtonText.Text = localizationService.Get("Welcome_AnalyzeNow");
-        }
-        else
-        {
-            WelcomePendingCard.IsVisible = false;
-        }
-
-        // 2. Popolamento lista progetti recenti con calcolo dinamico dello stato cache
-        var recentItems = new List<WelcomeRecentItem>();
-        foreach (var recent in settings.RecentProjects)
-        {
-            var isFolder = recent.Paths.Count == 1 && Directory.Exists(recent.Paths[0]);
-            var isCached = isFolder && ProjectCacheService.Instance.HasCache(recent.Paths[0]);
-
-            var pathSummary = recent.Paths.Count == 1
-                ? recent.Paths[0]
-                : string.Join(", ", recent.Paths);
-
-            var badgeText = isCached ? localizationService["Welcome_CacheReady"] : localizationService["Welcome_CacheNeeded"];
-            var badgeBg = isCached ? "#1B4D3E" : "#3D2A10";
-            var badgeFg = isCached ? "#10B981" : "#FFB74D";
-            var badgeTooltip = isCached ? localizationService["Welcome_CacheReadyTooltip"] : localizationService["Welcome_CacheNeededTooltip"];
-
-            recentItems.Add(new WelcomeRecentItem
-            {
-                DisplayName = recent.DisplayName,
-                PathSummary = pathSummary,
-                LastOpenedText = recent.LastOpenedUtc.ToLocalTime().ToString("g"),
-                Paths = recent.Paths,
-                IsFolder = isFolder,
-                IsCached = isCached,
-                CacheBadgeText = badgeText,
-                CacheBadgeBackground = badgeBg,
-                CacheBadgeForeground = badgeFg,
-                CacheBadgeTooltip = badgeTooltip
-            });
-        }
-
-        WelcomeRecentItemsList.ItemsSource = recentItems;
-        WelcomeNoRecentText.IsVisible = recentItems.Count == 0;
+        await AnalyzeAndLoadFolderAsync(folderPath, forceReanalyze: true);
     }
 
     /// <summary>
-    /// Gestisce il click sul pulsante "Analizza ora" nella card di progetto in sospeso della schermata di benvenuto.
+    /// Gestisce la richiesta di apertura file progetto dalla vista di benvenuto.
     /// </summary>
-    /// <param name="sender">Sorgente dell'evento.</param>
-    /// <param name="e">Argomenti dell'evento di click.</param>
-    private async void OnWelcomePendingAnalyzeClicked(object? sender, RoutedEventArgs e)
-    {
-        if (WelcomePendingPathText.Tag is string path && !string.IsNullOrEmpty(path) && Directory.Exists(path))
-        {
-            await AnalyzeAndLoadFolderAsync(path, forceReanalyze: true);
-        }
-    }
-
-    /// <summary>
-    /// Gestisce il click sull'opzione "Apri file progetto" nella schermata di benvenuto per selezionare singoli file VB6 (.vbp, .frm, .bas, .cls).
-    /// </summary>
-    /// <param name="sender">Sorgente del puntatore.</param>
-    /// <param name="e">Argomenti dell'evento di pressione del puntatore.</param>
-    private async void OnWelcomeOpenProjectFilesClicked(object? sender, PointerPressedEventArgs e)
+    private async void OnWelcomeOpenProjectRequested(object? sender, EventArgs e)
     {
         await OpenProjectFilesAsync();
     }
 
     /// <summary>
-    /// Gestisce il click sull'opzione "Apri cartella" nella schermata di benvenuto per selezionare una directory contenente progetti VB6.
+    /// Gestisce la richiesta di apertura cartella dalla vista di benvenuto.
     /// </summary>
-    /// <param name="sender">Sorgente del puntatore.</param>
-    /// <param name="e">Argomenti dell'evento di pressione del puntatore.</param>
-    private async void OnWelcomeOpenFolderClicked(object? sender, PointerPressedEventArgs e)
+    private async void OnWelcomeOpenFolderRequested(object? sender, EventArgs e)
     {
         await OpenFolderAsync();
     }
 
     /// <summary>
-    /// Gestisce il click sull'opzione "Carica fixture di test" nella schermata di benvenuto per avviare il caricamento della fixture demo.
+    /// Gestisce la richiesta di caricamento fixture demo dalla vista di benvenuto.
     /// </summary>
-    /// <param name="sender">Sorgente del puntatore.</param>
-    /// <param name="e">Argomenti dell'evento di pressione del puntatore.</param>
-    private void OnWelcomeLoadFixturesClicked(object? sender, PointerPressedEventArgs e)
+    private void OnWelcomeLoadFixturesRequested(object? sender, EventArgs e)
     {
         LoadDefaultFixtures();
     }
 
     /// <summary>
-    /// Gestisce il click su un elemento della lista dei progetti recenti nella schermata di benvenuto, avviandone l'analisi e il caricamento.
+    /// Gestisce la selezione di un elemento recente dalla vista di benvenuto.
     /// </summary>
-    /// <param name="sender">Controllo associato all'elemento cliccato contenente il <see cref="WelcomeRecentItem"/> nel DataContext.</param>
-    /// <param name="e">Argomenti dell'evento di pressione del puntatore.</param>
-    private async void OnWelcomeRecentItemPointerPressed(object? sender, PointerPressedEventArgs e)
+    private async void OnWelcomeRecentItemClicked(object? sender, IReadOnlyList<string> paths)
     {
-        if ((sender as Control)?.DataContext is WelcomeRecentItem item && item.Paths.Count > 0)
-        {
-            await AnalyzeAndLoadPathsAsync(item.Paths);
-        }
+        await AnalyzeAndLoadPathsAsync(paths);
     }
 
     #endregion
@@ -5576,22 +5499,7 @@ public partial class MainWindow : Window
         var localizationService = LocalizationService.Instance;
 
         // Schermata di Benvenuto
-        WelcomeHeaderTitle.Text = localizationService["Welcome_Title"];
-        WelcomeHeaderSub.Text = localizationService["Welcome_Subtitle"];
-        WelcomeQuickStartTitle.Text = localizationService["Welcome_QuickStart"];
-        WelcomeOpenProjectTitle.Text = localizationService["Welcome_OpenProject"];
-        WelcomeOpenProjectSub.Text = localizationService["Welcome_OpenProjectDesc"];
-        WelcomeOpenFolderTitle.Text = localizationService["Welcome_OpenFolder"];
-        WelcomeOpenFolderSub.Text = localizationService["Welcome_OpenFolderDesc"];
-        WelcomeLoadFixturesTitle.Text = localizationService["Welcome_LoadFixtures"];
-        WelcomeLoadFixturesSub.Text = localizationService["Welcome_LoadFixturesDesc"];
-        WelcomePendingTitleText.Text = localizationService["Welcome_PendingTitle"];
-        WelcomePendingBadgeText.Text = localizationService["Welcome_CacheNeeded"];
-        WelcomePendingDescText.Text = localizationService["Welcome_PendingNoCache"];
-        WelcomePendingAnalyzeButtonText.Text = localizationService["Welcome_AnalyzeNow"];
-        WelcomeRecentTitle.Text = localizationService["Welcome_RecentProjects"];
-        WelcomeNoRecentText.Text = localizationService["Welcome_NoRecent"];
-        UpdateWelcomeView();
+        WelcomeControl.UpdateLocalizedUI();
 
         // Menu File
         FileMenu.Header = localizationService["Menu_File"];
