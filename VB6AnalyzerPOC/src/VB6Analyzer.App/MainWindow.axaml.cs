@@ -85,10 +85,6 @@ public partial class MainWindow : Window
         // VCS (Git & SVN) Branch Button
         GitBranchButton.Click += (_, _) => OpenGitBranchPopup();
 
-        // Project Explorer: selezione automatica su clic destro e gestione menu contestuale sui file
-        ExplorerTree.AddHandler(InputElement.PointerPressedEvent, OnExplorerTreePointerPressed, RoutingStrategies.Tunnel);
-        ExplorerTree.AddHandler(Control.ContextRequestedEvent, OnExplorerTreeContextRequested, RoutingStrategies.Tunnel);
-
         // Canvas del Grafo: menu contestuale su clic destro sopra i nodi e tracking movimenti
         Graph.AddHandler(Control.ContextRequestedEvent, OnGraphContextRequested, RoutingStrategies.Tunnel);
         Graph.NodeMoved += (_, _) => OnGraphNodeMoved();
@@ -200,10 +196,6 @@ public partial class MainWindow : Window
         ExportMarkdownButton.Click += async (_, _) => await ExportMarkdownAsync();
         ExportJsonButton.Click += async (_, _) => await ExportJsonAsync();
         ImportJsonButton.Click += async (_, _) => await ImportJsonAsync();
-
-        // Inspector AI Context Slice buttons
-        CopyLlmSliceButton.Click += async (_, _) => await CopyLlmSliceToClipboardAsync();
-        SaveLlmSliceButton.Click += async (_, _) => await ExportLlmSliceAsync();
 
         // Pulsante Ricalcola Audit nella Grid Toolbar
         RefreshGridButton.Click += async (_, _) => await PopulateBlastRadiusGridAsync();
@@ -505,13 +497,13 @@ public partial class MainWindow : Window
                 }
                 s.IsExplorerVisible = _isExplorerVisible;
                 s.IsInspectorVisible = _isInspectorVisible;
-                if (_isExplorerVisible && ExplorerBorder.Bounds.Width >= 160)
+                if (_isExplorerVisible && ProjectExplorerControl.Bounds.Width >= 160)
                 {
-                    s.ExplorerWidth = ExplorerBorder.Bounds.Width;
+                    s.ExplorerWidth = ProjectExplorerControl.Bounds.Width;
                 }
-                if (_isInspectorVisible && InspectorBorder.Bounds.Width >= 200)
+                if (_isInspectorVisible && SymbolInspectorControl.Bounds.Width >= 200)
                 {
-                    s.InspectorWidth = InspectorBorder.Bounds.Width;
+                    s.InspectorWidth = SymbolInspectorControl.Bounds.Width;
                 }
                 s.ShowMethods = Graph.ShowMethods;
                 s.ShowProperties = Graph.ShowProperties;
@@ -1248,7 +1240,7 @@ public partial class MainWindow : Window
         ResetGraphView();
         Graph.SelectNode(null);
 
-        ExplorerTree.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds) };
+        ProjectExplorerControl.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds) };
 
         ShowEmptyInspector();
         UpdateProjectsFilterUI();
@@ -2217,7 +2209,7 @@ public partial class MainWindow : Window
     {
         if (_graph is null)
         {
-            ExplorerProjectFilterBar.IsVisible = false;
+            ProjectExplorerControl.UpdateProjectFilterBar(false, "");
             FilterProjectsMenuItem.IsVisible = false;
             FilterProjectsMenuItem.Items.Clear();
             return;
@@ -2226,13 +2218,12 @@ public partial class MainWindow : Window
         var projectNodes = _graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
         if (projectNodes.Count <= 1)
         {
-            ExplorerProjectFilterBar.IsVisible = false;
+            ProjectExplorerControl.UpdateProjectFilterBar(false, "");
             FilterProjectsMenuItem.IsVisible = false;
             FilterProjectsMenuItem.Items.Clear();
             return;
         }
 
-        ExplorerProjectFilterBar.IsVisible = true;
         FilterProjectsMenuItem.IsVisible = true;
 
         // Popola le voci del menu a discesa Visualizza -> Filtra Progetti
@@ -2291,19 +2282,25 @@ public partial class MainWindow : Window
     private void UpdateProjectsBadgeText()
     {
         var (vis, total) = Graph.GetProjectCounts();
-        ExplorerProjectsCountText.Text = LocalizationService.Instance.Get("Explorer_ProjectsVisible", vis, total);
-        ExplorerProjectsSelectAllButton.IsEnabled = (vis < total);
+        ProjectExplorerControl.UpdateProjectFilterBar(total > 1, LocalizationService.Instance.Get("Explorer_ProjectsVisible", vis, total));
     }
 
     /// <summary>
-    /// Gestisce il click sulla casella di controllo del progetto nella vista ad albero del Project Explorer per alternarne la visibilità.
+    /// Gestisce la richiesta di selezione di tutti i progetti inviata dal Project Explorer.
     /// </summary>
-    private void OnExplorerProjectCheckBoxClick(object? sender, RoutedEventArgs e)
+    private void OnExplorerSelectAllProjectsRequested(object? sender, EventArgs e)
     {
-        if (sender is CheckBox cb && cb.DataContext is ExplorerTreeItem item && item.ProjectId.HasValue)
+        OnProjectsSelectAllClicked(sender, new RoutedEventArgs());
+    }
+
+    /// <summary>
+    /// Gestisce la variazione di visibilità di un progetto proveniente dalla casella di controllo nel Project Explorer.
+    /// </summary>
+    private void OnExplorerProjectVisibilityChanged(object? sender, ExplorerTreeItem item)
+    {
+        if (item.ProjectId.HasValue)
         {
-            var isVis = cb.IsChecked == true;
-            Graph.SetProjectVisibility(item.ProjectId.Value, isVis);
+            Graph.SetProjectVisibility(item.ProjectId.Value, item.IsProjectVisible);
         }
     }
 
@@ -2316,7 +2313,7 @@ public partial class MainWindow : Window
     private void OnGraphProjectVisibilityChanged(object? sender, Guid projectId)
     {
         // Sincronizza lo stato dei nodi nell'ExplorerTree
-        if (ExplorerTree.ItemsSource is IEnumerable<ExplorerTreeItem> rootItems)
+        if (ProjectExplorerControl.ItemsSource is IEnumerable<ExplorerTreeItem> rootItems)
         {
             void SyncTreeItemVisibility(ExplorerTreeItem item)
             {
@@ -2384,7 +2381,7 @@ public partial class MainWindow : Window
         if (_graph.Queries.TryGetCachedImpactReport(sym, 10, out var cachedReport) && cachedReport != null)
         {
             Graph.HighlightBlastRadius(cachedReport);
-            UpdateInspectorImpactSection(cachedReport);
+            SymbolInspectorControl.UpdateImpactSection(cachedReport);
             StatusText.Text = localizationService.Get("Status_BlastReportFormat", 
                 node.QualifiedName, 
                 cachedReport.DirectCallers.Count,
@@ -2404,7 +2401,7 @@ public partial class MainWindow : Window
             if (_selectedNode?.Id == node.Id)
             {
                 Graph.HighlightBlastRadius(report);
-                UpdateInspectorImpactSection(report);
+                SymbolInspectorControl.UpdateImpactSection(report);
                 StatusText.Text = localizationService.Get("Status_BlastReportFormat", 
                     node.QualifiedName,
                     report.DirectCallers.Count,
@@ -2556,12 +2553,9 @@ public partial class MainWindow : Window
     /// <summary>
     /// Gestisce la variazione di selezione nella vista ad albero del Project Explorer, selezionando e centrando il nodo corrispondente nel grafo.
     /// </summary>
-    private void OnExplorerSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void OnExplorerSelectionChanged(object? sender, ExplorerTreeItem? item)
     {
-        if (e.AddedItems.Count == 0) return;
-        if (e.AddedItems[0] is not ExplorerTreeItem item) return;
-        if (_graph is null) return;
-
+        if (item is null || _graph is null) return;
         var node = _graph.GetNode(item.NodeId);
         if (node is not null)
             SelectAndFocusGraphNode(node);
@@ -2569,11 +2563,9 @@ public partial class MainWindow : Window
 
     /// <summary>
     /// Gestisce il doppio click su un elemento dell'albero Project Explorer.
-    /// Se l'elemento è un file o simbolo con percorso su disco, apre il file corrispondente con l'editor predefinito di sistema.
     /// </summary>
-    public void OnExplorerDoubleTapped(object? sender, TappedEventArgs e)
+    private void OnExplorerItemDoubleTapped(object? sender, ExplorerTreeItem item)
     {
-        if (ExplorerTree.SelectedItem is not ExplorerTreeItem item) return;
         if (item.IsGroup) return; // double-clicking group expands/collapses tree
 
         if (!string.IsNullOrEmpty(item.FilePath))
@@ -2595,101 +2587,42 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Gestisce il click sul pulsante inline "Apri file" associato a una riga dell'albero del Project Explorer.
+    /// Gestisce la richiesta di apertura del file originale dall'Explorer.
     /// </summary>
-    private void OnExplorerOpenItemButtonClick(object? sender, RoutedEventArgs e)
+    private void OnExplorerOpenFileRequested(object? sender, ExplorerTreeItem item)
     {
-        var item = GetExplorerItemFromSender(sender);
-        if (item != null && !string.IsNullOrEmpty(item.FilePath))
+        if (!item.IsGroup && item.HasFile)
         {
             OpenOriginalFile(item.FilePath, item.LineStart);
         }
     }
 
     /// <summary>
-    /// Gestisce la pressione del puntatore sul TreeView del Project Explorer per selezionare automaticamente l'elemento cliccato con il tasto destro.
+    /// Gestisce la richiesta di apertura della cartella contenitrice dall'Explorer.
     /// </summary>
-    private void OnExplorerTreePointerPressed(object? sender, PointerPressedEventArgs e)
+    private void OnExplorerOpenFolderRequested(object? sender, ExplorerTreeItem item)
     {
-        var point = e.GetCurrentPoint(ExplorerTree);
-        if (point.Properties.IsRightButtonPressed)
-        {
-            var visual = e.Source as Visual;
-            var tvi = visual?.FindAncestorOfType<TreeViewItem>();
-            if (tvi?.DataContext is ExplorerTreeItem item)
-            {
-                ExplorerTree.SelectedItem = item;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gestisce la richiesta di menu contestuale su un elemento dell'albero del Project Explorer (clic destro o tasto Menu).
-    /// Mostra il menu contestuale dedicato sui file solo se l'elemento è un file effettivo.
-    /// </summary>
-    private void OnExplorerTreeContextRequested(object? sender, ContextRequestedEventArgs e)
-    {
-        var visual = e.Source as Visual;
-        var tvi = visual?.FindAncestorOfType<TreeViewItem>();
-        var item = tvi?.DataContext as ExplorerTreeItem ?? ExplorerTree.SelectedItem as ExplorerTreeItem;
-
-        // Se è un gruppo o non ha un file associato, impedisci categoricamente l'apertura del menu
-        if (item == null || item.IsGroup || !item.HasFile)
-        {
-            e.Handled = true;
-            return;
-        }
-
-        // È un file valido: apri il menu contestuale dedicato sui file
-        if (ExplorerBorder.Resources.TryGetResource("ExplorerFileContextMenu", null, out var res) && res is ContextMenu menu)
-        {
-            menu.DataContext = item;
-            menu.PlacementTarget = tvi ?? (Control)e.Source!;
-            menu.Open(tvi ?? (Control)e.Source!);
-            e.Handled = true;
-        }
-    }
-
-    /// <summary>
-    /// Gestisce il comando "Apri file sorgente" dal menu contestuale del Project Explorer.
-    /// </summary>
-    private void OnExplorerContextMenuOpenFile(object? sender, RoutedEventArgs e)
-    {
-        var item = GetExplorerItemFromSender(sender);
-        if (item != null && !item.IsGroup && item.HasFile)
-        {
-            OpenOriginalFile(item.FilePath, item.LineStart);
-        }
-    }
-
-    /// <summary>
-    /// Gestisce il comando "Apri cartella contenitrice" dal menu contestuale del Project Explorer.
-    /// </summary>
-    private void OnExplorerContextMenuOpenFolder(object? sender, RoutedEventArgs e)
-    {
-        var item = GetExplorerItemFromSender(sender);
-        if (item != null && !item.IsGroup && item.HasFile)
+        if (!item.IsGroup && item.HasFile)
         {
             OpenContainingFolder(item.FilePath);
         }
     }
 
     /// <summary>
-    /// Gestisce il comando "Copia percorso file" dal menu contestuale del Project Explorer.
+    /// Gestisce la richiesta di copia percorso file negli appunti dall'Explorer.
     /// </summary>
-    private void OnExplorerContextMenuCopyPath(object? sender, RoutedEventArgs e)
+    private void OnExplorerCopyPathRequested(object? sender, ExplorerTreeItem item)
     {
-        var item = GetExplorerItemFromSender(sender);
-        if (item != null && !item.IsGroup && item.HasFile)
+        if (!item.IsGroup && item.HasFile)
         {
             CopyFilePathToClipboard(item.FilePath);
         }
     }
 
     /// <summary>
-    /// Gestisce il click sul pulsante "Apri file" all'interno della sezione File del Symbol Inspector.
+    /// Gestisce la richiesta di apertura file originale dall'Inspector.
     /// </summary>
-    private void OnInspectorOpenFileClicked(object? sender, RoutedEventArgs e)
+    private void OnInspectorOpenFileRequested(object? sender, EventArgs e)
     {
         var filePath = _selectedNode?.SemanticSymbol?.FilePath;
         var line = _selectedNode?.SemanticSymbol?.LineStart ?? 0;
@@ -2697,62 +2630,31 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Gestisce il click sul pulsante "Apri cartella contenitrice" all'interno della sezione File del Symbol Inspector.
+    /// Gestisce la richiesta di apertura cartella contenitrice dall'Inspector.
     /// </summary>
-    private void OnInspectorOpenFolderClicked(object? sender, RoutedEventArgs e)
+    private void OnInspectorOpenFolderRequested(object? sender, EventArgs e)
     {
         var filePath = _selectedNode?.SemanticSymbol?.FilePath;
         OpenContainingFolder(filePath);
     }
 
     /// <summary>
-    /// Risolve e restituisce l'istanza di <see cref="ExplorerTreeItem"/> associata all'evento o al controllo mittente (<paramref name="sender"/>).
-    /// Ispeziona a cascata varie sorgenti possibili (Button CommandParameter, MenuItem DataContext, ContextMenu PlacementTarget, Control generico)
-    /// con fallback finale sull'elemento attualmente selezionato nell'albero (<see cref="ExplorerTree"/>).
+    /// Gestisce la richiesta di copia del Context Slice negli appunti dall'Inspector.
     /// </summary>
-    /// <param name="sender">L'oggetto sorgente dell'evento (es. MenuItem, Button, ContextMenu).</param>
-    /// <returns>L'istanza di <see cref="ExplorerTreeItem"/> individuata, oppure <c>null</c>.</returns>
-    private ExplorerTreeItem? GetExplorerItemFromSender(object? sender)
+    private async void OnInspectorCopySliceRequested(object? sender, EventArgs e)
     {
-        // 1. Caso Pulsante con CommandParameter esplicito (es. icone inline nella riga dell'albero)
-        if (sender is Button btn && btn.CommandParameter is ExplorerTreeItem itemParam)
-            return itemParam;
-
-        // 2. Caso Voce di Menu Contestuale (MenuItem)
-        if (sender is MenuItem menuItem)
-        {
-            // DataContext diretto del MenuItem
-            if (menuItem.DataContext is ExplorerTreeItem item1)
-                return item1;
-            // DataContext del ContextMenu genitore
-            if (menuItem.Parent is ContextMenu ctx && ctx.DataContext is ExplorerTreeItem itemCtx)
-                return itemCtx;
-            // DataContext del PlacementTarget a cui è agganciato il ContextMenu
-            if (menuItem.Parent is ContextMenu ctx2 && ctx2.PlacementTarget?.DataContext is ExplorerTreeItem itemTarget)
-                return itemTarget;
-            // DataContext del TreeViewItem target del ContextMenu
-            if (menuItem.Parent is ContextMenu ctxTvi && ctxTvi.PlacementTarget is TreeViewItem tvi && tvi.DataContext is ExplorerTreeItem itemTvi)
-                return itemTvi;
-        }
-
-        // 3. Caso ContextMenu diretto
-        if (sender is ContextMenu ctxMenu)
-        {
-            if (ctxMenu.DataContext is ExplorerTreeItem itemCtx)
-                return itemCtx;
-            if (ctxMenu.PlacementTarget?.DataContext is ExplorerTreeItem itemTarget)
-                return itemTarget;
-            if (ctxMenu.PlacementTarget is TreeViewItem tvi2 && tvi2.DataContext is ExplorerTreeItem itemTvi2)
-                return itemTvi2;
-        }
-
-        // 4. Caso Control generico con DataContext tipizzato
-        if (sender is Control ctrl && ctrl.DataContext is ExplorerTreeItem item3)
-            return item3;
-
-        // 5. Fallback finale: elemento attualmente selezionato nell'albero
-        return ExplorerTree.SelectedItem as ExplorerTreeItem;
+        await CopyLlmSliceToClipboardAsync();
     }
+
+    /// <summary>
+    /// Gestisce la richiesta di esportazione del Context Slice in formato Markdown dall'Inspector.
+    /// </summary>
+    private async void OnInspectorSaveSliceRequested(object? sender, EventArgs e)
+    {
+        await ExportLlmSliceAsync();
+    }
+
+    #endregion
 
     #region Menu Contestuale Nodi del Grafo
 
@@ -3014,8 +2916,6 @@ public partial class MainWindow : Window
 
         return filePath;
     }
-
-    #endregion
 
     #region Ricerca Globale & Command Palette
 
@@ -3455,8 +3355,7 @@ public partial class MainWindow : Window
     /// </summary>
     private void ShowEmptyInspector()
     {
-        InspectorEmptyPanel.IsVisible = true;
-        InspectorDetailsPanel.IsVisible = false;
+        SymbolInspectorControl.ShowEmpty();
         UpdateStatusLanguage();
     }
 
@@ -3474,12 +3373,7 @@ public partial class MainWindow : Window
         var ct = _selectionCts.Token;
 
         // 1. Mostra istantaneamente i metadati statici del simbolo
-        InspectorEmptyPanel.IsVisible = false;
-        InspectorDetailsPanel.IsVisible = true;
-
-        InspectorName.Text = node.Name;
-        InspectorQualifiedName.Text = node.QualifiedName;
-        InspectorKind.Text = node.Kind.ToString();
+        SymbolInspectorControl.ShowSymbolMetadata(node);
 
         var sym = node.SemanticSymbol;
 
@@ -3489,73 +3383,12 @@ public partial class MainWindow : Window
             ControlFlow.Graph = ControlFlowBuilder.BuildForSymbol(sym, _graph.SemanticGraph);
         }
 
-        // Visibilità
-        InspectorAccessibility.Text = sym != null ? sym.Accessibility.ToString() : "N/A";
-
-        // Linguaggio
-        var (langBadge, langBg, langFg, langTip) = ExplorerTreeItem.GetLanguageBadgeInfo(node.Language);
-        if (!string.IsNullOrEmpty(langBadge))
-        {
-            InspectorLanguageBadge.IsVisible = true;
-            InspectorLanguage.Text = langBadge;
-            InspectorLanguageBadge.Background = Avalonia.Media.Brush.Parse(langBg ?? "#2563EB");
-            InspectorLanguage.Foreground = Avalonia.Media.Brush.Parse(langFg ?? "#FFFFFF");
-            ToolTip.SetTip(InspectorLanguageBadge, langTip);
-        }
-        else
-        {
-            InspectorLanguageBadge.IsVisible = false;
-        }
-
         UpdateStatusLanguage(node.Language);
-
-        // Tipi
-        if (sym != null && (sym.DeclaredTypeName != null || sym.ReturnType != null))
-        {
-            InspectorTypeSection.IsVisible = true;
-            var declared = sym.DeclaredTypeName ?? sym.ReturnType;
-            InspectorType.Text = sym.ResolvedTypeSymbolId.HasValue || sym.ResolvedReturnTypeSymbolId.HasValue
-                ? $"As {declared} (Risolto)"
-                : $"As {declared}";
-        }
-        else
-        {
-            InspectorTypeSection.IsVisible = false;
-        }
-
-        // Parametri formali
-        if (sym != null && sym.Parameters.Count > 0)
-        {
-            InspectorParamsSection.IsVisible = true;
-            var paramList = sym.Parameters.Select(p =>
-            {
-                var mode = p.IsByVal ? "ByVal" : "ByRef";
-                var opt = p.IsOptional ? "Optional " : "";
-                var type = p.DeclaredTypeName != null ? $" As {p.DeclaredTypeName}" : "";
-                return $"{opt}{mode} {p.Name}{type}";
-            });
-            InspectorParams.Text = string.Join("\n", paramList);
-        }
-        else
-        {
-            InspectorParamsSection.IsVisible = false;
-        }
-
-        // File e coordinate di riga
-        if (sym != null && sym.FilePath != null)
-        {
-            InspectorFileSection.IsVisible = true;
-            InspectorFile.Text = $"{Path.GetFileName(sym.FilePath)} (Righe {sym.LineStart}-{sym.LineEnd})";
-        }
-        else
-        {
-            InspectorFileSection.IsVisible = false;
-        }
 
         // Se non abbiamo simboli o query, svuota i pannelli dinamici
         if (_graph?.Queries is null || sym is null)
         {
-            ClearDynamicInspectorSections();
+            SymbolInspectorControl.ClearDynamicSections();
             return;
         }
 
@@ -3564,23 +3397,13 @@ public partial class MainWindow : Window
         {
             var cachedCallees = _graph.Queries.GetDirectCallees(sym);
             var cachedInstantiations = _graph.Queries.GetInstantiatedClasses(sym);
-            UpdateInspectorImpactDetails(cachedImpact, cachedCallees, cachedInstantiations);
+            SymbolInspectorControl.UpdateImpactDetails(cachedImpact, cachedCallees, cachedInstantiations);
             return;
         }
 
         // 2. Imposta lo stato di caricamento nell'Inspector per Blast Radius e chiamanti
         var localizationService = LocalizationService.Instance;
-        RiskLevelText.Text = localizationService["Inspector_Calculating"];
-        RiskBadge.Background = new SolidColorBrush(Color.Parse("#FF6633"));
-        BlastDirectCallersCount.Text = "...";
-        BlastIndirectCallersCount.Text = "...";
-        BlastMaxDepth.Text = "...";
-        InspectorCallers.Text = localizationService["Inspector_CalculatingCallers"];
-        InspectorCallees.Text = localizationService["Inspector_CalculatingCallees"];
-        BlastFormsSection.IsVisible = false;
-        BlastClassesSection.IsVisible = false;
-        BlastPathsSection.IsVisible = false;
-        InspectorInstantiatesSection.IsVisible = false;
+        SymbolInspectorControl.SetCalculatingState();
 
         var targetId = node.Id;
         bool isCompleted = false;
@@ -3612,7 +3435,7 @@ public partial class MainWindow : Window
                 return;
 
             // 4. Popola l'Inspector con i risultati completi
-            UpdateInspectorImpactDetails(impact, callees, instantiations);
+            SymbolInspectorControl.UpdateImpactDetails(impact, callees, instantiations);
         }
         catch (OperationCanceledException)
         {
@@ -3632,116 +3455,6 @@ public partial class MainWindow : Window
             {
                 HideLoading();
             }
-        }
-    }
-
-    /// <summary>
-    /// Ripristina lo stato predefinito (vuoto) per le sezioni dinamiche dell'Inspector (Chiamanti, Chiamati, Form impattate).
-    /// </summary>
-    private void ClearDynamicInspectorSections()
-    {
-        var localizationService = LocalizationService.Instance;
-        InspectorCallers.Text = localizationService["Inspector_NoItems"];
-        InspectorCallees.Text = localizationService["Inspector_NoItems"];
-        InspectorInstantiatesSection.IsVisible = false;
-        BlastFormsSection.IsVisible = false;
-        BlastClassesSection.IsVisible = false;
-        BlastPathsSection.IsVisible = false;
-    }
-
-    /// <summary>
-    /// Aggiorna le statistiche visive della sezione Blast Radius nell'Inspector (badge di rischio, conteggio chiamanti diretti/indiretti, profondità massima, form e moduli impattati).
-    /// </summary>
-    /// <param name="impact">Il report d'impatto calcolato per il simbolo.</param>
-    private void UpdateInspectorImpactSection(ImpactReport impact)
-    {
-        var localizationService = LocalizationService.Instance;
-
-        // Risk Badge
-        RiskLevelText.Text = localizationService.Get("Risk_Format", localizationService.GetRiskLevel(impact.RiskLevel));
-        RiskBadge.Background = impact.RiskLevel switch
-        {
-            ImpactRiskLevel.Low => new SolidColorBrush(Color.Parse("#2E7D32")),
-            ImpactRiskLevel.Medium => new SolidColorBrush(Color.Parse("#F57C00")),
-            ImpactRiskLevel.High => new SolidColorBrush(Color.Parse("#D32F2F")),
-            ImpactRiskLevel.Critical => new SolidColorBrush(Color.Parse("#880E4F")),
-            _ => new SolidColorBrush(Color.Parse("#454555"))
-        };
-
-        BlastDirectCallersCount.Text = impact.DirectCallers.Count.ToString();
-        BlastIndirectCallersCount.Text = impact.IndirectCallers.Count.ToString();
-        BlastMaxDepth.Text = impact.MaxDependencyDepth.ToString();
-
-        // Form UI impattate
-        if (impact.AffectedForms.Count > 0)
-        {
-            BlastFormsSection.IsVisible = true;
-            BlastFormsList.Text = string.Join(", ", impact.AffectedForms.Select(f => f.Name));
-        }
-        else
-        {
-            BlastFormsSection.IsVisible = false;
-        }
-
-        // Classi e Moduli toccati
-        var touchedContainers = impact.AffectedClasses.Concat(impact.AffectedModules).ToList();
-        if (touchedContainers.Count > 0)
-        {
-            BlastClassesSection.IsVisible = true;
-            BlastClassesList.Text = string.Join(", ", touchedContainers.Select(c => c.Name));
-        }
-        else
-        {
-            BlastClassesSection.IsVisible = false;
-        }
-
-        // Percorsi di esecuzione (call chains)
-        if (impact.AffectedExecutionPaths.Count > 0)
-        {
-            BlastPathsSection.IsVisible = true;
-            var paths = impact.AffectedExecutionPaths.Take(5).Select(p => $"• {p}");
-            BlastPathsList.Text = string.Join("\n", paths) + (impact.AffectedExecutionPaths.Count > 5 ? $"\n... (+ altri {impact.AffectedExecutionPaths.Count - 5})" : "");
-        }
-        else
-        {
-            BlastPathsSection.IsVisible = false;
-        }
-    }
-
-    /// <summary>
-    /// Aggiorna l'intera sezione d'impatto e relazioni nel Symbol Inspector, compresi gli elenchi testuali di chiamanti, chiamati e istanziazioni.
-    /// </summary>
-    /// <param name="impact">Il report d'impatto calcolato.</param>
-    /// <param name="callees">L'elenco dei simboli chiamati direttamente.</param>
-    /// <param name="instantiations">L'elenco delle classi istanziate.</param>
-    private void UpdateInspectorImpactDetails(
-        ImpactReport impact,
-        IReadOnlyList<Symbol> callees,
-        IReadOnlyList<Symbol> instantiations)
-    {
-        UpdateInspectorImpactSection(impact);
-
-        var localizationService = LocalizationService.Instance;
-
-        // Callers diretti standard
-        InspectorCallers.Text = impact.DirectCallers.Count > 0
-            ? string.Join("\n", impact.DirectCallers.Select(c => $"• {c.QualifiedName}"))
-            : localizationService["Inspector_NoCallers"];
-
-        // Callees diretti
-        InspectorCallees.Text = callees.Count > 0
-            ? string.Join("\n", callees.Select(c => $"• {c.QualifiedName}"))
-            : localizationService["Inspector_NoCallees"];
-
-        // Classi istanziate
-        if (instantiations.Count > 0)
-        {
-            InspectorInstantiatesSection.IsVisible = true;
-            InspectorInstantiates.Text = string.Join("\n", instantiations.Select(i => $"• {i.QualifiedName}"));
-        }
-        else
-        {
-            InspectorInstantiatesSection.IsVisible = false;
         }
     }
 
@@ -4263,9 +3976,9 @@ public partial class MainWindow : Window
         if (Color.TryParse(theme.BackgroundSurface, out var bgSurface))
         {
             var surfaceBrush = new SolidColorBrush(bgSurface);
-            ExplorerBorder.Background = surfaceBrush;
+            ProjectExplorerControl.Background = surfaceBrush;
             GridToolbarBorder.Background = surfaceBrush;
-            InspectorBorder.Background = surfaceBrush;
+            SymbolInspectorControl.Background = surfaceBrush;
             BlastRadiusDataGrid.Background = surfaceBrush;
             BlastRadiusDataGrid.RowBackground = surfaceBrush;
         }
@@ -4277,9 +3990,9 @@ public partial class MainWindow : Window
             SearchRowBorder.BorderBrush = borderBrush;
             StatusBarBorder.BorderBrush = borderBrush;
             FloatingHudBorder.BorderBrush = borderBrush;
-            ExplorerBorder.BorderBrush = borderBrush;
+            ProjectExplorerControl.BorderBrush = borderBrush;
             GridToolbarBorder.BorderBrush = borderBrush;
-            InspectorBorder.BorderBrush = borderBrush;
+            SymbolInspectorControl.BorderBrush = borderBrush;
             LeftGridSplitter.Background = borderBrush;
             RightGridSplitter.Background = borderBrush;
         }
@@ -5311,20 +5024,20 @@ public partial class MainWindow : Window
             CentralGrid.ColumnDefinitions[0].MaxWidth = 600;
             CentralGrid.ColumnDefinitions[0].Width = new GridLength(w, GridUnitType.Pixel);
             CentralGrid.ColumnDefinitions[1].Width = new GridLength(4, GridUnitType.Pixel);
-            ExplorerBorder.IsVisible = true;
+            ProjectExplorerControl.IsVisible = true;
             LeftGridSplitter.IsVisible = true;
         }
         else
         {
-            if (ExplorerBorder.Bounds.Width >= 160)
+            if (ProjectExplorerControl.Bounds.Width >= 160)
             {
-                _savedExplorerWidth = ExplorerBorder.Bounds.Width;
+                _savedExplorerWidth = ProjectExplorerControl.Bounds.Width;
             }
             CentralGrid.ColumnDefinitions[0].MinWidth = 0;
             CentralGrid.ColumnDefinitions[0].MaxWidth = 0;
             CentralGrid.ColumnDefinitions[0].Width = new GridLength(0, GridUnitType.Pixel);
             CentralGrid.ColumnDefinitions[1].Width = new GridLength(0, GridUnitType.Pixel);
-            ExplorerBorder.IsVisible = false;
+            ProjectExplorerControl.IsVisible = false;
             LeftGridSplitter.IsVisible = false;
         }
 
@@ -5364,20 +5077,20 @@ public partial class MainWindow : Window
             CentralGrid.ColumnDefinitions[4].MaxWidth = 800;
             CentralGrid.ColumnDefinitions[4].Width = new GridLength(w, GridUnitType.Pixel);
             CentralGrid.ColumnDefinitions[3].Width = new GridLength(4, GridUnitType.Pixel);
-            InspectorBorder.IsVisible = true;
+            SymbolInspectorControl.IsVisible = true;
             RightGridSplitter.IsVisible = true;
         }
         else
         {
-            if (InspectorBorder.Bounds.Width >= 200)
+            if (SymbolInspectorControl.Bounds.Width >= 200)
             {
-                _savedInspectorWidth = InspectorBorder.Bounds.Width;
+                _savedInspectorWidth = SymbolInspectorControl.Bounds.Width;
             }
             CentralGrid.ColumnDefinitions[4].MinWidth = 0;
             CentralGrid.ColumnDefinitions[4].MaxWidth = 0;
             CentralGrid.ColumnDefinitions[4].Width = new GridLength(0, GridUnitType.Pixel);
             CentralGrid.ColumnDefinitions[3].Width = new GridLength(0, GridUnitType.Pixel);
-            InspectorBorder.IsVisible = false;
+            SymbolInspectorControl.IsVisible = false;
             RightGridSplitter.IsVisible = false;
         }
 
@@ -5441,7 +5154,7 @@ public partial class MainWindow : Window
         _graph = null;
         CentralTabControl.IsVisible = false;
         WelcomeControl.IsVisible = true;
-        ExplorerTree.ItemsSource = null;
+        ProjectExplorerControl.ItemsSource = null;
         ShowEmptyInspector();
         UpdateStatsBar();
         WelcomeControl.Refresh(pendingFolder);
@@ -5607,22 +5320,15 @@ public partial class MainWindow : Window
         // Ricerca
         SearchBox.Watermark = localizationService["Search_Watermark"];
 
-        // Explorer & Inspector & Context Menus
-        ExplorerTitleText.Text = localizationService["Explorer_Title"];
-        InspectorTitleText.Text = localizationService["Inspector_Title"];
-        CtxExplorerOpenFile.Header = localizationService["Explorer_OpenOriginalFile"];
-        CtxExplorerOpenFolder.Header = localizationService["Explorer_OpenContainingFolder"];
-        CtxExplorerCopyPath.Header = localizationService["Explorer_CopyFilePath"];
+        // Context Menus & Dynamic Explorer
         CtxNodeExportMarkdown.Header = localizationService["Ctx_Node_ExportMarkdown"];
         CtxNodeExportJson.Header = localizationService["Ctx_Node_ExportJson"];
         CtxNodeBlastRadius.Header = localizationService["Ctx_Node_BlastRadius"];
         CtxNodeShowCallers.Header = localizationService["Ctx_Node_ShowCallers"];
         CtxNodeShowCallees.Header = localizationService["Ctx_Node_ShowCallees"];
-        ToolTip.SetTip(InspectorOpenFileButton, localizationService["Inspector_Tooltip_OpenFile"]);
-        ToolTip.SetTip(InspectorOpenFolderButton, localizationService["Inspector_Tooltip_OpenFolder"]);
         if (_graph is not null)
         {
-            ExplorerTree.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds) };
+            ProjectExplorerControl.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds) };
         }
 
         // Tab Centrali
@@ -5678,10 +5384,6 @@ public partial class MainWindow : Window
         MartinMetrics.InvalidateVisual();
         ArchitecturalFlow.InvalidateVisual();
         CodeCity.InvalidateVisual();
-
-        // Project Explorer Toolbar
-        ExplorerProjectsSelectAllButton.Content = localizationService["HUD_SelectAll"];
-        UpdateProjectsBadgeText();
 
         // Floating HUD
         HudLayoutLabel.Text = localizationService["HUD_LayoutLabel"];
@@ -5769,35 +5471,9 @@ public partial class MainWindow : Window
             BlastRadiusDataGrid.Columns[9].Header = localizationService["Col_Action"];
         }
 
-        // Inspector
-        InspectorTitleText.Text = localizationService["Inspector_Title"];
-        InspectorEmptyTitle.Text = localizationService["Inspector_NoSelection"];
-        InspectorEmptyHint1.Text = localizationService["Inspector_Hint1"];
-        InspectorEmptyHint2.Text = localizationService["Inspector_Hint2"];
-        InspectorEmptyHint3.Text = localizationService["Inspector_Hint3"];
-        InspectorSecSymbol.Text = localizationService["Inspector_Sec_Symbol"];
-        InspectorSecKind.Text = localizationService["Inspector_Sec_Kind"];
-        InspectorSecVisibility.Text = localizationService["Inspector_Sec_Visibility"];
-        InspectorSecLanguage.Text = localizationService["Inspector_Sec_Language"];
-        InspectorSecType.Text = localizationService["Inspector_Sec_Type"];
-        InspectorSecParams.Text = localizationService["Inspector_Sec_Params"];
-        InspectorSecFile.Text = localizationService["Inspector_Sec_File"];
-        InspectorSecAiContext.Text = localizationService["Inspector_Sec_AIContext"];
-        InspectorAiContextDesc.Text = localizationService["Inspector_AiContextDesc"];
-        CopyLlmSliceButtonText.Text = localizationService["Inspector_CopyLlmSlice"];
-        SaveLlmSliceButtonText.Text = localizationService["Inspector_SaveLlmSlice"];
-        ToolTip.SetTip(CopyLlmSliceButton, localizationService["Tooltip_CopyLlmSlice"]);
-        ToolTip.SetTip(SaveLlmSliceButton, localizationService["Tooltip_SaveLlmSlice"]);
-        InspectorSecBlast.Text = localizationService["Inspector_Sec_BlastRadius"];
-        InspectorLabelDirectCallers.Text = localizationService["Inspector_DirectCallersCount"];
-        InspectorLabelIndirectCallers.Text = localizationService["Inspector_IndirectCallersCount"];
-        InspectorLabelMaxDepth.Text = localizationService["Inspector_MaxDepth"];
-        InspectorSecForms.Text = localizationService["Inspector_Sec_Forms"];
-        InspectorSecClasses.Text = localizationService["Inspector_Sec_Classes"];
-        InspectorSecPaths.Text = localizationService["Inspector_Sec_Paths"];
-        InspectorSecCallers.Text = localizationService["Inspector_Sec_WhoCallsMe"];
-        InspectorSecCallees.Text = localizationService["Inspector_Sec_WhatDoICall"];
-        InspectorSecInstantiates.Text = localizationService["Inspector_Sec_Instantiates"];
+        // Sub-views localizations
+        ProjectExplorerControl?.UpdateLocalizedUI();
+        SymbolInspectorControl?.UpdateLocalizedUI();
 
         // Modal Notifica Aggiornamento (se visibile)
         if (UpdateOverlay.IsVisible && _availableUpdate != null)
@@ -5842,7 +5518,7 @@ public partial class MainWindow : Window
             StatusText.Text = localizationService.Get("Status_Selected", _selectedNode.Kind, _selectedNode.QualifiedName);
             if (_selectedNode.SemanticSymbol is { } sym && _graph?.Queries is { } q && q.TryGetCachedImpactReport(sym, 10, out var cachedReport) && cachedReport != null)
             {
-                UpdateInspectorImpactDetails(cachedReport, q.GetDirectCallees(sym), q.GetInstantiatedClasses(sym));
+                SymbolInspectorControl?.UpdateImpactDetails(cachedReport, q.GetDirectCallees(sym), q.GetInstantiatedClasses(sym));
             }
         }
     }

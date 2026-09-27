@@ -1,0 +1,133 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="using:Macondo.App.Models"
+             x:Class="Macondo.App.Views.ProjectExplorerView">
+
+    <Border Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+            BorderThickness="0" Padding="8">
+        <Border.Resources>
+            <ContextMenu x:Key="ExplorerFileContextMenu">
+                <MenuItem x:Name="CtxExplorerOpenFile" Header="Apri file originale" Click="OnExplorerContextMenuOpenFile">
+                    <MenuItem.Icon>
+                        <PathIcon Data="{StaticResource IconFile}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="CtxExplorerOpenFolder" Header="Mostra nella cartella" Click="OnExplorerContextMenuOpenFolder">
+                    <MenuItem.Icon>
+                        <PathIcon Data="{StaticResource IconFolder}" Width="12" Height="12" Foreground="#D4A72C" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem x:Name="CtxExplorerCopyPath" Header="Copia percorso file" Click="OnExplorerContextMenuCopyPath">
+                    <MenuItem.Icon>
+                        <PathIcon Data="{StaticResource IconCopy}" Width="12" Height="12" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </ContextMenu>
+        </Border.Resources>
+        <DockPanel>
+            <!-- Intestazione Explorer con Barra Filtro Progetti Rapida -->
+            <StackPanel DockPanel.Dock="Top" Margin="4,4,4,6" Spacing="4">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <PathIcon Data="{StaticResource IconFolder}" Width="13" Height="13" Foreground="#D4A72C" VerticalAlignment="Center" />
+                        <TextBlock x:Name="ExplorerTitleText" Text="Project Explorer" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
+                    </StackPanel>                        
+                </Grid>
+
+                <!-- Barra Filtro Progetti Rapida (Visibile quando ci sono più progetti nel workspace) -->
+                <Border x:Name="ExplorerProjectFilterBar"
+                        IsVisible="False"
+                        Background="{DynamicResource ThemeBackgroundElevatedBrush}"
+                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="6,3"
+                        Margin="0,2,0,2">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                            <PathIcon Data="{StaticResource IconProject}" Width="11" Height="11" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                            <TextBlock x:Name="ExplorerProjectsCountText" Text="2/3 Progetti visibili" FontSize="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <Button x:Name="ExplorerProjectsSelectAllButton" Grid.Column="1" Content="Tutti" FontSize="10" Padding="6,1" Background="{DynamicResource ThemeBackgroundSurfaceBrush}" Click="OnProjectsSelectAllClicked" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <TreeView x:Name="ExplorerTree" SelectionChanged="OnExplorerSelectionChanged" DoubleTapped="OnExplorerDoubleTapped">
+                <TreeView.ItemTemplate>
+                    <TreeDataTemplate DataType="models:ExplorerTreeItem" ItemsSource="{Binding Children}">
+                        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="0,1" Background="Transparent" ToolTip.Tip="{Binding ToolTipText}">
+                            <!-- CheckBox visibilità solo per i nodi progetto nel workspace multi-progetto -->
+                            <CheckBox Grid.Column="0"
+                                      IsVisible="{Binding IsProjectRoot}"
+                                      IsChecked="{Binding IsProjectVisible, Mode=TwoWay}"
+                                      Margin="0,0,4,0"
+                                      VerticalAlignment="Center"
+                                      ToolTip.Tip="Attiva o disattiva la visualizzazione di questo progetto in tutte le analisi"
+                                      Click="OnExplorerProjectCheckBoxClick"
+                                      CommandParameter="{Binding}" />
+
+                            <!-- Badge Tipologia (PRJ, FRM, MOD, CLS, M, P, F, C, ecc.) -->
+                            <Border Grid.Column="1"
+                                    Background="{Binding BadgeBackground}"
+                                    CornerRadius="3"
+                                    Padding="4,1"
+                                    Margin="0,0,5,0"
+                                    VerticalAlignment="Center">
+                                <TextBlock Text="{Binding KindBadge}"
+                                           FontSize="9"
+                                           FontWeight="Bold"
+                                           Foreground="{Binding BadgeForeground}" />
+                            </Border>
+
+                            <!-- Badge Accessibilità (Pub, Priv, Frnd, Glob) a sinistra del nome -->
+                            <Border Grid.Column="2"
+                                    IsVisible="{Binding HasAccessibility}"
+                                    Background="{Binding AccessibilityBackground}"
+                                    CornerRadius="3"
+                                    Padding="4,1"
+                                    Margin="0,0,6,0"
+                                    VerticalAlignment="Center"
+                                    ToolTip.Tip="{Binding AccessibilityTooltip}">
+                                <TextBlock Text="{Binding AccessibilityText}"
+                                           FontSize="9"
+                                           FontWeight="SemiBold"
+                                           Foreground="{Binding AccessibilityForeground}" />
+                            </Border>
+
+                            <!-- Nome del Simbolo + Badge Linguaggio -->
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding DisplayText}" FontSize="12" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                <Border IsVisible="{Binding HasLanguageBadge}"
+                                        Background="{Binding LanguageBadgeBackground}"
+                                        CornerRadius="3"
+                                        Padding="4,1"
+                                        VerticalAlignment="Center"
+                                        ToolTip.Tip="{Binding LanguageTooltip}">
+                                    <TextBlock Text="{Binding LanguageBadgeText}"
+                                               FontSize="9"
+                                               FontWeight="Bold"
+                                               Foreground="{Binding LanguageBadgeForeground}" />
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Pulsante Apertura File Sorgente -->
+                            <Button Grid.Column="4"
+                                    IsVisible="{Binding HasFile}"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="3,1"
+                                    Margin="4,0,0,0"
+                                    ToolTip.Tip="Apri file originale"
+                                    Click="OnExplorerOpenItemButtonClick"
+                                    CommandParameter="{Binding}">
+                                <PathIcon Data="{StaticResource IconExport}" Width="10" Height="10" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </Button>
+                        </Grid>
+                    </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </DockPanel>
+    </Border>
+</UserControl>
