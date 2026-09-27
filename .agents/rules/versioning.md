@@ -5,14 +5,19 @@ trigger: always_on
 
 # Sincronizzazione Automatica delle Versioni
 
+- **Repository privata (sorgenti app e sito)**: `.` (sito in `site/`)
+- **Repository pubblica (distribuzione sito web)**: `../macondo`
+
 Quando l'utente richiede di incrementare o aggiornare la versione di Macondo (es. "aggiorna la versione a 1.2.0", "bump version", "nuova release"):
 
-1. Utilizzare lo script di automazione `./scripts/bump-version.ps1 -NewVersion "<X.Y.Z>" -NotesIt "<Note>" -NotesEn "<Notes>"` oppure aggiornare contestualmente tutti i 5 target:
-   - `VB6AnalyzerPOC/src/VB6Analyzer.App/VB6Analyzer.App.csproj`
-   - `VB6AnalyzerPOC/src/VB6Analyzer.App/Services/UpdateService.cs`
-   - `../macondo/version.json` (sito web e manifesto)
-   - `../macondo/it.html` (sito web italiano)
-   - `../macondo/index.html` (sito web inglese)
+1. Utilizzare lo script di automazione `./scripts/bump-version.ps1 -NewVersion "<X.Y.Z>" -NotesIt "<Note>" -NotesEn "<Notes>"` oppure:
+   - Aggiornare contestualmente i target nella repository privata:
+     - `VB6AnalyzerPOC/src/VB6Analyzer.App/VB6Analyzer.App.csproj`
+     - `VB6AnalyzerPOC/src/VB6Analyzer.App/Services/UpdateService.cs`
+     - `site/version.json` (sito web e manifesto aggiornamento)
+     - `site/it.html` (sito web italiano)
+     - `site/index.html` (sito web inglese)
+   - Copiare tutti i file della cartella `site/` nella cartella della repository pubblica `../macondo/` (preservando `.git`) per predisporre il successivo commit pubblico dell'utente.
 2. Ricompilare la soluzione con `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln` per verificare l'integrità.
 3. Proporre sempre il testo formattato in Markdown per il campo "Describe this release" su GitHub (senza emoji, pulito e formale).
 

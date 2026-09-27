@@ -33,7 +33,8 @@ $ErrorActionPreference = "Stop"
 
 $workspaceRoot = Split-Path -Parent $PSScriptRoot
 $progettiRoot = Split-Path -Parent $workspaceRoot
-$macondoWebRoot = Join-Path $progettiRoot "macondo"
+$siteRoot = Join-Path $workspaceRoot "site"
+$macondoPublicRoot = Join-Path $progettiRoot "macondo"
 
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "  Macondo Version Bump Tool -> $NewVersion" -ForegroundColor Cyan
@@ -72,10 +73,10 @@ if (Test-Path $updateServicePath) {
     Write-Host "      -> CurrentVersion: ($major, $minor, $patch), CurrentVersionString: `"$NewVersion`"" -ForegroundColor Green
 }
 
-# 3. Aggiornamento macondo/version.json (Sito Web / Manifesto)
-$versionJsonPath = Join-Path $macondoWebRoot "version.json"
+# 3. Aggiornamento site/version.json (Sito Web / Manifesto - Repo Privata)
+$versionJsonPath = Join-Path $siteRoot "version.json"
 if (Test-Path $versionJsonPath) {
-    Write-Host "[3/4] Aggiornamento $versionJsonPath..." -ForegroundColor Yellow
+    Write-Host "[3/5] Aggiornamento $versionJsonPath..." -ForegroundColor Yellow
     $jsonObj = Get-Content $versionJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
     
     $jsonObj.version = $NewVersion
@@ -95,23 +96,34 @@ if (Test-Path $versionJsonPath) {
     Write-Host "      -> version.json impostato a v$NewVersion con timestamp UTC" -ForegroundColor Green
 }
 
-# 4. Aggiornamento macondo/it.html & macondo/index.html
-$itHtmlPath = Join-Path $macondoWebRoot "it.html"
+# 4. Aggiornamento site/it.html & site/index.html (Repo Privata)
+$itHtmlPath = Join-Path $siteRoot "it.html"
 if (Test-Path $itHtmlPath) {
-    Write-Host "[4/4] Aggiornamento $itHtmlPath e index.html..." -ForegroundColor Yellow
+    Write-Host "[4/5] Aggiornamento $itHtmlPath e index.html..." -ForegroundColor Yellow
     $itHtml = Get-Content $itHtmlPath -Raw -Encoding UTF8
     $itHtml = [regex]::Replace($itHtml, '"softwareVersion":\s*"[^"]+"', "`"softwareVersion`": `"$NewVersion`"")
     $itHtml = [regex]::Replace($itHtml, 'Macondo v\d+\.\d+\.\d+ per Windows', "Macondo v$NewVersion per Windows")
     Set-Content $itHtmlPath -Value $itHtml -Encoding UTF8 -NoNewline
 }
 
-$indexHtmlPath = Join-Path $macondoWebRoot "index.html"
+$indexHtmlPath = Join-Path $siteRoot "index.html"
 if (Test-Path $indexHtmlPath) {
     $indexHtml = Get-Content $indexHtmlPath -Raw -Encoding UTF8
     $indexHtml = [regex]::Replace($indexHtml, '"softwareVersion":\s*"[^"]+"', "`"softwareVersion`": `"$NewVersion`"")
     $indexHtml = [regex]::Replace($indexHtml, 'Macondo v\d+\.\d+\.\d+ for Windows', "Macondo v$NewVersion for Windows")
     Set-Content $indexHtmlPath -Value $indexHtml -Encoding UTF8 -NoNewline
-    Write-Host "      -> Pagine del sito web allineate a v$NewVersion" -ForegroundColor Green
+    Write-Host "      -> Pagine del sito web in $siteRoot allineate a v$NewVersion" -ForegroundColor Green
+}
+
+# 5. Sincronizzazione file da site/ alla cartella della repo pubblica macondo
+if (Test-Path $macondoPublicRoot) {
+    Write-Host "[5/5] Copia file del sito da $siteRoot verso $macondoPublicRoot (repo pubblica)..." -ForegroundColor Yellow
+    Get-ChildItem -Path $siteRoot -Exclude ".git" | ForEach-Object {
+        Copy-Item -Path $_.FullName -Destination $macondoPublicRoot -Recurse -Force
+    }
+    Write-Host "      -> File sincronizzati in $macondoPublicRoot (pronti per il commit pubblico)" -ForegroundColor Green
+} else {
+    Write-Host "[5/5] ATTENZIONE: Percorso repo pubblica non trovato: $macondoPublicRoot" -ForegroundColor Magenta
 }
 
 Write-Host "`nTutti i file sono stati aggiornati con successo alla versione $NewVersion!" -ForegroundColor Green

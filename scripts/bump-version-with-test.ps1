@@ -33,7 +33,8 @@ $ErrorActionPreference = "Stop"
 
 $workspaceRoot = Split-Path -Parent $PSScriptRoot
 $progettiRoot = Split-Path -Parent $workspaceRoot
-$macondoWebRoot = Join-Path $progettiRoot "macondo"
+$siteRoot = Join-Path $workspaceRoot "site"
+$macondoPublicRoot = Join-Path $progettiRoot "macondo"
 
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "  Macondo Version Bump Tool -> $NewVersion" -ForegroundColor Cyan
@@ -41,7 +42,7 @@ Write-Host "==========================================================" -Foregro
 
 # 0. Verifica preliminare obbligatoria: esecuzione suite di test automatizzati
 $slnPath = Join-Path $workspaceRoot "VB6AnalyzerPOC\VB6AnalyzerPOC.sln"
-Write-Host "[0/5] Esecuzione suite di test automatizzati preliminare..." -ForegroundColor Yellow
+Write-Host "[0/6] Esecuzione suite di test automatizzati preliminare..." -ForegroundColor Yellow
 $testProcess = Start-Process -FilePath "dotnet" -ArgumentList "test", "`"$slnPath`"", "--nologo", "-v", "minimal" -NoNewWindow -PassThru -Wait
 if ($testProcess.ExitCode -ne 0) {
     Write-Host "`n[BLOCCO RELEASE] Uno o piu test automatizzati sono falliti (ExitCode: $($testProcess.ExitCode))." -ForegroundColor Red
@@ -53,7 +54,7 @@ Write-Host "      -> Tutti i test superati con successo (0 errori)." -Foreground
 # 1. Aggiornamento VB6Analyzer.App.csproj
 $csprojPath = Join-Path $workspaceRoot "VB6AnalyzerPOC\src\VB6Analyzer.App\VB6Analyzer.App.csproj"
 if (Test-Path $csprojPath) {
-    Write-Host "[1/5] Aggiornamento $csprojPath..." -ForegroundColor Yellow
+    Write-Host "[1/6] Aggiornamento $csprojPath..." -ForegroundColor Yellow
     $csprojContent = Get-Content $csprojPath -Raw -Encoding UTF8
     
     $assemblyVer = "$NewVersion.0"
@@ -68,7 +69,7 @@ if (Test-Path $csprojPath) {
 # 2. Aggiornamento UpdateService.cs
 $updateServicePath = Join-Path $workspaceRoot "VB6AnalyzerPOC\src\VB6Analyzer.App\Services\UpdateService.cs"
 if (Test-Path $updateServicePath) {
-    Write-Host "[2/5] Aggiornamento $updateServicePath..." -ForegroundColor Yellow
+    Write-Host "[2/6] Aggiornamento $updateServicePath..." -ForegroundColor Yellow
     $updateContent = Get-Content $updateServicePath -Raw -Encoding UTF8
     
     $parts = $NewVersion.Split('.')
@@ -86,7 +87,7 @@ if (Test-Path $updateServicePath) {
 # 3. Aggiornamento MainWindow.axaml (Fallback placeholder)
 $mainWindowAxamlPath = Join-Path $workspaceRoot "VB6AnalyzerPOC\src\VB6Analyzer.App\MainWindow.axaml"
 if (Test-Path $mainWindowAxamlPath) {
-    Write-Host "[3/5] Aggiornamento $mainWindowAxamlPath..." -ForegroundColor Yellow
+    Write-Host "[3/6] Aggiornamento $mainWindowAxamlPath..." -ForegroundColor Yellow
     $axamlContent = Get-Content $mainWindowAxamlPath -Raw -Encoding UTF8
     
     $axamlContent = [regex]::Replace($axamlContent, 'attuale: \d+\.\d+\.\d+', "attuale: $NewVersion")
@@ -94,10 +95,10 @@ if (Test-Path $mainWindowAxamlPath) {
     Write-Host "      -> Placeholder finestra aggiornato ad attuale: $NewVersion" -ForegroundColor Green
 }
 
-# 4. Aggiornamento macondo/version.json (Sito Web / Manifesto)
-$versionJsonPath = Join-Path $macondoWebRoot "version.json"
+# 4. Aggiornamento site/version.json (Sito Web / Manifesto - Repo Privata)
+$versionJsonPath = Join-Path $siteRoot "version.json"
 if (Test-Path $versionJsonPath) {
-    Write-Host "[4/5] Aggiornamento $versionJsonPath..." -ForegroundColor Yellow
+    Write-Host "[4/6] Aggiornamento $versionJsonPath..." -ForegroundColor Yellow
     $jsonObj = Get-Content $versionJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
     
     $jsonObj.version = $NewVersion
@@ -117,23 +118,34 @@ if (Test-Path $versionJsonPath) {
     Write-Host "      -> version.json impostato a v$NewVersion con timestamp UTC" -ForegroundColor Green
 }
 
-# 5. Aggiornamento macondo/it.html & macondo/index.html
-$itHtmlPath = Join-Path $macondoWebRoot "it.html"
+# 5. Aggiornamento site/it.html & site/index.html (Repo Privata)
+$itHtmlPath = Join-Path $siteRoot "it.html"
 if (Test-Path $itHtmlPath) {
-    Write-Host "[5/5] Aggiornamento $itHtmlPath e index.html..." -ForegroundColor Yellow
+    Write-Host "[5/6] Aggiornamento $itHtmlPath e index.html..." -ForegroundColor Yellow
     $itHtml = Get-Content $itHtmlPath -Raw -Encoding UTF8
     $itHtml = [regex]::Replace($itHtml, '"softwareVersion":\s*"[^"]+"', "`"softwareVersion`": `"$NewVersion`"")
     $itHtml = [regex]::Replace($itHtml, 'Macondo v\d+\.\d+\.\d+ per Windows', "Macondo v$NewVersion per Windows")
     Set-Content $itHtmlPath -Value $itHtml -Encoding UTF8 -NoNewline
 }
 
-$indexHtmlPath = Join-Path $macondoWebRoot "index.html"
+$indexHtmlPath = Join-Path $siteRoot "index.html"
 if (Test-Path $indexHtmlPath) {
     $indexHtml = Get-Content $indexHtmlPath -Raw -Encoding UTF8
     $indexHtml = [regex]::Replace($indexHtml, '"softwareVersion":\s*"[^"]+"', "`"softwareVersion`": `"$NewVersion`"")
     $indexHtml = [regex]::Replace($indexHtml, 'Macondo v\d+\.\d+\.\d+ for Windows', "Macondo v$NewVersion for Windows")
     Set-Content $indexHtmlPath -Value $indexHtml -Encoding UTF8 -NoNewline
-    Write-Host "      -> Pagine del sito web allineate a v$NewVersion" -ForegroundColor Green
+    Write-Host "      -> Pagine del sito web in $siteRoot allineate a v$NewVersion" -ForegroundColor Green
+}
+
+# 6. Sincronizzazione file da site/ alla cartella della repo pubblica macondo
+if (Test-Path $macondoPublicRoot) {
+    Write-Host "[6/6] Copia file del sito da $siteRoot verso $macondoPublicRoot (repo pubblica)..." -ForegroundColor Yellow
+    Get-ChildItem -Path $siteRoot -Exclude ".git" | ForEach-Object {
+        Copy-Item -Path $_.FullName -Destination $macondoPublicRoot -Recurse -Force
+    }
+    Write-Host "      -> File sincronizzati in $macondoPublicRoot (pronti per il commit pubblico)" -ForegroundColor Green
+} else {
+    Write-Host "[6/6] ATTENZIONE: Percorso repo pubblica non trovato: $macondoPublicRoot" -ForegroundColor Magenta
 }
 
 Write-Host "`nTutti i file sono stati aggiornati con successo alla versione $NewVersion!" -ForegroundColor Green
