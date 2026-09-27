@@ -38,7 +38,11 @@ public static class ApiDiffAnalyzer
     {
         var report = new ApiDiffReport();
 
-        // 1. Isola i simboli pubblici di ciascun grafo indicizzandoli per nome qualificato univoco
+        // =========================================================================
+        // PASSO 1: Indicizzazione delle API pubbliche nei due snapshot
+        // Isola i simboli pubblici (Classi, Interfacce, Metodi, Proprietà, Costanti)
+        // di ciascun grafo indicizzandoli per QualifiedName univoco per lookup O(1).
+        // =========================================================================
         var oldPublic = baselineGraph.Symbols
             .Where(s => IsPublicApi(s))
             .ToDictionary(s => s.QualifiedName, StringComparer.OrdinalIgnoreCase);
@@ -47,12 +51,15 @@ public static class ApiDiffAnalyzer
             .Where(s => IsPublicApi(s))
             .ToDictionary(s => s.QualifiedName, StringComparer.OrdinalIgnoreCase);
 
-        // 2. Rileva simboli rimossi dall'API pubblica o con visibilità ridotta (BREAKING CHANGE)
+        // =========================================================================
+        // PASSO 2: Rilevamento rimozioni, declassamenti di visibilità e modifiche di firma
+        // Itera su tutti i simboli pubblici della versione precedente (baseline).
+        // =========================================================================
         foreach (var (qName, oldSym) in oldPublic)
         {
             if (!newPublic.TryGetValue(qName, out var newSym))
             {
-                // Verifica se il simbolo esiste ancora nel grafo attuale ma con accessibilità declassata (es. Private/Internal)
+                // 2a. Verifica se il simbolo esiste ancora nel grafo attuale ma con accessibilità ridotta (es. Public -> Private/Internal)
                 var stillExistsPrivate = currentGraph.Symbols.FirstOrDefault(s => s.QualifiedName.Equals(qName, StringComparison.OrdinalIgnoreCase));
                 if (stillExistsPrivate != null)
                 {
@@ -69,7 +76,7 @@ public static class ApiDiffAnalyzer
                 }
                 else
                 {
-                    // Il simbolo è stato eliminato completamente dal codice sorgente
+                    // 2b. Il simbolo è stato rimosso integralmente dal codice sorgente
                     report.Differences.Add(new ApiDifferenceItem
                     {
                         SymbolQualifiedName = qName,
@@ -83,12 +90,15 @@ public static class ApiDiffAnalyzer
             }
             else
             {
-                // Il simbolo è presente in entrambe le versioni: confronta le firme dei parametri per rilevare modifiche
+                // 2c. Il simbolo è presente in entrambe le versioni: confronta le firme dei parametri per rilevare modifiche
                 CompareSignatures(oldSym, newSym, report);
             }
         }
 
-        // 3. Rileva nuovi simboli pubblici aggiunti nel grafo corrente (MINOR FEATURE retrocompatibile)
+        // =========================================================================
+        // PASSO 3: Rilevamento nuove API pubbliche (Minor Feature retrocompatibile)
+        // Itera sui simboli pubblici correnti assenti nella baseline.
+        // =========================================================================
         foreach (var (qName, newSym) in newPublic)
         {
             if (!oldPublic.ContainsKey(qName))
@@ -105,7 +115,9 @@ public static class ApiDiffAnalyzer
             }
         }
 
-        // 4. Ordina le discrepanze ponendo in cima i Breaking Changes critici seguiti dalle modifiche minori
+        // =========================================================================
+        // PASSO 4: Ordinamento per gravità decrescente (Major Breaking -> Minor -> Patch)
+        // =========================================================================
         report.Differences.Sort((a, b) => b.Impact.CompareTo(a.Impact));
         return report;
     }
@@ -116,6 +128,7 @@ public static class ApiDiffAnalyzer
     /// </summary>
     private static void CompareSignatures(Symbol oldSym, Symbol newSym, ApiDiffReport report)
     {
+        // Limita il confronto alle routine con parametri formali (Metodi o Proprietà)
         if (oldSym.Kind is not (SymbolKind.Method or SymbolKind.Property))
             return;
 
@@ -124,7 +137,7 @@ public static class ApiDiffAnalyzer
 
         if (oldParamCount != newParamCount)
         {
-            // Se sono stati rimossi parametri, oppure aggiunti parametri senza clausola Optional/valore di default, è un breaking change
+            // Se sono stati rimossi parametri, oppure aggiunti nuovi parametri senza clausola Optional/valore di default, è un breaking change
             bool isBreaking = newParamCount < oldParamCount || newSym.Parameters.Skip(oldParamCount).Any(p => !p.IsOptional);
 
             report.Differences.Add(new ApiDifferenceItem
@@ -148,6 +161,7 @@ public static class ApiDiffAnalyzer
     /// </summary>
     private static bool IsPublicApi(Symbol symbol)
     {
+        // Esclude i nodi macro di progetto e namespace
         if (symbol.Kind is SymbolKind.Project or SymbolKind.Namespace)
             return false;
 

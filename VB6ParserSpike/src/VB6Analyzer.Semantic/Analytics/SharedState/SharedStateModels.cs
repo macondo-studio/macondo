@@ -84,13 +84,22 @@ public sealed class SharedStateDataset
 /// </summary>
 public static class SharedStateAnalyzer
 {
+    /// <summary>
+    /// Esegue l'analisi di tutti i campi, variabili globali e stati statici condivisi tra moduli del CodeGraph,
+    /// individuando lettori, scrittori e calcolando il livello di rischio di mutazione concorrente/cross-module.
+    /// </summary>
+    /// <param name="graph">Il <see cref="CodeGraph"/> semantico del progetto.</param>
+    /// <returns>Il dataset <see cref="SharedStateDataset"/> con l'elenco delle variabili condivise e dei relativi accessor.</returns>
     public static SharedStateDataset Analyze(CodeGraph graph)
     {
         var dataset = new SharedStateDataset();
         if (graph.Symbols.Count == 0)
             return dataset;
 
-        // 1. Identifica tutte le variabili / campi a visibilità globale o pubblica (VB6 .bas Public/Global o C# public static)
+        // =========================================================================
+        // PASSO 1: Identificazione di tutte le variabili / campi a visibilità globale o pubblica
+        // (In VB6: variabili Public/Global dichiarate in moduli .bas o classi; in C#: campi statici/pubblici).
+        // =========================================================================
         var globalVars = new List<Symbol>();
 
         foreach (var sym in graph.Symbols)
@@ -98,13 +107,13 @@ public static class SharedStateAnalyzer
             if (sym.Kind != SymbolKind.Field)
                 continue;
 
-            // Se è Public o Global
+            // Filtra solo campi con accessibilità Public o Global
             if (sym.Accessibility is Accessibility.Public or Accessibility.Global)
             {
                 var parentRel = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.Contains && r.TargetId == sym.Id);
                 var parent = parentRel != null ? graph.FindSymbolById(parentRel.SourceId) : null;
 
-                // Modulo standard .bas o Classe/Struttura con stato pubblico
+                // Accetta se appartenente a un modulo standard .bas, classe o struttura
                 if (parent != null && parent.Kind is SymbolKind.Module or SymbolKind.Class or SymbolKind.Struct)
                 {
                     globalVars.Add(sym);
@@ -117,20 +126,24 @@ public static class SharedStateAnalyzer
 
         var globalVarById = globalVars.ToDictionary(v => v.Id);
 
-        // Mappa ogni variabile agli accessi da parte delle routine
+        // Mappa da ID Variabile -> Elenco degli Accessor (routine che la leggono o modificano)
         var accessorsByVar = globalVars.ToDictionary(v => v.Id, _ => new List<SharedVariableAccessor>());
 
-        // 2. Isola le relazioni Reads e Writes o Calls verso la variabile
+        // =========================================================================
+        // PASSO 2: Ispezione delle relazioni Reads e Writes verso le variabili globali
+        // =========================================================================
         foreach (var rel in graph.Relationships)
         {
             if (rel.Kind is not (RelationshipKind.Reads or RelationshipKind.Writes or RelationshipKind.References or RelationshipKind.Calls))
                 continue;
 
+            // Se la destinazione dell'arco è una variabile globale monitorata
             if (globalVarById.TryGetValue(rel.TargetId, out var targetVar))
             {
                 var sourceSym = graph.FindSymbolById(rel.SourceId);
                 if (sourceSym == null) continue;
 
+                // Risale ai container di origine e destinazione per determinare se l'accesso attraversa i confini di modulo (Cross-Module)
                 var parentRel = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.Contains && r.TargetId == sourceSym.Id);
                 var sourceContainer = parentRel != null ? graph.FindSymbolById(parentRel.SourceId) : null;
                 var targetContainerRel = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.Contains && r.TargetId == targetVar.Id);
@@ -159,7 +172,9 @@ public static class SharedStateAnalyzer
             }
         }
 
-        // Se non ci sono relazioni esplicite Reads/Writes, creiamo comunque gli elementi per permetterne l'ispezione
+        // =========================================================================
+        // PASSO 3: Composizione degli elementi del dataset con le informazioni aggregate
+        // =========================================================================
         foreach (var gv in globalVars)
         {
             var parentRel = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.Contains && r.TargetId == gv.Id);
@@ -182,7 +197,9 @@ public static class SharedStateAnalyzer
             });
         }
 
-        // Ordina per rischio mutazione decrescente, poi per numero mutatori
+        // =========================================================================
+        // PASSO 4: Ordinamento per livello di rischio decrescente (Cross-Module Writers multipli in cima)
+        // =========================================================================
         dataset.Items.Sort((a, b) =>
         {
             int r = b.MutationRisk.CompareTo(a.MutationRisk);

@@ -68,6 +68,8 @@ public static class ArchitecturalRulesEngine
 
     /// <summary>
     /// Valuta un insieme di regole architetturali sul grafo del codice e produce il report dettagliato delle violazioni.
+    /// Esegue il controllo su dipendenze vietate (ForbiddenDependency), obbligo di interfacce (MustDependOnInterfaceOnly)
+    /// e isolamento di componenti interni (IsolatedInternalComponent).
     /// </summary>
     /// <param name="graph">Il CodeGraph contenente simboli e relazioni del progetto.</param>
     /// <param name="customRules">Lista opzionale di regole personalizzate (se null, usa le regole standard di default).</param>
@@ -82,7 +84,9 @@ public static class ArchitecturalRulesEngine
 
         var symbolById = graph.Symbols.ToDictionary(s => s.Id);
 
-        // Mappa ogni simbolo membro (metodo, proprietà, campo) al rispettivo contenitore radice (Classe, Form, Modulo)
+        // ---------------------------------------------------------------------
+        // FASE 1: Mappatura globale membro (metodo/proprietà/campo) -> container radice
+        // ---------------------------------------------------------------------
         var memberToContainerMap = new Dictionary<Guid, Symbol>();
         foreach (var sym in graph.Symbols)
         {
@@ -93,7 +97,9 @@ public static class ArchitecturalRulesEngine
             }
         }
 
-        // Valuta ciascuna regola attiva
+        // ---------------------------------------------------------------------
+        // FASE 2: Valutazione per ciascuna regola attiva
+        // ---------------------------------------------------------------------
         foreach (var rule in rules.Where(r => r.IsEnabled))
         {
             switch (rule.Type)
@@ -117,6 +123,7 @@ public static class ArchitecturalRulesEngine
 
     /// <summary>
     /// Valuta violazioni in cui un componente sorgente stabilisce una dipendenza vietata verso un componente target.
+    /// Esempio: Il Domain Layer che invoca o istanzia componenti del DataAccess o della UI.
     /// </summary>
     private static void EvaluateForbiddenDependency(
         CodeGraph graph,
@@ -127,6 +134,7 @@ public static class ArchitecturalRulesEngine
     {
         foreach (var rel in graph.Relationships)
         {
+            // Considera solo le relazioni che costituiscono accoppiamento architetturale
             if (!DependencyKinds.Contains(rel.Kind))
                 continue;
 

@@ -85,13 +85,21 @@ public sealed class CodeCityDataset
 /// </summary>
 public static class CodeCityBuilder
 {
+    /// <summary>
+    /// Costruisce il dataset polimetrico della CodeCity raggruppando i componenti in distretti/isolati urbani
+    /// e calcolando le geometrie 3D (larghezza/profondità su LOC, altezza su Complessità Ciclomatica, colore su rischio).
+    /// </summary>
+    /// <param name="graph">Il CodeGraph contenente simboli e relazioni del workspace.</param>
+    /// <returns>Il dataset <see cref="CodeCityDataset"/> contenente i distretti e gli edifici posizionati.</returns>
     public static CodeCityDataset Build(CodeGraph graph)
     {
         var dataset = new CodeCityDataset();
         if (graph.Symbols.Count == 0)
             return dataset;
 
-        // 1. Identifica i contenitori principali
+        // =========================================================================
+        // PASSO 1: Selezione dei contenitori di primo livello da rappresentare come edifici
+        // =========================================================================
         var containers = graph.Symbols
             .Where(s => s.Kind is SymbolKind.Class or SymbolKind.Module or SymbolKind.Form or SymbolKind.UserControl or SymbolKind.Interface or SymbolKind.Struct)
             .ToList();
@@ -99,12 +107,15 @@ public static class CodeCityBuilder
         if (containers.Count == 0)
             return dataset;
 
-        // Raggruppa i contenitori per estensione file o prefisso (District)
+        // =========================================================================
+        // PASSO 2: Raggruppamento dei componenti in distretti urbani (per cartella o tipologia)
+        // =========================================================================
         var districtGroups = containers
             .GroupBy(c => GetDistrictName(c))
             .OrderByDescending(g => g.Count())
             .ToList();
 
+        // Parametri geometrici per la disposizione spaziale dei distretti sul piano 2D
         double districtSpacing = 40.0;
         double currentDistrictX = 0.0;
         double currentDistrictY = 0.0;
@@ -114,6 +125,9 @@ public static class CodeCityBuilder
 
         int districtCol = 0;
 
+        // =========================================================================
+        // PASSO 3: Costruzione degli edifici (CityBuilding) per ciascun distretto
+        // =========================================================================
         foreach (var group in districtGroups)
         {
             var district = new CityDistrict
@@ -121,14 +135,15 @@ public static class CodeCityBuilder
                 Name = group.Key
             };
 
-            // Costruisci gli edifici del distretto
             var buildings = new List<CityBuilding>();
             foreach (var c in group)
             {
                 var children = graph.GetChildren(c.Id).ToList();
+                // Calcola le linee di codice aggregate dei membri figli
                 var loc = children.Sum(ch => Math.Max(1, ch.LineEnd - ch.LineStart + 1));
                 if (loc <= 0) loc = Math.Max(15, c.LineEnd - c.LineStart + 1);
 
+                // Complessità ciclomatica media e massima dei metodi del componente
                 var cc = children.Count > 0
                     ? children.Average(ch => 1.0 + (graph.Relationships.Count(r => r.SourceId == ch.Id && r.Kind == RelationshipKind.Calls) * 1.5) + (ch.Parameters.Count * 0.8))
                     : 1.0;
@@ -136,13 +151,15 @@ public static class CodeCityBuilder
                     ? children.Max(ch => 1.0 + (graph.Relationships.Count(r => r.SourceId == ch.Id && r.Kind == RelationshipKind.Calls) * 1.5) + (ch.Parameters.Count * 0.8))
                     : 1.0;
 
-                // Dimensioni base proporzionali a LOC: da 20px a 70px
+                // 3a. Dimensioni della base (W x D) proporzionali alla radice quadrata di LOC
+                // Assicura proporzioni realistiche: edifici piccoli ~18px, grandi edifici fino a ~75px
                 double baseSize = Math.Clamp(Math.Sqrt(loc) * 2.2 + 14.0, 18.0, 75.0);
 
-                // Altezza proporzionale alla Complessità Ciclomatica: da 15px a 180px
+                // 3b. Altezza (H) proporzionale alla Complessità Ciclomatica (McCabe)
+                // Grattacieli elevati indicano forte densità di decisioni e complessità di controllo
                 double height = Math.Clamp((cc * 12.0) + (maxCc * 4.0) + 12.0, 14.0, 200.0);
 
-                // Calcolo palette colori in base alla complessità/rischio (Verde -> Giallo -> Arancio -> Rosso -> Magenta)
+                // 3c. Palette colori tematica in base al livello di rischio (facciata frontale, tetto e lato ombreggiato)
                 var (baseCol, roofCol, sideCol) = GetBuildingColors(cc, maxCc);
 
                 buildings.Add(new CityBuilding
@@ -165,20 +182,23 @@ public static class CodeCityBuilder
                 });
             }
 
-            // Layout 2D compatto a griglia per gli edifici all'interno del distretto
+            // =====================================================================
+            // PASSO 4: Disposizione interna a griglia degli edifici nel distretto
+            // =====================================================================
             LayoutDistrictBuildings(district, buildings);
 
-            // Posiziona il distretto nel mondo complessivo
+            // Posiziona il distretto nel piano urbano globale
             district.X = currentDistrictX;
             district.Y = currentDistrictY;
 
-            // Aggiorna le coordinate assolute dei singoli edifici
+            // Ricalcola le coordinate assolute nel mondo per ciascun edificio
             foreach (var b in district.Buildings)
             {
                 b.X += district.X;
                 b.Y += district.Y;
             }
 
+            // Avanza il cursore di griglia per la riga dei distretti
             rowMaxDepth = Math.Max(rowMaxDepth, district.Depth);
             currentDistrictX += district.Width + districtSpacing;
             districtCol++;
@@ -197,11 +217,15 @@ public static class CodeCityBuilder
         return dataset;
     }
 
+    /// <summary>
+    /// Dispone gli edifici all'interno dell'isolato urbano/distretto su una griglia ordinata per dimensione decrescente.
+    /// </summary>
     private static void LayoutDistrictBuildings(CityDistrict district, List<CityBuilding> buildings)
     {
         double padding = 16.0;
         double streetSpacing = 12.0;
 
+        // Calcola il numero di colonne della sotto-griglia del distretto
         int cols = (int)Math.Ceiling(Math.Sqrt(buildings.Count));
         if (cols < 1) cols = 1;
 
@@ -211,6 +235,7 @@ public static class CodeCityBuilder
         int colIndex = 0;
         double maxDistrictWidth = 0;
 
+        // Dispone gli edifici partendo da quelli con maggiore ingombro per compattare l'isolato
         foreach (var b in buildings.OrderByDescending(b => b.Loc))
         {
             b.X = curX;
@@ -222,6 +247,7 @@ public static class CodeCityBuilder
 
             maxDistrictWidth = Math.Max(maxDistrictWidth, curX);
 
+            // A capo alla fine della riga di edifici
             if (colIndex >= cols)
             {
                 colIndex = 0;
@@ -240,14 +266,19 @@ public static class CodeCityBuilder
         district.Buildings.AddRange(buildings);
     }
 
+    /// <summary>
+    /// Restituisce il nome del distretto urbano per un simbolo, basandosi sulla cartella sorgente o sul tipo di modulo.
+    /// </summary>
     private static string GetDistrictName(Symbol s)
     {
+        // 1. Se il percorso file include una directory specifica, usa il nome della cartella come distretto
         if (!string.IsNullOrEmpty(s.FilePath))
         {
             var dir = Path.GetFileName(Path.GetDirectoryName(s.FilePath));
             if (!string.IsNullOrEmpty(dir)) return dir;
         }
 
+        // 2. Altrimenti raggruppa per tipologia semantica di componente
         return s.Kind switch
         {
             SymbolKind.Form => "Forms & UI",
@@ -259,30 +290,34 @@ public static class CodeCityBuilder
         };
     }
 
+    /// <summary>
+    /// Assegna la terna di colori isometrici (facciata frontale, tetto, lato ombreggiato)
+    /// in base al livello di complessità ciclomatica e rischio dell'edificio.
+    /// </summary>
     private static (string BaseColor, string RoofColor, string SideColor) GetBuildingColors(double avgCc, double maxCc)
     {
-        // Scala Complessità:
-        // CC < 3: Bassa (Blu/Verde)
-        // CC 3..7: Moderata (Giallo/Ambra)
-        // CC 7..15: Alta (Arancione)
-        // CC > 15: Critica (Rosso / Magenta)
+        // Rischio Critico (Rosso Intenso): complessità massima >= 20 o media >= 12
         if (maxCc >= 20 || avgCc >= 12)
         {
-            return ("#DC2626", "#EF4444", "#991B1B"); // Rosso Intenso
+            return ("#DC2626", "#EF4444", "#991B1B");
         }
+        // Rischio Alto (Arancione): complessità massima >= 12 o media >= 7
         if (maxCc >= 12 || avgCc >= 7)
         {
-            return ("#EA580C", "#F97316", "#9A3412"); // Arancione
+            return ("#EA580C", "#F97316", "#9A3412");
         }
+        // Rischio Moderato (Ambra / Oro): complessità media >= 3.5
         if (maxCc >= 6 || avgCc >= 3.5)
         {
-            return ("#D97706", "#FBBF24", "#92400E"); // Ambra / Oro
+            return ("#D97706", "#FBBF24", "#92400E");
         }
+        // Bassa Complessità (Smeraldo / Verde)
         if (avgCc >= 2.0)
         {
-            return ("#059669", "#10B981", "#065F46"); // Smeraldo
+            return ("#059669", "#10B981", "#065F46");
         }
 
-        return ("#2563EB", "#60A5FA", "#1E40AF"); // Blu Moderno
+        // Semplice / Stabile (Blu Moderno)
+        return ("#2563EB", "#60A5FA", "#1E40AF");
     }
 }

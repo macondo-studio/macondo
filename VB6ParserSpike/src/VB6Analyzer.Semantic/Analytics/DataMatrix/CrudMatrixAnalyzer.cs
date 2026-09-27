@@ -22,6 +22,7 @@ public static class CrudMatrixAnalyzer
 
     /// <summary>
     /// Esegue l'analisi e genera la matrice CRUD a partire dai simboli e dalle relazioni del CodeGraph.
+    /// Mappa le entità di dominio ai componenti che le manipolano aggregando le operazioni Create, Read, Update, Delete.
     /// </summary>
     /// <param name="graph">Il CodeGraph contenente simboli e relazioni del progetto.</param>
     /// <returns>Il dataset <see cref="CrudMatrixDataset"/> con tutte le celle e i riepiloghi per entità.</returns>
@@ -44,7 +45,10 @@ public static class CrudMatrixAnalyzer
             }
         }
 
-        // 1. Raccoglie le entità dati potenziali (classi di modello, record, struct, Type UDT)
+        // ---------------------------------------------------------------------
+        // FASE 1: Individuazione delle entità dati del dominio
+        // ---------------------------------------------------------------------
+        // Raccoglie strutture formali (Record, Struct, Type UDT) o classi con suffisso convenzionale (Entity, Model, Dto)
         var entityCandidates = graph.Symbols
             .Where(s => s.Kind is SymbolKind.Record or SymbolKind.Struct or SymbolKind.Type ||
                         (s.Kind == SymbolKind.Class && (s.Name.EndsWith("Entity", StringComparison.OrdinalIgnoreCase) ||
@@ -53,7 +57,7 @@ public static class CrudMatrixAnalyzer
             .Select(s => s.Name)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        // Se non ci sono entità formali esplicite nel modello, applica euristica sui nomi di entità enterprise comuni
+        // Euristica enterprise di fallback: se non ci sono tipi formali, cerca nomi di entità tipiche nel software gestionale
         if (entityCandidates.Count == 0)
         {
             foreach (var sym in graph.Symbols)
@@ -74,7 +78,9 @@ public static class CrudMatrixAnalyzer
 
         var routines = graph.Symbols.Where(s => RoutineKinds.Contains(s.Kind)).ToList();
 
-        // 2. Ispeziona ciascuna routine per rilevare le operazioni CRUD effettuate sulle entità
+        // ---------------------------------------------------------------------
+        // FASE 2: Ispezione routine e inferenza delle operazioni CRUD
+        // ---------------------------------------------------------------------
         foreach (var routine in routines)
         {
             memberToContainer.TryGetValue(routine.Id, out var container);
@@ -101,6 +107,9 @@ public static class CrudMatrixAnalyzer
             }
         }
 
+        // ---------------------------------------------------------------------
+        // FASE 3: Ordinamento alfabetico e finalizzazione del dataset
+        // ---------------------------------------------------------------------
         dataset.Entities = entitySummaries.Keys.OrderBy(k => k).ToList();
         dataset.EntitySummaries = entitySummaries.Values.OrderBy(v => v.EntityName).ToList();
 
@@ -118,7 +127,7 @@ public static class CrudMatrixAnalyzer
         CrudOperation ops = CrudOperation.None;
         string? matchedEntity = null;
 
-        // Cerca matching con entità note (sia in forma plurale che singolare)
+        // 1. Cerca matching con le entità note (gestisce sia la forma singolare che plurale)
         foreach (var entity in knownEntities)
         {
             var singular = entity.TrimEnd('s');
@@ -131,7 +140,7 @@ public static class CrudMatrixAnalyzer
             }
         }
 
-        // Inferenza operazioni CRUD dai prefissi e verbi standard
+        // 2. Inferenza operazioni CRUD combinabili (bitmask) dai prefissi e verbi standard
         // CREATE: Create, Insert, Add, SaveNew
         if (name.StartsWith("Create", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Insert", StringComparison.OrdinalIgnoreCase) ||

@@ -29,6 +29,7 @@ public static class MaintainabilityCalculator
 
     /// <summary>
     /// Esegue il calcolo dell'indice di manutenibilità e delle metriche di Halstead su tutti i contenitori del CodeGraph.
+    /// Combina complessità ciclomatica di McCabe, volume di Halstead e linee di codice sorgente (LOC).
     /// </summary>
     /// <param name="graph">Il CodeGraph contenente simboli e relazioni del progetto.</param>
     /// <returns>Il dataset <see cref="MaintainabilityDataset"/> con tutti gli indici calcolati e ordinati per criticità crescente.</returns>
@@ -50,13 +51,19 @@ public static class MaintainabilityCalculator
             int methodCount = children.Count(c => c.Kind == SymbolKind.Method || c.Kind == SymbolKind.Property);
             int fieldCount = children.Count(c => c.Kind == SymbolKind.Field || c.Kind == SymbolKind.Constant);
 
-            // 1. Stima delle chiamate effettuate dai metodi interni del container
+            // -----------------------------------------------------------------
+            // FASE 1: Stima delle chiamate effettuate dai metodi interni del container
+            // -----------------------------------------------------------------
             int callsCount = graph.Relationships.Count(r => r.Kind == RelationshipKind.Calls && (r.SourceId == container.Id || children.Any(c => c.Id == r.SourceId)));
 
-            // 2. Stima della complessità ciclomatica aggregata (McCabe)
+            // -----------------------------------------------------------------
+            // FASE 2: Stima della complessità ciclomatica aggregata (McCabe)
+            // -----------------------------------------------------------------
             int cyclomaticComplexity = Math.Max(1, methodCount + (callsCount / 2));
 
-            // 3. Stima dei parametri di Halstead Software Science:
+            // -----------------------------------------------------------------
+            // FASE 3: Stima dei parametri di Halstead Software Science:
+            // -----------------------------------------------------------------
             // - Operatori distinti (n1) e totali (N1): parole chiave, assegnazioni, chiamate, ramificazioni
             // - Operandi distinti (n2) e totali (N2): identificatori, variabili, costanti, parametri
             int distinctOperators = Math.Max(4, 5 + (methodCount > 0 ? (int)Math.Log2(methodCount + 1) * 2 : 1));
@@ -72,7 +79,11 @@ public static class MaintainabilityCalculator
                 TotalOperands = totalOperands
             };
 
-            // 4. Calcolo del Volume di Halstead e applicazione della formula SEI / Microsoft
+            // -----------------------------------------------------------------
+            // FASE 4: Calcolo del Volume di Halstead e applicazione formula SEI / Microsoft
+            // -----------------------------------------------------------------
+            // MI_raw = 171 - 5.2 * ln(V) - 0.23 * CC - 16.2 * ln(LOC)
+            // MI_norm = Clamp((MI_raw * 100) / 171, 0, 100)
             double volume = halstead.Volume;
             double rawMi = 171.0 - (5.2 * Math.Log(Math.Max(1.0, volume))) - (0.23 * cyclomaticComplexity) - (16.2 * Math.Log(Math.Max(1.0, loc)));
             double normalizedMi = Math.Clamp((rawMi * 100.0) / 171.0, 0.0, 100.0);
@@ -94,7 +105,9 @@ public static class MaintainabilityCalculator
             dataset.Items.Add(item);
         }
 
-        // Ordina mettendo in cima i componenti con il Maintainability Index più basso (più problematici)
+        // ---------------------------------------------------------------------
+        // FASE 5: Ordinamento per Maintainability Index crescente (più problematici in cima)
+        // ---------------------------------------------------------------------
         dataset.Items.Sort((a, b) => a.MaintainabilityIndex.CompareTo(b.MaintainabilityIndex));
         return dataset;
     }

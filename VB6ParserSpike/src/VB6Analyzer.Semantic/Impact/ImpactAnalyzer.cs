@@ -45,18 +45,22 @@ public sealed class ImpactAnalyzer
         cancellationToken.ThrowIfCancellationRequested();
 #endif
 
+        // 1. Se il simbolo è una routine (Metodo, Funzione o Proprietà), calcola il blast radius basato sul Call Graph
         if (target.Kind is SymbolKind.Method or SymbolKind.Property)
         {
             return AnalyzeRoutineImpact(target, maxDepth, cancellationToken);
         }
 
+        // 2. Se il simbolo è un tipo composito o modulo (Classe, Form, Modulo, UserControl, UDT, Enum),
+        //    aggrega l'impatto di tutti i suoi membri e delle istanziazioni / dipendenze di tipo
         if (target.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module
                          or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum)
         {
             return AnalyzeTypeImpact(target, maxDepth, cancellationToken);
         }
 
-        // Calcola il Blast Radius per un campo o costante.
+        // 3. Se il target è un campo, variabile o costante, individua il container contenitore
+        //    e trova tutti i simboli esterni che dipendono direttamente dal tipo del membro
         var container = FindEnclosingContainer(target);
         var memberTypeDependents = GetTypeDependentsForSymbol(target);
 
@@ -79,6 +83,8 @@ public sealed class ImpactAnalyzer
 
     /// <summary>
     /// Calcola il Blast Radius per una singola routine (Sub, Function, Property).
+    /// Attraversa il Call Graph a ritroso tramite BFS per trovare tutti i chiamanti diretti e transitivi,
+    /// risale ai container UI e logici impattati e ricostruisce i cammini completi di esecuzione.
     /// </summary>
     private ImpactReport AnalyzeRoutineImpact(Symbol routine, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
@@ -86,17 +92,19 @@ public sealed class ImpactAnalyzer
         cancellationToken.ThrowIfCancellationRequested();
 #endif
 
+        // 1. Recupera i chiamanti diretti (Depth 1) tramite le query del Call Graph
         var directCallers = _queries.GetDirectCallers(routine).ToList();
         var indirectCallers = new List<ImpactedCaller>();
         var callersByDepth = new Dictionary<int, List<Symbol>>();
 
-        // Inizializza profondità 1
+        // Inizializza il raggruppamento per profondità 1
         if (directCallers.Count > 0)
         {
             callersByDepth[1] = new List<Symbol>(directCallers);
         }
 
-        // BFS all'indietro per calcolare tutti i chiamanti transitivi
+        // 2. Esegue una visita BFS all'indietro per calcolare tutti i chiamanti transitivi (Depth > 1)
+        //    Mantiene un set di ID visitati per prevenire loop in presenza di ricorsione o cicli nel grafo
         var visited = new HashSet<Guid> { routine.Id };
         foreach (var caller in directCallers)
         {
@@ -119,12 +127,15 @@ public sealed class ImpactAnalyzer
 
             var (current, depth) = queue.Dequeue();
 
+            // Interrompe l'espansione del ramo se è stata raggiunta la profondità massima di risalita richiesta
             if (depth >= maxDepth)
                 continue;
 
+            // Interroga i chiamanti del nodo corrente
             var nextCallers = _queries.GetDirectCallers(current);
             foreach (var nextCaller in nextCallers)
             {
+                // Se il chiamante non è ancora stato visitato, lo registra al livello di profondità incrementato
                 if (!visited.Contains(nextCaller.Id))
                 {
                     visited.Add(nextCaller.Id);
@@ -138,6 +149,7 @@ public sealed class ImpactAnalyzer
                     }
                     list.Add(nextCaller);
 
+                    // Registra il chiamante indiretto con il container di appartenenza
                     indirectCallers.Add(new ImpactedCaller
                     {
                         Symbol = nextCaller,
@@ -145,12 +157,13 @@ public sealed class ImpactAnalyzer
                         EnclosingContainer = FindEnclosingContainer(nextCaller)
                     });
 
+                    // Accoda il nodo per continuare l'esplorazione a ritroso nel grafo
                     queue.Enqueue((nextCaller, nextDepth));
                 }
             }
         }
 
-        // Mappatura dei container impattati (Form, Classi, Moduli)
+        // 3. Mappatura e categorizzazione dei container impattati (Form, Classi, Moduli, UserControl)
         var allImpactedRoutines = directCallers.Concat(indirectCallers.Select(ic => ic.Symbol)).ToList();
         var affectedContainers = allImpactedRoutines
             .Select(FindEnclosingContainer)
@@ -159,7 +172,7 @@ public sealed class ImpactAnalyzer
             .DistinctBy(c => c.Id)
             .ToList();
 
-        // Se la routine stessa risiede in un container (Form, Classe, Modulo, UserControl), include il suo container tra i componenti impattati
+        // Se la routine stessa risiede in un container, include anche il suo container nativo tra i componenti impattati
         var routineContainer = FindEnclosingContainer(routine);
         if (routineContainer != null && !affectedContainers.Any(c => c.Id == routineContainer.Id))
         {
@@ -171,7 +184,8 @@ public sealed class ImpactAnalyzer
         var affectedModules = affectedContainers.Where(c => c.Kind == SymbolKind.Module).ToList();
         var affectedUserControls = affectedContainers.Where(c => c.Kind == SymbolKind.UserControl).ToList();
 
-        // Ricostruzione di tutti i cammini di esecuzione dai chiamanti di vertice al target
+        // 4. Ricostruzione di tutti i cammini di esecuzione dai chiamanti radice (Entry Points) fino alla routine target
+        //    Un chiamante è considerato radice se non ha genitori all'interno del sotto-grafo dei chiamanti impattati
         var executionPathsList = new List<CallPath>();
         var callerIds = new HashSet<Guid>(allImpactedRoutines.Select(c => c.Id));
         var rootCallers = allImpactedRoutines
@@ -183,13 +197,15 @@ public sealed class ImpactAnalyzer
 #if !DEBUG
             cancellationToken.ThrowIfCancellationRequested();
 #endif
+            // Esegue DFS per trovare tutti i percorsi aciclici dalla radice alla routine
             var rootPaths = _queries.FindExecutionPaths(root, routine, maxDepth, cancellationToken);
             executionPathsList.AddRange(rootPaths);
         }
 
+        // Deduplica i cammini di esecuzione in base alla loro rappresentazione stringa
         var executionPaths = executionPathsList.DistinctBy(p => p.ToString()).ToList();
 
-        // Dipendenze di tipo e istanziazioni dirette
+        // 5. Verifica dipendenze di tipo e istanziazioni dirette sulla routine
         var instantiators = _queries.GetDirectCallers(routine); // per routine tipicamente vuoto o delegate
         var typeDependents = GetTypeDependentsForSymbol(routine);
 
@@ -212,6 +228,10 @@ public sealed class ImpactAnalyzer
 
     /// <summary>
     /// Calcola il Blast Radius per un intero tipo di dato o modulo (Class, Form, Module, Type, Enum).
+    /// Aggrega tre pilastri di impatto:
+    /// 1. L'impatto di tutti i metodi e proprietà membri dichiarati nel tipo.
+    /// 2. I simboli che istanziano esplicitamente il tipo (relazione INSTANTIATES).
+    /// 3. I simboli che utilizzano il tipo come tipo di variabile, parametro o ritorno (relazione USES_TYPE).
     /// </summary>
     private ImpactReport AnalyzeTypeImpact(Symbol typeSymbol, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
@@ -228,7 +248,9 @@ public sealed class ImpactAnalyzer
 
         var maxDepthFound = 0;
 
-        // 1. Aggrega l'impatto di tutti i metodi/proprietà membri del tipo
+        // ---------------------------------------------------------------------
+        // PILASTRO 1: Aggrega l'impatto di tutti i metodi e proprietà membri del tipo
+        // ---------------------------------------------------------------------
         foreach (var member in members.Where(m => m.Kind is SymbolKind.Method or SymbolKind.Property))
         {
 #if !DEBUG
@@ -237,12 +259,14 @@ public sealed class ImpactAnalyzer
 
             var memberReport = AnalyzeRoutineImpact(member, maxDepth, cancellationToken);
 
+            // Raccoglie i chiamanti diretti del membro evitando duplicazioni
             foreach (var dc in memberReport.DirectCallers)
             {
                 if (directCallersSet.Add(dc.Id))
                     directCallersList.Add(dc);
             }
 
+            // Raccoglie i chiamanti indiretti del membro
             foreach (var ic in memberReport.IndirectCallers)
             {
                 if (!directCallersSet.Contains(ic.Symbol.Id) && indirectCallersList.All(x => x.Symbol.Id != ic.Symbol.Id))
@@ -255,7 +279,9 @@ public sealed class ImpactAnalyzer
             allExecutionPaths.AddRange(memberReport.AffectedExecutionPaths);
         }
 
-        // 2. Classi che istanziano esplicitamente questo tipo (INSTANTIATES)
+        // ---------------------------------------------------------------------
+        // PILASTRO 2: Individua i componenti che istanziano esplicitamente questo tipo (INSTANTIATES)
+        // ---------------------------------------------------------------------
         var instantiators = _graph.Relationships
             .Where(r => r.Kind == RelationshipKind.Instantiates && r.TargetId == typeSymbol.Id)
             .Select(r => _graph.FindSymbolById(r.SourceId))
@@ -264,7 +290,9 @@ public sealed class ImpactAnalyzer
             .DistinctBy(s => s.Id)
             .ToList();
 
-        // 3. Simboli che usano questo tipo come tipo di campo/parametro/ritorno (USES_TYPE)
+        // ---------------------------------------------------------------------
+        // PILASTRO 3: Individua i simboli che usano questo tipo come tipo di campo/parametro/ritorno (USES_TYPE)
+        // ---------------------------------------------------------------------
         var typeDependents = _graph.Relationships
             .Where(r => r.Kind == RelationshipKind.UsesType && r.TargetId == typeSymbol.Id)
             .Select(r => _graph.FindSymbolById(r.SourceId))
@@ -273,7 +301,9 @@ public sealed class ImpactAnalyzer
             .DistinctBy(s => s.Id)
             .ToList();
 
-        // Raggruppa tutti i simboli impattati
+        // ---------------------------------------------------------------------
+        // Aggregazione complessiva e mappatura dei container impattati
+        // ---------------------------------------------------------------------
         var allImpacted = directCallersList
             .Concat(indirectCallersList.Select(i => i.Symbol))
             .Concat(instantiators)
@@ -287,7 +317,7 @@ public sealed class ImpactAnalyzer
             .DistinctBy(c => c.Id)
             .ToList();
 
-        // Raggruppa per profondità
+        // Raggruppa i chiamanti per livello di profondità
         if (directCallersList.Count > 0)
             callersByDepth[1] = directCallersList;
 
@@ -324,16 +354,19 @@ public sealed class ImpactAnalyzer
     // =========================================================================
 
     /// <summary>
-    /// Risale la relazione CONTAINS per individuare il modulo, classe o form contenitore di un simbolo.
+    /// Risale la gerarchia delle relazioni CONTAINS per individuare il modulo, classe, form o user control contenitore di un simbolo.
+    /// Se il simbolo passato è già un container di primo livello, lo restituisce direttamente.
     /// </summary>
     private Symbol? FindEnclosingContainer(Symbol symbol)
     {
+        // Se il simbolo è già un contenitore di primo livello, termina la risalita
         if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module
                         or SymbolKind.UserControl or SymbolKind.Project)
         {
             return symbol;
         }
 
+        // Cerca la relazione genitore CONTAINS (Source CONTAINS Target)
         var parentRel = _graph.Relationships
             .FirstOrDefault(r => r.Kind == RelationshipKind.Contains && r.TargetId == symbol.Id);
 

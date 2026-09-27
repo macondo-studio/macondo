@@ -21,6 +21,7 @@ public static class CodeCloneDetector
 
     /// <summary>
     /// Esegue il rilevamento delle duplicazioni su tutte le routine e componenti del CodeGraph.
+    /// Distingue tra cloni esatti (Tipo 1) e cloni strutturali parametrizzati (Tipo 2).
     /// </summary>
     /// <param name="graph">Il CodeGraph contenente tutti i simboli e le relazioni.</param>
     /// <param name="minLineCount">Numero minimo di righe di codice richieste per considerare una routine candidato clone (default 3).</param>
@@ -35,7 +36,9 @@ public static class CodeCloneDetector
         if (routines.Count < 2)
             return report;
 
-        // Raggruppa i metodi in base alla signature o pattern strutturale
+        // ---------------------------------------------------------------------
+        // FASE 1: Raggruppamento e calcolo delle fingerprint per Tipo 1 e Tipo 2
+        // ---------------------------------------------------------------------
         var exactGroups = new Dictionary<string, List<Symbol>>();
         var structuralGroups = new Dictionary<string, List<Symbol>>();
 
@@ -45,7 +48,7 @@ public static class CodeCloneDetector
             if (lines < minLineCount)
                 continue;
 
-            // Fingerprint per Tipo 1 (Esatto - basato su righe, numero parametri e sequenza ordinata di target ID chiamati)
+            // 1a. Fingerprint per Tipo 1 (Esatto - basato su righe, conteggio parametri e sequenza esatta di chiamate uscenti)
             var outgoingCalls = graph.Relationships
                 .Where(rel => rel.SourceId == r.Id && rel.Kind == RelationshipKind.Calls)
                 .Select(rel => rel.TargetId.ToString())
@@ -61,7 +64,7 @@ public static class CodeCloneDetector
             }
             listExact.Add(r);
 
-            // Fingerprint per Tipo 2 (Strutturale - basato su lunghezza, conteggio parametri e quantità complessiva di chiamate)
+            // 1b. Fingerprint per Tipo 2 (Strutturale - basato su lunghezza, conteggio parametri e quantità di chiamate uscenti)
             var structKey = $"{lines}_{r.Parameters.Count}_{outgoingCalls.Count}";
             if (!structuralGroups.TryGetValue(structKey, out var listStruct))
             {
@@ -73,7 +76,9 @@ public static class CodeCloneDetector
 
         var processedSymbols = new HashSet<Guid>();
 
-        // 1. Identifica cloni di Tipo 1 (Exact)
+        // ---------------------------------------------------------------------
+        // FASE 2: Creazione gruppi di cloni di Tipo 1 (Exact Clones)
+        // ---------------------------------------------------------------------
         foreach (var (key, group) in exactGroups)
         {
             if (group.Count > 1)
@@ -104,7 +109,10 @@ public static class CodeCloneDetector
             }
         }
 
-        // 2. Identifica cloni di Tipo 2 (Parameterized) per i simboli rimanenti non ancora associati a un clone esatto
+        // ---------------------------------------------------------------------
+        // FASE 3: Creazione gruppi di cloni di Tipo 2 (Parameterized / Structural)
+        // ---------------------------------------------------------------------
+        // Include solo i simboli non ancora categorizzati come cloni esatti
         foreach (var (key, group) in structuralGroups)
         {
             var unassigned = group.Where(s => !processedSymbols.Contains(s.Id)).ToList();
@@ -135,7 +143,9 @@ public static class CodeCloneDetector
             }
         }
 
-        // 3. Ordina mettendo in cima i gruppi con il maggior numero di righe duplicate (potenziale risparmio di refactoring)
+        // ---------------------------------------------------------------------
+        // FASE 4: Ordinamento per righe ridondanti decrescenti (maggior risparmio di refactoring)
+        // ---------------------------------------------------------------------
         report.CloneGroups.Sort((a, b) => b.RedundantLines.CompareTo(a.RedundantLines));
         return report;
     }

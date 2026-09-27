@@ -66,8 +66,13 @@ public static class TemporalCouplingAnalyzer
     };
 
     /// <summary>
-    /// Esegue l'analisi di accoppiamento temporale a partire dall'elenco dei changelist di ciascun commit.
+    /// Esegue l'analisi di accoppiamento temporale a partire dall'elenco dei changelist di ciascun commit VCS.
+    /// Calcola la frequenza di co-modifica congiunta e l'indice di similarità di Jaccard per identificare accoppiamenti nascosti (Hidden Coupling).
     /// </summary>
+    /// <param name="commitChangelists">Elenco dei file modificati per ciascun commit estratto dal repository.</param>
+    /// <param name="graph">Il <see cref="CodeGraph"/> opzionale per verificare se tra i file esiste già una dipendenza statica esplicita.</param>
+    /// <param name="gitRoot">Percorso radice del repository Git.</param>
+    /// <returns>Il dataset <see cref="TemporalCouplingDataset"/> con tutte le coppie di file accoppiate temporalmente.</returns>
     public static TemporalCouplingDataset Analyze(List<List<string>> commitChangelists, CodeGraph? graph = null, string? gitRoot = null)
     {
         var dataset = new TemporalCouplingDataset
@@ -83,10 +88,12 @@ public static class TemporalCouplingAnalyzer
         var fileCommitCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var coChangeCounts = new Dictionary<(string, string), int>();
 
-        // 1. Elaborazione changelist dei singoli commit
+        // =========================================================================
+        // PASSO 1: Elaborazione e filtraggio delle changelist dei singoli commit VCS
+        // =========================================================================
         foreach (var changelist in commitChangelists)
         {
-            // Filtra solo file sorgente rilevanti ed evita commit con troppi file (es. merge o refactoring globali massivi)
+            // Filtra solo i file sorgente rilevanti (escludendo build artifacts, file temporanei, configurazioni)
             var relevantFiles = changelist
                 .Select(f => f.Replace('\\', '/').Trim())
                 .Where(f => RelevantExtensions.Contains(Path.GetExtension(f)))
@@ -94,16 +101,18 @@ public static class TemporalCouplingAnalyzer
                 .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
+            // Ignora commit banali con 1 solo file o commit di massa (es. merge o refactoring globali > 35 file)
+            // che genererebbero falso rumore di correlazione temporale
             if (relevantFiles.Count < 2 || relevantFiles.Count > 35)
                 continue;
 
-            // Incrementa conteggi singoli file
+            // Incrementa il conteggio complessivo di commit per ciascun file
             foreach (var file in relevantFiles)
             {
                 fileCommitCounts[file] = fileCommitCounts.GetValueOrDefault(file, 0) + 1;
             }
 
-            // Incrementa conteggi co-occorrenza per ciascuna coppia (A, B)
+            // Incrementa i conteggi di co-occorrenza congiunta per ciascuna coppia distinta (A, B)
             for (int i = 0; i < relevantFiles.Count; i++)
             {
                 for (int j = i + 1; j < relevantFiles.Count; j++)
@@ -114,7 +123,11 @@ public static class TemporalCouplingAnalyzer
             }
         }
 
-        // 2. Mappatura dipendenze statiche se il CodeGraph è disponibile
+        // =========================================================================
+        // PASSO 2: Mappatura delle dipendenze statiche esplicite dal CodeGraph
+        // Identifica se i due file sono già legati da chiamate o istanziazioni note:
+        // se NO ma cambiano sempre insieme, si tratta di un accoppiamento implicito/nascosto critico (Hidden Coupling).
+        // =========================================================================
         var staticDependencyPairs = new HashSet<(string, string)>();
         if (graph != null)
         {
@@ -140,10 +153,13 @@ public static class TemporalCouplingAnalyzer
             }
         }
 
-        // 3. Calcolo Jaccard Index e costruzione delle coppie
+        // =========================================================================
+        // PASSO 3: Calcolo dell'indice di Jaccard e costruzione delle coppie
+        // J(A, B) = CoChange(A, B) / (Commits(A) + Commits(B) - CoChange(A, B))
+        // =========================================================================
         foreach (var (pairKey, coChanges) in coChangeCounts)
         {
-            // Considera solo coppie che cambiano insieme almeno 2 volte
+            // Scarta coppie con meno di 2 co-modifiche storiche
             if (coChanges < 2)
                 continue;
 
@@ -151,10 +167,11 @@ public static class TemporalCouplingAnalyzer
             var commitsA = fileCommitCounts.GetValueOrDefault(fileA, coChanges);
             var commitsB = fileCommitCounts.GetValueOrDefault(fileB, coChanges);
 
+            // Calcolo dell'unione degli insiemi dei commit
             int unionCommits = commitsA + commitsB - coChanges;
             double jaccard = unionCommits > 0 ? (double)coChanges / unionCommits : 0.0;
 
-            // Filtro soglia minima di confidenza o jaccard >= 0.20
+            // Filtro con soglia minima di rilevanza statistica (Jaccard >= 0.20 oppure almeno 3 co-modifiche)
             if (jaccard < 0.20 && (coChanges < 3))
                 continue;
 
@@ -173,7 +190,9 @@ public static class TemporalCouplingAnalyzer
             });
         }
 
-        // Ordina per Jaccard Index decrescente, poi per numero co-modifiche
+        // =========================================================================
+        // PASSO 4: Ordinamento per indice di similarità Jaccard decrescente
+        // =========================================================================
         dataset.Pairs.Sort((a, b) =>
         {
             int j = b.JaccardIndex.CompareTo(a.JaccardIndex);

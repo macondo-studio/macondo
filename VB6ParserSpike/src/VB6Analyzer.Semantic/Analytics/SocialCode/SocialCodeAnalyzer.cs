@@ -17,6 +17,7 @@ public static class SocialCodeAnalyzer
 {
     /// <summary>
     /// Esegue l'analisi sociale del codice incrociando i file del CodeGraph con la cronologia dei commit VCS.
+    /// Calcola metriche di Primary Ownership, Bus Factor (Truck Factor), Entropia di Shannon e Rischio di abbandono (Orphan).
     /// </summary>
     /// <param name="graph">Il CodeGraph contenente i simboli del progetto.</param>
     /// <param name="commitHistory">Elenco dei record di commit estratti dal repository Git/VCS.</param>
@@ -27,12 +28,17 @@ public static class SocialCodeAnalyzer
         var dataset = new SocialCodeDataset();
         var commits = commitHistory.ToList();
 
-        // 1. Raggruppa i commit per percorso file normalizzato (slash unificati, case-insensitive)
+        // ---------------------------------------------------------------------
+        // FASE 1: Raggruppa i commit per percorso file normalizzato
+        // ---------------------------------------------------------------------
+        // Uniforma i separatori di directory (slash) e garantisce confronti case-insensitive
         var commitsByFile = commits
             .GroupBy(c => NormalizePath(c.FilePath), StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
 
-        // 2. Mappa tutti i file sorgente presenti nel CodeGraph
+        // ---------------------------------------------------------------------
+        // FASE 2: Mappatura di tutti i file sorgente presenti nel CodeGraph
+        // ---------------------------------------------------------------------
         var knownFiles = graph.Symbols
             .Where(s => !string.IsNullOrWhiteSpace(s.FilePath))
             .GroupBy(s => NormalizePath(s.FilePath), StringComparer.OrdinalIgnoreCase)
@@ -64,7 +70,9 @@ public static class SocialCodeAnalyzer
                 continue;
             }
 
-            // 3. Calcola le linee totali aggiunte/cancellate per ciascun autore
+            // -----------------------------------------------------------------
+            // FASE 3: Calcolo delle linee totali aggiunte/cancellate per autore
+            // -----------------------------------------------------------------
             var authorGroups = fileCommits
                 .GroupBy(c => string.IsNullOrWhiteSpace(c.Author) ? "Unknown" : c.Author.Trim())
                 .ToList();
@@ -86,14 +94,17 @@ public static class SocialCodeAnalyzer
                 });
             }
 
-            // Ordina gli autori per volume di modifiche decrescente
+            // Ordina gli autori per volume decrescente di righe modificate
             report.AuthorContributions.Sort((a, b) => b.TotalLinesChanged.CompareTo(a.TotalLinesChanged));
 
             var primary = report.AuthorContributions[0];
             report.PrimaryAuthor = primary.Author;
             report.PrimaryOwnership = primary.OwnershipPercentage;
 
-            // 4. Calcolo del Bus Factor: numero minimo di autori necessari per raggiungere o superare l'80% delle modifiche
+            // -----------------------------------------------------------------
+            // FASE 4: Calcolo del Bus Factor (Truck Factor)
+            // -----------------------------------------------------------------
+            // Determina il numero minimo di sviluppatori che cumulativamente detengono almeno l'80% delle modifiche
             int coveredLines = 0;
             int busFactor = 0;
             int targetThreshold = (int)(totalChanges * 0.8);
@@ -107,7 +118,10 @@ public static class SocialCodeAnalyzer
             }
             report.BusFactor = Math.Max(1, busFactor);
 
-            // 5. Calcolo dell'Entropia di Shannon (dispersione della conoscenza sul modulo)
+            // -----------------------------------------------------------------
+            // FASE 5: Calcolo dell'Entropia di Shannon (Knowledge Dispersion)
+            // -----------------------------------------------------------------
+            // H = - ∑ (p_i * log2(p_i)), dove p_i è la probabilità / quota di ownership dell'autore
             double entropy = 0.0;
             foreach (var contrib in report.AuthorContributions)
             {
@@ -119,9 +133,11 @@ public static class SocialCodeAnalyzer
             }
             report.KnowledgeEntropy = Math.Round(entropy, 2);
 
-            // 6. Assegnazione del livello di rischio:
-            // - Orphan: l'autore principale non è più nel team attivo
-            // - High: Bus Factor pari a 1 con ownership >= 80% (conoscenza accentrata in un singolo individuo)
+            // -----------------------------------------------------------------
+            // FASE 6: Valutazione del livello di rischio
+            // -----------------------------------------------------------------
+            // - Orphan: l'autore principale non è più presente nella lista degli autori attivi del team
+            // - High: Bus Factor pari a 1 con ownership >= 80% (single point of failure umano)
             // - Medium: Bus Factor pari a 2
             // - Low: Bus Factor distribuito su 3 o più sviluppatori
             bool isPrimaryInactive = activeAuthors != null && activeAuthors.Count > 0 && !activeAuthors.Contains(primary.Author);
@@ -151,7 +167,7 @@ public static class SocialCodeAnalyzer
             dataset.PrimaryOwnershipCountByAuthor[primary.Author] = count + 1;
         }
 
-        // Ordina mettendo per primi i file orfani o con Bus Factor più critico
+        // Ordina mettendo per primi i file a rischio più elevato (Orphan / High) e minor Bus Factor
         dataset.Files.Sort((a, b) =>
         {
             int cmp = b.Risk.CompareTo(a.Risk);
