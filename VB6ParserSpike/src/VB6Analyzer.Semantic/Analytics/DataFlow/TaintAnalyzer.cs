@@ -4,9 +4,21 @@ namespace Macondo.Semantic.Analytics.DataFlow;
 
 /// <summary>
 /// Analizzatore poliglotto di Taint Tracking (Source-to-Sink) e anomalie di Data Flow (Def-Use).
+/// 
+/// METODOLOGIA:
+/// 1. Taint Analysis (Vulnerabilità e Flusso Dati):
+///    - Rileva Sorgenti non fidate (Taint Sources): Input utente (textbox, parametri URL, request HTTP), file system o rete.
+///    - Rileva Punti Critici di esecuzione (Taint Sinks): Esecuzione query SQL dirette, comandi di sistema (Shell/Process), scritture su file.
+///    - Ricerca Cammini di Propagazione: Esegue una ricerca BFS nel grafo delle invocazioni e degli accessi a campi/variabili (Calls, Reads, Writes)
+///      per individuare catene dirette di propagazione tra sorgenti e sink senza sanificazione/validazione intermedia.
+/// 2. Def-Use Anomalies (Dead Store):
+///    - Individua variabili o campi che vengono valorizzati/scritti (Writes) ma il cui valore non viene mai letto successivamente (Reads).
 /// </summary>
 public static class TaintAnalyzer
 {
+    /// <summary>
+    /// Pattern predefiniti per identificare sorgenti di input non controllate / esterne.
+    /// </summary>
     private static readonly Dictionary<TaintSourceKind, List<TaintPattern>> DefaultSources = new()
     {
         [TaintSourceKind.UserInput] = new()
@@ -23,6 +35,9 @@ public static class TaintAnalyzer
         }
     };
 
+    /// <summary>
+    /// Pattern predefiniti per identificare punti critici di esecuzione (Sinks).
+    /// </summary>
     private static readonly Dictionary<TaintSinkKind, List<TaintPattern>> DefaultSinks = new()
     {
         [TaintSinkKind.SqlExecution] = new()
@@ -43,6 +58,8 @@ public static class TaintAnalyzer
     /// Esegue il tracciamento dei percorsi da sorgenti non controllate a punti critici di esecuzione (Taint Analysis)
     /// e rileva anomalie Def-Use / Dead Store.
     /// </summary>
+    /// <param name="graph">Il CodeGraph contenente simboli e relazioni del progetto.</param>
+    /// <returns>Il dataset <see cref="DataFlowDataset"/> contenente i percorsi di taint e le anomalie def-use.</returns>
     public static DataFlowDataset Analyze(CodeGraph graph)
     {
         var dataset = new DataFlowDataset();
@@ -51,7 +68,7 @@ public static class TaintAnalyzer
 
         var symbolById = graph.Symbols.ToDictionary(s => s.Id);
 
-        // 1. Identifica le Sorgenti (Sources)
+        // 1. Identifica le Sorgenti (Sources) in base ai pattern configurati
         var sources = new List<(Symbol Symbol, TaintSourceKind Kind)>();
         foreach (var sym in graph.Symbols)
         {
@@ -65,7 +82,7 @@ public static class TaintAnalyzer
             }
         }
 
-        // 2. Identifica i Punti Critici (Sinks)
+        // 2. Identifica i Punti Critici (Sinks) in base ai pattern configurati
         var sinks = new List<(Symbol Symbol, TaintSinkKind Kind)>();
         foreach (var sym in graph.Symbols)
         {
@@ -79,7 +96,7 @@ public static class TaintAnalyzer
             }
         }
 
-        // 3. Costruisce il grafo delle adiacenze per la ricerca dei cammini
+        // 3. Costruisce il grafo delle adiacenze per la propagazione del flusso dati (Calls, Reads, Writes)
         var adj = new Dictionary<Guid, List<Guid>>();
         foreach (var sym in graph.Symbols)
             adj[sym.Id] = new List<Guid>();
@@ -95,7 +112,7 @@ public static class TaintAnalyzer
             }
         }
 
-        // 4. Esegue ricerca BFS da ciascuna sorgente verso i sink
+        // 4. Esegue ricerca BFS da ciascuna sorgente verso ciascun sink per trovare il cammino minimo di propagazione
         foreach (var (srcSym, srcKind) in sources)
         {
             foreach (var (sinkSym, sinkKind) in sinks)
@@ -118,7 +135,7 @@ public static class TaintAnalyzer
             }
         }
 
-        // 5. Rileva anomalie Def-Use / Dead Store (campi/variabili scritte ma mai lette)
+        // 5. Rileva anomalie Def-Use / Dead Store (campi o variabili assegnate ma mai lette nel programma)
         var fields = graph.Symbols.Where(s => s.Kind is SymbolKind.Field or SymbolKind.Property).ToList();
         var readTargets = graph.Relationships.Where(r => r.Kind == RelationshipKind.Reads).Select(r => r.TargetId).ToHashSet();
         var writeTargets = graph.Relationships.Where(r => r.Kind == RelationshipKind.Writes).Select(r => r.TargetId).ToHashSet();
@@ -139,11 +156,14 @@ public static class TaintAnalyzer
             }
         }
 
-        // Ordina mettendo in cima i percorsi più diretti verso sink critici
+        // Ordina mettendo in cima i percorsi più diretti (minor numero di hop) verso sink critici
         dataset.TaintPaths.Sort((a, b) => a.HopCount.CompareTo(b.HopCount));
         return dataset;
     }
 
+    /// <summary>
+    /// Esegue la ricerca in ampiezza (BFS) per trovare il cammino più breve tra un nodo sorgente e un nodo target.
+    /// </summary>
     private static List<Symbol>? FindShortestPath(
         Guid startId,
         Guid targetId,
@@ -180,6 +200,7 @@ public static class TaintAnalyzer
 
         if (!found) return null;
 
+        // Ricostruisce il cammino a ritroso dai puntatori prev
         var path = new List<Symbol>();
         var current = targetId;
         while (current != startId)
@@ -197,3 +218,4 @@ public static class TaintAnalyzer
         return path;
     }
 }
+

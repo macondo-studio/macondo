@@ -3,24 +3,36 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.SocialCode;
 
 /// <summary>
-/// Analizzatore poliglotto di Social Code Analysis, Bus Factor e Conway's Law (Adam Tornhill / CodeScene methodology).
+/// Analizzatore poliglotto di Social Code Analysis, Bus Factor, Ownership del codice ed Entropia di Shannon
+/// (metodologia Adam Tornhill / CodeScene / Software Design X-Rays).
+/// 
+/// METRICHE CHIAVE:
+/// 1. Primary Ownership: percentuale di linee di codice modificate dall'autore principale su un dato file.
+/// 2. Bus Factor (Truck Factor): numero minimo di sviluppatori necessari per coprire l'80% della conoscenza storica del file.
+/// 3. Knowledge Entropy (Shannon Entropy): misura del grado di dispersione della conoscenza tra molteplici autori:
+///    H = - ∑ (p_i * log2(p_i)), dove p_i è la quota di ownership dell'autore i.
+/// 4. Orphan Risk: file in cui l'autore principale non fa più parte degli sviluppatori attivi del team.
 /// </summary>
 public static class SocialCodeAnalyzer
 {
     /// <summary>
-    /// Esegue l'analisi sociale del codice incrociando i file del CodeGraph con la storia dei commit VCS.
+    /// Esegue l'analisi sociale del codice incrociando i file del CodeGraph con la cronologia dei commit VCS.
     /// </summary>
+    /// <param name="graph">Il CodeGraph contenente i simboli del progetto.</param>
+    /// <param name="commitHistory">Elenco dei record di commit estratti dal repository Git/VCS.</param>
+    /// <param name="activeAuthors">Insieme opzionale degli autori attualmente attivi nel team (usato per rilevare file orfani).</param>
+    /// <returns>Il dataset <see cref="SocialCodeDataset"/> con il dettaglio sociale per file e per autore.</returns>
     public static SocialCodeDataset Analyze(CodeGraph graph, IEnumerable<FileCommitRecord> commitHistory, HashSet<string>? activeAuthors = null)
     {
         var dataset = new SocialCodeDataset();
         var commits = commitHistory.ToList();
 
-        // Raggruppa i commit per file (con path normalizzato)
+        // 1. Raggruppa i commit per percorso file normalizzato (slash unificati, case-insensitive)
         var commitsByFile = commits
             .GroupBy(c => NormalizePath(c.FilePath), StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
 
-        // Trova tutti i file noti nel CodeGraph
+        // 2. Mappa tutti i file sorgente presenti nel CodeGraph
         var knownFiles = graph.Symbols
             .Where(s => !string.IsNullOrWhiteSpace(s.FilePath))
             .GroupBy(s => NormalizePath(s.FilePath), StringComparer.OrdinalIgnoreCase)
@@ -43,7 +55,7 @@ public static class SocialCodeAnalyzer
 
             if (fileCommits.Count == 0)
             {
-                // Nessun commit registrato nel VCS (assumiamo default 1 autore sconosciuto)
+                // Nessun commit registrato nel VCS (assumiamo default 1 autore sconosciuto con ownership 100%)
                 report.PrimaryAuthor = "Unknown";
                 report.PrimaryOwnership = 100.0;
                 report.BusFactor = 1;
@@ -52,7 +64,7 @@ public static class SocialCodeAnalyzer
                 continue;
             }
 
-            // Calcola le contribuzioni per ciascun autore
+            // 3. Calcola le linee totali aggiunte/cancellate per ciascun autore
             var authorGroups = fileCommits
                 .GroupBy(c => string.IsNullOrWhiteSpace(c.Author) ? "Unknown" : c.Author.Trim())
                 .ToList();
@@ -74,14 +86,14 @@ public static class SocialCodeAnalyzer
                 });
             }
 
-            // Ordina per ownership decrescente
+            // Ordina gli autori per volume di modifiche decrescente
             report.AuthorContributions.Sort((a, b) => b.TotalLinesChanged.CompareTo(a.TotalLinesChanged));
 
             var primary = report.AuthorContributions[0];
             report.PrimaryAuthor = primary.Author;
             report.PrimaryOwnership = primary.OwnershipPercentage;
 
-            // Calcolo del Bus Factor: numero minimo di autori per superare l'80% di modifiche
+            // 4. Calcolo del Bus Factor: numero minimo di autori necessari per raggiungere o superare l'80% delle modifiche
             int coveredLines = 0;
             int busFactor = 0;
             int targetThreshold = (int)(totalChanges * 0.8);
@@ -95,7 +107,7 @@ public static class SocialCodeAnalyzer
             }
             report.BusFactor = Math.Max(1, busFactor);
 
-            // Calcolo dell'Entropia di Shannon (dispersione della conoscenza)
+            // 5. Calcolo dell'Entropia di Shannon (dispersione della conoscenza sul modulo)
             double entropy = 0.0;
             foreach (var contrib in report.AuthorContributions)
             {
@@ -107,7 +119,11 @@ public static class SocialCodeAnalyzer
             }
             report.KnowledgeEntropy = Math.Round(entropy, 2);
 
-            // Assegnazione del rischio
+            // 6. Assegnazione del livello di rischio:
+            // - Orphan: l'autore principale non è più nel team attivo
+            // - High: Bus Factor pari a 1 con ownership >= 80% (conoscenza accentrata in un singolo individuo)
+            // - Medium: Bus Factor pari a 2
+            // - Low: Bus Factor distribuito su 3 o più sviluppatori
             bool isPrimaryInactive = activeAuthors != null && activeAuthors.Count > 0 && !activeAuthors.Contains(primary.Author);
             if (isPrimaryInactive)
             {
@@ -135,7 +151,7 @@ public static class SocialCodeAnalyzer
             dataset.PrimaryOwnershipCountByAuthor[primary.Author] = count + 1;
         }
 
-        // Ordina mettendo per primi i file orfani o a rischio più alto
+        // Ordina mettendo per primi i file orfani o con Bus Factor più critico
         dataset.Files.Sort((a, b) =>
         {
             int cmp = b.Risk.CompareTo(a.Risk);
@@ -146,9 +162,13 @@ public static class SocialCodeAnalyzer
         return dataset;
     }
 
+    /// <summary>
+    /// Normalizza un percorso file convertendo i backslash in slash e rimuovendo spazi superflui.
+    /// </summary>
     private static string NormalizePath(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return string.Empty;
         return path.Replace('\\', '/').Trim('/');
     }
 }
+

@@ -3,8 +3,17 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.Maintainability;
 
 /// <summary>
-/// Calcolatore poliglotto del Maintainability Index (MI) e delle metriche di Halstead.
-/// Conforme allo standard Microsoft Code Metrics e Carnegie Mellon SEI.
+/// Calcolatore poliglotto del Maintainability Index (MI) e delle metriche di Halstead Software Science.
+/// Conforme allo standard di riferimento Microsoft Code Metrics e Carnegie Mellon Software Engineering Institute (SEI).
+/// 
+/// FORMULA DEL MAINTAINABILITY INDEX (MI):
+/// MI_raw = 171 - 5.2 * ln(Halstead_Volume) - 0.23 * Cyclomatic_Complexity - 16.2 * ln(Lines_of_Code)
+/// MI_norm = Clamp((MI_raw * 100) / 171, 0, 100)
+/// 
+/// SOGLIE DI VALUTAZIONE:
+/// - 80 - 100: Alta manutenibilità (Verde).
+/// - 60 - 79:  Media manutenibilità / Rischio moderato (Giallo).
+/// - 0  - 59:  Bassa manutenibilità / Alto debito tecnico e candidato urgente al refactoring (Rosso).
 /// </summary>
 public static class MaintainabilityCalculator
 {
@@ -21,6 +30,8 @@ public static class MaintainabilityCalculator
     /// <summary>
     /// Esegue il calcolo dell'indice di manutenibilità e delle metriche di Halstead su tutti i contenitori del CodeGraph.
     /// </summary>
+    /// <param name="graph">Il CodeGraph contenente simboli e relazioni del progetto.</param>
+    /// <returns>Il dataset <see cref="MaintainabilityDataset"/> con tutti gli indici calcolati e ordinati per criticità crescente.</returns>
     public static MaintainabilityDataset Analyze(CodeGraph graph)
     {
         var dataset = new MaintainabilityDataset();
@@ -39,15 +50,15 @@ public static class MaintainabilityCalculator
             int methodCount = children.Count(c => c.Kind == SymbolKind.Method || c.Kind == SymbolKind.Property);
             int fieldCount = children.Count(c => c.Kind == SymbolKind.Field || c.Kind == SymbolKind.Constant);
 
-            // Stima delle chiamate effettuate o ricevute
+            // 1. Stima delle chiamate effettuate dai metodi interni del container
             int callsCount = graph.Relationships.Count(r => r.Kind == RelationshipKind.Calls && (r.SourceId == container.Id || children.Any(c => c.Id == r.SourceId)));
 
-            // Stima della complessità ciclomatica aggregata
+            // 2. Stima della complessità ciclomatica aggregata (McCabe)
             int cyclomaticComplexity = Math.Max(1, methodCount + (callsCount / 2));
 
-            // Stima o calcolo dei parametri di Halstead
-            // Operatori tipici: assegnazioni, chiamate, if/select, cicli, return
-            // Operandi tipici: identificatori, variabili, costanti, parametri
+            // 3. Stima dei parametri di Halstead Software Science:
+            // - Operatori distinti (n1) e totali (N1): parole chiave, assegnazioni, chiamate, ramificazioni
+            // - Operandi distinti (n2) e totali (N2): identificatori, variabili, costanti, parametri
             int distinctOperators = Math.Max(4, 5 + (methodCount > 0 ? (int)Math.Log2(methodCount + 1) * 2 : 1));
             int distinctOperands = Math.Max(4, fieldCount + methodCount + 2);
             int totalOperators = Math.Max(distinctOperators, (loc * 3) / 2 + callsCount * 2);
@@ -61,6 +72,7 @@ public static class MaintainabilityCalculator
                 TotalOperands = totalOperands
             };
 
+            // 4. Calcolo del Volume di Halstead e applicazione della formula SEI / Microsoft
             double volume = halstead.Volume;
             double rawMi = 171.0 - (5.2 * Math.Log(Math.Max(1.0, volume))) - (0.23 * cyclomaticComplexity) - (16.2 * Math.Log(Math.Max(1.0, loc)));
             double normalizedMi = Math.Clamp((rawMi * 100.0) / 171.0, 0.0, 100.0);
@@ -82,7 +94,9 @@ public static class MaintainabilityCalculator
             dataset.Items.Add(item);
         }
 
+        // Ordina mettendo in cima i componenti con il Maintainability Index più basso (più problematici)
         dataset.Items.Sort((a, b) => a.MaintainabilityIndex.CompareTo(b.MaintainabilityIndex));
         return dataset;
     }
 }
+

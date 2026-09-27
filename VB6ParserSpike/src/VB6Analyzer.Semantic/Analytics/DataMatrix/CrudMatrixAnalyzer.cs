@@ -3,8 +3,14 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.DataMatrix;
 
 /// <summary>
-/// Analizzatore poliglotto di Data Access e generatore di Matrice CRUD (Create, Read, Update, Delete).
-/// Riconosce query SQL, pattern di repository, chiamate a database (ADO, EF Core, Dapper) e relazioni con entità dati.
+/// Analizzatore poliglotto di Data Access e generatore della Matrice CRUD (Create, Read, Update, Delete).
+/// 
+/// RESPONSABILITÀ:
+/// 1. Individuazione Entità Dati: individua modelli, record, struct, UDT e classi entità del dominio
+///    (es. "Customer", "Order", "Product", "Invoice").
+/// 2. Inferenza Operazioni CRUD: esamina routine e metodi che accedono a tali entità, deducendo le operazioni
+///    (Create, Read, Update, Delete) tramite convenzioni di naming, verbi SQL e pattern di accesso dati.
+/// 3. Generazione Matrice di Accesso: associa ciascuna entità ai componenti o moduli che la manipolano.
 /// </summary>
 public static class CrudMatrixAnalyzer
 {
@@ -15,8 +21,10 @@ public static class CrudMatrixAnalyzer
     };
 
     /// <summary>
-    /// Esegue l'analisi e genera la matrice CRUD a partire dai simboli e relazioni del CodeGraph.
+    /// Esegue l'analisi e genera la matrice CRUD a partire dai simboli e dalle relazioni del CodeGraph.
     /// </summary>
+    /// <param name="graph">Il CodeGraph contenente simboli e relazioni del progetto.</param>
+    /// <returns>Il dataset <see cref="CrudMatrixDataset"/> con tutte le celle e i riepiloghi per entità.</returns>
     public static CrudMatrixDataset Analyze(CodeGraph graph)
     {
         var dataset = new CrudMatrixDataset();
@@ -25,7 +33,7 @@ public static class CrudMatrixAnalyzer
 
         var symbolById = graph.Symbols.ToDictionary(s => s.Id);
 
-        // Mappa ogni simbolo al suo container
+        // Mappa ogni simbolo membro (metodo o proprietà) al suo rispettivo contenitore radice (Classe, Form o Modulo)
         var memberToContainer = new Dictionary<Guid, Symbol>();
         foreach (var sym in graph.Symbols)
         {
@@ -36,7 +44,7 @@ public static class CrudMatrixAnalyzer
             }
         }
 
-        // Raccoglie le entità dati potenziali (classi di modello/record/struct o tabelle referenziate)
+        // 1. Raccoglie le entità dati potenziali (classi di modello, record, struct, Type UDT)
         var entityCandidates = graph.Symbols
             .Where(s => s.Kind is SymbolKind.Record or SymbolKind.Struct or SymbolKind.Type ||
                         (s.Kind == SymbolKind.Class && (s.Name.EndsWith("Entity", StringComparison.OrdinalIgnoreCase) ||
@@ -45,7 +53,7 @@ public static class CrudMatrixAnalyzer
             .Select(s => s.Name)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        // Se non ci sono entità formali esplicite, estrae entità e tabelle dai nomi delle routine e delle classi repository
+        // Se non ci sono entità formali esplicite nel modello, applica euristica sui nomi di entità enterprise comuni
         if (entityCandidates.Count == 0)
         {
             foreach (var sym in graph.Symbols)
@@ -66,6 +74,7 @@ public static class CrudMatrixAnalyzer
 
         var routines = graph.Symbols.Where(s => RoutineKinds.Contains(s.Kind)).ToList();
 
+        // 2. Ispeziona ciascuna routine per rilevare le operazioni CRUD effettuate sulle entità
         foreach (var routine in routines)
         {
             memberToContainer.TryGetValue(routine.Id, out var container);
@@ -98,6 +107,10 @@ public static class CrudMatrixAnalyzer
         return dataset;
     }
 
+    /// <summary>
+    /// Deduce l'entità bersaglio e le operazioni CRUD (Create, Read, Update, Delete)
+    /// eseguite da una routine tramite analisi lessicale e pattern matching sui verbi di azione.
+    /// </summary>
     private static (string? Entity, CrudOperation Operations) InferCrudOperations(Symbol routine, HashSet<string> knownEntities)
     {
         var name = routine.Name;
@@ -105,7 +118,7 @@ public static class CrudMatrixAnalyzer
         CrudOperation ops = CrudOperation.None;
         string? matchedEntity = null;
 
-        // Cerca matching con entità note
+        // Cerca matching con entità note (sia in forma plurale che singolare)
         foreach (var entity in knownEntities)
         {
             var singular = entity.TrimEnd('s');
@@ -118,7 +131,8 @@ public static class CrudMatrixAnalyzer
             }
         }
 
-        // Inferenza operazioni CRUD dal nome o pattern
+        // Inferenza operazioni CRUD dai prefissi e verbi standard
+        // CREATE: Create, Insert, Add, SaveNew
         if (name.StartsWith("Create", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Insert", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Add", StringComparison.OrdinalIgnoreCase) ||
@@ -127,6 +141,7 @@ public static class CrudMatrixAnalyzer
             ops |= CrudOperation.Create;
         }
 
+        // READ: Get, Find, Load, Read, Fetch, Select
         if (name.StartsWith("Get", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Find", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Load", StringComparison.OrdinalIgnoreCase) ||
@@ -137,6 +152,7 @@ public static class CrudMatrixAnalyzer
             ops |= CrudOperation.Read;
         }
 
+        // UPDATE: Update, Modify, Save, Edit
         if (name.StartsWith("Update", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Modify", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Save", StringComparison.OrdinalIgnoreCase) ||
@@ -145,6 +161,7 @@ public static class CrudMatrixAnalyzer
             ops |= CrudOperation.Update;
         }
 
+        // DELETE: Delete, Remove, Purge, Drop
         if (name.StartsWith("Delete", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Remove", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Purge", StringComparison.OrdinalIgnoreCase) ||
@@ -156,3 +173,4 @@ public static class CrudMatrixAnalyzer
         return (matchedEntity, ops);
     }
 }
+

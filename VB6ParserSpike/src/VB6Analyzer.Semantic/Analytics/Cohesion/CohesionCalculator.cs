@@ -3,9 +3,19 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.Cohesion;
 
 /// <summary>
-/// Calcolatore poliglotto e deterministico delle metriche di coesione interna e suite Chidamber & Kemerer (C&K).
-/// Calcola LCOM4 (Lack of Cohesion in Methods 4), TCC (Tight Class Cohesion), LCC (Loose Class Cohesion),
-/// WMC (Weighted Methods per Class), CBO (Coupling Between Objects) ed RFC (Response for a Class).
+/// Calcolatore poliglotto e deterministico delle metriche di coesione interna e suite Chidamber &amp; Kemerer (C&amp;K).
+/// 
+/// METRICHE CALCOLATE:
+/// 1. LCOM4 (Lack of Cohesion in Methods 4 - Hitz &amp; Montazeri):
+///    Costruisce un grafo non orientato in cui i nodi sono i metodi della classe. Esiste un arco tra due metodi se
+///    accedono ad almeno un campo/stato comune o se uno chiama direttamente l'altro.
+///    LCOM4 è il numero di componenti connesse: un valore pari a 1 indica una classe altamente coesa (Single Responsibility),
+///    mentre valori superiori indicano responsabilità multiple scorporabili in classi separate.
+/// 2. TCC (Tight Class Cohesion): rapporto tra le coppie di metodi direttamente connesse e il totale delle coppie possibili.
+/// 3. LCC (Loose Class Cohesion): rapporto tra le coppie di metodi connesse direttamente o transitivamente e il totale delle coppie possibili.
+/// 4. WMC (Weighted Methods per Class): somma delle complessità ciclomatiche di tutti i metodi della classe.
+/// 5. CBO (Coupling Between Objects): numero di classi esterne a cui la classe è accoppiata tramite chiamate o tipi.
+/// 6. RFC (Response for a Class): dimensione dell'insieme di risposta della classe (metodi propri + metodi esterni direttamente invocati).
 /// </summary>
 public static class CohesionCalculator
 {
@@ -35,6 +45,8 @@ public static class CohesionCalculator
     /// <summary>
     /// Esegue l'analisi completa di coesione su tutti i contenitori del CodeGraph.
     /// </summary>
+    /// <param name="graph">Il CodeGraph contenente simboli e relazioni del progetto.</param>
+    /// <returns>Il dataset <see cref="CohesionDataset"/> contenente i report di coesione per ogni contenitore.</returns>
     public static CohesionDataset Analyze(CodeGraph graph)
     {
         var dataset = new CohesionDataset();
@@ -45,7 +57,7 @@ public static class CohesionCalculator
         if (containers.Count == 0)
             return dataset;
 
-        // Mappatura globale per CBO ed RFC
+        // Mappatura globale di ogni membro al suo rispettivo contenitore per il calcolo di CBO ed RFC
         var memberToContainerMap = new Dictionary<Guid, Guid>();
         foreach (var c in containers)
         {
@@ -69,7 +81,7 @@ public static class CohesionCalculator
                 FieldCount = fields.Count
             };
 
-            // Se non ci sono metodi o c'è un solo metodo, LCOM4 è banale
+            // Se non ci sono metodi o c'è un solo metodo, LCOM4 è banale (1 cluster o 0)
             if (routines.Count == 0)
             {
                 report.Lcom4 = 0;
@@ -94,13 +106,13 @@ public static class CohesionCalculator
                 CalculateLcom4AndCohesion(graph, container, routines, fields, report);
             }
 
-            // Calcolo WMC, CBO ed RFC
+            // Calcolo metriche C&K (WMC, CBO ed RFC)
             CalculateCkMetrics(graph, container, routines, memberToContainerMap, report);
 
             dataset.Items.Add(report);
         }
 
-        // Ordina mettendo in cima i candidati più critici al refactoring
+        // Ordina mettendo in cima i componenti a coesione più bassa (LCOM4 elevato, candidati ideali al refactoring)
         dataset.Items.Sort((a, b) =>
         {
             int cmp = b.Lcom4.CompareTo(a.Lcom4);
@@ -112,7 +124,7 @@ public static class CohesionCalculator
     }
 
     /// <summary>
-    /// Calcola il grafo non orientato di connettività tra i metodi del contenitore e ne individua le componenti connesse (LCOM4).
+    /// Calcola il grafo non orientato di connettività tra i metodi del contenitore e ne individua le componenti connesse (LCOM4, TCC, LCC).
     /// </summary>
     private static void CalculateLcom4AndCohesion(
         CodeGraph graph,
@@ -148,7 +160,7 @@ public static class CohesionCalculator
 
         // Costruzione della matrice di adiacenza non orientata per LCOM4
         // Due metodi sono adiacenti se:
-        // 1. Accedono ad almeno un campo comune
+        // 1. Accedono ad almeno un campo comune (f1 ∩ f2 ≠ ∅)
         // 2. Oppure uno chiama direttamente l'altro
         int n = routines.Count;
         var adj = new Dictionary<Guid, HashSet<Guid>>();
@@ -180,7 +192,7 @@ public static class CohesionCalculator
             }
         }
 
-        // Calcolo delle Componenti Connesse (BFS/DFS) -> LCOM4
+        // Calcolo delle Componenti Connesse tramite visita BFS -> LCOM4
         var visited = new HashSet<Guid>();
         int clusterIdx = 1;
 
@@ -236,12 +248,12 @@ public static class CohesionCalculator
 
         report.Lcom4 = report.Clusters.Count;
 
-        // TCC (Tight Class Cohesion)
+        // TCC (Tight Class Cohesion): coppie direttamente connesse / coppie totali
         report.TightClassCohesion = totalPossiblePairs > 0
             ? Math.Clamp((double)directConnectedPairs / totalPossiblePairs, 0.0, 1.0)
             : 1.0;
 
-        // LCC (Loose Class Cohesion): calcolo coppie raggiungibili transitivamente (all'interno della stessa componente connessa)
+        // LCC (Loose Class Cohesion): coppie transitivamente connesse (nella stessa componente connessa) / coppie totali
         int reachablePairs = 0;
         foreach (var cluster in report.Clusters)
         {
@@ -258,7 +270,7 @@ public static class CohesionCalculator
     }
 
     /// <summary>
-    /// Calcola le metriche Chidamber & Kemerer di accoppiamento e complessità (WMC, CBO, RFC).
+    /// Calcola le metriche Chidamber &amp; Kemerer di accoppiamento e complessità (WMC, CBO, RFC).
     /// </summary>
     private static void CalculateCkMetrics(
         CodeGraph graph,
@@ -275,7 +287,7 @@ public static class CohesionCalculator
 
         foreach (var r in routines)
         {
-            // Complessità stimata per metodo (base 1 + linee di codice normalizzate se non calcolato il CFG)
+            // Complessità stimata per metodo (base 1 + linee di codice normalizzate)
             int methodLoc = Math.Max(1, r.LineEnd - r.LineStart + 1);
             int estimatedComplexity = Math.Max(1, Math.Min(15, methodLoc / 10));
             totalWmc += estimatedComplexity;
@@ -309,3 +321,4 @@ public static class CohesionCalculator
         report.ResponseForClass = responseMethods.Count;
     }
 }
+
