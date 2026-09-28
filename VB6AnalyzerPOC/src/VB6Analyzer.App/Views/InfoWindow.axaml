@@ -4,8 +4,8 @@
         x:Class="Macondo.App.Views.InfoWindow"
         Title="Guida &amp; Concetti — Macondo"
         Icon="avares://Macondo/Assets/Icons/icon1_star_knot.ico"
-        Width="920" Height="640"
-        MinWidth="780" MinHeight="500"
+        Width="960" Height="680"
+        MinWidth="800" MinHeight="520"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource ThemeBackgroundPrimaryBrush}"
         ExtendClientAreaToDecorationsHint="True"
@@ -54,20 +54,20 @@
         </Border>
 
         <!-- Corpo Principale (Sidebar Sinistra + Contenuto Destra) -->
-        <Grid Grid.Row="1" ColumnDefinitions="230,*">
+        <Grid Grid.Row="1" ColumnDefinitions="240,*">
 
             <!-- Sidebar Sinistra: Categorie della Guida -->
             <Border x:Name="SidebarBorder" Grid.Column="0"
                     Background="{DynamicResource ThemeBackgroundSecondaryBrush}"
                     BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
-                    BorderThickness="0,0,1,0" Padding="8,12">
+                    BorderThickness="0,0,1,0" Padding="8,10">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="3">
                         <StackPanel.Styles>
                             <Style Selector="Button.nav-btn">
                                 <Setter Property="HorizontalAlignment" Value="Stretch" />
                                 <Setter Property="HorizontalContentAlignment" Value="Left" />
-                                <Setter Property="Padding" Value="10,8" />
+                                <Setter Property="Padding" Value="10,7" />
                                 <Setter Property="FontSize" Value="12" />
                                 <Setter Property="Background" Value="Transparent" />
                                 <Setter Property="BorderThickness" Value="0" />
@@ -85,90 +85,155 @@
                             </Style>
                         </StackPanel.Styles>
 
+                        <!-- Gruppo 1: Base & Grafo -->
                         <!-- Tab 0: Panoramica -->
                         <Button x:Name="NavOverviewButton" Classes="nav-btn selected" Click="OnNavOverviewClicked">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <PathIcon Data="{StaticResource IconAppLogo}" Width="14" Height="14" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconAppLogo}" Width="13" Height="13" VerticalAlignment="Center" />
                                 <TextBlock x:Name="NavOverviewText" Text="Panoramica &amp; Architettura" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
 
                         <!-- Tab 1: Layout del Grafo -->
                         <Button x:Name="NavLayoutsButton" Classes="nav-btn" Click="OnNavLayoutsClicked">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <PathIcon Data="{StaticResource IconGraph}" Width="14" Height="14" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconGraph}" Width="13" Height="13" VerticalAlignment="Center" />
                                 <TextBlock x:Name="NavLayoutsText" Text="Disposizioni del Grafo" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
 
                         <!-- Tab 2: Legenda Colori -->
                         <Button x:Name="NavLegendButton" Classes="nav-btn" Click="OnNavLegendClicked">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <PathIcon Data="{StaticResource IconInfo}" Width="14" Height="14" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconInfo}" Width="13" Height="13" VerticalAlignment="Center" />
                                 <TextBlock x:Name="NavLegendText" Text="Legenda Nodi &amp; Colori" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
 
                         <!-- Tab 3: Treemap -->
                         <Button x:Name="NavTreemapButton" Classes="nav-btn" Click="OnNavTreemapClicked">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <PathIcon Data="{StaticResource IconTreemap}" Width="14" Height="14" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconTreemap}" Width="13" Height="13" VerticalAlignment="Center" />
                                 <TextBlock x:Name="NavTreemapText" Text="Treemap (Mappa ad Albero)" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
 
-                        <!-- Tab 3: Flusso Schermate & Controllo -->
+                        <!-- Tab 4: Flussi Schermate & Controllo -->
                         <Button x:Name="NavFlowsButton" Classes="nav-btn" Click="OnNavFlowsClicked">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <PathIcon Data="{StaticResource IconScreenFlow}" Width="14" Height="14" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconScreenFlow}" Width="13" Height="13" VerticalAlignment="Center" />
                                 <TextBlock x:Name="NavFlowsText" Text="Screen &amp; Control Flow" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
 
-                        <!-- Tab 4: DSM & Hotspots -->
+                        <!-- Tab 5: DSM & Hotspots -->
                         <Button x:Name="NavDsmHotspotsButton" Classes="nav-btn" Click="OnNavDsmHotspotsClicked">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <PathIcon Data="{StaticResource IconMatrix}" Width="14" Height="14" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconMatrix}" Width="13" Height="13" VerticalAlignment="Center" />
                                 <TextBlock x:Name="NavDsmHotspotsText" Text="DSM &amp; Hotspots" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
 
-                        <!-- Tab 5: Blast Radius -->
+                        <!-- Tab 6: Blast Radius -->
                         <Button x:Name="NavBlastRadiusButton" Classes="nav-btn" Click="OnNavBlastRadiusClicked">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <PathIcon Data="{StaticResource IconBlastRadius}" Width="14" Height="14" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconBlastRadius}" Width="13" Height="13" VerticalAlignment="Center" />
                                 <TextBlock x:Name="NavBlastRadiusText" Text="Blast Radius (Rischio)" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
 
                         <!-- Tab 7: Metriche Martin & Dead Code -->
                         <Button x:Name="NavMartinDeadCodeButton" Classes="nav-btn" Click="OnNavMartinDeadCodeClicked">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <PathIcon Data="{StaticResource IconMartin}" Width="14" Height="14" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconMartin}" Width="13" Height="13" VerticalAlignment="Center" />
                                 <TextBlock x:Name="NavMartinDeadCodeText" Text="Martin &amp; Dead Code" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
 
                         <!-- Tab 8: Stato Condiviso & Temporal Coupling -->
                         <Button x:Name="NavSharedTemporalButton" Classes="nav-btn" Click="OnNavSharedTemporalClicked">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <PathIcon Data="{StaticResource IconSharedState}" Width="14" Height="14" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconSharedState}" Width="13" Height="13" VerticalAlignment="Center" />
                                 <TextBlock x:Name="NavSharedTemporalText" Text="Stato Globale &amp; Temporal" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
 
                         <!-- Tab 9: Flussi Architetturali & CodeCity -->
                         <Button x:Name="NavFlowCityButton" Classes="nav-btn" Click="OnNavFlowCityClicked">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <PathIcon Data="{StaticResource IconCity}" Width="14" Height="14" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconCity}" Width="13" Height="13" VerticalAlignment="Center" />
                                 <TextBlock x:Name="NavFlowCityText" Text="Flussi Chord &amp; CodeCity" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
 
-                        <!-- Tab 10: AI & Esportazione -->
+                        <!-- Tab 10: Manutenibilità & Halstead -->
+                        <Button x:Name="NavMaintainabilityButton" Classes="nav-btn" Click="OnNavMaintainabilityClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconMaintainability}" Width="13" Height="13" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavMaintainabilityText" Text="Indice di Manutenibilità" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 11: Coesione & Suite C&K -->
+                        <Button x:Name="NavCohesionButton" Classes="nav-btn" Click="OnNavCohesionClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconCohesion}" Width="13" Height="13" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavCohesionText" Text="Coesione &amp; LCOM" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 12: Regole Architetturali -->
+                        <Button x:Name="NavArchitecturalRulesButton" Classes="nav-btn" Click="OnNavArchitecturalRulesClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconArchitecturalRules}" Width="13" Height="13" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavArchitecturalRulesText" Text="Regole Architettura" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 13: Duplicazioni & Code Clones -->
+                        <Button x:Name="NavCodeCloneButton" Classes="nav-btn" Click="OnNavCodeCloneClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconCodeClone}" Width="13" Height="13" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavCodeCloneText" Text="Duplicazioni (CPD)" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 14: Social Code & Bus Factor -->
+                        <Button x:Name="NavSocialCodeButton" Classes="nav-btn" Click="OnNavSocialCodeClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconSocialCode}" Width="13" Height="13" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavSocialCodeText" Text="Social &amp; Bus Factor" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 15: Data Flow & Taint -->
+                        <Button x:Name="NavDataFlowButton" Classes="nav-btn" Click="OnNavDataFlowClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconDataFlow}" Width="13" Height="13" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavDataFlowText" Text="Data Flow &amp; Taint" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 16: API Diff & SemVer -->
+                        <Button x:Name="NavApiDiffButton" Classes="nav-btn" Click="OnNavApiDiffClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconApiDiff}" Width="13" Height="13" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavApiDiffText" Text="API Diff &amp; SemVer" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 17: Matrice CRUD -->
+                        <Button x:Name="NavCrudMatrixButton" Classes="nav-btn" Click="OnNavCrudMatrixClicked">
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconCrudMatrix}" Width="13" Height="13" VerticalAlignment="Center" />
+                                <TextBlock x:Name="NavCrudMatrixText" Text="Matrice CRUD Dati" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 18: AI & Esportazione -->
                         <Button x:Name="NavAiExportButton" Classes="nav-btn" Click="OnNavAiExportClicked">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <PathIcon Data="{StaticResource IconExport}" Width="14" Height="14" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <PathIcon Data="{StaticResource IconExport}" Width="13" Height="13" VerticalAlignment="Center" />
                                 <TextBlock x:Name="NavAiExportText" Text="AI &amp; Esportazione LLM" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
@@ -213,16 +278,30 @@
                             <Setter Property="FontWeight" Value="Bold" />
                             <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
                         </Style>
+                        <Style Selector="Border.formula-box">
+                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDefaultBrush}" />
+                            <Setter Property="BorderThickness" Value="1" />
+                            <Setter Property="CornerRadius" Value="6" />
+                            <Setter Property="Padding" Value="12,8" />
+                            <Setter Property="Margin" Value="0,6,0,6" />
+                        </Style>
+                        <Style Selector="TextBlock.formula-text">
+                            <Setter Property="FontFamily" Value="Consolas, Cascadia Code, Courier New, monospace" />
+                            <Setter Property="FontSize" Value="11" />
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                        </Style>
                     </Panel.Styles>
 
                     <!-- ========================================================= -->
                     <!-- SEZIONE 0: PANORAMICA & ARCHITETTURA (IT & EN)            -->
                     <!-- ========================================================= -->
                     <ScrollViewer x:Name="OverviewSection_IT" IsVisible="True" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="Panoramica &amp; Funzionamento di Macondo" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                <TextBlock Text="Strumento di analisi semantica e reverse engineering per progetti software (VB6, C# e architetture complesse)." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Panoramica &amp; Architettura del Motore" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Piattaforma di reverse engineering e analisi statica per codebase complesse e legacy." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
                             <Border Classes="info-card">
@@ -233,31 +312,31 @@
                                         </Border>
                                         <TextBlock Classes="card-title" Text="Analizzatore Semantico Indipendente" />
                                     </DockPanel>
-                                    <TextBlock Classes="card-body" Text="Macondo analizza progetti direttamente dai file sorgente (.vbp, .frm, .bas, .cls, .ctl, .csproj, .cs) senza richiedere l'ambiente di sviluppo originale VB6 o componenti COM registrati. Effettua il parsing completo dell'AST (Abstract Syntax Tree) per comprendere tipi, dichiarazioni, procedure e relazioni di chiamata." />
+                                    <TextBlock Classes="card-body" Text="Macondo analizza progetti direttamente dai file sorgente (.vbp, .frm, .bas, .cls, .ctl, .csproj, .cs) senza richiedere l'ambiente di sviluppo originale VB6 o runtime COM registrati nel registro di sistema. Effettua il parsing completo dell'AST (Abstract Syntax Tree) per comprendere tipi, dichiarazioni, visibilità, costrutti di controllo e relazioni di invocazione." />
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock Classes="card-title" Text="Modello a Grafo (CodeGraph)" />
-                                    <TextBlock Classes="card-body" Text="Il cuore dell'applicazione è una rappresentazione in memoria a grafo orientato:&#x0a;• Nodi: rappresentano Moduli (.bas), Form (.frm), Classi (.cls), Controlli Utente (.ctl) e le singole routine (Sub, Function, Property).&#x0a;• Archi (Relazioni): collegano i nodi attraverso relazioni di Chiamata (CALLS), Istanziazione (INSTANTIATES) e Dipendenza di Tipo (USES_TYPE)." />
+                                    <TextBlock Classes="card-title" Text="Modello a Grafo Semantico (CodeGraph)" />
+                                    <TextBlock Classes="card-body" Text="Il cuore dell'applicazione è un grafo orientato formale G = (V, E):&#x0a;• Nodi (V): Contenitori (Moduli .bas, Form .frm, Classi .cls/.cs, Controlli .ctl) e Routine interne (Sub, Function, Property, Campi, Costanti, Tipi UDT).&#x0a;• Archi (E): Relazioni di Chiamata (CALLS), Istanziazione (INSTANTIATES), Dipendenza di Tipo (USES_TYPE), Lettura (READS), Scrittura (WRITES), Ereditarietà (INHERITS) e Implementazione (IMPLEMENTS)." />
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock Classes="card-title" Text="Cache Locale ad Alte Prestazioni" />
-                                    <TextBlock Classes="card-body" Text="Al termine dell'analisi di una cartella, lo snapshot completo del grafo e del calcolo d'impatto viene salvato in cache (%APPDATA%\Macondo\cache\). Alle successive aperture, il progetto viene ripristinato istantaneamente in pochi millisecondi, con verifica automatica (staleness check) per rilevare file modificati su disco." />
+                                    <TextBlock Classes="card-title" Text="Cache Locale &amp; Staleness Check" />
+                                    <TextBlock Classes="card-body" Text="Al termine dell'analisi, lo snapshot completo del grafo e degli indici di impatto viene serializzato in cache (%APPDATA%\Macondo\cache\). Alle successive aperture, il progetto si carica istantaneamente in pochi millisecondi, con verifica automatica delle date di modifica dei singoli file su disco per invalidare selettivamente solo le parti cambiate." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="OverviewSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="Macondo Overview &amp; Architecture" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                <TextBlock Text="Static semantic analysis and reverse engineering platform for software projects (VB6, C#, and complex codebases)." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Engine Architecture &amp; Overview" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Static reverse engineering and semantic analysis platform for complex and legacy software." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
                             <Border Classes="info-card">
@@ -268,21 +347,21 @@
                                         </Border>
                                         <TextBlock Classes="card-title" Text="Independent Semantic Analyzer" />
                                     </DockPanel>
-                                    <TextBlock Classes="card-body" Text="Macondo analyzes projects directly from raw source code (.vbp, .frm, .bas, .cls, .ctl, .csproj, .cs) without requiring legacy VB6 IDE installations, Windows registry components, or runtime dependencies. It parses full AST trees to discover types, declarations, procedures, and call relationships." />
+                                    <TextBlock Classes="card-body" Text="Macondo analyzes projects directly from raw source code (.vbp, .frm, .bas, .cls, .ctl, .csproj, .cs) without requiring legacy IDE installations, COM runtime registrations, or external dependencies. It parses full AST trees to resolve types, declarations, scoping, control structures, and call relationships." />
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock Classes="card-title" Text="CodeGraph Model" />
-                                    <TextBlock Classes="card-body" Text="The foundation of the engine is an in-memory directed semantic graph:&#x0a;• Nodes: Modules (.bas), Forms (.frm), Classes (.cls), User Controls (.ctl), and individual routines (Sub, Function, Property).&#x0a;• Edges (Relations): connect nodes via Calls (CALLS), Instantiations (INSTANTIATES), and Type Dependencies (USES_TYPE)." />
+                                    <TextBlock Classes="card-title" Text="Semantic CodeGraph Model" />
+                                    <TextBlock Classes="card-body" Text="The application core is a formal directed graph G = (V, E):&#x0a;• Nodes (V): Containers (Modules .bas, Forms .frm, Classes .cls/.cs, Controls .ctl) and internal members (Sub, Function, Property, Fields, Const, UDTs).&#x0a;• Edges (E): Calls (CALLS), Instantiations (INSTANTIATES), Type Dependencies (USES_TYPE), Reads (READS), Writes (WRITES), Inheritance (INHERITS), and Interfaces (IMPLEMENTS)." />
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock Classes="card-title" Text="High-Performance Local Cache" />
-                                    <TextBlock Classes="card-body" Text="When analyzing a folder or project, the complete graph snapshot and impact index are cached locally (%APPDATA%\Macondo\cache\). Future launches load instantaneously in milliseconds, with automatic file staleness checks detecting on-disk changes." />
+                                    <TextBlock Classes="card-title" Text="High-Speed Local Cache &amp; Staleness Checks" />
+                                    <TextBlock Classes="card-body" Text="Following analysis, the full graph snapshot and impact index are cached locally (%APPDATA%\Macondo\cache\). Future launches load instantaneously in milliseconds, with automatic file staleness checks detecting changed files on disk." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -292,8 +371,8 @@
                     <!-- SEZIONE 1: DISPOSIZIONI DEL GRAFO (LAYOUTS) (IT & EN)     -->
                     <!-- ========================================================= -->
                     <ScrollViewer x:Name="LayoutsSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Disposizioni del Grafo (Layout Engines)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Algoritmi di posizionamento 2D per evidenziare gerarchie, cluster e flussi di codice." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -301,14 +380,14 @@
                             <Border Classes="info-card">
                                 <StackPanel Spacing="6">
                                     <TextBlock Classes="card-title" Text="1. Radiale Standard (Concentric Rings)" />
-                                    <TextBlock Classes="card-body" Text="Dispone i componenti su orbite concentriche partendo dal modulo/form principale al centro verso le dipendenze esterne. Ideale per cogliere l'ampiezza complessiva e la gerarchia dei moduli." />
+                                    <TextBlock Classes="card-body" Text="Dispone i componenti su orbite concentriche partendo dal modulo o form principale al centro verso le dipendenze esterne. Ideale per cogliere l'ampiezza complessiva e la gerarchia dei moduli." />
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="6">
                                     <TextBlock Classes="card-title" Text="2. Radiale per Affinità (Interaction Affinity)" />
-                                    <TextBlock Classes="card-body" Text="Mantiene la struttura orbitale radiale ma raggruppa vicini sullo stesso angolo i nodi che condividono frequenti relazioni di chiamata. Riduce l'incrocio delle linee e mette in risalto i gruppi di lavoro coesi." />
+                                    <TextBlock Classes="card-body" Text="Mantiene la struttura orbitale ma raggruppa vicini sullo stesso angolo i nodi che condividono frequenti relazioni di chiamata. Riduce drasticamente l'incrocio delle linee e mette in risalto i sottosistemi coesi." />
                                 </StackPanel>
                             </Border>
 
@@ -321,45 +400,45 @@
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="6">
-                                    <TextBlock Classes="card-title" Text="4. Force-Directed (Fisica a Molle)" />
-                                    <TextBlock Classes="card-body" Text="Simula un modello fisico: i nodi si respingono come particelle cariche mentre le relazioni di chiamata agiscono come molle elastiche. Fa emergere naturalmente al centro i componenti 'core' e i nodi ponte." />
+                                    <TextBlock Classes="card-title" Text="4. Force-Directed (Fisica a Molle / Fruchterman-Reingold)" />
+                                    <TextBlock Classes="card-body" Text="Simula un modello fisico: i nodi si respingono come cariche elettrostatiche mentre le relazioni di chiamata agiscono come molle elastiche. Fa emergere naturalmente al centro i componenti 'hub' più centrali dell'applicazione." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="LayoutsSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Graph Layout Engines" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                <TextBlock Text="2D graph positioning algorithms to highlight hierarchies, clusters, and code flows." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                <TextBlock Text="2D graph positioning algorithms to highlight hierarchies, clusters, and architectural flows." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="6">
                                     <TextBlock Classes="card-title" Text="1. Standard Radial (Concentric Rings)" />
-                                    <TextBlock Classes="card-body" Text="Arranges components in concentric orbital rings from the main form/module in the center outward to external dependencies. Ideal for understanding broad architectural hierarchy." />
+                                    <TextBlock Classes="card-body" Text="Arranges components in concentric orbital rings from the central entry point outward to external dependencies. Ideal for understanding broad architectural hierarchy." />
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="6">
                                     <TextBlock Classes="card-title" Text="2. Affinity Radial (Interaction Affinity)" />
-                                    <TextBlock Classes="card-body" Text="Maintains concentric orbital structure while clustering frequently interacting nodes closely along the angular space. Reduces edge crossings and highlights cohesive subsystems." />
+                                    <TextBlock Classes="card-body" Text="Maintains concentric rings while clustering frequently interacting nodes along adjacent angular sectors. Minimizes edge crossings and exposes tightly coupled subsystems." />
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="6">
                                     <TextBlock Classes="card-title" Text="3. Clustered Islands (Subsystem Islands)" />
-                                    <TextBlock Classes="card-body" Text="Physically segregates the architecture into distinct themed islands: UI Forms Island, Logic Modules Island, Domain Classes Island, and User Controls. Perfect for visualizing UI-to-business logic decoupling." />
+                                    <TextBlock Classes="card-body" Text="Physically segregates the architecture into distinct themed islands: UI Forms Island, Logic Modules Island, Domain Classes Island, and User Controls. Perfect for auditing UI-to-business logic decoupling." />
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="6">
-                                    <TextBlock Classes="card-title" Text="4. Force-Directed (Spring Physics)" />
-                                    <TextBlock Classes="card-body" Text="Simulates a physical particle system: nodes repel each other while call dependencies act as elastic springs. Naturally brings central hub components and bridge routines to the core." />
+                                    <TextBlock Classes="card-title" Text="4. Force-Directed (Spring Physics / Fruchterman-Reingold)" />
+                                    <TextBlock Classes="card-body" Text="Simulates physical particles: nodes repel each other via electrostatic forces while call relations act as elastic springs. Naturally draws critical architectural hub components to the center." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -369,16 +448,16 @@
                     <!-- SEZIONE 2: LEGENDA NODI & COLORI (IT & EN)                -->
                     <!-- ========================================================= -->
                     <ScrollViewer x:Name="LegendSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Legenda dei Nodi, Colori e Relazioni" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Significato visivo di tutti i simboli, diametri, colori e relazioni disegnati nel grafo 2D." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
                             <Border Classes="info-card">
-                                <StackPanel Spacing="10">
+                                <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="1. Moduli e Contenitori (File di Progetto)" />
-                                    <TextBlock Classes="card-body" Text="Rappresentati come cerchi più grandi (raggio 20px) con punto centrale che indica lo stato espanso o compresso:" />
+                                    <TextBlock Classes="card-body" Text="Rappresentati come cerchi principali (raggio 20px) con punto centrale di espansione:" />
                                     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" Margin="0,4">
                                         <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
                                             <Ellipse Width="14" Height="14" Fill="#4FA8E8" VerticalAlignment="Center" />
@@ -413,7 +492,7 @@
                             </Border>
 
                             <Border Classes="info-card">
-                                <StackPanel Spacing="10">
+                                <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="2. Membri e Routine Interne" />
                                     <TextBlock Classes="card-body" Text="Disegnati attorno al container quando è espanso:" />
                                     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" Margin="0,4">
@@ -457,9 +536,9 @@
                             </Border>
 
                             <Border Classes="info-card">
-                                <StackPanel Spacing="10">
+                                <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="3. Archi e Connessioni (Relazioni)" />
-                                    <StackPanel Spacing="8">
+                                    <StackPanel Spacing="6">
                                         <StackPanel Orientation="Horizontal" Spacing="10">
                                             <Rectangle Width="24" Height="4" Fill="#4AE8D0" RadiusX="2" RadiusY="2" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
@@ -488,16 +567,16 @@
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="LegendSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Node, Color &amp; Relationship Legend" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Visual guide to all node types, member symbols, borders, and call relationships in the 2D graph." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
                             <Border Classes="info-card">
-                                <StackPanel Spacing="10">
+                                <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="1. Modules &amp; Containers (Project Files)" />
-                                    <TextBlock Classes="card-body" Text="Represented as larger circles (20px radius) with a center dot indicating expanded or collapsed state:" />
+                                    <TextBlock Classes="card-body" Text="Represented as primary circles (20px radius) with an expansion center dot:" />
                                     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" Margin="0,4">
                                         <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="0,4,8,4">
                                             <Ellipse Width="14" Height="14" Fill="#4FA8E8" VerticalAlignment="Center" />
@@ -532,7 +611,7 @@
                             </Border>
 
                             <Border Classes="info-card">
-                                <StackPanel Spacing="10">
+                                <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="2. Internal Members &amp; Routines" />
                                     <TextBlock Classes="card-body" Text="Drawn orbiting the container when expanded:" />
                                     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" Margin="0,4">
@@ -576,9 +655,9 @@
                             </Border>
 
                             <Border Classes="info-card">
-                                <StackPanel Spacing="10">
+                                <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="3. Edges &amp; Connections (Relations)" />
-                                    <StackPanel Spacing="8">
+                                    <StackPanel Spacing="6">
                                         <StackPanel Orientation="Horizontal" Spacing="10">
                                             <Rectangle Width="24" Height="4" Fill="#4AE8D0" RadiusX="2" RadiusY="2" VerticalAlignment="Center" />
                                             <StackPanel Spacing="1">
@@ -610,8 +689,8 @@
                     <!-- SEZIONE 3: TREEMAP (IT & EN)                              -->
                     <!-- ========================================================= -->
                     <ScrollViewer x:Name="TreemapSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Mappa ad Albero del Codice (Treemap)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Visualizzazione gerarchica proporzionale al volume di codice (LOC) e complessità." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -619,15 +698,18 @@
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Come interpretare la Treemap" />
-                                    <TextBlock Classes="card-body" Text="• Dimensione del Riquadro: proporzionale alle Linee di Codice (LOC) o al numero di istruzioni del modulo o della routine.&#x0a;• Colore del Riquadro: mappa di calore della Complessità Ciclomatica media (Verde = Semplice/Bassa CC, Giallo = Moderata, Rosso = Complessa/Critica).&#x0a;• Drill-Down Interattivo: fai doppio clic su un modulo per entrare all'interno e ispezionare la mappa delle singole routine e proprietà che lo compongono." />
+                                    <TextBlock Classes="card-body" Text="• Dimensione del Riquadro (Area): direttamente proporzionale alle Linee di Codice (LOC) o al numero di istruzioni del modulo o della routine.&#x0a;• Colore del Riquadro (Heatmap): indica la Complessità Ciclomatica di McCabe (Verde = Bassa/Semplice, Giallo = Moderata, Rosso = Complessa/Critica).&#x0a;• Drill-Down Interattivo: fai doppio clic su un modulo per navigare al suo interno e ispezionare le singole routine che lo compongono." />
+                                    <Border Classes="formula-box">
+                                        <TextBlock Classes="formula-text" Text="Complessità Ciclomatica (McCabe): CC = E - N + 2P = 1 + Punti di Decisione (If, Case, For, While)" />
+                                    </Border>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="TreemapSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Code Metrics Treemap" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Hierarchical visualization scaled by code volume (LOC) and complexity." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -635,7 +717,10 @@
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="How to Interpret the Treemap" />
-                                    <TextBlock Classes="card-body" Text="• Box Size (Area): Directly proportional to Lines of Code (LOC) or instruction volume.&#x0a;• Box Color: Heatmap indicating Cyclomatic Complexity (Green = Simple/Low CC, Yellow = Moderate, Red = Complex Hotspot).&#x0a;• Interactive Drill-Down: Double-click any module or class to zoom in and inspect individual methods and properties." />
+                                    <TextBlock Classes="card-body" Text="• Box Size (Area): Proportional to Lines of Code (LOC) or instruction volume.&#x0a;• Box Color (Heatmap): Indicates McCabe Cyclomatic Complexity (Green = Low/Simple, Yellow = Moderate, Red = Complex Hotspot).&#x0a;• Interactive Drill-Down: Double-click any module or class to zoom in and audit individual methods." />
+                                    <Border Classes="formula-box">
+                                        <TextBlock Classes="formula-text" Text="Cyclomatic Complexity (McCabe): CC = E - N + 2P = 1 + Decision Points (If, Case, For, While)" />
+                                    </Border>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -645,8 +730,8 @@
                     <!-- SEZIONE 4: SCREEN & CONTROL FLOW (IT & EN)                -->
                     <!-- ========================================================= -->
                     <ScrollViewer x:Name="FlowsSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Flussi di Navigazione &amp; Controllo (Flows)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Mappatura dei percorsi utente tra finestre e scomposizione a blocchi logici del codice." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -660,16 +745,16 @@
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock Classes="card-title" Text="Control Flow Graph (CFG - Flusso di Controllo)" />
-                                    <TextBlock Classes="card-body" Text="Scompone una singola Sub, Function o Property in un grafo a blocchi di istruzioni base e archi di salto:&#x0a;• Strutture decisionali: If...Then...Else, Select Case.&#x0a;• Cicli: For...Next, Do...While, While...Wend.&#x0a;• Gestione Errori e Salti: On Error GoTo, Resume, GoTo etichette.&#x0a;Indispensabile per verificare la logica di algoritmi contorti e calcolare la complessità ciclomatica." />
+                                    <TextBlock Classes="card-title" Text="Control Flow Graph (CFG - Grafo di Flusso di Controllo)" />
+                                    <TextBlock Classes="card-body" Text="Scompone una singola Sub, Function o Property in un grafo di blocchi di istruzioni base (BBI) e archi di salto:&#x0a;• Strutture decisionali: If...Then...Else, Select Case.&#x0a;• Cicli: For...Next, Do...While, While...Wend.&#x0a;• Gestione Errori e Salti: On Error GoTo, Resume, GoTo etichette.&#x0a;Indispensabile per verificare la logica di algoritmi contorti e analizzare cammini di esecuzione multipli." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="FlowsSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Navigation &amp; Control Flows" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="User navigation mapping between screens and routine-level control flow graph decomposition." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -677,14 +762,14 @@
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Screen Flow (Form &amp; Window Navigation)" />
-                                    <TextBlock Classes="card-body" Text="Maps the user journey through application forms (.frm):&#x0a;• Openings: .Show, Load Form, modal dialogs (vbModal).&#x0a;• Transitions &amp; Closings: .Hide and Unload Me.&#x0a;Allows architects to understand user workflows and navigation structure without running the application." />
+                                    <TextBlock Classes="card-body" Text="Maps the user journey through application forms (.frm):&#x0a;• Openings: .Show, Load Form, modal dialogs (vbModal).&#x0a;• Transitions &amp; Closings: .Hide and Unload Me.&#x0a;Allows architects to understand user workflows and screen transitions without running the application." />
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Control Flow Graph (CFG)" />
-                                    <TextBlock Classes="card-body" Text="Deconstructs a single Sub, Function, or Property into basic instruction blocks and branch edges:&#x0a;• Decisions: If...Then...Else, Select Case.&#x0a;• Loops: For...Next, Do...While, While...Wend.&#x0a;• Error Handling &amp; Jumps: On Error GoTo, Resume, GoTo labels.&#x0a;Essential for auditing complex legacy algorithms and computing cyclomatic complexity." />
+                                    <TextBlock Classes="card-body" Text="Deconstructs a single Sub, Function, or Property into basic instruction blocks (BBI) and branch edges:&#x0a;• Decisions: If...Then...Else, Select Case.&#x0a;• Loops: For...Next, Do...While, While...Wend.&#x0a;• Error Handling &amp; Jumps: On Error GoTo, Resume, GoTo labels.&#x0a;Essential for auditing complex legacy algorithms and identifying edge-case branches." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -694,8 +779,8 @@
                     <!-- SEZIONE 5: DSM & HOTSPOTS (IT & EN)                       -->
                     <!-- ========================================================= -->
                     <ScrollViewer x:Name="DsmHotspotsSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="DSM (Dependency Matrix) &amp; Hotspots" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Matrici di accoppiamento architetturale e rilevamento dei punti caldi di complessità." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -703,37 +788,53 @@
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="DSM (Dependency Structure Matrix)" />
-                                    <TextBlock Classes="card-body" Text="Una matrice quadrata N x N in cui righe e colonne corrispondono ai moduli del progetto:&#x0a;• Le celle indicano il numero di chiamate/dipendenze tra il modulo di riga e quello di colonna.&#x0a;• Rilevamento Dipendenze Circolari: le celle sopra la diagonale principale evidenziano chiamate ricorsive o accoppiamenti a doppio senso (anti-pattern ciclici).&#x0a;• Architettura a Strati: aiuta a riordinare i moduli in livelli gerarchici puliti (Layered Architecture)." />
+                                    <TextBlock Classes="card-body" Text="Una matrice quadrata N x N in cui righe e colonne corrispondono ai moduli del progetto:&#x0a;• Celle (i, j): indicano il volume di chiamate/dipendenze dal modulo di riga verso quello di colonna.&#x0a;• Rilevamento Dipendenze Circolari: celle speculari sopra la diagonale principale evidenziano chiamate a doppio senso o loop ricorsivi (anti-pattern ciclici).&#x0a;• Ordinamento a Strati: supporta il riordinamento gerarchico per verificare la conformità ad architetture a livelli." />
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock Classes="card-title" Text="Analisi degli Hotspots (Punti Caldi)" />
-                                    <TextBlock Classes="card-body" Text="Combina Complessità Ciclomatica, Fan-In (quanti chiamano la funzione) e Fan-Out (quante altre funzioni chiama). Permette di ordinare e filtrare immediatamente le routine che necessitano di maggiore attenzione durante le attività di manutenzione ed evoluzione." />
+                                    <TextBlock Classes="card-title" Text="Analisi degli Hotspots (Scatter Chart a 4 Quadranti)" />
+                                    <TextBlock Classes="card-body" Text="Combina Complessità Strutturale (Asse Y) e Frequenza di Modifica / Fan-In (Asse X) su grafico cartesiano con soglie basate sulla media della codebase:" />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="Complessità (Asse Y) = 1.0 + (Callees * 1.5) + (Params * 0.8)" />
+                                            <TextBlock Classes="formula-text" Text="Churn / Fan-In (Asse X) = (VCS_Commits * 2.0) + Callers" />
+                                            <TextBlock Classes="formula-text" Text="Danger Zone = Quadrante Alto-Destro (Churn &gt; MediaX AND Complessità &gt; MediaY)" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Classes="card-body" Text="Gli elementi nella Danger Zone rappresentano la massima priorità di refactoring e richiedono test di regressione preventivi prima di qualsiasi modifica." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="DsmHotspotsSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="DSM (Dependency Matrix) &amp; Hotspots" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
-                                <TextBlock Text="Architectural dependency matrix and complexity hotspot detection." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                                <TextBlock Text="Architectural dependency matrix and 4-quadrant risk hotspot detection." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="DSM (Dependency Structure Matrix)" />
-                                    <TextBlock Classes="card-body" Text="An N x N square matrix where rows and columns represent project modules:&#x0a;• Cell Values: Number of calls/dependencies between row and column modules.&#x0a;• Circular Dependency Detection: Cells above the main diagonal indicate bidirectional coupling or recursive loops (architectural anti-patterns).&#x0a;• Layer Sorting: Helps reorganize code into clean hierarchical layers." />
+                                    <TextBlock Classes="card-body" Text="An N x N square matrix where rows and columns represent project modules:&#x0a;• Cell (i, j): Number of calls from row module to column module.&#x0a;• Circular Dependency Detection: Mirrored cells above the main diagonal indicate bidirectional coupling or recursive loops (architectural anti-patterns).&#x0a;• Layer Sorting: Helps organize code into clean hierarchical layers." />
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock Classes="card-title" Text="Risk Hotspots Analysis" />
-                                    <TextBlock Classes="card-body" Text="Plots Cyclomatic Complexity against Fan-In / Churn frequency in a 4-quadrant scatter chart. Immediately pinpoints high-risk routines requiring refactoring or priority regression testing." />
+                                    <TextBlock Classes="card-title" Text="Risk Hotspots (4-Quadrant Scatter Chart)" />
+                                    <TextBlock Classes="card-body" Text="Plots Structural Complexity (Y axis) against Change Churn / Fan-In (X axis) around codebase average thresholds:" />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="Complexity (Y Axis) = 1.0 + (Callees * 1.5) + (Params * 0.8)" />
+                                            <TextBlock Classes="formula-text" Text="Churn / Fan-In (X Axis) = (VCS_Commits * 2.0) + Callers" />
+                                            <TextBlock Classes="formula-text" Text="Danger Zone = Top-Right Quadrant (Churn &gt; AvgX AND Complexity &gt; AvgY)" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Classes="card-body" Text="Items located in the Danger Zone represent the highest refactoring priority and require thorough regression testing." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -743,8 +844,8 @@
                     <!-- SEZIONE 6: BLAST RADIUS (IT & EN)                         -->
                     <!-- ========================================================= -->
                     <ScrollViewer x:Name="BlastRadiusSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Analisi d'Impatto (Blast Radius)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Calcolo dei percorsi di propagazione a catena e livello di rischio delle modifiche." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -752,22 +853,28 @@
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Cos'è il Blast Radius e come viene calcolato" />
-                                    <TextBlock Classes="card-body" Text="Quando si modifica una routine, il Blast Radius esegue una visita a ritroso nel grafo (reverse call graph traversal) per identificare ogni singola procedura o form che, direttamente o indirettamente, invoca quel codice." />
+                                    <TextBlock Classes="card-body" Text="Quando si modifica una routine, il Blast Radius esegue una visita a ritroso nel grafo (reverse call graph traversal sul grafo trasposto G^T) per identificare ogni singola procedura o form che, direttamente o indirettamente, invoca quel codice." />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="Profondità Massima (Max Depth) = max(lunghezza cammino da entry-point a routine)" />
+                                            <TextBlock Classes="formula-text" Text="Rischio Normalizzato (0-100) = Media pesata di Chiamanti Totali, Max Depth e Form UI Impattate" />
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Metriche Calcolate" />
-                                    <TextBlock Classes="card-body" Text="• Chiamanti Diretti: routine che contengono una chiamata diretta al simbolo.&#x0a;• Chiamanti Indiretti: routine che invocano i chiamanti diretti (propagazione transitiva).&#x0a;• Profondità Massima (Max Depth): lunghezza della catena di chiamata più profonda.&#x0a;• Form Impattate: elenco delle finestre UI che dipendono da questa funzione." />
+                                    <TextBlock Classes="card-body" Text="• Chiamanti Diretti: routine che contengono una chiamata diretta al simbolo.&#x0a;• Chiamanti Indiretti: routine che invocano i chiamanti diretti (propagazione transitiva a catena).&#x0a;• Profondità Massima (Max Depth): lunghezza della catena di chiamata più profonda.&#x0a;• Form Impattate: elenco delle finestre UI che dipendono da questa funzione." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="BlastRadiusSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Impact Analysis (Blast Radius)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Transitive call chain propagation and change regression risk calculation." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -775,7 +882,13 @@
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="What is Blast Radius &amp; How It Works" />
-                                    <TextBlock Classes="card-body" Text="When modifying a routine, Blast Radius performs a reverse call graph traversal to discover every function, class, and UI form that invokes that code directly or indirectly." />
+                                    <TextBlock Classes="card-body" Text="When modifying a routine, Blast Radius performs a reverse call graph traversal on transposed graph G^T to discover every function, class, and UI form that invokes that code directly or indirectly." />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="Max Depth = max(path length from entry point to target routine)" />
+                                            <TextBlock Classes="formula-text" Text="Normalized Risk (0-100) = Weighted score of Total Callers, Max Depth, and UI Forms Affected" />
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
                             </Border>
 
@@ -792,8 +905,8 @@
                     <!-- SEZIONE 7: MARTIN & DEAD CODE (IT & EN)                   -->
                     <!-- ========================================================= -->
                     <ScrollViewer x:Name="MartinDeadCodeSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Diagramma di Martin &amp; Codice Morto" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Metriche di stabilità/astrattezza architetturale e rilevamento codice non raggiungibile." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -801,22 +914,32 @@
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Diagramma di Martin (Stabilità vs Astrattezza)" />
-                                    <TextBlock Classes="card-body" Text="Valuta la qualità del design architetturale basandosi sui principi di Robert C. Martin (Clean Architecture):&#x0a;• Afferent Coupling (Ca): numero di elementi esterni che dipendono dal componente.&#x0a;• Efferent Coupling (Ce): numero di elementi esterni da cui il componente dipende.&#x0a;• Instabilità (I = Ce / (Ca + Ce)): varia da 0 (massima stabilità, difficile da modificare) a 1 (massima instabilità, flessibile).&#x0a;• Astrattezza (A = Na / Nc): rapporto tra elementi astratti/interfacce e classi concrete.&#x0a;• Distanza dalla Sequenza Principale (D = |A + I - 1|): misura quanto il modulo è bilanciato tra stabilità ed estensibilità. Evidenzia la 'Zona di Dolore' (concreto e rigido) e la 'Zona di Inutilità' (astratto e mai utilizzato)." />
+                                    <TextBlock Classes="card-body" Text="Valuta la qualità del packaging architetturale basandosi sui principi di Robert C. Martin (Clean Architecture):" />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="Afferent Coupling (Ca): N. elementi esterni che dipendono dal modulo" />
+                                            <TextBlock Classes="formula-text" Text="Efferent Coupling (Ce): N. elementi esterni da cui il modulo dipende" />
+                                            <TextBlock Classes="formula-text" Text="Instabilità: I = Ce / (Ca + Ce) ∈ [0, 1]  (0 = Stabile/Rigido, 1 = Flessibile)" />
+                                            <TextBlock Classes="formula-text" Text="Astrattezza: A = Na / Nc ∈ [0, 1]  (Rapporto Tipi Astratti / Tipi Totali)" />
+                                            <TextBlock Classes="formula-text" Text="Distanza Sequenza Principale: D = |A + I - 1| ∈ [0, 1]" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Classes="card-body" Text="• Zona di Dolore (A=0, I=0): moduli estremamente concreti e rigidi su cui tutti dipendono.&#x0a;• Zona di Inutilità (A=1, I=1): moduli altamente astratti ma mai utilizzati da nessuno." />
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Analisi Dead Code &amp; Entry Point Reachability" />
-                                    <TextBlock Classes="card-body" Text="Esegue un'esplorazione esaustiva del grafo (visita BFS/DFS) a partire dagli entry point noti dell'applicazione:&#x0a;• Entry Points: Sub Main, maschera di avvio (Startup Form), gestori eventi UI e classi COM pubbliche.&#x0a;• Raggiungibilità: identifica routine e procedure orfane non raggiungibili da alcun flusso di esecuzione.&#x0a;• Moduli Inutilizzati: evidenzia interi file .bas/.cls non referenziati dal resto dell'applicazione.&#x0a;Fornisce un supporto indispensabile per il refactoring e la rimozione sicura del debito tecnico legacy." />
+                                    <TextBlock Classes="card-body" Text="Esegue un'esplorazione esaustiva del grafo (visita BFS/DFS) a partire dagli entry point noti dell'applicazione:&#x0a;• Entry Points: Sub Main, Startup Form, gestori eventi UI e classi COM pubbliche.&#x0a;• Raggiungibilità: identifica routine e procedure orfane non raggiungibili da alcun flusso di esecuzione.&#x0a;• Moduli Inutilizzati: evidenzia interi file .bas/.cls non referenziati dal resto dell'applicazione." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="MartinDeadCodeSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Martin Metrics &amp; Dead Code" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Architectural stability/abstractness metrics and unreachable code detection." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -824,7 +947,17 @@
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Martin Diagram (Stability vs Abstractness)" />
-                                    <TextBlock Classes="card-body" Text="Evaluates architectural package design based on Robert C. Martin's Clean Architecture principles:&#x0a;• Afferent Coupling (Ca): Number of external entities that depend on the component.&#x0a;• Efferent Coupling (Ce): Number of external entities the component depends on.&#x0a;• Instability (I = Ce / (Ca + Ce)): Ranges from 0 (maximum stability, rigid) to 1 (maximum instability, flexible).&#x0a;• Abstractness (A = Na / Nc): Ratio of abstract types/interfaces to concrete classes.&#x0a;• Distance from Main Sequence (D = |A + I - 1|): Measures architectural balance. Identifies the 'Zone of Pain' (rigid, concrete, heavily dependent) and 'Zone of Uselessness' (abstract with no dependents)." />
+                                    <TextBlock Classes="card-body" Text="Evaluates package design based on Robert C. Martin's Clean Architecture principles:" />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="Afferent Coupling (Ca): Number of external entities depending on module" />
+                                            <TextBlock Classes="formula-text" Text="Efferent Coupling (Ce): Number of external entities module depends upon" />
+                                            <TextBlock Classes="formula-text" Text="Instability: I = Ce / (Ca + Ce) ∈ [0, 1]  (0 = Stable/Rigid, 1 = Flexible)" />
+                                            <TextBlock Classes="formula-text" Text="Abstractness: A = Na / Nc ∈ [0, 1]  (Ratio of Abstract / Total Types)" />
+                                            <TextBlock Classes="formula-text" Text="Distance from Main Sequence: D = |A + I - 1| ∈ [0, 1]" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Classes="card-body" Text="• Zone of Pain (A=0, I=0): Highly concrete, rigid packages with high incoming dependencies.&#x0a;• Zone of Uselessness (A=1, I=1): Highly abstract packages with no incoming dependents." />
                                 </StackPanel>
                             </Border>
 
@@ -841,8 +974,8 @@
                     <!-- SEZIONE 8: STATO CONDIVISO & TEMPORAL (IT & EN)           -->
                     <!-- ========================================================= -->
                     <ScrollViewer x:Name="SharedTemporalSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Stato Condiviso &amp; Temporal Coupling" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Mappatura della memoria globale mutabile e co-evoluzione storica dei file da Git/VCS." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -850,22 +983,29 @@
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Matrice di Stato Globale e Condiviso" />
-                                    <TextBlock Classes="card-body" Text="Ispeziona tutte le variabili globali Public nei moduli (.bas) e i campi statici mutabili in C#:&#x0a;• Lettori &amp; Scrittori: per ogni variabile globale identifica con precisione quali funzioni la leggono (Readers) e quali la modificano (Writers).&#x0a;• Rischio di Mutazione Cross-Module: calcola il rischio di side-effect imprevisti quando moduli distanti alterano il medesimo stato condiviso senza incapsulamento.&#x0a;• Analisi Concorrenza: individua punti critici per la migrazione e la separazione in servizi isolati." />
+                                    <TextBlock Classes="card-body" Text="Ispeziona tutte le variabili globali Public nei moduli (.bas) e i campi statici mutabili in C#:&#x0a;• Lettori &amp; Scrittori: per ogni variabile identifica quali funzioni leggono (Readers) e quali modificano (Writers).&#x0a;• Rischio di Mutazione Cross-Module: calcola il rischio di side-effect quando moduli distanti alterano lo stesso stato globale senza incapsulamento.&#x0a;• Analisi Concorrenza: individua punti critici per la migrazione a servizi isolati." />
                                 </StackPanel>
                             </Border>
 
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
-                                    <TextBlock Classes="card-title" Text="Accoppiamento Temporale (Co-Change Mining)" />
-                                    <TextBlock Classes="card-body" Text="Estrae la cronologia dei commit dal repository di controllo versione (Git o SVN):&#x0a;• Matrice di Co-Variazione: individua coppie di file che vengono modificati o committati insieme con alta frequenza.&#x0a;• Indice di Jaccard &amp; Confidenza: calcola J(A, B) = |A ∩ B| / |A ∪ B| e la probabilità condizionata P(B|A).&#x0a;• Dipendenze Nascoste: fa emergere accoppiamenti logici o duplicazioni di codice non visibili dall'analisi statica delle chiamate." />
+                                    <TextBlock Classes="card-title" Text="Accoppiamento Temporale (Co-Change Mining da Git/SVN)" />
+                                    <TextBlock Classes="card-body" Text="Estrae la cronologia dei commit dal repository di controllo versione (Git o SVN) per individuare coppie di file che co-evolvono insieme:" />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="Indice di Jaccard: J(A, B) = |A ∩ B| / |A ∪ B|" />
+                                            <TextBlock Classes="formula-text" Text="Confidenza Condizionata: P(B | A) = |A ∩ B| / |A|" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Classes="card-body" Text="Evidenzia dipendenze nascoste, duplicazioni di logica o assunzioni condivise non visibili dalla sola analisi statica del codice." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="SharedTemporalSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Shared State &amp; Temporal Coupling" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Mutable shared memory inspection and historical co-change mining from Git/VCS." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -880,7 +1020,14 @@
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="Temporal Coupling &amp; Co-Change Mining" />
-                                    <TextBlock Classes="card-body" Text="Mines commit history from Git or SVN repositories:&#x0a;• Co-Change Matrix: Discovers file pairs modified or committed together with high frequency.&#x0a;• Jaccard Index &amp; Confidence: Computes J(A, B) = |A ∩ B| / |A ∪ B| and conditional probability P(B|A).&#x0a;• Hidden Dependencies: Reveals logical couplings, shared assumptions, or copy-pasted code invisible to static analysis." />
+                                    <TextBlock Classes="card-body" Text="Mines commit history from Git or SVN repositories to discover co-evolving file pairs:" />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="Jaccard Index: J(A, B) = |A ∩ B| / |A ∪ B|" />
+                                            <TextBlock Classes="formula-text" Text="Conditional Confidence: P(B | A) = |A ∩ B| / |A|" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Classes="card-body" Text="Reveals implicit architectural coupling, copy-pasted logic, or shared assumptions invisible to static analysis." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -890,8 +1037,8 @@
                     <!-- SEZIONE 9: FLUSSI ARCHITETTURALI & CODECITY (IT & EN)     -->
                     <!-- ========================================================= -->
                     <ScrollViewer x:Name="FlowCitySection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Flussi Architetturali &amp; CodeCity 3D" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Visualizzazioni avanzate dei flussi di comunicazione e mappa polimetrica 3D del codice." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -906,15 +1053,15 @@
                             <Border Classes="info-card">
                                 <StackPanel Spacing="8">
                                     <TextBlock Classes="card-title" Text="CodeCity (Mappa Polimetrica 3D del Software)" />
-                                    <TextBlock Classes="card-body" Text="Ispirato al modello visivo di Wettel &amp; Lanza, trasforma la codebase in una città virtuale:&#x0a;• Quartieri (Districts): rappresentano cartelle, namespace o moduli logici.&#x0a;• Edifici (Buildings): rappresentano singoli file o classi.&#x0a;• Impronta a terra (Larghezza x Profondità): proporzionale al volume di codice (LOC / N. Istruzioni).&#x0a;• Altezza dell'Edificio: proporzionale alla Complessità Ciclomatica media.&#x0a;• Colore: indica il livello di rischio, accoppiamento o concentrazione di modifiche recenti." />
+                                    <TextBlock Classes="card-body" Text="Ispirato al modello visivo di Wettel &amp; Lanza, trasforma la codebase in una città virtuale:&#x0a;• Quartieri (Districts): rappresentano cartelle, namespace o moduli logici.&#x0a;• Edifici (Buildings): rappresentano singoli file o classi.&#x0a;• Impronta a terra (Larghezza x Profondità): proporzionale al volume di codice (LOC).&#x0a;• Altezza dell'Edificio: proporzionale alla Complessità Ciclomatica media.&#x0a;• Colore: indica il livello di rischio, accoppiamento o concentrazione di modifiche recenti." />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="FlowCitySection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Architectural Flows &amp; 3D CodeCity" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Volumetric chord communication ribbons and 3D polymetric code city map." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -936,11 +1083,359 @@
                     </ScrollViewer>
 
                     <!-- ========================================================= -->
-                    <!-- SEZIONE 10: AI & ESPORTAZIONE LLM (IT & EN)               -->
+                    <!-- SEZIONE 10: MANUTENIBILITÀ & HALSTEAD (IT & EN)           -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="MaintainabilitySection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Indice di Manutenibilità (Maintainability Index)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Valutazione del debito tecnico e della manutenibilità secondo lo standard SEI / Microsoft." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Formula del Maintainability Index (MI)" />
+                                    <TextBlock Classes="card-body" Text="Combina il Volume di Halstead (V), la Complessità Ciclomatica (CC) e le Linee di Codice (LOC):" />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="MI_raw = 171 - 5.2 * ln(Halstead_Volume) - 0.23 * CC - 16.2 * ln(LOC)" />
+                                            <TextBlock Classes="formula-text" Text="MI_norm = Clamp((MI_raw * 100) / 171, 0, 100)" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Classes="card-body" Text="• Halstead Volume: V = (N1 + N2) * log2(n1 + n2), dove n1/n2 sono operatori e operandi distinti, N1/N2 i totali.&#x0a;• Soglia Verde (80 - 100): Alta manutenibilità, codice pulito e facile da modificare.&#x0a;• Soglia Gialla (60 - 79): Manutenibilità moderata, rischio medio.&#x0a;• Soglia Rossa (0 - 59): Bassa manutenibilità, elevato debito tecnico e candidato primario al refactoring." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="MaintainabilitySection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Maintainability Index &amp; Halstead Science" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Technical debt and software maintainability evaluation per SEI / Microsoft standard." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Maintainability Index (MI) Formulation" />
+                                    <TextBlock Classes="card-body" Text="Blends Halstead Volume (V), Cyclomatic Complexity (CC), and Lines of Code (LOC):" />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="MI_raw = 171 - 5.2 * ln(Halstead_Volume) - 0.23 * CC - 16.2 * ln(LOC)" />
+                                            <TextBlock Classes="formula-text" Text="MI_norm = Clamp((MI_raw * 100) / 171, 0, 100)" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Classes="card-body" Text="• Halstead Volume: V = (N1 + N2) * log2(n1 + n2), where n1/n2 are distinct operators/operands, and N1/N2 are total counts.&#x0a;• Green (80 - 100): High maintainability, clean and easy to refactor.&#x0a;• Yellow (60 - 79): Moderate maintainability, medium risk.&#x0a;• Red (0 - 59): Low maintainability, severe technical debt requiring immediate refactoring." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 11: COESIONE & SUITE C&K (IT & EN)                -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="CohesionSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Coesione delle Classi &amp; Suite C&amp;K" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Metriche di coesione interna LCOM4 e suite Chidamber &amp; Kemerer per il design ad oggetti." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="LCOM4 (Lack of Cohesion in Methods 4 - Hitz &amp; Montazeri)" />
+                                    <TextBlock Classes="card-body" Text="Costruisce un grafo non orientato in cui i nodi sono i metodi della classe e gli archi collegano metodi che condividono campi/stato o si chiamano a vicenda. LCOM4 è il numero di componenti connesse nel grafo:" />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="LCOM4 = 1: Classe coesa con Singola Responsabilità (Single Responsibility Principle)" />
+                                            <TextBlock Classes="formula-text" Text="LCOM4 &gt; 1: Classe multi-responsabilità, candidata a essere scorporata in K classi separate" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Metriche TCC, LCC e Suite C&amp;K" />
+                                    <TextBlock Classes="card-body" Text="• Tight Class Cohesion (TCC): frazione di coppie di metodi connesse direttamente su M*(M-1)/2 coppie possibili.&#x0a;• Loose Class Cohesion (LCC): frazione di coppie connesse direttamente o transitivamente.&#x0a;• WMC (Weighted Methods per Class): somma delle complessità ciclomatiche dei metodi della classe.&#x0a;• CBO (Coupling Between Objects): numero di classi esterne a cui la classe è accoppiata.&#x0a;• RFC (Response for a Class): dimensione dell'insieme di metodi eseguiti in risposta a un messaggio (metodi propri + metodi esterni chiamati)." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="CohesionSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Class Cohesion &amp; C&amp;K Metrics Suite" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="LCOM4 internal cohesion and Chidamber &amp; Kemerer object-oriented design metrics." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="LCOM4 (Lack of Cohesion in Methods 4 - Hitz &amp; Montazeri)" />
+                                    <TextBlock Classes="card-body" Text="Builds an undirected graph where nodes are class methods and edges link methods sharing fields or calling each other. LCOM4 equals the number of connected components:" />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="LCOM4 = 1: Cohesive class adhering to Single Responsibility Principle" />
+                                            <TextBlock Classes="formula-text" Text="LCOM4 &gt; 1: Fragmented responsibilities, prime candidate to split into K classes" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="TCC, LCC and C&amp;K Metrics Suite" />
+                                    <TextBlock Classes="card-body" Text="• Tight Class Cohesion (TCC): Fraction of directly connected method pairs over M*(M-1)/2 total pairs.&#x0a;• Loose Class Cohesion (LCC): Fraction of directly or transitively connected method pairs.&#x0a;• WMC (Weighted Methods per Class): Sum of cyclomatic complexities across all class methods.&#x0a;• CBO (Coupling Between Objects): Number of external classes coupled via calls or type references.&#x0a;• RFC (Response for a Class): Response set size (|Local Methods| + |Invoked External Methods|)." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 12: REGOLE ARCHITETTURA (IT & EN)                 -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="ArchitecturalRulesSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Regole di Architettura &amp; Fitness Functions" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Verifica automatica dei vincoli di stratificazione (Layering) e disaccoppiamento del codice." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Enforcement dei Confini Architetturali (ArchUnit Style)" />
+                                    <TextBlock Classes="card-body" Text="Valuta formalmente il CodeGraph rispetto alle regole di stratificazione definite:&#x0a;• Isolamento del Dominio: i modelli e le entità di business non devono dipendere dai layer esterni (UI, Controller o DataAccess).&#x0a;• Divieto Accesso DB Diretto da UI: le Form grafiche (.frm) non possono eseguire query o invocare repository direttamente senza passare per i servizi.&#x0a;• Moduli Utilità Puri: i moduli standard (.bas) non devono istanziare direttamente maschere UI." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="ArchitecturalRulesSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Architectural Rules &amp; Fitness Functions" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Automated architectural layer boundary and decoupling rule verification." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Architectural Boundary Enforcement (ArchUnit Style)" />
+                                    <TextBlock Classes="card-body" Text="Evaluates the semantic CodeGraph against declared layering constraints:&#x0a;• Domain Isolation: Domain models and business entities must not depend on outer tiers (UI, Controllers, DataAccess).&#x0a;• No Direct DB from UI: UI Forms (.frm) must not call DB persistence components directly without service layers.&#x0a;• Pure Utilities: Helper and library modules (.bas) must not instantiate UI Forms." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 13: DUPLICAZIONI & CLONI (IT & EN)                -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="CodeCloneSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Duplicazioni di Codice (Code Clones / CPD)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Rilevamento di routine duplicate, cloni esatti e cloni strutturali parametrizzati." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Tipologie di Cloni Rilevate" />
+                                    <TextBlock Classes="card-body" Text="• Cloni di Tipo 1 (Exact Clones): routine identiche per numero di righe, parametri formali e sequenza esatta di chiamate uscenti nel grafo.&#x0a;• Cloni di Tipo 2 (Structural / Parameterized Clones): routine identiche per struttura logica, complessità e densità di chiamate, ma con identificatori o variabili rinominate.&#x0a;• Raggruppamento Ridondanze: calcola il totale delle righe duplicate risparmiabili mediante estrazione a metodo comune." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="CodeCloneSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Code Duplication (Code Clones / CPD)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Detection of copy-pasted routines, exact clones, and structural parameterized clones." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Detected Clone Classifications" />
+                                    <TextBlock Classes="card-body" Text="• Type-1 Clones (Exact Clones): Identical line counts, parameter signatures, and exact outgoing call graphs.&#x0a;• Type-2 Clones (Structural / Parameterized): Identical syntactic structure and call density, but with renamed identifiers or variables.&#x0a;• Redundancy Grouping: Computes total duplicated lines that can be unified through refactoring." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 14: SOCIAL CODE & BUS FACTOR (IT & EN)            -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="SocialCodeSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Social Code Analysis &amp; Bus Factor" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Ownership del codice, rischio di abbandono della conoscenza ed Entropia di Shannon." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Metriche di Rischio Organizzativo (Adam Tornhill / CodeScene)" />
+                                    <TextBlock Classes="card-body" Text="Incrocia i file del CodeGraph con la cronologia dei commit Git/SVN:" />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="Bus Factor (Truck Factor): Minimo N. sviluppatori per coprire l'80% della conoscenza storica (∑ pi ≥ 0.80)" />
+                                            <TextBlock Classes="formula-text" Text="Entropia della Conoscenza: H = - ∑ (pi * log2(pi))  [misura la dispersione tra autori]" />
+                                            <TextBlock Classes="formula-text" Text="Orphan Risk: File critico il cui autore principale non è più attivo nel team" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="SocialCodeSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Social Code Analysis &amp; Bus Factor" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Code ownership, team knowledge loss risk, and Shannon Knowledge Entropy." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Organizational Risk Metrics (Adam Tornhill / CodeScene)" />
+                                    <TextBlock Classes="card-body" Text="Correlates semantic CodeGraph files with Git/SVN commit histories:" />
+                                    <Border Classes="formula-box">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Classes="formula-text" Text="Bus Factor (Truck Factor): Min developers required to cover 80% of historical knowledge (∑ pi ≥ 0.80)" />
+                                            <TextBlock Classes="formula-text" Text="Knowledge Entropy: H = - ∑ (pi * log2(pi))  [measures author knowledge dispersion]" />
+                                            <TextBlock Classes="formula-text" Text="Orphan Risk: Critical files whose primary maintainer has left the team" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 15: DATA FLOW & TAINT (IT & EN)                   -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="DataFlowSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Data Flow &amp; Taint Tracking" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Tracciamento dei flussi di dati insicuri da Sorgenti (Sources) a Punti Critici (Sinks)." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Taint Analysis (Source-to-Sink)" />
+                                    <TextBlock Classes="card-body" Text="• Sorgenti Non Controllate (Sources): Input utente (textbox txt*, parametri URL, request HTTP), file esterni o socket.&#x0a;• Punti Critici (Sinks): Esecuzione di query SQL dirette (Recordset.Open, Execute), comandi di shell/processo o scritture filesystem.&#x0a;• Cammini di Propagazione: Ricerca BFS nel grafo per individuare flussi di dati diretti da Source a Sink privi di sanitizzazione o validazione intermedia." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Anomalie Def-Use (Dead Store)" />
+                                    <TextBlock Classes="card-body" Text="Individua variabili o campi che vengono valorizzati/scritti (Writes) ma il cui valore non viene mai successivamente letto (Reads), rappresentando codice ridondante o possibili bug logici." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="DataFlowSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Data Flow &amp; Taint Tracking" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Unsafe data flow tracking from Untrusted Sources to Critical Execution Sinks." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Taint Analysis (Source-to-Sink)" />
+                                    <TextBlock Classes="card-body" Text="• Untrusted Sources: User inputs (txt* controls, request parameters), raw files, or network streams.&#x0a;• Critical Sinks: Direct SQL execution (Recordset.Open, Execute), shell commands (Process.Start, Shell), or file writes.&#x0a;• Propagation Paths: BFS graph traversal discovering unsanitized paths flowing directly from Source to Sink." />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Def-Use Anomalies (Dead Store)" />
+                                    <TextBlock Classes="card-body" Text="Detects variables and fields assigned/written (Writes) whose values are never subsequently read (Reads), uncovering redundant computations and potential logic bugs." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 16: API DIFF & SEMVER (IT & EN)                   -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="ApiDiffSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="API Diff &amp; Breaking Change Detection" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Confronto della superficie API pubblica conforme alle specifiche SemVer 2.0.0." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Classificazione delle Modifiche API" />
+                                    <TextBlock Classes="card-body" Text="Confronta due snapshot del CodeGraph (es. versione rilasciata precedente vs versione corrente):&#x0a;• Major Breaking Change (MAJOR): rimozione di simboli pubblici, riduzione della visibilità (es. Public -> Private) o modifica del numero di parametri obbligatori.&#x0a;• Minor Compatible Feature (MINOR): aggiunta di nuovi tipi, metodi o proprietà pubbliche, oppure aggiunta di parametri opzionali retrocompatibili.&#x0a;• Patch / Modifica Interna (PATCH): modifiche interne all'implementazione senza alterazione della superficie API pubblica esportata." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="ApiDiffSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="API Diff &amp; Semantic Versioning" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Public API surface comparison compliant with SemVer 2.0.0 specifications." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="API Change Classification" />
+                                    <TextBlock Classes="card-body" Text="Compares two CodeGraph snapshots (e.g. baseline release vs current branch):&#x0a;• Major Breaking Change (MAJOR): Removal of public symbols, visibility reduction (Public -> Private), or mandatory parameter changes.&#x0a;• Minor Compatible Feature (MINOR): Addition of new public types, methods, or backward-compatible optional parameters.&#x0a;• Patch / Internal Fix (PATCH): Internal code improvements without altering the exported public API contract." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 17: MATRICE CRUD (IT & EN)                        -->
+                    <!-- ========================================================= -->
+                    <ScrollViewer x:Name="CrudMatrixSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Matrice CRUD &amp; Persistenza Dati" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Mappatura semantica tra procedure applicative ed entità del database relazionale." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="Come funziona la Matrice CRUD" />
+                                    <TextBlock Classes="card-body" Text="• Individuazione Entità: rileva automaticamente modelli, struct, record, UDT e classi entità del dominio (es. Customer, Invoice, Order).&#x0a;• Inferenza Operazioni: analizza il codice delle routine per dedurre le operazioni:&#x0a;  - C (Create): istanziazioni, AddNew, istruzioni INSERT SQL.&#x0a;  - R (Read): query di selezione, ricerche Find, SELECT SQL.&#x0a;  - U (Update): assegnazione campi, modifiche proprietà, UPDATE SQL.&#x0a;  - D (Delete): cancellazioni record, Delete, DELETE SQL.&#x0a;• Mappatura Moduli-Entità: evidenzia quali moduli leggono o alterano ciascuna tabella dati." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="CrudMatrixSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="CRUD Data Persistence Matrix" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                <TextBlock Text="Semantic mapping between application routines and relational database entities." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
+                            </StackPanel>
+
+                            <Border Classes="info-card">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="card-title" Text="How the CRUD Matrix Operates" />
+                                    <TextBlock Classes="card-body" Text="• Entity Discovery: Automatically detects domain structs, UDT types, records, and entity classes (e.g., Customer, Invoice, Order).&#x0a;• Operation Inference: Parses routine bodies to classify operations:&#x0a;  - C (Create): New instances, AddNew, SQL INSERT.&#x0a;  - R (Read): Select queries, Find calls, SQL SELECT.&#x0a;  - U (Update): Field assignments, property mutations, SQL UPDATE.&#x0a;  - D (Delete): Record removals, Delete calls, SQL DELETE.&#x0a;• Module-Entity Grid: Highlights exactly which modules read or mutate each data table." />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ========================================================= -->
+                    <!-- SEZIONE 18: AI & ESPORTAZIONE LLM (IT & EN)               -->
                     <!-- ========================================================= -->
                     <ScrollViewer x:Name="AiExportSection_IT" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="Integrazione AI &amp; Esportazione LLM" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Strumenti per esportare contesto strutturato e nutrire assistenti e agenti di intelligenza artificiale." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>
@@ -981,8 +1476,8 @@
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="AiExportSection_EN" IsVisible="False" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="4">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="3">
                                 <TextBlock Text="AI Integration &amp; LLM Export" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
                                 <TextBlock Text="Structured context export tools for AI assistants, ChatGPT, Claude, and Gemini." FontSize="12" Foreground="{DynamicResource ThemeTextMutedBrush}" />
                             </StackPanel>

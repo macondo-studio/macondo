@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -70,7 +70,15 @@ public partial class InfoWindow : Window
     private void OnNavMartinDeadCodeClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(7);
     private void OnNavSharedTemporalClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(8);
     private void OnNavFlowCityClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(9);
-    private void OnNavAiExportClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(10);
+    private void OnNavMaintainabilityClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(10);
+    private void OnNavCohesionClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(11);
+    private void OnNavArchitecturalRulesClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(12);
+    private void OnNavCodeCloneClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(13);
+    private void OnNavSocialCodeClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(14);
+    private void OnNavDataFlowClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(15);
+    private void OnNavApiDiffClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(16);
+    private void OnNavCrudMatrixClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(17);
+    private void OnNavAiExportClicked(object? sender, RoutedEventArgs e) => SetSelectedNav(18);
 
     public void SetSelectedNav(int index)
     {
@@ -86,7 +94,15 @@ public partial class InfoWindow : Window
         NavMartinDeadCodeButton.Classes.Set("selected", index == 7);
         NavSharedTemporalButton.Classes.Set("selected", index == 8);
         NavFlowCityButton.Classes.Set("selected", index == 9);
-        NavAiExportButton.Classes.Set("selected", index == 10);
+        NavMaintainabilityButton.Classes.Set("selected", index == 10);
+        NavCohesionButton.Classes.Set("selected", index == 11);
+        NavArchitecturalRulesButton.Classes.Set("selected", index == 12);
+        NavCodeCloneButton.Classes.Set("selected", index == 13);
+        NavSocialCodeButton.Classes.Set("selected", index == 14);
+        NavDataFlowButton.Classes.Set("selected", index == 15);
+        NavApiDiffButton.Classes.Set("selected", index == 16);
+        NavCrudMatrixButton.Classes.Set("selected", index == 17);
+        NavAiExportButton.Classes.Set("selected", index == 18);
 
         var isEn = LocalizationService.Instance.CurrentLanguage == AppLanguage.English;
 
@@ -120,8 +136,32 @@ public partial class InfoWindow : Window
         FlowCitySection_IT.IsVisible = index == 9 && !isEn;
         FlowCitySection_EN.IsVisible = index == 9 && isEn;
 
-        AiExportSection_IT.IsVisible = index == 10 && !isEn;
-        AiExportSection_EN.IsVisible = index == 10 && isEn;
+        MaintainabilitySection_IT.IsVisible = index == 10 && !isEn;
+        MaintainabilitySection_EN.IsVisible = index == 10 && isEn;
+
+        CohesionSection_IT.IsVisible = index == 11 && !isEn;
+        CohesionSection_EN.IsVisible = index == 11 && isEn;
+
+        ArchitecturalRulesSection_IT.IsVisible = index == 12 && !isEn;
+        ArchitecturalRulesSection_EN.IsVisible = index == 12 && isEn;
+
+        CodeCloneSection_IT.IsVisible = index == 13 && !isEn;
+        CodeCloneSection_EN.IsVisible = index == 13 && isEn;
+
+        SocialCodeSection_IT.IsVisible = index == 14 && !isEn;
+        SocialCodeSection_EN.IsVisible = index == 14 && isEn;
+
+        DataFlowSection_IT.IsVisible = index == 15 && !isEn;
+        DataFlowSection_EN.IsVisible = index == 15 && isEn;
+
+        ApiDiffSection_IT.IsVisible = index == 16 && !isEn;
+        ApiDiffSection_EN.IsVisible = index == 16 && isEn;
+
+        CrudMatrixSection_IT.IsVisible = index == 17 && !isEn;
+        CrudMatrixSection_EN.IsVisible = index == 17 && isEn;
+
+        AiExportSection_IT.IsVisible = index == 18 && !isEn;
+        AiExportSection_EN.IsVisible = index == 18 && isEn;
     }
 
     private void UpdateLocalizedTexts()
@@ -142,6 +182,14 @@ public partial class InfoWindow : Window
         NavMartinDeadCodeText.Text = isEn ? "Martin & Dead Code" : "Martin & Dead Code";
         NavSharedTemporalText.Text = isEn ? "Global State & Temporal" : "Stato Globale & Temporal";
         NavFlowCityText.Text = isEn ? "Chord Flows & CodeCity" : "Flussi Chord & CodeCity";
+        NavMaintainabilityText.Text = isEn ? "Maintainability Index" : "Indice di Manutenibilità";
+        NavCohesionText.Text = isEn ? "Cohesion & LCOM" : "Coesione & LCOM";
+        NavArchitecturalRulesText.Text = isEn ? "Architectural Rules" : "Regole Architettura";
+        NavCodeCloneText.Text = isEn ? "Duplication (CPD)" : "Duplicazioni (CPD)";
+        NavSocialCodeText.Text = isEn ? "Social & Bus Factor" : "Social & Bus Factor";
+        NavDataFlowText.Text = isEn ? "Data Flow & Taint" : "Data Flow & Taint";
+        NavApiDiffText.Text = isEn ? "API Diff & SemVer" : "API Diff & SemVer";
+        NavCrudMatrixText.Text = isEn ? "CRUD Data Matrix" : "Matrice CRUD Dati";
         NavAiExportText.Text = isEn ? "AI & LLM Export" : "AI & Esportazione LLM";
 
         SetSelectedNav(_currentTabIndex);
