@@ -1,14 +1,14 @@
 ﻿{
-    "version":  "1.3.0",
+    "version":  "1.4.0",
     "title":  {
-                  "it":  "Macondo v1.3.0",
-                  "en":  "Macondo v1.3.0"
+                  "it":  "Macondo v1.4.0",
+                  "en":  "Macondo v1.4.0"
               },
     "releaseNotes":  {
-                         "it":  "Aggiunto rilevamento automatico della lingua del sistema operativo all\u0027avvio e al ripristino delle impostazioni.\nAggiunto menu contestuale con clic destro sui nodi del grafo con esportazione in Markdown/JSON, calcolo Blast Radius e ispezione chiamanti/chiamati.\nAggiunto overlay di caricamento asincrono e modale di conferma con apertura cartella per le esportazioni.\nAggiunta opzione per mostrare o nascondere le etichette di testo nei tab di visualizzazione per una modalita compatta a sole icone.",
-                         "en":  "Added automatic operating system language detection to seamlessly initialize the application UI in Italian or English upon startup and default settings reset.\nAdded an interactive right-click context menu on graph nodes enabling direct export to Markdown and JSON, Blast Radius calculation, and callers/callees inspection.\nAdded an asynchronous loading overlay and a completion confirmation modal with direct folder navigation for all graph and node export operations.\nAdded a configurable setting to toggle the visibility of text labels on central visualization tabs for a more compact icon-only navigation mode."
+                         "it":  "Supporto multi-linguaggio per analisi nativa C# (.csproj / .cs) e VB6 (.vbp / .frm / .cls / .bas).\nSuite analitica ampliata con oltre 20 strumenti architetturali, metriche avanzate (Blast Radius, LCOM4, Hotspot di rischio, MI, SemVer API Diff) e documentazione in-app con formule matematiche.\nOttimizzazioni per il Semantic Code Graph, gestione thread-safe delle relazioni e persistenza istantanea della cache del workspace.",
+                         "en":  "Native multi-language analysis support for both C# (.csproj / .cs) and Visual Basic 6 (.vbp / .frm / .cls / .bas) projects.\nExpanded analytical suite featuring over 20 architectural tools, advanced metrics (Blast Radius, LCOM4 cohesion, Risk Hotspots, Maintainability Index, SemVer API Diff), and formula-rich in-app documentation.\nOptimized thread-safe Semantic Code Graph relationship indexing and instant workspace cache persistence."
                      },
     "downloadUrl":  "https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe",
-    "publishedAt":  "2026-09-15T21:11:00Z",
+    "publishedAt":  "2026-09-28T19:31:57Z",
     "isMandatory":  false
 }
