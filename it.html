@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Macondo • Grafo Visuale del Codice e Blast Radius per Software Legacy</title>
-  <meta name="description" content="Analizzatore semantico, grafo di dipendenze e calcolo del Blast Radius per codebase legacy, attualmente specializzato per Visual Basic 6.0. 100% offline, privacy assoluta e pronto per modelli AI. Gratuito.">
-  <meta name="keywords" content="Visual Basic 6, VB6, analizzatore codice legacy, blast radius, grafo codice, parser AST, architettura software, analisi dipendenze, modernizzazione legacy, migrazione C#, reverse engineering, analisi statica">
+  <title>Macondo • Grafo del Codice, Blast Radius &amp; Suite di Analisi per VB6 e C#</title>
+  <meta name="description" content="Analizzatore semantico deterministico, grafo di dipendenze, calcolo del Blast Radius e oltre 20 analisi integrate per codice legacy e moderno (Visual Basic 6.0 e C# / .NET). 100% offline, privacy assoluta, pronto per AI. Gratuito.">
+  <meta name="keywords" content="Visual Basic 6, VB6, C#, CSharp, .NET, analizzatore codice legacy, blast radius, grafo codice, parser AST, architettura software, analisi dipendenze, modernizzazione legacy, migrazione C#, reverse engineering, analisi statica, matrice DSM, dead code, hotspot di rischio, metriche martin, code clone, data flow, maintainability">
   <meta name="author" content="Macondo Studio">
   <meta name="robots" content="index, follow">
 
@@ -31,8 +31,8 @@
   <!-- Open Graph / Facebook / LinkedIn -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://macondo-studio.com/it.html">
-  <meta property="og:title" content="Macondo • Grafo del Codice & Blast Radius per Software Legacy">
-  <meta property="og:description" content="Analizzatore semantico e calcolo del Blast Radius per codebase legacy, attualmente con supporto completo a Visual Basic 6.0. 100% offline, privacy assoluta, pronto per AI.">
+  <meta property="og:title" content="Macondo • Grafo del Codice, Blast Radius &amp; Suite di Analisi per VB6 e C#">
+  <meta property="og:description" content="Analizzatore semantico deterministico, grafo di dipendenze, calcolo del Blast Radius e oltre 20 analisi integrate per Visual Basic 6.0 e C# / .NET. 100% offline, privacy assoluta, pronto per AI.">
   <meta property="og:image" content="https://macondo-studio.com/VistaGrafoIta.png">
   <meta property="og:image:alt" content="Macondo Visual Code Graph & Blast Radius UI">
   <meta property="og:site_name" content="Macondo">
@@ -42,8 +42,8 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://macondo-studio.com/it.html">
-  <meta name="twitter:title" content="Macondo • Grafo del Codice & Blast Radius per Software Legacy">
-  <meta name="twitter:description" content="Analizzatore semantico e calcolo del Blast Radius per codebase legacy, attualmente con supporto completo a Visual Basic 6.0. 100% offline, privacy assoluta, pronto per AI.">
+  <meta name="twitter:title" content="Macondo • Grafo del Codice, Blast Radius &amp; Suite di Analisi per VB6 e C#">
+  <meta name="twitter:description" content="Analizzatore semantico deterministico, grafo di dipendenze, calcolo del Blast Radius e oltre 20 analisi integrate per Visual Basic 6.0 e C# / .NET. 100% offline, privacy assoluta, pronto per AI.">
   <meta name="twitter:image" content="https://macondo-studio.com/VistaGrafoIta.png">
 
   <!-- Favicon & Stylesheet -->
@@ -66,8 +66,8 @@
       "price": "0",
       "priceCurrency": "EUR"
     },
-    "description": "Analizzatore semantico deterministico, grafo delle dipendenze e calcolo del Blast Radius per codice legacy (con supporto corrente completo a Visual Basic 6.0). 100% offline e compatibile con contesti LLM per refactoring e modernizzazione.",
-    "softwareVersion": "1.3.0",
+    "description": "Analizzatore semantico deterministico, grafo delle dipendenze, calcolo del Blast Radius e suite di analisi per codebase legacy e moderne (con supporto completo a Visual Basic 6.0 e C# / .NET). 100% offline e compatibile con contesti LLM per refactoring e modernizzazione.",
+    "softwareVersion": "1.4.0",
     "downloadUrl": "https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe",
     "screenshot": "https://macondo-studio.com/VistaGrafoIta.png",
     "author": {
@@ -92,6 +92,7 @@
         <ul class="nav">
           <li><a href="#graph">Grafo</a></li>
           <li><a href="#blast">Blast Radius</a></li>
+          <li><a href="#analyses">Analisi</a></li>
           <li><a href="#ai">AI &amp; Modernizzazione</a></li>
           <li><a href="#specs">Specifiche</a></li>
           <li><a href="releases-it.html">Release</a></li>
@@ -112,16 +113,16 @@
     <div class="container">
       <a href="releases-it.html" class="hero-pill" style="text-decoration: none; cursor: pointer;" title="Visualizza Note di Rilascio e Changelog">
         <span class="hero-pill-badge">Release</span>
-        <span class="hero-pill-text">Macondo v1.3.0 per Windows • Gratuito</span>
+        <span class="hero-pill-text">Macondo v1.4.0 per Windows • Gratuito</span>
       </a>
 
       <h1 class="hero-title">
         <span>Vedi la struttura.</span><br>
-        <span class="dimmed">Domina il legacy.</span>
+        <span class="dimmed">Domina il codice.</span>
       </h1>
 
       <p class="hero-subtitle">
-        Analizzatore semantico e calcolo del Blast Radius per codice legacy, attualmente con supporto completo a Visual Basic 6.0. 100% offline, privacy assoluta, pronto per la migrazione con modelli AI.
+        Analizzatore semantico, grafo delle dipendenze, calcolo del Blast Radius e suite completa di analisi per codebase legacy e moderne in <strong>Visual Basic 6.0</strong> e <strong>C# / .NET</strong>. 100% offline, privacy assoluta, pronto per la modernizzazione con modelli AI.
       </p>
 
       <div class="hero-cta">
@@ -131,13 +132,13 @@
           </svg>
           <span>Scarica per Windows</span>
         </a>
-        <a href="#graph" class="btn btn-secondary btn-large">
-          <span>Guarda le funzionalità</span>
+        <a href="#analyses" class="btn btn-secondary btn-large">
+          <span>Tutte le analisi</span>
         </a>
       </div>
 
       <div class="hero-note">
-        <span>Gratuito • Nessuna installazione richiesta • 100% locale</span>
+        <span>Gratuito • Nessuna installazione richiesta • 100% locale • Supporto VB6 &amp; C#</span>
         <span class="dot-sep">&bull;</span>
         <span class="release-date-text">Ultimo aggiornamento: 10 settembre 2026</span>
       </div>
@@ -157,7 +158,7 @@
       <div>
         <div class="feature-tag">Esplorazione Visuale</div>
         <h2 class="feature-heading">Comprendi ogni dipendenza a colpo d'occhio.</h2>
-        <p class="feature-desc">Parsing AST completo di file .vbp, .frm, .bas, .cls e .ctl. Esplora gerarchie e chiamate con 4 algoritmi di layout ottimizzati per grandi progetti.</p>
+        <p class="feature-desc">Parsing AST completo di progetti Visual Basic 6.0 (<code>.vbp</code>, <code>.frm</code>, <code>.bas</code>, <code>.cls</code>, <code>.ctl</code>) e soluzioni C# / .NET (<code>.csproj</code>, <code>.sln</code>, <code>.cs</code>). Esplora gerarchie e chiamate con 4 algoritmi di layout ottimizzati per grandi progetti.</p>
         <ul class="feature-points">
           <li class="feature-point">
             <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
@@ -165,7 +166,7 @@
           </li>
           <li class="feature-point">
             <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
-            <span>Espansione dinamica di classi e moduli con visualizzazione granulare dei metodi.</span>
+            <span>Espansione dinamica di classi, interfacce e moduli con visualizzazione granulare dei metodi.</span>
           </li>
           <li class="feature-point">
             <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
@@ -176,12 +177,12 @@
 
       <div class="feature-card-visual">
         <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); line-height: 1.8;">
-          <div style="color: #ffffff; margin-bottom: 8px;">Pipeline di Risoluzione AST:</div>
-          <div>&bull; 14 <span>Form (.FRM) &rarr; Gestori Eventi UI</span></div>
-          <div>&bull; 22 <span>Moduli Standard (.BAS) &rarr; Routine Globali</span></div>
-          <div>&bull; 18 <span>Moduli di Classe (.CLS) &rarr; Istanze &amp; Membri</span></div>
+          <div style="color: #ffffff; margin-bottom: 8px;">Pipeline AST Multi-Linguaggio:</div>
+          <div>&bull; VB6: <span>Form (.FRM), Moduli (.BAS), Classi (.CLS), Controlli (.CTL)</span></div>
+          <div>&bull; C#/.NET: <span>Soluzioni (.SLN), Progetti (.CSPROJ), Classi &amp; Record (.CS)</span></div>
+          <div>&bull; Relazioni: <span>CALLS, INSTANTIATES, USES_TYPE, READS, WRITES</span></div>
           <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle); color: var(--text-headline);">
-            Totale: <strong>1.482 chiamate risolte</strong> (32ms cold parse)
+            Risoluzione globale &amp; cross-language ad alte prestazioni (60 FPS)
           </div>
         </div>
       </div>
@@ -196,7 +197,7 @@
           <div style="color: #ffffff; margin-bottom: 8px;">Formula d'Impatto Ricorsiva:</div>
           <div><span>Profondità:</span> <strong style="color: #ffffff;">6 livelli</strong></div>
           <div><span>Chiamanti Diretti:</span> <strong style="color: #ffffff;">18</strong> | <span>Indiretti:</span> <strong style="color: #ffffff;">142</strong></div>
-          <div><span>Form UI Impattate:</span> <strong style="color: #ffffff;">11 form</strong></div>
+          <div><span>Schermate/Moduli Impattati:</span> <strong style="color: #ffffff;">11 componenti</strong></div>
           <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle); color: #ff453a;">
             Punteggio di Rischio: <strong>CRITICO (94/100)</strong>
           </div>
@@ -206,7 +207,7 @@
       <div>
         <div class="feature-tag">Analisi d'Impatto</div>
         <h2 class="feature-heading">Modifica senza paura di rompere la produzione.</h2>
-        <p class="feature-desc">La matrice Blast Radius traccia ricorsivamente ogni chiamante a monte. Riconosci prima di toccare il codice quali schermate UI o classi verranno impattate.</p>
+        <p class="feature-desc">La matrice Blast Radius traccia ricorsivamente ogni chiamante a monte in progetti VB6 e C#. Riconosci prima di toccare il codice quali schermate UI, classi o servizi verranno impattati.</p>
         <ul class="feature-points">
           <li class="feature-point">
             <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
@@ -225,13 +226,228 @@
     </div>
   </section>
 
+  <!-- Feature: Comprehensive Analyses Suite -->
+  <section id="analyses" class="feature-block">
+    <div class="container">
+      <div class="section-intro">
+        <div class="feature-tag">Suite Analitica Completa</div>
+        <h2 class="feature-heading">Tutte le analisi per dominare il codice.</h2>
+        <p class="feature-desc">Oltre 20 strumenti di analisi statica deterministica, diagnostica architetturale e valutazione del rischio integrati in un unico ambiente 100% offline.</p>
+      </div>
+
+      <!-- Categoria 1: Esplorazione Visuale & Flussi -->
+      <div class="analyses-category">
+        <div class="analyses-cat-header">
+          <h3 class="analyses-cat-title">Esplorazione Visuale &amp; Flussi di Esecuzione</h3>
+          <span class="analyses-cat-badge">5 Strumenti</span>
+        </div>
+        <div class="analyses-grid">
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Grafo Semantico 2D</h4>
+              <span class="analysis-pill">Layout Multipli</span>
+            </div>
+            <p class="analysis-card-desc">Visualizzazione vettoriale interattiva a 60 FPS con 4 motori di layout (Radiale Standard, Affinità, Cluster a Isole e Force-Directed) ed espansione dinamica dei simboli.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Flusso Schermate (Screen Flow)</h4>
+              <span class="analysis-pill">UI Flow</span>
+            </div>
+            <p class="analysis-card-desc">Mappa visiva delle transizioni e navigazione tra le interfacce utente (Form, finestre e dialog) con individuazione dei punti di apertura e catene di transizione.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Control Flow Graph (CFG)</h4>
+              <span class="analysis-pill">Routine Logic</span>
+            </div>
+            <p class="analysis-card-desc">Decomposizione a blocchi base (Basic Blocks) per singola routine con percorsi di esecuzione, nodi decisionali, rami condizionali e cicli.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Flussi Architetturali (Chord)</h4>
+              <span class="analysis-pill">Layer Coupling</span>
+            </div>
+            <p class="analysis-card-desc">Diagramma circolare a corde che quantifica i volumi di chiamata e l'interdipendenza tra layer, cartelle, namespace e package architetturali.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">CodeCity 3D</h4>
+              <span class="analysis-pill">Mappa Urbana</span>
+            </div>
+            <p class="analysis-card-desc">Rappresentazione metaforica 3D del software: gli edifici rappresentano i file/moduli, l'altezza rispecchia le LOC, la base la complessità e il colore il livello di rischio.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categoria 2: Architettura & Metriche di Qualità -->
+      <div class="analyses-category">
+        <div class="analyses-cat-header">
+          <h3 class="analyses-cat-title">Architettura, Metriche &amp; Modularità</h3>
+          <span class="analyses-cat-badge">6 Strumenti</span>
+        </div>
+        <div class="analyses-grid">
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Matrice DSM (Design Structure Matrix)</h4>
+              <span class="analysis-pill">Dipendenze Circolari</span>
+            </div>
+            <p class="analysis-card-desc">Matrice di dipendenza ad alta densità per individuare immediatamente accoppiamenti nascosti, feedback loop e cicli tra moduli o sottosistemi.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Treemap Metriche</h4>
+              <span class="analysis-pill">LOC &amp; Complessità</span>
+            </div>
+            <p class="analysis-card-desc">Mappa gerarchica proporzionale con drill-down interattivo: individua istantaneamente dove si concentrano le righe di codice e la massima complessità ciclomatica.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Metriche Martin (Instabilità &amp; Astrazione)</h4>
+              <span class="analysis-pill">Afferent/Efferent</span>
+            </div>
+            <p class="analysis-card-desc">Calcolo rigoroso di accoppiamento afferente/efferente (Ca, Ce), Instabilità (I), Astrazione (A) e Distanza dalla Sequenza Principale (D) secondo i principi di Robert C. Martin.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Coesione &amp; LCOM</h4>
+              <span class="analysis-pill">SRP &amp; Cohesion</span>
+            </div>
+            <p class="analysis-card-desc">Misura di Lack of Cohesion of Methods (LCOM4 / Henderson-Sellers) per rilevare classi gonfie o con responsabilità frammentate da rifattorizzare.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Indice di Manutenibilità (MI)</h4>
+              <span class="analysis-pill">SEI Standard</span>
+            </div>
+            <p class="analysis-card-desc">Punteggio sintetico di manutenibilità (0–100) derivato da Volume di Halstead, Complessità Ciclomatica di McCabe e righe di codice effettive.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Regole Architetturali</h4>
+              <span class="analysis-pill">Layer Enforcer</span>
+            </div>
+            <p class="analysis-card-desc">Verifica automatica di conformità dei vincoli architetturali (es. impedire accessi diretti dal layer di presentazione al database).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categoria 3: Rischio, Impatto & Manutenzione -->
+      <div class="analyses-category">
+        <div class="analyses-cat-header">
+          <h3 class="analyses-cat-title">Rischio, Impatto &amp; Debito Tecnico</h3>
+          <span class="analyses-cat-badge">6 Strumenti</span>
+        </div>
+        <div class="analyses-grid">
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Blast Radius &amp; Risk Scoring</h4>
+              <span class="analysis-pill">Impatto Upstream</span>
+            </div>
+            <p class="analysis-card-desc">Tracciamento ricorsivo di tutti i chiamanti diretti e indiretti con valutazione del rischio di regressione da Basso a Critico e griglia di audit navigabile.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Hotspot di Rischio</h4>
+              <span class="analysis-pill">Scatter 2D</span>
+            </div>
+            <p class="analysis-card-desc">Scatter plot 2D che incrocia la Complessità Ciclomatica con la Frequenza di modifica/Fan-in per evidenziare i componenti più critici e vulnerabili.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Dead Code &amp; Funzioni Orfane</h4>
+              <span class="analysis-pill">Code Cleanup</span>
+            </div>
+            <p class="analysis-card-desc">Scansione e isolamento automatico di routine, classi o variabili mai chiamate per snellire la codebase prima di una migrazione.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Stato Condiviso &amp; Variabili Globali</h4>
+              <span class="analysis-pill">Shared State</span>
+            </div>
+            <p class="analysis-card-desc">Mappatura trasparente di variabili pubbliche e globali con tracciamento esatto di chi legge (Readers) e chi scrive (Writers) lo stato.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Temporal Coupling (VCS)</h4>
+              <span class="analysis-pill">Git &amp; SVN</span>
+            </div>
+            <p class="analysis-card-desc">Mining della cronologia dei commit per individuare file e moduli non formalmente collegati ma che cambiano costantemente insieme nel tempo.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Duplicazioni di Codice (CPD)</h4>
+              <span class="analysis-pill">Clone Detection</span>
+            </div>
+            <p class="analysis-card-desc">Individuazione di blocchi duplicati, routine clonate e pattern copia-incolla ridondanti da consolidare ed eliminare.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categoria 4: Dati, Sicurezza & Interoperabilità -->
+      <div class="analyses-category">
+        <div class="analyses-cat-header">
+          <h3 class="analyses-cat-title">Dati, Interfacce &amp; Team</h3>
+          <span class="analyses-cat-badge">4 Strumenti</span>
+        </div>
+        <div class="analyses-grid">
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Data Flow &amp; Taint Analysis</h4>
+              <span class="analysis-pill">Propagazione Dati</span>
+            </div>
+            <p class="analysis-card-desc">Tracciamento della propagazione di variabili e parametri attraverso le chiamate di metodo per verificare flussi sensibili e input non sanitizzati.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Matrice CRUD</h4>
+              <span class="analysis-pill">Data Access</span>
+            </div>
+            <p class="analysis-card-desc">Mappatura incrociata tra moduli di business e tabelle database, classificando le operazioni Create, Read, Update e Delete effettuate.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">API Diff &amp; SemVer</h4>
+              <span class="analysis-pill">Breaking Changes</span>
+            </div>
+            <p class="analysis-card-desc">Confronto semantico tra revisioni del codice per rilevare breaking change, modifiche a firme di metodi pubblici o aggiunte di contratti API.</p>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-card-top">
+              <h4 class="analysis-card-title">Social Code &amp; Bus Factor</h4>
+              <span class="analysis-pill">Team Knowledge</span>
+            </div>
+            <p class="analysis-card-desc">Analisi della proprietà del codice e concentrazione della conoscenza per sviluppatore per calcolare il Bus Factor e prevenire colli di bottiglia nel team.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Feature 3: AI & Modernizzazione -->
   <section id="ai" class="feature-block">
     <div class="container feature-grid-2">
       <div>
         <div class="feature-tag">AI &amp; Modernizzazione</div>
         <h2 class="feature-heading">Il ponte ideale tra codice legacy e moderni LLM.</h2>
-        <p class="feature-desc">Estrai Repo Map e contesti semantici compatti in formato Markdown pronti per Claude, ChatGPT, Gemini, Copilot, ecc. per guidare la riscrittura in C#/.NET o linguaggi moderni.</p>
+        <p class="feature-desc">Estrai Repo Map e contesti semantici compatti in formato Markdown pronti per Claude, ChatGPT, Gemini, Copilot, Cursor, ecc. per guidare la riscrittura o modernizzazione in C#/.NET e linguaggi moderni.</p>
         <ul class="feature-points">
           <li class="feature-point">
             <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
@@ -250,14 +466,14 @@
 
       <div class="feature-card-visual" style="align-self: center;">
         <div style="font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.6; background: #000; padding: 16px; border-radius: 8px; border: 1px solid var(--border-subtle);">
-          <div style="color: #888; margin-bottom: 4px;"># Esporta la Repo Map Markdown del progetto</div>
-          <div style="color: var(--accent); margin-bottom: 14px;">Macondo.exe analyze "C:\Progetti\MioProgettoVB6" --export-md "repo-map.md"</div>
+          <div style="color: #888; margin-bottom: 4px;"># Analizza progetto o soluzione C# / .NET</div>
+          <div style="color: var(--accent); margin-bottom: 14px;">Macondo.exe analyze "C:\Progetti\BackendService\Backend.csproj" --export-md "repo-map.md"</div>
 
-          <div style="color: #888; margin-bottom: 4px;"># Esporta il grafo semantico completo in JSON</div>
+          <div style="color: #888; margin-bottom: 4px;"># Analizza progetto legacy VB6</div>
           <div style="color: var(--accent); margin-bottom: 14px;">Macondo.exe analyze "C:\Progetti\MioProgettoVB6\App.vbp" --export-json "graph.json"</div>
 
           <div style="color: #888; margin-bottom: 4px;"># Esporta entrambi i formati contemporaneamente</div>
-          <div style="color: var(--accent);">Macondo.exe analyze "C:\Progetti\MioProgettoVB6" --export-md "repo-map.md" --export-json "graph.json"</div>
+          <div style="color: var(--accent);">Macondo.exe analyze "C:\Progetti\MioProgetto" --export-md "repo-map.md" --export-json "graph.json"</div>
         </div>
       </div>
     </div>
@@ -269,7 +485,7 @@
       <div class="grid-3">
         <div class="card-minimal">
           <h3 class="card-title">100% Gratuito</h3>
-          <p class="card-body">Nessun abbonamento, nessuna licenza a pagamento, nessun limite artificiale. Uno strumento creato per la community.</p>
+          <p class="card-body">Nessun abbonamento, nessuna licenza a pagamento, nessun limite artificiale. Uno strumento creato per la community di sviluppatori.</p>
         </div>
 
         <div class="card-minimal">
@@ -279,7 +495,7 @@
 
         <div class="card-minimal">
           <h3 class="card-title">Cache &amp; Velocità</h3>
-          <p class="card-body">Cache persistente ultra-veloce su disco: apri progetti enterprise con centinaia di moduli in una frazione di secondo.</p>
+          <p class="card-body">Cache persistente ultra-veloce su disco: apri progetti enterprise con centinaia di file e moduli in una frazione di secondo.</p>
         </div>
       </div>
     </div>
@@ -290,7 +506,7 @@
     <div class="container">
       <div class="download-box">
         <h2 class="download-title">Inizia subito ad analizzare.</h2>
-        <p class="download-subtitle">Scarica direttamente l'eseguibile Macondo per Windows. Nessuna installazione richiesta, avvio istantaneo.</p>
+        <p class="download-subtitle">Scarica direttamente l'eseguibile Macondo per Windows. Nessuna installazione richiesta, avvio istantaneo con supporto a VB6 e C#.</p>
 
         <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-primary btn-large">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -330,15 +546,17 @@
         <a href="releases-it.html">Release</a>
         <a href="#graph">Grafo</a>
         <a href="#blast">Blast Radius</a>
+        <a href="#analyses">Analisi</a>
         <a href="#ai">AI &amp; Modernizzazione</a>
         <a href="#download">Scarica</a>
       </div>
     </div>
     <div class="container footer-disclaimer">
-      <p>Tutti i marchi e i nomi commerciali citati (inclusi Claude, ChatGPT, Gemini, Copilot, Windows, Visual Basic, ecc.) appartengono ai rispettivi titolari e sono utilizzati esclusivamente a scopo descrittivo e di interoperabilità.</p>
+      <p>Tutti i marchi e i nomi commerciali citati (inclusi Claude, ChatGPT, Gemini, Copilot, Windows, Visual Basic, C#, .NET, ecc.) appartengono ai rispettivi titolari e sono utilizzati esclusivamente a scopo descrittivo e di interoperabilità.</p>
     </div>
   </footer>
 
   <script src="app.js"></script>
 </body>
 </html>
+
