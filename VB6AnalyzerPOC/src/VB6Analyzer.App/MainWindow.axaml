@@ -297,10 +297,20 @@
                                     <PathIcon Data="{StaticResource IconCallees}" Width="14" Height="14" />
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <Separator />
-                            <MenuItem x:Name="ClearHighlightMenuItem" Header="Pulisci Filtri">
+                            <MenuItem x:Name="ClearHighlightMenuItem" Header="Rimuovi Evidenziazione">
                                 <MenuItem.Icon>
-                                    <PathIcon Data="{StaticResource IconClearFilter}" Width="14" Height="14" />
+                                    <PathIcon Data="{StaticResource IconClose}" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator />
+                            <MenuItem x:Name="RunAllAnalyticsMenuItem" Header="Avvia Tutte le Analisi" Click="OnRunAllAnalyticsMenuClicked">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconPlay}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="ToggleBackgroundAnalyticsMenuItem" Header="Pre-elaborazione automatica in background" Click="OnToggleBackgroundAnalyticsMenuClicked">
+                                <MenuItem.Icon>
+                                    <PathIcon x:Name="BackgroundAnalyticsCheckIcon" Data="{StaticResource IconCheck}" Width="14" Height="14" Foreground="{DynamicResource ThemeAccentBrush}" />
                                 </MenuItem.Icon>
                             </MenuItem>
                         </MenuItem>
@@ -1054,6 +1064,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:DsmControl x:Name="Dsm" />
+                        <controls:AnalyticsPlaceholderControl x:Name="DsmPlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1067,6 +1078,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:TreemapControl x:Name="Treemap" />
+                        <controls:AnalyticsPlaceholderControl x:Name="TreemapPlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1080,6 +1092,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:HotspotControl x:Name="Hotspot" />
+                        <controls:AnalyticsPlaceholderControl x:Name="HotspotPlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1093,6 +1106,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:ScreenFlowControl x:Name="ScreenFlow" />
+                        <controls:AnalyticsPlaceholderControl x:Name="ScreenFlowPlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1119,6 +1133,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:MartinMetricsControl x:Name="MartinMetrics" />
+                        <controls:AnalyticsPlaceholderControl x:Name="MartinPlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1132,6 +1147,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:DeadCodeControl x:Name="DeadCode" />
+                        <controls:AnalyticsPlaceholderControl x:Name="DeadCodePlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1145,6 +1161,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:SharedStateControl x:Name="SharedState" />
+                        <controls:AnalyticsPlaceholderControl x:Name="SharedStatePlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1158,6 +1175,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:TemporalCouplingControl x:Name="TemporalCoupling" />
+                        <controls:AnalyticsPlaceholderControl x:Name="TemporalCouplingPlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1171,6 +1189,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:ArchitecturalFlowControl x:Name="ArchitecturalFlow" />
+                        <controls:AnalyticsPlaceholderControl x:Name="ArchitecturalFlowPlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1184,6 +1203,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:CodeCityControl x:Name="CodeCity" />
+                        <controls:AnalyticsPlaceholderControl x:Name="CodeCityPlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1197,6 +1217,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:CohesionControl x:Name="Cohesion" />
+                        <controls:AnalyticsPlaceholderControl x:Name="CohesionPlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1210,6 +1231,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:MaintainabilityControl x:Name="Maintainability" />
+                        <controls:AnalyticsPlaceholderControl x:Name="MaintainabilityPlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1223,6 +1245,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:ArchitecturalRulesControl x:Name="ArchitecturalRules" />
+                        <controls:AnalyticsPlaceholderControl x:Name="ArchitecturalRulesPlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1236,6 +1259,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:CodeCloneControl x:Name="CodeClone" />
+                        <controls:AnalyticsPlaceholderControl x:Name="CodeClonePlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1249,6 +1273,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:SocialCodeControl x:Name="SocialCode" />
+                        <controls:AnalyticsPlaceholderControl x:Name="SocialCodePlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1262,6 +1287,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:DataFlowControl x:Name="DataFlow" />
+                        <controls:AnalyticsPlaceholderControl x:Name="DataFlowPlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1275,6 +1301,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:ApiDiffControl x:Name="ApiDiff" />
+                        <controls:AnalyticsPlaceholderControl x:Name="ApiDiffPlaceholder" />
                     </Grid>
                 </TabItem>
 
@@ -1288,6 +1315,7 @@
                     </TabItem.Header>
                     <Grid>
                         <controls:CrudMatrixControl x:Name="CrudMatrix" />
+                        <controls:AnalyticsPlaceholderControl x:Name="CrudMatrixPlaceholder" />
                     </Grid>
                 </TabItem>
 

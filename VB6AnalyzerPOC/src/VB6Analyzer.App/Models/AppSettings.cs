@@ -72,6 +72,9 @@ public sealed class AppSettings
     /// <summary>Indica se mostrare i nomi testuali accanto alle icone nelle schede di visualizzazione centrali (Vista Grafo, DSM, Treemap...).</summary>
     public bool ShowTabLabels { get; set; } = true;
 
+    /// <summary>Indica se abilitare la pre-elaborazione automatica in background delle schede analitiche all'apertura del progetto.</summary>
+    public bool EnableBackgroundAnalytics { get; set; } = true;
+
     /// <summary>Indica se la scheda Vista Grafo è visibile.</summary>
     public bool ShowTabGraph { get; set; } = true;
 
@@ -137,6 +140,9 @@ public sealed class AppSettings
 
     /// <summary>Elenco degli ultimi progetti o cartelle analizzati (massimo 10 elementi).</summary>
     public List<RecentProjectItem> RecentProjects { get; set; } = new();
+
+    /// <summary>Elenco delle schede analitiche avviate o abilitate più di recente (mantenute tra progetti).</summary>
+    public List<string> LastEnabledAnalyticsTabs { get; set; } = new();
 }
 
 /// <summary>

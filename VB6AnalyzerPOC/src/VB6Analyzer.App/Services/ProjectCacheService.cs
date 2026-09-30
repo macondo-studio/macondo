@@ -186,7 +186,8 @@ public sealed class ProjectCacheService
         string folderOrFilePath,
         VisualCodeGraph graph,
         IReadOnlyList<BlastRadiusGridRow>? rows,
-        bool hasCustomUserLayout = false)
+        bool hasCustomUserLayout = false,
+        IReadOnlyCollection<string>? enabledAnalyticsTabs = null)
     {
         if (graph?.SemanticGraph is null || string.IsNullOrWhiteSpace(folderOrFilePath))
             return;
@@ -237,6 +238,32 @@ public sealed class ProjectCacheService
             };
 
             var cacheFile = GetCacheFilePath(folderOrFilePath);
+
+            List<string> tabsToSave;
+            if (enabledAnalyticsTabs != null)
+            {
+                tabsToSave = enabledAnalyticsTabs.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            }
+            else if (File.Exists(cacheFile))
+            {
+                try
+                {
+                    var existingJson = File.ReadAllText(cacheFile);
+                    var existingSnapshot = JsonSerializer.Deserialize<ProjectCacheSnapshot>(existingJson, _jsonOptions);
+                    tabsToSave = existingSnapshot?.EnabledAnalyticsTabs ?? new List<string>();
+                }
+                catch
+                {
+                    tabsToSave = new List<string>();
+                }
+            }
+            else
+            {
+                tabsToSave = new List<string>();
+            }
+
+            snapshot.EnabledAnalyticsTabs = tabsToSave;
+
             var tempFile = cacheFile + ".tmp";
 
             var json = JsonSerializer.Serialize(snapshot, _jsonOptions);
@@ -256,8 +283,9 @@ public sealed class ProjectCacheService
         string folderOrFilePath,
         VisualCodeGraph graph,
         IReadOnlyList<BlastRadiusGridRow>? rows,
-        bool hasCustomUserLayout = false)
-        => Task.Run(() => SaveSnapshot(folderOrFilePath, graph, rows, hasCustomUserLayout));
+        bool hasCustomUserLayout = false,
+        IReadOnlyCollection<string>? enabledAnalyticsTabs = null)
+        => Task.Run(() => SaveSnapshot(folderOrFilePath, graph, rows, hasCustomUserLayout, enabledAnalyticsTabs));
 
     /// <summary>
     /// Aggiorna le coordinate geometriche del layout nello snapshot di cache esistente su disco.
@@ -306,6 +334,47 @@ public sealed class ProjectCacheService
     /// </summary>
     public Task UpdateLayoutSnapshotAsync(string folderOrFilePath, VisualCodeGraph graph, bool hasCustomUserLayout = false)
         => Task.Run(() => UpdateLayoutSnapshot(folderOrFilePath, graph, hasCustomUserLayout));
+
+    /// <summary>
+    /// Aggiorna l'elenco delle schede analitiche abilitate o avviate nello snapshot di cache esistente su disco.
+    /// </summary>
+    public void UpdateEnabledAnalyticsTabs(string folderOrFilePath, IEnumerable<string> enabledTabs)
+    {
+        if (string.IsNullOrWhiteSpace(folderOrFilePath))
+            return;
+
+        var folderPath = File.Exists(folderOrFilePath) ? (Path.GetDirectoryName(folderOrFilePath) ?? folderOrFilePath) : folderOrFilePath;
+        if (!Directory.Exists(folderPath))
+            return;
+
+        try
+        {
+            var cacheFile = GetCacheFilePath(folderOrFilePath);
+            if (!File.Exists(cacheFile))
+                return;
+
+            var json = File.ReadAllText(cacheFile);
+            var snapshot = JsonSerializer.Deserialize<ProjectCacheSnapshot>(json, _jsonOptions);
+            if (snapshot is null) return;
+
+            snapshot.EnabledAnalyticsTabs = enabledTabs.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+            var tempFile = cacheFile + ".tmp";
+            var updatedJson = JsonSerializer.Serialize(snapshot, _jsonOptions);
+            File.WriteAllText(tempFile, updatedJson);
+            File.Move(tempFile, cacheFile, overwrite: true);
+        }
+        catch
+        {
+            // Tolleranza agli errori
+        }
+    }
+
+    /// <summary>
+    /// Versione asincrona che aggiorna l'elenco delle schede analitiche abilitate in background.
+    /// </summary>
+    public Task UpdateEnabledAnalyticsTabsAsync(string folderOrFilePath, IEnumerable<string> enabledTabs)
+        => Task.Run(() => UpdateEnabledAnalyticsTabs(folderOrFilePath, enabledTabs));
 
     /// <summary>
     /// Controlla se i file sorgente su disco sono cambiati rispetto allo snapshot della cache.

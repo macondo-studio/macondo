@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -480,6 +480,13 @@ public partial class SettingsWindow : Window
         UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
     }
 
+    private void OnToggleBackgroundAnalytics(object? sender, PointerPressedEventArgs e)
+    {
+        var updated = !SettingsService.Instance.Settings.EnableBackgroundAnalytics;
+        SettingsService.Instance.Update(s => s.EnableBackgroundAnalytics = updated);
+        UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
+    }
+
     private void OnSelectAllTabsClicked(object? sender, RoutedEventArgs e)
     {
         SettingsService.Instance.Update(s =>
@@ -540,6 +547,7 @@ public partial class SettingsWindow : Window
 
     private void UpdateAnalyticsTabsSelection(AppSettings s)
     {
+        CheckBackgroundAnalytics.IsVisible = s.EnableBackgroundAnalytics;
         CheckTabGraph.IsVisible = s.ShowTabGraph;
         CheckTabDsm.IsVisible = s.ShowTabDsm;
         CheckTabTreemap.IsVisible = s.ShowTabTreemap;
@@ -676,6 +684,8 @@ public partial class SettingsWindow : Window
 
         AnalyticsTabsHeaderTitle.Text = localizationService["Settings_AnalyticsTabs_Header"];
         AnalyticsTabsHeaderSub.Text = localizationService["Settings_AnalyticsTabs_Sub"];
+        BackgroundAnalyticsTitle.Text = localizationService["Settings_BackgroundAnalyticsTitle"];
+        BackgroundAnalyticsDesc.Text = localizationService["Settings_BackgroundAnalyticsDesc"];
         SelectAllTabsButtonText.Text = localizationService["Settings_SelectAll"];
         DeselectAllTabsButtonText.Text = localizationService["Settings_DeselectAll"];
 

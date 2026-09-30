@@ -452,6 +452,27 @@
                                 <TextBlock x:Name="AnalyticsTabsHeaderSub" Text="Scegli quali schede e viste analitiche mostrare nella barra centrale." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
                             </StackPanel>
 
+                            <!-- Card Pre-elaborazione Analisi in Background -->
+                            <Border x:Name="CardBackgroundAnalytics"
+                                    Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                    BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleBackgroundAnalytics">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                        <PathIcon Data="{StaticResource IconZap}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                        <TextBlock x:Name="BackgroundAnalyticsTitle" Text="Pre-elaborazione automatica in background" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                        <TextBlock x:Name="BackgroundAnalyticsDesc" Text="Calcola automaticamente in background i dataset per le schede visibili. Se disattivato, le analisi partono solo su richiesta." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <Border Grid.Column="2" x:Name="CheckBackgroundAnalytics" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,2" />
+
                             <!-- Barra Azioni Rapide (Seleziona Tutte / Deseleziona Tutte) -->
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <Button x:Name="SelectAllTabsButton"

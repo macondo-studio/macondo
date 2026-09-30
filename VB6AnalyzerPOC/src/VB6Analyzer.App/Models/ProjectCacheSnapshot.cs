@@ -44,6 +44,9 @@ public sealed class ProjectCacheSnapshot
 
     /// <summary>Righe precalcolate per la tabella del Blast Radius.</summary>
     public List<BlastRadiusRowSnapshot> BlastRadiusRows { get; set; } = new();
+
+    /// <summary>Identificatori delle schede di analisi avviate o abilitate dall'utente per questo progetto.</summary>
+    public List<string> EnabledAnalyticsTabs { get; set; } = new();
 }
 
 /// <summary>
