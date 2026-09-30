@@ -50,4 +50,26 @@ public class ThemeServiceTests
         service.CurrentDefinition.Should().NotBeNull();
         service.CurrentDefinition.Theme.Should().Be(service.CurrentTheme);
     }
+
+    /// <summary>
+    /// Verifica che ogni tema registrato nel dizionario Themes abbia valori validi per tutti i campi colore.
+    /// </summary>
+    [Fact]
+    public void Themes_ShouldContainValidColorHexCodes_ForAllRegisteredThemes()
+    {
+        // Arrange
+        var service = ThemeService.Instance;
+
+        foreach (var (theme, def) in service.Themes)
+        {
+            def.Theme.Should().Be(theme);
+            def.BackgroundPrimary.Should().MatchRegex(@"^#[0-9A-Fa-f]{6}$");
+            def.BackgroundSecondary.Should().MatchRegex(@"^#[0-9A-Fa-f]{6}$");
+            def.BackgroundSurface.Should().MatchRegex(@"^#[0-9A-Fa-f]{6}$");
+            def.AccentColor.Should().MatchRegex(@"^#[0-9A-Fa-f]{6}$");
+            def.TextPrimary.Should().MatchRegex(@"^#[0-9A-Fa-f]{6}$");
+            def.GraphBackground.Should().MatchRegex(@"^#[0-9A-Fa-f]{6}$");
+            def.GraphNodeFill.Should().MatchRegex(@"^#[0-9A-Fa-f]{6}$");
+        }
+    }
 }

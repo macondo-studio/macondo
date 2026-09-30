@@ -324,4 +324,133 @@ public class ApiDiffAndSemVerTests
         report.Should().NotBeNull();
         report.TotalChanges.Should().Be(0);
     }
+
+    /// <summary>
+    /// Verifica che la modifica del tipo di ritorno di un metodo pubblico venga identificata come Breaking Change.
+    /// </summary>
+    [Fact]
+    public void ApiDiff_ShouldDetectBreakingChange_WhenMethodReturnTypeChanges()
+    {
+        // Arrange
+        var oldGraph = new CodeGraph();
+        var newGraph = new CodeGraph();
+
+        var oldMethod = new Symbol
+        {
+            Id = Guid.NewGuid(),
+            Name = "GetStatus",
+            QualifiedName = "Service.GetStatus",
+            FilePath = "Service.cs",
+            Kind = SymbolKind.Method,
+            Accessibility = Accessibility.Public,
+            ReturnType = "string"
+        };
+        var newMethod = new Symbol
+        {
+            Id = Guid.NewGuid(),
+            Name = "GetStatus",
+            QualifiedName = "Service.GetStatus",
+            FilePath = "Service.cs",
+            Kind = SymbolKind.Method,
+            Accessibility = Accessibility.Public,
+            ReturnType = "int"
+        };
+
+        oldGraph.Symbols.Add(oldMethod);
+        newGraph.Symbols.Add(newMethod);
+
+        // Act
+        var report = ApiDiffAnalyzer.Compare(oldGraph, newGraph);
+
+        // Assert
+        report.Should().NotBeNull();
+        report.BreakingChangesCount.Should().BeGreaterThan(0);
+        report.RecommendedBump.Should().Be(ApiChangeImpact.MajorBreaking);
+    }
+
+    /// <summary>
+    /// Verifica che la modifica del tipo di un parametro di un metodo pubblico venga identificata come Breaking Change.
+    /// </summary>
+    [Fact]
+    public void ApiDiff_ShouldDetectBreakingChange_WhenParameterTypeChanges()
+    {
+        // Arrange
+        var oldGraph = new CodeGraph();
+        var newGraph = new CodeGraph();
+
+        var oldMethod = new Symbol
+        {
+            Id = Guid.NewGuid(),
+            Name = "FindById",
+            QualifiedName = "Repo.FindById",
+            FilePath = "Repo.cs",
+            Kind = SymbolKind.Method,
+            Accessibility = Accessibility.Public
+        };
+        oldMethod.Parameters.Add(new ParameterSymbol { Name = "id", DeclaredTypeName = "int" });
+
+        var newMethod = new Symbol
+        {
+            Id = Guid.NewGuid(),
+            Name = "FindById",
+            QualifiedName = "Repo.FindById",
+            FilePath = "Repo.cs",
+            Kind = SymbolKind.Method,
+            Accessibility = Accessibility.Public
+        };
+        newMethod.Parameters.Add(new ParameterSymbol { Name = "id", DeclaredTypeName = "Guid" });
+
+        oldGraph.Symbols.Add(oldMethod);
+        newGraph.Symbols.Add(newMethod);
+
+        // Act
+        var report = ApiDiffAnalyzer.Compare(oldGraph, newGraph);
+
+        // Assert
+        report.Should().NotBeNull();
+        report.BreakingChangesCount.Should().BeGreaterThan(0);
+        report.RecommendedBump.Should().Be(ApiChangeImpact.MajorBreaking);
+    }
+
+    /// <summary>
+    /// Verifica che la modifica del tipo di simbolo (es. da Class a Interface) venga identificata come Breaking Change.
+    /// </summary>
+    [Fact]
+    public void ApiDiff_ShouldDetectBreakingChange_WhenSymbolKindChanges()
+    {
+        // Arrange
+        var oldGraph = new CodeGraph();
+        var newGraph = new CodeGraph();
+
+        var oldSymbol = new Symbol
+        {
+            Id = Guid.NewGuid(),
+            Name = "DataHandler",
+            QualifiedName = "Engine.DataHandler",
+            FilePath = "DataHandler.cs",
+            Kind = SymbolKind.Class,
+            Accessibility = Accessibility.Public
+        };
+
+        var newSymbol = new Symbol
+        {
+            Id = Guid.NewGuid(),
+            Name = "DataHandler",
+            QualifiedName = "Engine.DataHandler",
+            FilePath = "DataHandler.cs",
+            Kind = SymbolKind.Interface,
+            Accessibility = Accessibility.Public
+        };
+
+        oldGraph.Symbols.Add(oldSymbol);
+        newGraph.Symbols.Add(newSymbol);
+
+        // Act
+        var report = ApiDiffAnalyzer.Compare(oldGraph, newGraph);
+
+        // Assert
+        report.Should().NotBeNull();
+        report.BreakingChangesCount.Should().BeGreaterThan(0);
+        report.RecommendedBump.Should().Be(ApiChangeImpact.MajorBreaking);
+    }
 }

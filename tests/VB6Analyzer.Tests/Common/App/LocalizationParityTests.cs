@@ -66,4 +66,37 @@ public class LocalizationParityTests
         var result = service.Get("NON_EXISTENT_KEY_XYZ_123");
         result.Should().Be("NON_EXISTENT_KEY_XYZ_123");
     }
+
+    /// <summary>
+    /// Verifica che il cambio di lingua tramite SetLanguage aggiorni la lingua attiva
+    /// e restituisca le traduzioni specifiche per la lingua selezionata.
+    /// </summary>
+    [Fact]
+    public void Localization_SetLanguage_ShouldSwitchActiveLanguageAndTranslations()
+    {
+        var service = LocalizationService.Instance;
+
+        service.SetLanguage(AppLanguage.Italian);
+        service.CurrentLanguage.Should().Be(AppLanguage.Italian);
+        var itTitle = service.Get("Menu_File");
+
+        service.SetLanguage(AppLanguage.English);
+        service.CurrentLanguage.Should().Be(AppLanguage.English);
+        var enTitle = service.Get("Menu_File");
+
+        itTitle.Should().NotBeNullOrWhiteSpace();
+        enTitle.Should().NotBeNullOrWhiteSpace();
+    }
+
+    /// <summary>
+    /// Verifica che LocalizationService gestisca chiamate a chiavi inesistenti con argomenti di formattazione senza lanciare eccezioni.
+    /// </summary>
+    [Fact]
+    public void Localization_Get_ShouldHandleNonExistentKeyWithFormatArguments_Safely()
+    {
+        var service = LocalizationService.Instance;
+        var act = () => service.Get("NON_EXISTENT_{0}_{1}", "Arg1", 42);
+        act.Should().NotThrow();
+        act().Should().Contain("NON_EXISTENT");
+    }
 }
