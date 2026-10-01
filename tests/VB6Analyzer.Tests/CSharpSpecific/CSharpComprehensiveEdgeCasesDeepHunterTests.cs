@@ -60,7 +60,7 @@ public class CSharpComprehensiveEdgeCasesDeepHunterTests
         repoInterface.Should().NotBeNull();
         repoClass.Should().NotBeNull();
 
-        var getByIdMethod = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Method && s.Name == "GetById");
+        var getByIdMethod = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Method && s.Name == "GetById" && s.QualifiedName.Contains("SqlRepository"));
         getByIdMethod.Should().NotBeNull();
         graph.Relationships.Should().Contain(r => r.Kind == RelationshipKind.Contains && r.SourceId == repoClass!.Id && r.TargetId == getByIdMethod!.Id);
     }
@@ -192,7 +192,7 @@ public class CSharpComprehensiveEdgeCasesDeepHunterTests
         iface.Should().NotBeNull();
         cls.Should().NotBeNull();
 
-        var parseMethod = graph.Symbols.FirstOrDefault(s => s.Name == "Parse");
+        var parseMethod = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Method && s.Name == "Parse" && s.QualifiedName.Contains("CustomNumber"));
         parseMethod.Should().NotBeNull();
         graph.Relationships.Should().Contain(r => r.Kind == RelationshipKind.Contains && r.SourceId == cls!.Id && r.TargetId == parseMethod!.Id);
     }

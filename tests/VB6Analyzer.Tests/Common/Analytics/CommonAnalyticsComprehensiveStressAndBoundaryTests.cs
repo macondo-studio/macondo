@@ -227,7 +227,7 @@ public class CommonAnalyticsComprehensiveStressAndBoundaryTests
                 Id = Guid.NewGuid(),
                 Name = $"Module_{d}",
                 QualifiedName = $"Project.Module_{d}",
-                FilePath = $"src/Module_{d}.cs",
+                FilePath = $"src/District_{d}/Module_{d}.cs",
                 Kind = SymbolKind.Class,
                 LineStart = 1,
                 LineEnd = 100 + (d * 10)
@@ -241,7 +241,7 @@ public class CommonAnalyticsComprehensiveStressAndBoundaryTests
                     Id = Guid.NewGuid(),
                     Name = $"Method_{d}_{m}",
                     QualifiedName = $"Project.Module_{d}.Method_{d}_{m}",
-                    FilePath = $"src/Module_{d}.cs",
+                    FilePath = $"src/District_{d}/Module_{d}.cs",
                     Kind = SymbolKind.Method,
                     LineStart = (m * 20),
                     LineEnd = (m * 20) + 15

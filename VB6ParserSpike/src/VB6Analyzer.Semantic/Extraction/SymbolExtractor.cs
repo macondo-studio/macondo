@@ -214,8 +214,8 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         symbol.Accessibility = GetAccessibility(context.visibility());
         symbol.IsStatic = context.STATIC() is not null;
 
-        // 3. Estrae il tipo di ritorno dalla clausola 'As Type' (se omesso in VB6, è Variant)
-        var returnType = ExtractTypeName(context.asTypeClause());
+        // 3. Estrae il tipo di ritorno dalla clausola 'As Type' o dal suffisso di tipo (se omesso in VB6, è Variant)
+        var returnType = ExtractTypeName(context.asTypeClause()) ?? ExtractTypeHint(context.typeHint());
         symbol.ReturnType = returnType;
         symbol.DeclaredTypeName = returnType;
 
@@ -312,7 +312,16 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             symbol.Accessibility = GetAccessibility(context.visibility());
 
         var parameters = ExtractParameters(context.argList());
-        MergeParameters(symbol.Parameters, parameters);
+        if (parameters.Count > 0)
+        {
+            var indexParams = parameters.Take(parameters.Count - 1).ToList();
+            MergeParameters(symbol.Parameters, indexParams);
+
+            if (symbol.DeclaredTypeName == null)
+            {
+                symbol.DeclaredTypeName = parameters[^1].DeclaredTypeName;
+            }
+        }
 
         if (wasCreated)
         {
@@ -337,12 +346,16 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             symbol.Accessibility = GetAccessibility(context.visibility());
 
         var parameters = ExtractParameters(context.argList());
-        MergeParameters(symbol.Parameters, parameters);
-
-        // In VB6, se la Property non ha un Property Get, il suo tipo è quello dell'ultimo parametro del Let (il valore assegnato)
-        if (symbol.DeclaredTypeName == null && parameters.Count > 0)
+        if (parameters.Count > 0)
         {
-            symbol.DeclaredTypeName = parameters[^1].DeclaredTypeName;
+            var indexParams = parameters.Take(parameters.Count - 1).ToList();
+            MergeParameters(symbol.Parameters, indexParams);
+
+            // In VB6, se la Property non ha un Property Get, il suo tipo è quello dell'ultimo parametro del Let (il valore assegnato)
+            if (symbol.DeclaredTypeName == null)
+            {
+                symbol.DeclaredTypeName = parameters[^1].DeclaredTypeName;
+            }
         }
 
         if (wasCreated)
@@ -683,7 +696,7 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             var isByRef = argCtx.BYREF() is not null || !isByVal;
             var isOptional = argCtx.OPTIONAL() is not null;
             var isParamArray = argCtx.PARAMARRAY() is not null;
-            var typeName = ExtractTypeName(argCtx.asTypeClause());
+            var typeName = ExtractTypeName(argCtx.asTypeClause()) ?? ExtractTypeHint(argCtx.typeHint());
             var defVal = argCtx.argDefaultValue()?.valueStmt()?.GetText();
 
             result.Add(new ParameterSymbol
@@ -699,6 +712,24 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             });
         }
         return result;
+    }
+
+    /// <summary>
+    /// Converte i caratteri suffisso di tipo legacy VB6 (%, &, !, #, $, @) nel corrispondente tipo semantico.
+    /// </summary>
+    private static string? ExtractTypeHint(VisualBasic6Parser.TypeHintContext? ctx)
+    {
+        if (ctx is null) return null;
+        return ctx.GetText() switch
+        {
+            "%" => "Integer",
+            "&" => "Long",
+            "!" => "Single",
+            "#" => "Double",
+            "$" => "String",
+            "@" => "Currency",
+            _ => null
+        };
     }
 
     /// <summary>Mappa la regola ANTLR 'visibility' all'enum <see cref="Accessibility"/>.</summary>

@@ -90,6 +90,7 @@ moduleBodyElement
     | enumerationStmt
     | eventStmt
     | functionStmt
+    | macroConstStmt
     | macroIfThenElseStmt
     | propertyGetStmt
     | propertySetStmt
@@ -190,6 +191,7 @@ blockStmt
         | loadStmt
         | lockStmt
         | lsetStmt
+        | macroConstStmt
         | macroIfThenElseStmt
         | midStmt
         | mkdirStmt
@@ -344,7 +346,7 @@ forNextStmt
     ;
 
 functionStmt
-    : (visibility WS)? (STATIC WS)? FUNCTION WS ambiguousIdentifier (WS? argList)? (
+    : (visibility WS)? (STATIC WS)? FUNCTION WS ambiguousIdentifier typeHint? (WS? argList)? (
         WS asTypeClause
     )? NEWLINE+ (block NEWLINE+)? (lineNumber WS)? END_FUNCTION
     ;
@@ -414,20 +416,24 @@ lsetStmt
     : LSET WS implicitCallStmt_InStmt WS? EQ WS? valueStmt
     ;
 
+macroConstStmt
+    : MACRO_CONST WS constSubStmt (WS? COMMA WS? constSubStmt)*
+    ;
+
 macroIfThenElseStmt
     : macroIfBlockStmt macroElseIfBlockStmt* macroElseBlockStmt? MACRO_END_IF
     ;
 
 macroIfBlockStmt
-    : MACRO_IF WS ifConditionStmt WS THEN NEWLINE+ (moduleBody NEWLINE+)?
+    : MACRO_IF WS ifConditionStmt WS THEN NEWLINE+ ((block | moduleBody) NEWLINE+)?
     ;
 
 macroElseIfBlockStmt
-    : MACRO_ELSEIF WS ifConditionStmt WS THEN NEWLINE+ (moduleBody NEWLINE+)?
+    : MACRO_ELSEIF WS ifConditionStmt WS THEN NEWLINE+ ((block | moduleBody) NEWLINE+)?
     ;
 
 macroElseBlockStmt
-    : MACRO_ELSE NEWLINE+ (moduleBody NEWLINE+)?
+    : MACRO_ELSE NEWLINE+ ((block | moduleBody) NEWLINE+)?
     ;
 
 midStmt

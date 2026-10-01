@@ -175,6 +175,39 @@ public static class ApiDiffAnalyzer
         if (oldSym.Kind is not (SymbolKind.Method or SymbolKind.Property))
             return;
 
+        // Verifica modifica del modificatore statico
+        if (oldSym.IsStatic != newSym.IsStatic)
+        {
+            report.Differences.Add(new ApiDifferenceItem
+            {
+                SymbolQualifiedName = oldSym.QualifiedName,
+                SymbolKind = oldSym.Kind,
+                ChangeKind = ApiChangeKind.ChangedAccessibility,
+                Impact = ApiChangeImpact.MajorBreaking,
+                Description = $"Breaking API change: method '{oldSym.QualifiedName}' static modifier changed from {oldSym.IsStatic} to {newSym.IsStatic}.",
+                OldSymbol = oldSym,
+                NewSymbol = newSym
+            });
+        }
+
+        // Verifica modifica del tipo di ritorno
+        var oldReturn = oldSym.ReturnType ?? oldSym.DeclaredTypeName;
+        var newReturn = newSym.ReturnType ?? newSym.DeclaredTypeName;
+        if (!string.IsNullOrEmpty(oldReturn) && !string.IsNullOrEmpty(newReturn) &&
+            !string.Equals(oldReturn, newReturn, StringComparison.OrdinalIgnoreCase))
+        {
+            report.Differences.Add(new ApiDifferenceItem
+            {
+                SymbolQualifiedName = oldSym.QualifiedName,
+                SymbolKind = oldSym.Kind,
+                ChangeKind = ApiChangeKind.ChangedReturnType,
+                Impact = ApiChangeImpact.MajorBreaking,
+                Description = $"Breaking API change: return type of '{oldSym.QualifiedName}' changed from '{oldReturn}' to '{newReturn}'.",
+                OldSymbol = oldSym,
+                NewSymbol = newSym
+            });
+        }
+
         int oldParamCount = oldSym.Parameters.Count;
         int newParamCount = newSym.Parameters.Count;
 
@@ -195,6 +228,28 @@ public static class ApiDiffAnalyzer
                 OldSymbol = oldSym,
                 NewSymbol = newSym
             });
+        }
+        else if (oldParamCount > 0)
+        {
+            for (int i = 0; i < oldParamCount; i++)
+            {
+                var oldType = oldSym.Parameters[i].DeclaredTypeName ?? "Variant";
+                var newType = newSym.Parameters[i].DeclaredTypeName ?? "Variant";
+                if (!string.Equals(oldType, newType, StringComparison.OrdinalIgnoreCase))
+                {
+                    report.Differences.Add(new ApiDifferenceItem
+                    {
+                        SymbolQualifiedName = oldSym.QualifiedName,
+                        SymbolKind = oldSym.Kind,
+                        ChangeKind = ApiChangeKind.ChangedParameters,
+                        Impact = ApiChangeImpact.MajorBreaking,
+                        Description = $"Breaking API change: parameter '{oldSym.Parameters[i].Name}' of '{oldSym.QualifiedName}' changed type from '{oldType}' to '{newType}'.",
+                        OldSymbol = oldSym,
+                        NewSymbol = newSym
+                    });
+                    break;
+                }
+            }
         }
     }
 

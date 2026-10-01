@@ -49,9 +49,7 @@ public static class TemporalCouplingAnalyzer
                 .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            // Ignora commit banali con 1 solo file o commit di massa (es. merge o refactoring globali > 35 file)
-            // che genererebbero falso rumore di correlazione temporale
-            if (relevantFiles.Count < 2 || relevantFiles.Count > 35)
+            if (relevantFiles.Count > 35)
                 continue;
 
             // Incrementa il conteggio complessivo di commit per ciascun file
@@ -59,6 +57,10 @@ public static class TemporalCouplingAnalyzer
             {
                 fileCommitCounts[file] = fileCommitCounts.GetValueOrDefault(file, 0) + 1;
             }
+
+            // Ignora commit con 1 solo file per le coppie di co-modifica congiunta
+            if (relevantFiles.Count < 2)
+                continue;
 
             // Incrementa i conteggi di co-occorrenza congiunta per ciascuna coppia distinta (A, B)
             for (int i = 0; i < relevantFiles.Count; i++)

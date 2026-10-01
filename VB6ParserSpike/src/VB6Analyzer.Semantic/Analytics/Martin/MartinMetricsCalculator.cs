@@ -77,7 +77,7 @@ public static class MartinMetricsCalculator
             var ca = afferentSets[c.Id].Count;
             var totalCoupling = ce + ca;
 
-            var instability = totalCoupling > 0 ? (double)ce / totalCoupling : 0.5;
+            var instability = totalCoupling > 0 ? (double)ce / totalCoupling : 0.0;
 
             var children = graph.GetChildren(c.Id).ToList();
             int totalMembers = children.Count;
@@ -119,7 +119,7 @@ public static class MartinMetricsCalculator
             var abstractness = totalSymbolsForAbs > 0 ? (double)abstractCount / totalSymbolsForAbs : 0.0;
 
             var distanceRaw = Math.Abs(abstractness + instability - 1.0);
-            var normalizedDistance = Math.Clamp(distanceRaw / Math.Sqrt(2.0), 0.0, 1.0);
+            var normalizedDistance = Math.Clamp(distanceRaw, 0.0, 1.0);
 
             // Assegna la zona
             MartinZone zone;

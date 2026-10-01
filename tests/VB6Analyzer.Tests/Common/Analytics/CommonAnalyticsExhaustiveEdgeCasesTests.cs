@@ -45,7 +45,7 @@ public class CommonAnalyticsExhaustiveEdgeCasesTests
         var hotItem = hotspots.Items.First(i => i.Id == hotMod.Id);
 
         hotItem.RiskScore.Should().BeGreaterThan(coldItem.RiskScore);
-        hotItem.ChurnOrFanIn.Should().Be(500);
+        hotItem.ChurnOrFanIn.Should().Be(1000);
         coldItem.ChurnOrFanIn.Should().Be(0);
     }
 

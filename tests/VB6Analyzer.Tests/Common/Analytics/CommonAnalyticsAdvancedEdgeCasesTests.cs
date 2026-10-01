@@ -165,8 +165,8 @@ public class CommonAnalyticsAdvancedEdgeCasesTests
         var sessionEntity = new Symbol { Id = Guid.NewGuid(), Name = "UserSession", QualifiedName = "UserSession", FilePath = "Session.cs", Kind = SymbolKind.Class };
         var cacheEntity = new Symbol { Id = Guid.NewGuid(), Name = "AppCache", QualifiedName = "AppCache", FilePath = "Cache.cs", Kind = SymbolKind.Class };
 
-        var updateSession = new Symbol { Id = Guid.NewGuid(), Name = "UpdateSessionHeartbeat", QualifiedName = "SessionRepo.UpdateSessionHeartbeat", FilePath = "SessionRepo.cs", Kind = SymbolKind.Method };
-        var deleteCache = new Symbol { Id = Guid.NewGuid(), Name = "DeleteCacheEntry", QualifiedName = "CacheRepo.DeleteCacheEntry", FilePath = "CacheRepo.cs", Kind = SymbolKind.Method };
+        var updateSession = new Symbol { Id = Guid.NewGuid(), Name = "UpdateUserSessionHeartbeat", QualifiedName = "SessionRepo.UpdateUserSessionHeartbeat", FilePath = "SessionRepo.cs", Kind = SymbolKind.Method };
+        var deleteCache = new Symbol { Id = Guid.NewGuid(), Name = "DeleteAppCacheEntry", QualifiedName = "CacheRepo.DeleteAppCacheEntry", FilePath = "CacheRepo.cs", Kind = SymbolKind.Method };
 
         graph.Symbols.AddRange(new[] { sessionEntity, cacheEntity, updateSession, deleteCache });
 

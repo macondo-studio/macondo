@@ -252,7 +252,10 @@ public static class CSharpExtractor
         /// </summary>
         public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
         {
-            ProcessTypeDeclaration(node, SymbolKind.Record, node.Identifier.ValueText, node.Modifiers, node.BaseList);
+            var kind = node.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword)
+                ? SymbolKind.Struct
+                : SymbolKind.Record;
+            ProcessTypeDeclaration(node, kind, node.Identifier.ValueText, node.Modifiers, node.BaseList);
         }
 
         /// <summary>

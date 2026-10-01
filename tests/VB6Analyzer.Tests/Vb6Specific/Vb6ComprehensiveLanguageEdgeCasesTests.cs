@@ -18,9 +18,6 @@ public class Vb6ComprehensiveLanguageEdgeCasesTests
     {
         // Arrange
         var code = """
-            Public Class Node
-            End Class
-
             Private m_Node As Node
             Private m_Tag As String
 

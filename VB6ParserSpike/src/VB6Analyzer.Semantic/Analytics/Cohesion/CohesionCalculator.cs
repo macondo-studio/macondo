@@ -87,10 +87,10 @@ public static class CohesionCalculator
                 FieldCount = fields.Count
             };
 
-            // Se non ci sono metodi o c'è un solo metodo, LCOM4 è banale (1 cluster o 0)
+            // Se non ci sono metodi o c'è un solo metodo, LCOM4 è banale (1 cluster di default)
             if (routines.Count == 0)
             {
-                report.Lcom4 = 0;
+                report.Lcom4 = 1;
                 report.TightClassCohesion = 1.0;
                 report.LooseClassCohesion = 1.0;
             }

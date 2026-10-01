@@ -27,6 +27,8 @@ public static class SocialCodeAnalyzer
     {
         var dataset = new SocialCodeDataset();
         var commits = commitHistory.ToList();
+        if (commits.Count == 0)
+            return dataset;
 
         // ---------------------------------------------------------------------
         // FASE 1: Raggruppa i commit per percorso file normalizzato

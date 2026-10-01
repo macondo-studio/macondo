@@ -26,6 +26,12 @@ public sealed class GitService
 
         try
         {
+            if (File.Exists(folderPath))
+            {
+                folderPath = Path.GetDirectoryName(folderPath);
+                if (string.IsNullOrWhiteSpace(folderPath)) return null;
+            }
+
             var dir = new DirectoryInfo(folderPath);
             while (dir != null && dir.Exists)
             {

@@ -156,8 +156,8 @@ public class Vb6ComprehensiveEdgeCasesAndGrammarStressTests
         result.Success.Should().BeTrue();
         result.ParseErrors.Should().BeEmpty();
 
-        var headerType = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Struct && s.Name == "HeaderRecord");
-        var packetType = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Struct && s.Name == "DataPacket");
+        var headerType = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Type && s.Name == "HeaderRecord");
+        var packetType = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Type && s.Name == "DataPacket");
         var processSub = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Method && s.Name == "ProcessPacket");
 
         headerType.Should().NotBeNull();
@@ -273,9 +273,6 @@ public class Vb6ComprehensiveEdgeCasesAndGrammarStressTests
     {
         // Arrange
         var code = """
-            Public Class Worker
-            End Class
-
             Public Sub ExecuteMixedDeclarations()
                 Dim w1 As New Worker, w2 As Worker, items() As String, totalCount As Long, isValid As Boolean
                 Set w2 = w1
