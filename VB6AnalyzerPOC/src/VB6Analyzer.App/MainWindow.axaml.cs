@@ -2228,10 +2228,11 @@ public partial class MainWindow : Window
         }
 
         var targetGraph = GetTargetSemanticGraph();
+        var nodeCount = targetGraph.Symbols.Count;
 
         if (selectedItem == DsmTabItem)
         {
-            DsmPlaceholder?.SetState(isPending: false, isComputing: true);
+            DsmPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(DsmTabItem, nodeCount), GetComputingTabTitle(DsmTabItem));
             _ = Task.Run(() =>
             {
                 var matrix = DsmMatrixBuilder.Build(targetGraph);
@@ -2245,7 +2246,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == TreemapTabItem)
         {
-            TreemapPlaceholder?.SetState(isPending: false, isComputing: true);
+            TreemapPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(TreemapTabItem, nodeCount), GetComputingTabTitle(TreemapTabItem));
             _ = Task.Run(() =>
             {
                 var treemap = TreemapModelBuilder.Build(targetGraph);
@@ -2259,7 +2260,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == HotspotTabItem)
         {
-            HotspotPlaceholder?.SetState(isPending: false, isComputing: true);
+            HotspotPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(HotspotTabItem, nodeCount), GetComputingTabTitle(HotspotTabItem));
             _ = Task.Run(() =>
             {
                 var hotspot = HotspotAnalyzer.Analyze(targetGraph);
@@ -2273,7 +2274,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == ScreenFlowTabItem)
         {
-            ScreenFlowPlaceholder?.SetState(isPending: false, isComputing: true);
+            ScreenFlowPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(ScreenFlowTabItem, nodeCount), GetComputingTabTitle(ScreenFlowTabItem));
             _ = Task.Run(() =>
             {
                 var screenFlow = ScreenFlowBuilder.Build(targetGraph);
@@ -2287,7 +2288,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == MartinTabItem)
         {
-            MartinPlaceholder?.SetState(isPending: false, isComputing: true);
+            MartinPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(MartinTabItem, nodeCount), GetComputingTabTitle(MartinTabItem));
             _ = Task.Run(() =>
             {
                 var martin = MartinMetricsCalculator.Analyze(targetGraph);
@@ -2301,7 +2302,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == DeadCodeTabItem)
         {
-            DeadCodePlaceholder?.SetState(isPending: false, isComputing: true);
+            DeadCodePlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(DeadCodeTabItem, nodeCount), GetComputingTabTitle(DeadCodeTabItem));
             _ = Task.Run(() =>
             {
                 var deadCode = DeadCodeAnalyzer.Analyze(targetGraph);
@@ -2315,7 +2316,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == SharedStateTabItem)
         {
-            SharedStatePlaceholder?.SetState(isPending: false, isComputing: true);
+            SharedStatePlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(SharedStateTabItem, nodeCount), GetComputingTabTitle(SharedStateTabItem));
             _ = Task.Run(() =>
             {
                 var sharedState = SharedStateAnalyzer.Analyze(targetGraph);
@@ -2329,7 +2330,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == ArchitecturalFlowTabItem)
         {
-            ArchitecturalFlowPlaceholder?.SetState(isPending: false, isComputing: true);
+            ArchitecturalFlowPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(ArchitecturalFlowTabItem, nodeCount), GetComputingTabTitle(ArchitecturalFlowTabItem));
             _ = Task.Run(() =>
             {
                 var flow = ArchitecturalFlowAnalyzer.Analyze(targetGraph);
@@ -2343,7 +2344,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == CodeCityTabItem)
         {
-            CodeCityPlaceholder?.SetState(isPending: false, isComputing: true);
+            CodeCityPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(CodeCityTabItem, nodeCount), GetComputingTabTitle(CodeCityTabItem));
             _ = Task.Run(() =>
             {
                 var city = CodeCityBuilder.Build(targetGraph);
@@ -2357,7 +2358,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == TemporalCouplingTabItem)
         {
-            TemporalCouplingPlaceholder?.SetState(isPending: false, isComputing: true);
+            TemporalCouplingPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(TemporalCouplingTabItem, nodeCount), GetComputingTabTitle(TemporalCouplingTabItem));
             var folder = _currentFolderPath;
             _ = Task.Run(() =>
             {
@@ -2373,7 +2374,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == CohesionTabItem)
         {
-            CohesionPlaceholder?.SetState(isPending: false, isComputing: true);
+            CohesionPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(CohesionTabItem, nodeCount), GetComputingTabTitle(CohesionTabItem));
             _ = Task.Run(() =>
             {
                 var cohesion = CohesionCalculator.Analyze(targetGraph);
@@ -2387,7 +2388,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == MaintainabilityTabItem)
         {
-            MaintainabilityPlaceholder?.SetState(isPending: false, isComputing: true);
+            MaintainabilityPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(MaintainabilityTabItem, nodeCount), GetComputingTabTitle(MaintainabilityTabItem));
             _ = Task.Run(() =>
             {
                 var maintainability = MaintainabilityCalculator.Analyze(targetGraph);
@@ -2401,7 +2402,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == ArchitecturalRulesTabItem)
         {
-            ArchitecturalRulesPlaceholder?.SetState(isPending: false, isComputing: true);
+            ArchitecturalRulesPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(ArchitecturalRulesTabItem, nodeCount), GetComputingTabTitle(ArchitecturalRulesTabItem));
             _ = Task.Run(() =>
             {
                 var rules = ArchitecturalRulesEngine.Evaluate(targetGraph);
@@ -2415,7 +2416,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == CodeCloneTabItem)
         {
-            CodeClonePlaceholder?.SetState(isPending: false, isComputing: true);
+            CodeClonePlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(CodeCloneTabItem, nodeCount), GetComputingTabTitle(CodeCloneTabItem));
             _ = Task.Run(() =>
             {
                 var clones = CodeCloneDetector.DetectClones(targetGraph);
@@ -2429,7 +2430,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == SocialCodeTabItem)
         {
-            SocialCodePlaceholder?.SetState(isPending: false, isComputing: true);
+            SocialCodePlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(SocialCodeTabItem, nodeCount), GetComputingTabTitle(SocialCodeTabItem));
             var folder = _currentFolderPath;
             _ = Task.Run(() =>
             {
@@ -2445,7 +2446,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == DataFlowTabItem)
         {
-            DataFlowPlaceholder?.SetState(isPending: false, isComputing: true);
+            DataFlowPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(DataFlowTabItem, nodeCount), GetComputingTabTitle(DataFlowTabItem));
             _ = Task.Run(() =>
             {
                 var dataset = TaintAnalyzer.Analyze(targetGraph);
@@ -2459,7 +2460,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == ApiDiffTabItem)
         {
-            ApiDiffPlaceholder?.SetState(isPending: false, isComputing: true);
+            ApiDiffPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(ApiDiffTabItem, nodeCount), GetComputingTabTitle(ApiDiffTabItem));
             var baseline = _apiDiffBaselineGraph;
             _ = Task.Run(() =>
             {
@@ -2474,7 +2475,7 @@ public partial class MainWindow : Window
         }
         else if (selectedItem == CrudMatrixTabItem)
         {
-            CrudMatrixPlaceholder?.SetState(isPending: false, isComputing: true);
+            CrudMatrixPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(CrudMatrixTabItem, nodeCount), GetComputingTabTitle(CrudMatrixTabItem));
             _ = Task.Run(() =>
             {
                 var dataset = CrudMatrixAnalyzer.Analyze(targetGraph);
@@ -2486,6 +2487,39 @@ public partial class MainWindow : Window
                 });
             });
         }
+    }
+
+    /// <summary>
+    /// Calcola la durata stimata in secondi per l'analisi di una specifica scheda in base al numero di nodi del workspace.
+    /// </summary>
+    private static double GetEstimatedAnalysisSeconds(TabItem tabItem, int nodeCount)
+    {
+        var nodeFactor = Math.Min(6.0, nodeCount / 350.0);
+
+        if (tabItem.Name is "DsmTabItem" or "TreemapTabItem" or "MartinTabItem" or "ScreenFlowTabItem")
+            return Math.Round(0.4 + 0.3 * nodeFactor, 1);
+
+        if (tabItem.Name is "DeadCodeTabItem" or "SharedStateTabItem" or "ArchitecturalFlowTabItem" or "CohesionTabItem" or "MaintainabilityTabItem")
+            return Math.Round(0.6 + 0.5 * nodeFactor, 1);
+
+        if (tabItem.Name is "CodeCityTabItem" or "CrudMatrixTabItem" or "DataFlowTabItem")
+            return Math.Round(0.8 + 0.7 * nodeFactor, 1);
+
+        // Algoritmi più complessi (CPD cloni, analisi VCS git history, linter regole)
+        return Math.Round(1.2 + 1.2 * nodeFactor, 1);
+    }
+
+    /// <summary>
+    /// Restituisce il titolo dinamico localizzato da visualizzare durante il calcolo dell'analisi per la scheda specificata.
+    /// </summary>
+    private string GetComputingTabTitle(TabItem tabItem)
+    {
+        var title = GetTabTitle(tabItem);
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            return LocalizationService.Instance.Get("Analytics_ComputingNamedTitle", title);
+        }
+        return LocalizationService.Instance["Analytics_ComputingTitle"];
     }
 
     /// <summary>
