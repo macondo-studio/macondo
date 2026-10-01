@@ -652,7 +652,28 @@
 
                 <!-- TAB CONTROL PRINCIPALE DI ANALISI -->
                 <TabControl x:Name="CentralTabControl" SelectedIndex="0" Padding="0" IsVisible="False">
-                <TabControl.Styles>
+                    <TabControl.Resources>
+                        <!-- Menu Contestuale Tasto Destro sulle Schede di Analisi -->
+                        <ContextMenu x:Key="AnalyticsTabContextMenu">
+                            <MenuItem x:Name="CtxTabHide" Header="Nascondi scheda" Click="OnTabContextMenuHideClicked">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconClearFilter}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator />
+                            <MenuItem x:Name="CtxTabShowAll" Header="Mostra tutte le schede" Click="OnTabContextMenuShowAllClicked">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="CtxTabManage" Header="Personalizza schede..." Click="OnTabContextMenuManageClicked">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconSettings}" Width="12" Height="12" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </TabControl.Resources>
+                    <TabControl.Styles>
                     <Style Selector="TabItem">
                         <Setter Property="FontSize" Value="12" />
                         <Setter Property="FontWeight" Value="Normal" />

@@ -92,6 +92,9 @@ public partial class MainWindow : Window
         Graph.AddHandler(Control.ContextRequestedEvent, OnGraphContextRequested, RoutingStrategies.Tunnel);
         Graph.NodeMoved += (_, _) => OnGraphNodeMoved();
 
+        // Schede di Analisi (TabControl): menu contestuale su clic destro per nascondere o gestire i tab
+        CentralTabControl.AddHandler(Control.ContextRequestedEvent, OnCentralTabControlContextRequested, RoutingStrategies.Tunnel);
+
         // Menu Bar Superiore - File (Command + Click per massima affidabilità)
         OpenProjectFilesMenuItem.Command = new ActionCommand(async () => await OpenProjectFilesAsync());
         OpenFolderMenuItem.Command = new ActionCommand(async () => await OpenFolderAsync());
@@ -4746,6 +4749,181 @@ public partial class MainWindow : Window
 
     #endregion
 
+    #region Menu Contestuale Schede di Analisi (TabControl)
+
+    private TabItem? _contextMenuTargetTabItem;
+
+    /// <summary>
+    /// Gestisce la richiesta di apertura del menu contestuale sulle intestazioni delle schede di analisi.
+    /// Mostra le opzioni per nascondere la scheda specifica, mostrare tutte le schede o aprire la personalizzazione.
+    /// </summary>
+    private void OnCentralTabControlContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        var visual = e.Source as Visual;
+        var tabItem = visual as TabItem ?? visual?.FindAncestorOfType<TabItem>();
+
+        // Se il clic non è avvenuto su un'intestazione TabItem appartenente al TabControl principale, ignora
+        if (tabItem == null || CentralTabControl == null || !CentralTabControl.Items.OfType<TabItem>().Contains(tabItem))
+        {
+            return;
+        }
+
+        if (CentralTabControl.Resources.TryGetResource("AnalyticsTabContextMenu", null, out var res) && res is ContextMenu menu)
+        {
+            _contextMenuTargetTabItem = tabItem;
+            menu.DataContext = tabItem;
+            menu.PlacementTarget = tabItem;
+
+            var tabTitle = GetTabTitle(tabItem);
+            if (CtxTabHide != null)
+            {
+                CtxTabHide.Header = !string.IsNullOrWhiteSpace(tabTitle)
+                    ? LocalizationService.Instance.Get("TabContext_HideTabNamed", tabTitle)
+                    : LocalizationService.Instance["TabContext_HideTab"];
+            }
+
+            menu.Open(tabItem);
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>
+    /// Recupera il testo dell'intestazione del TabItem specificato per la formattazione dinamica del menu.
+    /// </summary>
+    private static string GetTabTitle(TabItem tabItem)
+    {
+        if (tabItem.Header is StackPanel sp)
+        {
+            var tb = sp.Children.OfType<TextBlock>().FirstOrDefault();
+            if (tb != null && !string.IsNullOrWhiteSpace(tb.Text)) return tb.Text;
+        }
+        if (tabItem.Header is TextBlock textBlock && !string.IsNullOrWhiteSpace(textBlock.Text))
+        {
+            return textBlock.Text;
+        }
+        if (tabItem.Header is string str && !string.IsNullOrWhiteSpace(str))
+        {
+            return str;
+        }
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Nasconde la scheda analitica specifica salvando la preferenza nella configurazione utente.
+    /// </summary>
+    private void OnTabContextMenuHideClicked(object? sender, RoutedEventArgs e)
+    {
+        var tabItem = _contextMenuTargetTabItem ?? GetTabItemFromSender(sender);
+        if (tabItem != null)
+        {
+            HideTab(tabItem);
+        }
+    }
+
+    /// <summary>
+    /// Ripristina la visibilità di tutte le schede di analisi salvando la configurazione utente.
+    /// </summary>
+    private void OnTabContextMenuShowAllClicked(object? sender, RoutedEventArgs e)
+    {
+        SettingsService.Instance.Update(s =>
+        {
+            s.ShowTabGraph = true;
+            s.ShowTabDsm = true;
+            s.ShowTabTreemap = true;
+            s.ShowTabHotspot = true;
+            s.ShowTabScreenFlow = true;
+            s.ShowTabControlFlow = true;
+            s.ShowTabMartin = true;
+            s.ShowTabDeadCode = true;
+            s.ShowTabSharedState = true;
+            s.ShowTabTemporalCoupling = true;
+            s.ShowTabArchitecturalFlow = true;
+            s.ShowTabCodeCity = true;
+            s.ShowTabCohesion = true;
+            s.ShowTabMaintainability = true;
+            s.ShowTabArchitecturalRules = true;
+            s.ShowTabCodeClone = true;
+            s.ShowTabSocialCode = true;
+            s.ShowTabDataFlow = true;
+            s.ShowTabApiDiff = true;
+            s.ShowTabCrudMatrix = true;
+            s.ShowTabBlastRadiusGrid = true;
+        });
+    }
+
+    /// <summary>
+    /// Apre la finestra di dialogo Impostazioni posizionandosi direttamente sulla sezione "Schede Analitiche".
+    /// </summary>
+    private void OnTabContextMenuManageClicked(object? sender, RoutedEventArgs e)
+    {
+        OpenSettings(3);
+    }
+
+    /// <summary>
+    /// Disabilita la visualizzazione del TabItem specificato nelle impostazioni persistite.
+    /// </summary>
+    private void HideTab(TabItem tabItem)
+    {
+        if (tabItem == GraphTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabGraph = false);
+        else if (tabItem == DsmTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabDsm = false);
+        else if (tabItem == TreemapTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabTreemap = false);
+        else if (tabItem == HotspotTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabHotspot = false);
+        else if (tabItem == ScreenFlowTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabScreenFlow = false);
+        else if (tabItem == ControlFlowTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabControlFlow = false);
+        else if (tabItem == MartinTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabMartin = false);
+        else if (tabItem == DeadCodeTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabDeadCode = false);
+        else if (tabItem == SharedStateTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabSharedState = false);
+        else if (tabItem == TemporalCouplingTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabTemporalCoupling = false);
+        else if (tabItem == ArchitecturalFlowTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabArchitecturalFlow = false);
+        else if (tabItem == CodeCityTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabCodeCity = false);
+        else if (tabItem == CohesionTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabCohesion = false);
+        else if (tabItem == MaintainabilityTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabMaintainability = false);
+        else if (tabItem == ArchitecturalRulesTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabArchitecturalRules = false);
+        else if (tabItem == CodeCloneTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabCodeClone = false);
+        else if (tabItem == SocialCodeTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabSocialCode = false);
+        else if (tabItem == DataFlowTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabDataFlow = false);
+        else if (tabItem == ApiDiffTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabApiDiff = false);
+        else if (tabItem == CrudMatrixTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabCrudMatrix = false);
+        else if (tabItem == GridTabItem)
+            SettingsService.Instance.Update(s => s.ShowTabBlastRadiusGrid = false);
+    }
+
+    private static TabItem? GetTabItemFromSender(object? sender)
+    {
+        if (sender is MenuItem menuItem)
+        {
+            if (menuItem.DataContext is TabItem tab1)
+                return tab1;
+            if (menuItem.Parent is ContextMenu ctx && ctx.PlacementTarget is TabItem tab2)
+                return tab2;
+            if (menuItem.Parent is ContextMenu ctx2 && ctx2.DataContext is TabItem tab3)
+                return tab3;
+        }
+        return null;
+    }
+
+    #endregion
+
     #region Gestione Baseline API Diff & SemVer
 
     /// <summary>
@@ -5409,6 +5587,9 @@ public partial class MainWindow : Window
         CtxNodeBlastRadius.Header = localizationService["Ctx_Node_BlastRadius"];
         CtxNodeShowCallers.Header = localizationService["Ctx_Node_ShowCallers"];
         CtxNodeShowCallees.Header = localizationService["Ctx_Node_ShowCallees"];
+        if (CtxTabHide != null) CtxTabHide.Header = localizationService["TabContext_HideTab"];
+        if (CtxTabShowAll != null) CtxTabShowAll.Header = localizationService["TabContext_ShowAllTabs"];
+        if (CtxTabManage != null) CtxTabManage.Header = localizationService["TabContext_ManageTabs"];
         if (_graph is not null)
         {
             ProjectExplorerControl.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds) };
