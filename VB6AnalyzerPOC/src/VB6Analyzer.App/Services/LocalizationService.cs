@@ -820,7 +820,7 @@ public sealed class LocalizationService
         ["General_CC"] = "CC",
         ["General_Members"] = "Membri",
         ["General_Routines"] = "Routine",
-        ["Status_BackgroundAnalyticsProgress"] = "Analisi viste... {0}/{1}",
+        ["Status_BackgroundAnalyticsProgress"] = "Analisi viste... {0}/{1} (~{2:0.0}s)",
         ["Status_BackgroundAnalyticsCompleted"] = "Analisi completata",
 
         // Blast Radius Grid
@@ -1874,7 +1874,7 @@ public sealed class LocalizationService
         ["General_CC"] = "CC",
         ["General_Members"] = "Members",
         ["General_Routines"] = "Routines",
-        ["Status_BackgroundAnalyticsProgress"] = "Background analysis... {0}/{1}",
+        ["Status_BackgroundAnalyticsProgress"] = "Background analysis... {0}/{1} (~{2:0.0}s)",
         ["Status_BackgroundAnalyticsCompleted"] = "Analysis completed",
 
         // Blast Radius Grid

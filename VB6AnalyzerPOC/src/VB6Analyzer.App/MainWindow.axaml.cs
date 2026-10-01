@@ -1739,26 +1739,40 @@ public partial class MainWindow : Window
             return s.EnableBackgroundAnalytics || _enabledAnalyticsTabs.Contains(tabKey);
         }
 
-        int totalAnalyticsSteps = 0;
-        if (ShouldPrecompute(DsmTabItem, s.ShowTabDsm, "Dsm")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(TreemapTabItem, s.ShowTabTreemap, "Treemap")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(HotspotTabItem, s.ShowTabHotspot, "Hotspots")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(MartinTabItem, s.ShowTabMartin, "Martin")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(DeadCodeTabItem, s.ShowTabDeadCode, "DeadCode")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(ScreenFlowTabItem, s.ShowTabScreenFlow, "ScreenFlow")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(SharedStateTabItem, s.ShowTabSharedState, "SharedState")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(TemporalCouplingTabItem, s.ShowTabTemporalCoupling, "TemporalCoupling")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(ArchitecturalFlowTabItem, s.ShowTabArchitecturalFlow, "ArchitecturalFlow")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(CodeCityTabItem, s.ShowTabCodeCity, "CodeCity")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(CohesionTabItem, s.ShowTabCohesion, "Cohesion")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(MaintainabilityTabItem, s.ShowTabMaintainability, "Maintainability")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(ArchitecturalRulesTabItem, s.ShowTabArchitecturalRules, "ArchitecturalRules")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(CodeCloneTabItem, s.ShowTabCodeClone, "CodeClone")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(SocialCodeTabItem, s.ShowTabSocialCode, "SocialCode")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(DataFlowTabItem, s.ShowTabDataFlow, "DataFlow")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(ApiDiffTabItem, s.ShowTabApiDiff, "ApiDiff")) totalAnalyticsSteps++;
-        if (ShouldPrecompute(CrudMatrixTabItem, s.ShowTabCrudMatrix, "CrudMatrix")) totalAnalyticsSteps++;
+        var nodeCount = targetGraph.Symbols.Count;
+        double totalEstimatedSeconds = 0;
+        var pendingTabs = new List<(TabItem tab, double estSeconds)>();
 
+        void CheckAndQueue(TabItem? tabItem, bool showTab, string tabKey)
+        {
+            if (tabItem != null && ShouldPrecompute(tabItem, showTab, tabKey))
+            {
+                var est = GetEstimatedAnalysisSeconds(tabItem, nodeCount);
+                pendingTabs.Add((tabItem, est));
+                totalEstimatedSeconds += est;
+            }
+        }
+
+        CheckAndQueue(DsmTabItem, s.ShowTabDsm, "Dsm");
+        CheckAndQueue(TreemapTabItem, s.ShowTabTreemap, "Treemap");
+        CheckAndQueue(HotspotTabItem, s.ShowTabHotspot, "Hotspots");
+        CheckAndQueue(MartinTabItem, s.ShowTabMartin, "Martin");
+        CheckAndQueue(DeadCodeTabItem, s.ShowTabDeadCode, "DeadCode");
+        CheckAndQueue(ScreenFlowTabItem, s.ShowTabScreenFlow, "ScreenFlow");
+        CheckAndQueue(SharedStateTabItem, s.ShowTabSharedState, "SharedState");
+        CheckAndQueue(TemporalCouplingTabItem, s.ShowTabTemporalCoupling, "TemporalCoupling");
+        CheckAndQueue(ArchitecturalFlowTabItem, s.ShowTabArchitecturalFlow, "ArchitecturalFlow");
+        CheckAndQueue(CodeCityTabItem, s.ShowTabCodeCity, "CodeCity");
+        CheckAndQueue(CohesionTabItem, s.ShowTabCohesion, "Cohesion");
+        CheckAndQueue(MaintainabilityTabItem, s.ShowTabMaintainability, "Maintainability");
+        CheckAndQueue(ArchitecturalRulesTabItem, s.ShowTabArchitecturalRules, "ArchitecturalRules");
+        CheckAndQueue(CodeCloneTabItem, s.ShowTabCodeClone, "CodeClone");
+        CheckAndQueue(SocialCodeTabItem, s.ShowTabSocialCode, "SocialCode");
+        CheckAndQueue(DataFlowTabItem, s.ShowTabDataFlow, "DataFlow");
+        CheckAndQueue(ApiDiffTabItem, s.ShowTabApiDiff, "ApiDiff");
+        CheckAndQueue(CrudMatrixTabItem, s.ShowTabCrudMatrix, "CrudMatrix");
+
+        int totalAnalyticsSteps = pendingTabs.Count;
         if (totalAnalyticsSteps == 0)
         {
             if (BackgroundAnalyticsPanel != null) BackgroundAnalyticsPanel.IsVisible = false;
@@ -1772,24 +1786,34 @@ public partial class MainWindow : Window
             BackgroundAnalyticsProgressBar.Minimum = 0;
             BackgroundAnalyticsProgressBar.Maximum = totalAnalyticsSteps;
             BackgroundAnalyticsProgressBar.Value = 0;
-            BackgroundAnalyticsText.Text = LocalizationService.Instance.Get("Status_BackgroundAnalyticsProgress", 0, totalAnalyticsSteps);
+            BackgroundAnalyticsText.Text = LocalizationService.Instance.Get(
+                "Status_BackgroundAnalyticsProgress", 0, totalAnalyticsSteps, Math.Max(0.5, Math.Round(totalEstimatedSeconds, 1)));
         }
 
         _ = Task.Run(async () =>
         {
             int completedCount = 0;
+            double remainingSeconds = totalEstimatedSeconds;
+            var lockObj = new object();
 
-            void ReportStepCompletion()
+            void ReportStepCompletion(double stepDuration)
             {
                 var done = Interlocked.Increment(ref completedCount);
                 if (token.IsCancellationRequested) return;
+
+                lock (lockObj)
+                {
+                    remainingSeconds = Math.Max(0.0, remainingSeconds - stepDuration);
+                }
 
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
                     if (token.IsCancellationRequested || BackgroundAnalyticsPanel == null) return;
 
                     BackgroundAnalyticsProgressBar.Value = done;
-                    BackgroundAnalyticsText.Text = LocalizationService.Instance.Get("Status_BackgroundAnalyticsProgress", done, totalAnalyticsSteps);
+                    var remEst = Math.Max(0.1, Math.Round(remainingSeconds, 1));
+                    BackgroundAnalyticsText.Text = LocalizationService.Instance.Get(
+                        "Status_BackgroundAnalyticsProgress", done, totalAnalyticsSteps, remEst);
 
                     // Al completamento di tutti i tab, visualizza brevemente lo stato completato e poi nasconde la barra
                     if (done >= totalAnalyticsSteps)
@@ -1824,7 +1848,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(DsmTabItem, nodeCount));
             }
 
             // 2. Treemap
@@ -1842,7 +1866,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(TreemapTabItem, nodeCount));
             }
 
             // 3. Hotspots di Rischio
@@ -1860,7 +1884,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(HotspotTabItem, nodeCount));
             }
 
             // 4. Martin Metrics
@@ -1878,7 +1902,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(MartinTabItem, nodeCount));
             }
 
             // 5. Dead Code e Componenti Orfani
@@ -1896,7 +1920,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(DeadCodeTabItem, nodeCount));
             }
 
             // 6. Flusso Schermate (Screen Flow)
@@ -1914,7 +1938,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(ScreenFlowTabItem, nodeCount));
             }
 
             // 7. Stato Globale Condiviso
@@ -1932,7 +1956,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(SharedStateTabItem, nodeCount));
             }
 
             // 8. Flussi Architetturali (Chord Diagram)
@@ -1950,7 +1974,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(ArchitecturalFlowTabItem, nodeCount));
             }
 
             // 9. CodeCity 3D / Isometrica
@@ -1968,7 +1992,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(CodeCityTabItem, nodeCount));
             }
 
             // 10. Temporal Coupling (Analisi Cronologia Git su Disco)
@@ -1987,7 +2011,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(TemporalCouplingTabItem, nodeCount));
             }
 
             // 11. Coesione & LCOM
@@ -2005,7 +2029,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(CohesionTabItem, nodeCount));
             }
 
             // 12. Maintainability Index & Halstead
@@ -2023,7 +2047,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(MaintainabilityTabItem, nodeCount));
             }
 
             // 13. Regole Architetturali
@@ -2041,7 +2065,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(ArchitecturalRulesTabItem, nodeCount));
             }
 
             // 14. Duplicazioni e Cloni (CPD)
@@ -2059,7 +2083,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(CodeCloneTabItem, nodeCount));
             }
 
             // 15. Social Code & Bus Factor
@@ -2078,7 +2102,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(SocialCodeTabItem, nodeCount));
             }
 
             // 16. Data Flow & Taint Tracking
@@ -2096,7 +2120,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(DataFlowTabItem, nodeCount));
             }
 
             // 17. API Diff & SemVer
@@ -2115,7 +2139,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(ApiDiffTabItem, nodeCount));
             }
 
             // 18. Matrice CRUD
@@ -2133,7 +2157,7 @@ public partial class MainWindow : Window
                         }
                     });
                 }
-                ReportStepCompletion();
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(CrudMatrixTabItem, nodeCount));
             }
         }, token);
     }
