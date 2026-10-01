@@ -28,7 +28,8 @@ public static class CodeGraphMarkdownExporter
             SymbolKind.Module,
             SymbolKind.Class,
             SymbolKind.Form,
-            SymbolKind.UserControl
+            SymbolKind.UserControl,
+            SymbolKind.Interface
         };
 
         var topLevelSymbols = graph.Symbols
@@ -52,8 +53,11 @@ public static class CodeGraphMarkdownExporter
             .GroupBy(r => r.SourceId)
             .ToDictionary(g => g.Key, g => g.ToList());
 
+        var renderedSymbolIds = new HashSet<Guid>();
+
         foreach (var topSymbol in topLevelSymbols)
         {
+            renderedSymbolIds.Add(topSymbol.Id);
             sb.AppendLine($"## {topSymbol.Kind}: `{topSymbol.Name}` ({Path.GetFileName(topSymbol.FilePath)})");
             if (options.IncludeLineNumbers && topSymbol.LineStart > 0)
             {
@@ -69,124 +73,168 @@ public static class CodeGraphMarkdownExporter
                 .OrderBy(s => s.LineStart)
                 .ToList();
 
-            // 1. Types, Enums, Constants
-            if (options.IncludeTypesAndEnums)
-            {
-                var typeSymbols = children.Where(c => c.Kind is SymbolKind.Type or SymbolKind.Enum or SymbolKind.Constant).ToList();
-                if (typeSymbols.Count > 0)
-                {
-                    sb.AppendLine("### Types & Constants");
-                    foreach (var typeSym in typeSymbols)
-                    {
-                        var lineInfo = options.IncludeLineNumbers ? $" *(L{typeSym.LineStart})*" : "";
-                        var typeDetail = typeSym.DeclaredTypeName != null ? $" As {typeSym.DeclaredTypeName}" : "";
-                        sb.AppendLine($"- **{typeSym.Accessibility} {typeSym.Kind}** `{typeSym.Name}`{typeDetail}{lineInfo}");
-
-                        // Se è un Type o Enum, elenca i campi/costanti contenuti
-                        var members = childrenLookup.GetValueOrDefault(typeSym.Id, new List<Guid>())
-                            .Select(id => symbolLookup.GetValueOrDefault(id))
-                            .Where(m => m != null);
-
-                        foreach (var m in members)
-                        {
-                            var mType = m!.DeclaredTypeName != null ? $" As {m.DeclaredTypeName}" : "";
-                            sb.AppendLine($"  - `{m.Name}`{mType}");
-                        }
-                    }
-                    sb.AppendLine();
-                }
-            }
-
-            // 2. Module/Class Fields
-            if (options.IncludeFields)
-            {
-                var fields = children.Where(c => c.Kind == SymbolKind.Field).ToList();
-                if (fields.Count > 0)
-                {
-                    sb.AppendLine("### Fields / State");
-                    foreach (var f in fields)
-                    {
-                        var lineInfo = options.IncludeLineNumbers ? $" *(L{f.LineStart})*" : "";
-                        var arrInfo = f.IsArray ? "()" : "";
-                        var newInfo = f.IsNewInstance ? "New " : "";
-                        var typeInfo = f.DeclaredTypeName != null ? $" As {newInfo}{f.DeclaredTypeName}" : " As Variant";
-                        sb.AppendLine($"- `{f.Accessibility} {f.Name}{arrInfo}`{typeInfo}{lineInfo}");
-                    }
-                    sb.AppendLine();
-                }
-            }
-
-            // 3. Methods & Properties
-            var routines = children.Where(c => c.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event).ToList();
-            if (routines.Count > 0)
-            {
-                sb.AppendLine("### Routines & Properties");
-                foreach (var routine in routines)
-                {
-                    var sig = FormatSignature(routine, options);
-                    var lineInfo = options.IncludeLineNumbers ? $" *(L{routine.LineStart}-{routine.LineEnd})*" : "";
-                    sb.AppendLine($"- **{routine.Accessibility} {routine.Kind}** `{sig}`{lineInfo}");
-
-                    // Dettagli relazioni in uscita
-                    if (outgoingRels.TryGetValue(routine.Id, out var rels))
-                    {
-                        // Chiamate effettuate
-                        if (options.IncludeCalls)
-                        {
-                            var calls = rels.Where(r => r.Kind == RelationshipKind.Calls).ToList();
-                            if (calls.Count > 0)
-                            {
-                                var callTargets = calls.Select(c =>
-                                {
-                                    var target = symbolLookup.GetValueOrDefault(c.TargetId);
-                                    var targetName = target?.QualifiedName ?? "Unknown";
-                                    var line = (options.IncludeLineNumbers && c.Line.HasValue) ? $" (L{c.Line})" : "";
-                                    var conf = c.Confidence != ResolutionConfidence.Exact ? $" [{c.Confidence}]" : "";
-                                    return $"`{targetName}`{line}{conf}";
-                                });
-                                sb.AppendLine($"  - *Calls:* {string.Join(", ", callTargets)}");
-                            }
-                        }
-
-                        // Classi istanziate
-                        if (options.IncludeInstantiations)
-                        {
-                            var instantiations = rels.Where(r => r.Kind == RelationshipKind.Instantiates).ToList();
-                            if (instantiations.Count > 0)
-                            {
-                                var instTargets = instantiations.Select(i =>
-                                {
-                                    var target = symbolLookup.GetValueOrDefault(i.TargetId);
-                                    return $"`{target?.Name ?? "Unknown"}`";
-                                }).Distinct();
-                                sb.AppendLine($"  - *Instantiates:* {string.Join(", ", instTargets)}");
-                            }
-                        }
-
-                        // Tipi utilizzati
-                        if (options.IncludeTypeUsages)
-                        {
-                            var typesUsed = rels.Where(r => r.Kind == RelationshipKind.UsesType).ToList();
-                            if (typesUsed.Count > 0)
-                            {
-                                var typeNames = typesUsed.Select(t =>
-                                {
-                                    var target = symbolLookup.GetValueOrDefault(t.TargetId);
-                                    return $"`{target?.Name ?? "Unknown"}`";
-                                }).Distinct();
-                                sb.AppendLine($"  - *Uses Types:* {string.Join(", ", typeNames)}");
-                            }
-                        }
-                    }
-                }
-                sb.AppendLine();
-            }
+            AppendMembers(sb, children, symbolLookup, childrenLookup, outgoingRels, options, renderedSymbolIds);
 
             sb.AppendLine("---");
             sb.AppendLine();
         }
 
+        // Simboli orfani o isolati non contenuti in simboli top-level
+        var remainingSymbols = graph.Symbols
+            .Where(s => !renderedSymbolIds.Contains(s.Id))
+            .OrderBy(s => s.FilePath)
+            .ThenBy(s => s.LineStart)
+            .ThenBy(s => s.Name)
+            .ToList();
+
+        if (remainingSymbols.Count > 0)
+        {
+            var groupedByFile = remainingSymbols.GroupBy(s => s.FilePath ?? string.Empty);
+            foreach (var fileGroup in groupedByFile)
+            {
+                var fileName = !string.IsNullOrWhiteSpace(fileGroup.Key) ? Path.GetFileName(fileGroup.Key) : "Isolated Symbols";
+                sb.AppendLine($"## Isolated Symbols ({fileName})");
+                sb.AppendLine();
+
+                AppendMembers(sb, fileGroup.ToList(), symbolLookup, childrenLookup, outgoingRels, options, renderedSymbolIds);
+
+                sb.AppendLine("---");
+                sb.AppendLine();
+            }
+        }
+
         return sb.ToString().TrimEnd();
+    }
+
+    private static void AppendMembers(
+        StringBuilder sb,
+        List<Symbol> members,
+        Dictionary<Guid, Symbol> symbolLookup,
+        Dictionary<Guid, List<Guid>> childrenLookup,
+        Dictionary<Guid, List<Relationship>> outgoingRels,
+        MarkdownExportOptions options,
+        HashSet<Guid> renderedSymbolIds)
+    {
+        foreach (var m in members)
+        {
+            renderedSymbolIds.Add(m.Id);
+        }
+
+        // 1. Types, Enums, Constants
+        if (options.IncludeTypesAndEnums)
+        {
+            var typeSymbols = members.Where(c => c.Kind is SymbolKind.Type or SymbolKind.Enum or SymbolKind.Constant or SymbolKind.Struct or SymbolKind.Record).ToList();
+            if (typeSymbols.Count > 0)
+            {
+                sb.AppendLine("### Types & Constants");
+                foreach (var typeSym in typeSymbols)
+                {
+                    var lineInfo = (options.IncludeLineNumbers && typeSym.LineStart > 0) ? $" *(L{typeSym.LineStart})*" : "";
+                    var typeDetail = typeSym.DeclaredTypeName != null ? $" As {typeSym.DeclaredTypeName}" : "";
+                    sb.AppendLine($"- **{typeSym.Accessibility} {typeSym.Kind}** `{typeSym.Name}`{typeDetail}{lineInfo}");
+
+                    // Se è un Type o Enum, elenca i campi/costanti contenuti
+                    var childMembers = childrenLookup.GetValueOrDefault(typeSym.Id, new List<Guid>())
+                        .Select(id => symbolLookup.GetValueOrDefault(id))
+                        .Where(m => m != null);
+
+                    foreach (var m in childMembers)
+                    {
+                        renderedSymbolIds.Add(m!.Id);
+                        var mType = m.DeclaredTypeName != null ? $" As {m.DeclaredTypeName}" : "";
+                        sb.AppendLine($"  - `{m.Name}`{mType}");
+                    }
+                }
+                sb.AppendLine();
+            }
+        }
+
+        // 2. Fields / State
+        if (options.IncludeFields)
+        {
+            var fields = members.Where(c => c.Kind == SymbolKind.Field).ToList();
+            if (fields.Count > 0)
+            {
+                sb.AppendLine("### Fields / State");
+                foreach (var f in fields)
+                {
+                    var lineInfo = (options.IncludeLineNumbers && f.LineStart > 0) ? $" *(L{f.LineStart})*" : "";
+                    var arrInfo = f.IsArray ? "()" : "";
+                    var newInfo = f.IsNewInstance ? "New " : "";
+                    var typeInfo = f.DeclaredTypeName != null ? $" As {newInfo}{f.DeclaredTypeName}" : " As Variant";
+                    sb.AppendLine($"- `{f.Accessibility} {f.Name}{arrInfo}`{typeInfo}{lineInfo}");
+                }
+                sb.AppendLine();
+            }
+        }
+
+        // 3. Methods & Properties
+        var routines = members.Where(c => c.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event).ToList();
+        if (routines.Count > 0)
+        {
+            sb.AppendLine("### Routines & Properties");
+            foreach (var routine in routines)
+            {
+                var sig = FormatSignature(routine, options);
+                var lineInfo = (options.IncludeLineNumbers && routine.LineStart > 0)
+                    ? (routine.LineEnd > routine.LineStart ? $" *(L{routine.LineStart}-{routine.LineEnd})*" : $" *(L{routine.LineStart})*")
+                    : "";
+                sb.AppendLine($"- **{routine.Accessibility} {routine.Kind}** `{sig}`{lineInfo}");
+
+                // Dettagli relazioni in uscita
+                if (outgoingRels.TryGetValue(routine.Id, out var rels))
+                {
+                    // Chiamate effettuate
+                    if (options.IncludeCalls)
+                    {
+                        var calls = rels.Where(r => r.Kind == RelationshipKind.Calls).ToList();
+                        if (calls.Count > 0)
+                        {
+                            var callTargets = calls.Select(c =>
+                            {
+                                var target = symbolLookup.GetValueOrDefault(c.TargetId);
+                                var targetName = target?.QualifiedName ?? "Unknown";
+                                var line = (options.IncludeLineNumbers && c.Line.HasValue) ? $" (L{c.Line})" : "";
+                                var conf = c.Confidence != ResolutionConfidence.Exact ? $" [{c.Confidence}]" : "";
+                                return $"`{targetName}`{line}{conf}";
+                            });
+                            sb.AppendLine($"  - *Calls:* {string.Join(", ", callTargets)}");
+                        }
+                    }
+
+                    // Classi istanziate
+                    if (options.IncludeInstantiations)
+                    {
+                        var instantiations = rels.Where(r => r.Kind == RelationshipKind.Instantiates).ToList();
+                        if (instantiations.Count > 0)
+                        {
+                            var instTargets = instantiations.Select(i =>
+                            {
+                                var target = symbolLookup.GetValueOrDefault(i.TargetId);
+                                return $"`{target?.Name ?? "Unknown"}`";
+                            }).Distinct();
+                            sb.AppendLine($"  - *Instantiates:* {string.Join(", ", instTargets)}");
+                        }
+                    }
+
+                    // Tipi utilizzati
+                    if (options.IncludeTypeUsages)
+                    {
+                        var typesUsed = rels.Where(r => r.Kind == RelationshipKind.UsesType).ToList();
+                        if (typesUsed.Count > 0)
+                        {
+                            var typeNames = typesUsed.Select(t =>
+                            {
+                                var target = symbolLookup.GetValueOrDefault(t.TargetId);
+                                return $"`{target?.Name ?? "Unknown"}`";
+                            }).Distinct();
+                            sb.AppendLine($"  - *Uses Types:* {string.Join(", ", typeNames)}");
+                        }
+                    }
+                }
+            }
+            sb.AppendLine();
+        }
     }
 
     /// <summary>

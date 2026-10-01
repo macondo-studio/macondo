@@ -2117,7 +2117,19 @@ public sealed class LocalizationService
                 return key;
         }
 
-        return args.Length > 0 ? string.Format(template, args) : template;
+        if (args.Length > 0)
+        {
+            try
+            {
+                return string.Format(template, args);
+            }
+            catch (FormatException)
+            {
+                return template;
+            }
+        }
+
+        return template;
     }
 
     public string Get(string key, params object[] args) => GetForLanguage(key, CurrentLanguage, args);
