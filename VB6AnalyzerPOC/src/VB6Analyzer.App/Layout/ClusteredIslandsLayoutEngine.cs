@@ -80,9 +80,8 @@ public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
             if (nodeToContainerMap.TryGetValue(edge.SourceId, out var c1) &&
                 nodeToContainerMap.TryGetValue(edge.TargetId, out var c2) &&
                 c1 != c2)
-            {
+
                 Union(c1, c2);
-            }
         }
 
         // =========================================================================

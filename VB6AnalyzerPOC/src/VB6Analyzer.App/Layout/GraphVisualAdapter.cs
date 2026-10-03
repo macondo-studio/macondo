@@ -29,9 +29,8 @@ public static class GraphVisualAdapter
         };
 
         if (semanticGraph.Symbols.Count == 0)
-        {
+
             return visualGraph;
-        }
 
         // 1. Mappa tutti i simboli semantici in GraphNode
         var nodesBySymbolId = new Dictionary<Guid, GraphNode>();
@@ -106,9 +105,8 @@ public static class GraphVisualAdapter
         foreach (var rel in containsRels)
         {
             if (nodesBySymbolId.TryGetValue(rel.TargetId, out var childNode))
-            {
+
                 childNode.ParentId = rel.SourceId;
-            }
         }
 
         // 3. I moduli e classi di primo livello che non hanno un parent esplicito vengono agganciati al default project
@@ -166,9 +164,8 @@ public static class GraphVisualAdapter
             {
                 if (srcNode.ProjectId.HasValue && tgtNode.ProjectId.HasValue &&
                     srcNode.ProjectId.Value != tgtNode.ProjectId.Value)
-                {
+
                     isCross = true;
-                }
             }
 
             visualGraph.Edges.Add(new GraphEdge

@@ -53,9 +53,8 @@ public static class CodeCityBuilder
         foreach (var r in graph.Relationships)
         {
             if (r.Kind == RelationshipKind.Calls)
-            {
+
                 outgoingCallsCount[r.SourceId] = outgoingCallsCount.GetValueOrDefault(r.SourceId) + 1;
-            }
         }
 
         // =========================================================================
@@ -231,24 +230,20 @@ public static class CodeCityBuilder
     {
         // Rischio Critico (Rosso Intenso): complessità massima >= 20 o media >= 12
         if (maxCc >= 20 || avgCc >= 12)
-        {
+
             return ("#DC2626", "#EF4444", "#991B1B");
-        }
         // Rischio Alto (Arancione): complessità massima >= 12 o media >= 7
         if (maxCc >= 12 || avgCc >= 7)
-        {
+
             return ("#EA580C", "#F97316", "#9A3412");
-        }
         // Rischio Moderato (Ambra / Oro): complessità media >= 3.5
         if (maxCc >= 6 || avgCc >= 3.5)
-        {
+
             return ("#D97706", "#FBBF24", "#92400E");
-        }
         // Bassa Complessità (Smeraldo / Verde)
         if (avgCc >= 2.0)
-        {
+
             return ("#059669", "#10B981", "#065F46");
-        }
 
         // Semplice / Stabile (Blu Moderno)
         return ("#2563EB", "#60A5FA", "#1E40AF");

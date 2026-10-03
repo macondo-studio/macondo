@@ -160,9 +160,8 @@ public sealed class ArchitecturalRulesControl : UserControl
     {
         base.OnPropertyChanged(change);
         if (change.Property == ReportProperty)
-        {
+
             OnReportChanged(change.GetNewValue<ArchitecturalRulesReport?>());
-        }
     }
 
     private static Border CreateKpiCard(string title, out TextBlock valueBlock, string accentHex)

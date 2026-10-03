@@ -31,18 +31,16 @@ public static class TreemapModelBuilder
             .ToList();
 
         if (containers.Count == 0)
-        {
+
             containers = graph.Symbols.Where(s => s.Kind != SymbolKind.Project).ToList();
-        }
 
         // Indicizzazione O(1) delle chiamate uscenti per ogni simbolo sorgente per evitare scansioni O(R) nel loop
         var outgoingCallsCount = new Dictionary<Guid, int>();
         foreach (var r in graph.Relationships)
         {
             if (r.Kind == RelationshipKind.Calls)
-            {
+
                 outgoingCallsCount[r.SourceId] = outgoingCallsCount.GetValueOrDefault(r.SourceId) + 1;
-            }
         }
 
         // 3. Costruisce l'albero dei figli e calcola le metriche di peso (LOC stimate) e complessità

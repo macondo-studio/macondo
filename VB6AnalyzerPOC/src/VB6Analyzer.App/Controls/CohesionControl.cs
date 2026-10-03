@@ -154,9 +154,8 @@ public sealed class CohesionControl : UserControl
     {
         base.OnPropertyChanged(change);
         if (change.Property == DatasetProperty)
-        {
+
             OnDatasetChanged(change.GetNewValue<CohesionDataset?>());
-        }
     }
 
     private static Border CreateKpiCard(string title, out TextBlock valueBlock, string accentHex)

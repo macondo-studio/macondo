@@ -160,9 +160,8 @@ public sealed class DataFlowControl : UserControl
     {
         base.OnPropertyChanged(change);
         if (change.Property == DatasetProperty)
-        {
+
             OnDatasetChanged(change.GetNewValue<DataFlowDataset?>());
-        }
     }
 
     private static Border CreateKpiCard(string title, out TextBlock valueBlock, string accentHex)

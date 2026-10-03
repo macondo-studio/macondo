@@ -34,9 +34,8 @@ internal static class Program
         if (IsCliInvocation(args))
         {
             if (OperatingSystem.IsWindows())
-            {
+
                 AttachConsole(ATTACH_PARENT_PROCESS);
-            }
             return RunCli(args);
         }
 
@@ -101,9 +100,9 @@ internal static class Program
         {
             var arg = args[i];
             if (arg.Equals("analyze", StringComparison.OrdinalIgnoreCase))
-            {
+
                 continue;
-            }
+
             else if (arg.Equals("--export-md", StringComparison.OrdinalIgnoreCase) || arg.Equals("-m", StringComparison.OrdinalIgnoreCase))
             {
                 if (i + 1 < args.Length) exportMdPath = args[++i];
@@ -213,15 +212,15 @@ internal static class Program
                 }
             }
             else if (arg.Equals("--fail-on-violations", StringComparison.OrdinalIgnoreCase) || arg.Equals("--fail-on-rules", StringComparison.OrdinalIgnoreCase))
-            {
-                failOnViolations = true;
-            }
-            else if (arg.Equals("--fail-on-mi", StringComparison.OrdinalIgnoreCase))
+
+    failOnViolations = true;
+
+else if (arg.Equals("--fail-on-mi", StringComparison.OrdinalIgnoreCase))
             {
                 if (i + 1 < args.Length && double.TryParse(args[++i], System.Globalization.CultureInfo.InvariantCulture, out var threshold))
-                {
+
                     failOnMiThreshold = threshold;
-                }
+
                 else
                 {
                     Console.Error.WriteLine("[Error] Missing or invalid numeric threshold for --fail-on-mi <number>");
@@ -231,9 +230,9 @@ internal static class Program
             else if (arg.Equals("--fail-on-dead-code", StringComparison.OrdinalIgnoreCase))
             {
                 if (i + 1 < args.Length && double.TryParse(args[++i].Replace("%", ""), System.Globalization.CultureInfo.InvariantCulture, out var pct))
-                {
+
                     failOnDeadCodeThreshold = pct;
-                }
+
                 else
                 {
                     Console.Error.WriteLine("[Error] Missing or invalid numeric threshold for --fail-on-dead-code <percentage>");
@@ -241,9 +240,8 @@ internal static class Program
                 }
             }
             else if (!arg.StartsWith("-"))
-            {
-                inputPaths.Add(arg);
-            }
+
+    inputPaths.Add(arg);
         }
 
         if (inputPaths.Count == 0)
@@ -260,9 +258,8 @@ internal static class Program
 
         // If no specific export or out-dir is given, default to generating a comprehensive audit report
         if (!hasSpecificOutput && !failOnViolations && !failOnMiThreshold.HasValue && !failOnDeadCodeThreshold.HasValue)
-        {
+
             reportPath = "audit-report.md";
-        }
 
         try
         {
@@ -280,13 +277,12 @@ internal static class Program
             var progress = new Progress<ProjectAnalysisProgress>(p =>
             {
                 if (!string.IsNullOrEmpty(p.CurrentFileName))
-                {
+
                     Console.WriteLine($" [{p.CurrentFileIndex}/{p.TotalFiles}] {p.CurrentFileName} ({p.ExtractedNodesCount} symbols)");
-                }
+
                 else if (!string.IsNullOrEmpty(p.PhaseMessage))
-                {
-                    Console.WriteLine($" -> {p.PhaseMessage}");
-                }
+
+    Console.WriteLine($" -> {p.PhaseMessage}");
             });
 
             var visualGraph = ProjectAnalysisService.AnalyzeProjects(projects, progress);
@@ -454,9 +450,9 @@ internal static class Program
                     s.QualifiedName.Equals(targetSymName, StringComparison.OrdinalIgnoreCase));
 
                 if (targetSym == null)
-                {
+
                     Console.Error.WriteLine($"[Warning] Symbol not found for Impact Analysis: {targetSymName}");
-                }
+
                 else
                 {
                     var impactAnalyzer = new ImpactAnalyzer(semanticGraph);
@@ -515,9 +511,8 @@ internal static class Program
             }
 
             if (qualityGateFailed)
-            {
+
                 return 2; // Exit code 2 indicates CI/CD Quality Gate failure
-            }
 
             Console.WriteLine("[Macondo] Execution completed successfully.");
             return 0;

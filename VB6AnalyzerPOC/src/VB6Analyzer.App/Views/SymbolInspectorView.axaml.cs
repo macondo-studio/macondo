@@ -129,14 +129,14 @@ public partial class SymbolInspectorView : UserControl
             var loc = (startLine > 0 && endLine >= startLine) ? (endLine - startLine + 1) : (startLine > 0 ? 1 : 0);
 
             if (startLine > 0 && endLine >= startLine)
-            {
+
                 InspectorFile.Text = $"{fileName} ({string.Format(LocalizationService.Instance["Inspector_CodeLines_Format"], startLine, endLine, loc)})";
-            }
+
             else if (startLine > 0)
-            {
-                InspectorFile.Text = $"{fileName} ({string.Format(LocalizationService.Instance["Inspector_CodeLines_Single"], startLine)})";
-            }
-            else
+
+    InspectorFile.Text = $"{fileName} ({string.Format(LocalizationService.Instance["Inspector_CodeLines_Single"], startLine)})";
+
+else
             {
                 InspectorFile.Text = fileName;
             }

@@ -207,9 +207,8 @@ public partial class MainWindow : Window
             {
                 var iconKey = LegendContentPanel.IsVisible ? "IconChevronLeft" : "IconChevronRight";
                 if (Application.Current.TryFindResource(iconKey, out var res) && res is StreamGeometry geo)
-                {
+
                     LegendToggleIcon.Data = geo;
-                }
             }
         };
 
@@ -225,9 +224,8 @@ public partial class MainWindow : Window
             {
                 var resourceKey = WindowState == WindowState.Maximized ? "IconWindowRestore" : "IconWindowMaximize";
                 if (this.TryFindResource(resourceKey, out var res) && res is Geometry geo)
-                {
+
                     MaximizeIcon.Data = geo;
-                }
             }
         };
 
@@ -235,9 +233,8 @@ public partial class MainWindow : Window
         {
             var query = SearchBox.Text?.Trim();
             if (!string.IsNullOrEmpty(query) && SearchResultsList.ItemsSource is IList<SearchResultItem> { Count: > 0 })
-            {
+
                 SearchResultsPopup.IsOpen = true;
-            }
         };
 
         // Scorciatoie da tastiera globali (Ctrl + F, Ctrl + O, Ctrl + ,, F5)
@@ -349,9 +346,8 @@ public partial class MainWindow : Window
         ControlFlow.BlockSelected += (_, block) =>
         {
             if (block != null)
-            {
+
                 StatusText.Text = LocalizationService.Instance.Get("Status_CfgBlock", block.BlockKind, block.Title);
-            }
         };
 
         MartinMetrics.ItemSelected += (_, item) =>
@@ -375,9 +371,8 @@ public partial class MainWindow : Window
         DeadCode.ItemDoubleTapped += (_, item) =>
         {
             if (item != null)
-            {
+
                 OpenOriginalFile(item.FilePath, item.LineStart);
-            }
         };
 
         SharedState.VariableSelected += (_, item) =>
@@ -392,17 +387,15 @@ public partial class MainWindow : Window
         SharedState.AccessorDoubleTapped += (_, acc) =>
         {
             if (acc != null && !string.IsNullOrEmpty(acc.FilePath))
-            {
+
                 OpenOriginalFile(acc.FilePath, acc.Line);
-            }
         };
 
         TemporalCoupling.PairDoubleTapped += (_, pair) =>
         {
             if (pair != null && !string.IsNullOrEmpty(pair.FileA))
-            {
+
                 OpenOriginalFile(pair.FileA, 1);
-            }
         };
 
         ArchitecturalFlow.NodeSelected += (_, node) =>
@@ -426,9 +419,8 @@ public partial class MainWindow : Window
         CodeCity.BuildingDoubleTapped += (_, b) =>
         {
             if (b != null && !string.IsNullOrEmpty(b.FilePath))
-            {
+
                 OpenOriginalFile(b.FilePath, 1);
-            }
         };
 
         // Eventi di gestione Baseline per il tab API Diff & SemVer
@@ -447,31 +439,29 @@ public partial class MainWindow : Window
         }
 
         if (settings.WindowX.HasValue && settings.WindowY.HasValue)
-        {
+
             Position = new PixelPoint(settings.WindowX.Value, settings.WindowY.Value);
-        }
 
         if (settings.IsMaximized)
-        {
+
             WindowState = WindowState.Maximized;
-        }
 
         _savedExplorerWidth = (settings.ExplorerWidth >= 160 && settings.ExplorerWidth <= 700) ? settings.ExplorerWidth : 280;
         _savedInspectorWidth = (settings.InspectorWidth >= 200 && settings.InspectorWidth <= 800) ? settings.InspectorWidth : 360;
 
         if (settings.IsExplorerVisible)
-        {
+
             CentralGrid.ColumnDefinitions[0].Width = new GridLength(_savedExplorerWidth);
-        }
+
         else
         {
             SetExplorerVisibility(false, updateSettings: false);
         }
 
         if (settings.IsInspectorVisible)
-        {
+
             CentralGrid.ColumnDefinitions[4].Width = new GridLength(_savedInspectorWidth);
-        }
+
         else
         {
             SetInspectorVisibility(false, updateSettings: false);
@@ -502,13 +492,11 @@ public partial class MainWindow : Window
                 s.IsExplorerVisible = _isExplorerVisible;
                 s.IsInspectorVisible = _isInspectorVisible;
                 if (_isExplorerVisible && ProjectExplorerControl.Bounds.Width >= 160)
-                {
+
                     s.ExplorerWidth = ProjectExplorerControl.Bounds.Width;
-                }
                 if (_isInspectorVisible && (RightPanelContainer.Bounds.Width >= 200 || SymbolInspectorControl.Bounds.Width >= 200))
-                {
+
                     s.InspectorWidth = RightPanelContainer.Bounds.Width >= 200 ? RightPanelContainer.Bounds.Width : SymbolInspectorControl.Bounds.Width;
-                }
                 s.ShowMethods = Graph.ShowMethods;
                 s.ShowProperties = Graph.ShowProperties;
                 s.ShowFields = Graph.ShowFields;
@@ -519,9 +507,8 @@ public partial class MainWindow : Window
             // Salvataggio sincrono immediato di eventuali modifiche pendenti al layout dei nodi e dello snapshot di cache
             FlushPendingLayoutChangesSync();
             if (!string.IsNullOrEmpty(_currentFolderPath) && _graph != null)
-            {
+
                 ProjectCacheService.Instance.SaveSnapshot(_currentFolderPath, _graph, BlastRadiusGridControl.AllRows, _hasUserMovedNodes, _enabledAnalyticsTabs);
-            }
         };
 
         // Servizi Reattivi: Localizzazione & Temi con Auto-Save
@@ -565,13 +552,11 @@ public partial class MainWindow : Window
         // Se la cronologia è vuota, ricade sulla proprietà LastOpenedFolder memorizzata nelle impostazioni.
         string? lastTarget = null;
         if (settings.RecentProjects.Count > 0)
-        {
+
             lastTarget = settings.RecentProjects[0].Paths.FirstOrDefault();
-        }
         if (string.IsNullOrEmpty(lastTarget))
-        {
+
             lastTarget = settings.LastOpenedFolder;
-        }
 
         // Determina la cartella effettiva del progetto (directory diretta oppure directory padre se il target è un file .csproj/.vbp/.sln)
         var targetFolder = !string.IsNullOrEmpty(lastTarget)
@@ -625,9 +610,8 @@ public partial class MainWindow : Window
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-        {
+
             BeginMoveDrag(e);
-        }
     }
 
     /// <summary>
@@ -670,9 +654,8 @@ public partial class MainWindow : Window
 
         LoadingOverlayControl.Show(title, subtitle, canCancel, timeText);
         if (!isIndeterminate || !string.IsNullOrEmpty(countText) || !string.IsNullOrEmpty(statsText) || !string.IsNullOrEmpty(timeText))
-        {
+
             LoadingOverlayControl.UpdateProgress((int)progressValue, (int)progressMax, countText ?? string.Empty, statsText ?? string.Empty, timeText);
-        }
     }
 
     /// <summary>
@@ -695,9 +678,8 @@ public partial class MainWindow : Window
     private void OnLoadingCancelRequested(object? sender, EventArgs e)
     {
         if (_loadingCts != null && !_loadingCts.IsCancellationRequested)
-        {
+
             _loadingCts.Cancel();
-        }
     }
 
     /// <summary>
@@ -855,9 +837,8 @@ public partial class MainWindow : Window
                     .Where(p => !string.IsNullOrEmpty(p))
                     .ToList();
                 if (paths.Count > 0)
-                {
+
                     await AnalyzeAndLoadPathsAsync(paths);
-                }
             }
         }
     }
@@ -934,9 +915,8 @@ public partial class MainWindow : Window
 
         var targetFolder = _currentFolderPath;
         if (string.IsNullOrEmpty(targetFolder) || !Directory.Exists(targetFolder))
-        {
+
             targetFolder = SettingsService.Instance.Settings.LastOpenedFolder;
-        }
 
         if (string.IsNullOrEmpty(targetFolder) || !Directory.Exists(targetFolder))
         {
@@ -1026,9 +1006,9 @@ public partial class MainWindow : Window
                     // Rileva eventuali modifiche ai sorgenti intervenute dopo il salvataggio della cache
                     var isStale = ProjectCacheService.Instance.CheckStaleness(cachedSnapshot, targetFolder);
                     if (isStale)
-                    {
+
                         StatusText.Text = localizationService.Get("Status_CacheStale", cachedSnapshot.ProjectName);
-                    }
+
                     else
                     {
                         StatusText.Text = localizationService.Get("Status_LoadedFromCache", cachedSnapshot.ProjectName, cachedSnapshot.AnalyzedAtUtc.ToLocalTime().ToString("g"));
@@ -1056,9 +1036,8 @@ public partial class MainWindow : Window
             _currentFolderPath = targetFolder ?? firstPath;
             _currentPaths = paths.ToList();
             if (!string.IsNullOrEmpty(targetFolder) && Directory.Exists(targetFolder))
-            {
+
                 UpdateVcsBranchStatus(targetFolder);
-            }
 
             _enabledAnalyticsTabs.Clear();
             if (SettingsService.Instance.Settings.LastEnabledAnalyticsTabs != null)
@@ -1085,17 +1064,16 @@ public partial class MainWindow : Window
 
             // Salva immediatamente lo snapshot iniziale del grafo su cache su thread in background
             if (!string.IsNullOrEmpty(_currentFolderPath) && _graph != null)
-            {
+
                 _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _graph, BlastRadiusGridControl.AllRows, _hasUserMovedNodes, _enabledAnalyticsTabs);
-            }
 
             var projectCount = _graph?.Nodes.Count(n => n.Kind == SymbolKind.Project) ?? 0;
             var crossCount = _graph?.Edges.Count(e => e.IsCrossProject) ?? 0;
             var nodeCount = _graph?.Nodes.Count ?? 0;
             if (projectCount > 1)
-            {
+
                 StatusText.Text = localizationService.Get("Status_WorkspaceAnalyzed", projectCount, nodeCount, crossCount);
-            }
+
             else
             {
                 StatusText.Text = localizationService.Get("Status_Refreshed", titleName, nodeCount);
@@ -1143,17 +1121,15 @@ public partial class MainWindow : Window
             : $"Workspace ({paths.Count} percorsi)";
 
         if (string.IsNullOrEmpty(displayName))
-        {
+
             displayName = firstPath;
-        }
 
         SettingsService.Instance.Update(settings =>
         {
             // Salva atomicamente l'ultima cartella valida per l'avvio e la card di analisi
             if (!string.IsNullOrEmpty(targetFolder) && Directory.Exists(targetFolder))
-            {
+
                 settings.LastOpenedFolder = targetFolder;
-            }
 
             // Rimuovi se già presente per evitare duplicati
             settings.RecentProjects.RemoveAll(r => r.Paths.SequenceEqual(paths, StringComparer.OrdinalIgnoreCase));
@@ -1169,9 +1145,8 @@ public partial class MainWindow : Window
 
             // Tieni solo gli ultimi 10 elementi
             if (settings.RecentProjects.Count > 10)
-            {
+
                 settings.RecentProjects = settings.RecentProjects.Take(10).ToList();
-            }
         });
 
         UpdateRecentProjectsMenu();
@@ -1212,7 +1187,7 @@ public partial class MainWindow : Window
             ToolTip.SetTip(item, string.Join(Environment.NewLine, recent.Paths));
 
             if (this.TryFindResource(iconKey, out var res) && res is StreamGeometry geo)
-            {
+
                 item.Icon = new PathIcon
                 {
                     Data = geo,
@@ -1220,7 +1195,6 @@ public partial class MainWindow : Window
                     Height = 14,
                     Foreground = Color.TryParse(iconColor, out var c) ? new SolidColorBrush(c) : Brushes.DodgerBlue
                 };
-            }
 
             var capturedPaths = recent.Paths.ToList();
             item.Click += async (_, _) =>
@@ -1237,14 +1211,13 @@ public partial class MainWindow : Window
             Header = localizationService["Menu_ClearRecentProjects"]
         };
         if (this.TryFindResource("IconClearFilter", out var clearRes) && clearRes is StreamGeometry clearGeo)
-        {
+
             clearItem.Icon = new PathIcon
             {
                 Data = clearGeo,
                 Width = 12,
                 Height = 12
             };
-        }
         clearItem.Click += (_, _) =>
         {
             SettingsService.Instance.Update(s =>
@@ -1272,9 +1245,8 @@ public partial class MainWindow : Window
         CentralTabControl.IsVisible = true;
 
         if (applyAutomaticLayout)
-        {
+
             Layout.GraphLayoutManager.ApplyLayout(_graph, _currentLayoutMode);
-        }
         _hasUserMovedNodes = false;
         Graph.ClearHiddenProjects();
 
@@ -1382,17 +1354,16 @@ public partial class MainWindow : Window
     private void SetDetailPreset(int index)
     {
         if (index == 0) // Completo: tutti i membri visibili
-        {
+
             Graph.SetFilters(true, true, true, true, true);
-        }
+
         else if (index == 1) // Metodi & Proprietà: nasconde variabili, costanti e tipi
-        {
-            Graph.SetFilters(true, true, false, false, false);
-        }
-        else if (index == 2) // Solo Moduli: nasconde tutti i membri interni
-        {
-            Graph.SetFilters(false, false, false, false, false);
-        }
+
+    Graph.SetFilters(true, true, false, false, false);
+
+else if (index == 2) // Solo Moduli: nasconde tutti i membri interni
+
+    Graph.SetFilters(false, false, false, false, false);
         SaveFilterSettings();
     }
 
@@ -1493,18 +1464,18 @@ public partial class MainWindow : Window
 
             // Allinea indice ComboBox Preset
             if (Graph.ShowMethods && Graph.ShowProperties && Graph.ShowFields && Graph.ShowConstants && Graph.ShowTypesAndEnums)
-            {
+
                 DetailLevelComboBox.SelectedIndex = 0; // Completo
-            }
+
             else if (Graph.ShowMethods && Graph.ShowProperties && !Graph.ShowFields && !Graph.ShowConstants && !Graph.ShowTypesAndEnums)
-            {
-                DetailLevelComboBox.SelectedIndex = 1; // Metodi & Proprietà
-            }
-            else if (!Graph.ShowMethods && !Graph.ShowProperties && !Graph.ShowFields && !Graph.ShowConstants && !Graph.ShowTypesAndEnums)
-            {
-                DetailLevelComboBox.SelectedIndex = 2; // Solo Moduli
-            }
-            else
+
+    DetailLevelComboBox.SelectedIndex = 1; // Metodi & Proprietà
+
+else if (!Graph.ShowMethods && !Graph.ShowProperties && !Graph.ShowFields && !Graph.ShowConstants && !Graph.ShowTypesAndEnums)
+
+    DetailLevelComboBox.SelectedIndex = 2; // Solo Moduli
+
+else
             {
                 DetailLevelComboBox.SelectedIndex = 3; // Personalizzato
             }
@@ -1513,9 +1484,8 @@ public partial class MainWindow : Window
             {
                 var (vis, total) = Graph.GetNodeCounts();
                 if (Graph.CurrentHighlightMode == HighlightMode.Normal && total > 0)
-                {
+
                     StatusText.Text = LocalizationService.Instance.Get("Status_NodesDisplayed", vis, total);
-                }
             }
         }
         finally
@@ -1566,9 +1536,8 @@ public partial class MainWindow : Window
         if (_enabledAnalyticsTabs.Add(tabKey))
         {
             if (!string.IsNullOrEmpty(_currentFolderPath))
-            {
+
                 _ = ProjectCacheService.Instance.UpdateEnabledAnalyticsTabsAsync(_currentFolderPath, _enabledAnalyticsTabs);
-            }
             SettingsService.Instance.Update(s => s.LastEnabledAnalyticsTabs = _enabledAnalyticsTabs.ToList());
         }
     }
@@ -1593,9 +1562,8 @@ public partial class MainWindow : Window
         if (changed)
         {
             if (!string.IsNullOrEmpty(_currentFolderPath))
-            {
+
                 _ = ProjectCacheService.Instance.UpdateEnabledAnalyticsTabsAsync(_currentFolderPath, _enabledAnalyticsTabs);
-            }
             SettingsService.Instance.Update(s => s.LastEnabledAnalyticsTabs = _enabledAnalyticsTabs.ToList());
         }
     }
@@ -1828,9 +1796,8 @@ public partial class MainWindow : Window
                             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                             {
                                 if (!token.IsCancellationRequested && BackgroundAnalyticsPanel != null)
-                                {
+
                                     BackgroundAnalyticsPanel.IsVisible = false;
-                                }
                             });
                         }, TaskScheduler.Default);
                     }
@@ -1842,7 +1809,7 @@ public partial class MainWindow : Window
             {
                 var matrix = DsmMatrixBuilder.Build(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(DsmTabItem))
@@ -1851,7 +1818,6 @@ public partial class MainWindow : Window
                             DsmPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(DsmTabItem, nodeCount));
             }
 
@@ -1860,7 +1826,7 @@ public partial class MainWindow : Window
             {
                 var treemap = TreemapModelBuilder.Build(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(TreemapTabItem))
@@ -1869,7 +1835,6 @@ public partial class MainWindow : Window
                             TreemapPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(TreemapTabItem, nodeCount));
             }
 
@@ -1878,7 +1843,7 @@ public partial class MainWindow : Window
             {
                 var hotspot = HotspotAnalyzer.Analyze(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(HotspotTabItem))
@@ -1887,7 +1852,6 @@ public partial class MainWindow : Window
                             HotspotPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(HotspotTabItem, nodeCount));
             }
 
@@ -1896,7 +1860,7 @@ public partial class MainWindow : Window
             {
                 var martin = MartinMetricsCalculator.Analyze(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(MartinTabItem))
@@ -1905,7 +1869,6 @@ public partial class MainWindow : Window
                             MartinPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(MartinTabItem, nodeCount));
             }
 
@@ -1914,7 +1877,7 @@ public partial class MainWindow : Window
             {
                 var deadCode = DeadCodeAnalyzer.Analyze(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(DeadCodeTabItem))
@@ -1923,7 +1886,6 @@ public partial class MainWindow : Window
                             DeadCodePlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(DeadCodeTabItem, nodeCount));
             }
 
@@ -1932,7 +1894,7 @@ public partial class MainWindow : Window
             {
                 var screenFlow = ScreenFlowBuilder.Build(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(ScreenFlowTabItem))
@@ -1941,7 +1903,6 @@ public partial class MainWindow : Window
                             ScreenFlowPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(ScreenFlowTabItem, nodeCount));
             }
 
@@ -1950,7 +1911,7 @@ public partial class MainWindow : Window
             {
                 var sharedState = SharedStateAnalyzer.Analyze(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(SharedStateTabItem))
@@ -1959,7 +1920,6 @@ public partial class MainWindow : Window
                             SharedStatePlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(SharedStateTabItem, nodeCount));
             }
 
@@ -1968,7 +1928,7 @@ public partial class MainWindow : Window
             {
                 var archFlow = ArchitecturalFlowAnalyzer.Analyze(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(ArchitecturalFlowTabItem))
@@ -1977,7 +1937,6 @@ public partial class MainWindow : Window
                             ArchitecturalFlowPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(ArchitecturalFlowTabItem, nodeCount));
             }
 
@@ -1986,7 +1945,7 @@ public partial class MainWindow : Window
             {
                 var codeCity = CodeCityBuilder.Build(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(CodeCityTabItem))
@@ -1995,7 +1954,6 @@ public partial class MainWindow : Window
                             CodeCityPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(CodeCityTabItem, nodeCount));
             }
 
@@ -2005,7 +1963,7 @@ public partial class MainWindow : Window
                 var commitChangelists = GitService.Instance.GetCommitFileChangelists(folder);
                 var dataset = TemporalCouplingAnalyzer.Analyze(commitChangelists, targetGraph, folder);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(TemporalCouplingTabItem))
@@ -2014,7 +1972,6 @@ public partial class MainWindow : Window
                             TemporalCouplingPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(TemporalCouplingTabItem, nodeCount));
             }
 
@@ -2023,7 +1980,7 @@ public partial class MainWindow : Window
             {
                 var cohesion = CohesionCalculator.Analyze(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(CohesionTabItem))
@@ -2032,7 +1989,6 @@ public partial class MainWindow : Window
                             CohesionPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(CohesionTabItem, nodeCount));
             }
 
@@ -2041,7 +1997,7 @@ public partial class MainWindow : Window
             {
                 var maintainability = MaintainabilityCalculator.Analyze(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(MaintainabilityTabItem))
@@ -2050,7 +2006,6 @@ public partial class MainWindow : Window
                             MaintainabilityPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(MaintainabilityTabItem, nodeCount));
             }
 
@@ -2059,7 +2014,7 @@ public partial class MainWindow : Window
             {
                 var rulesReport = ArchitecturalRulesEngine.Evaluate(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(ArchitecturalRulesTabItem))
@@ -2068,7 +2023,6 @@ public partial class MainWindow : Window
                             ArchitecturalRulesPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(ArchitecturalRulesTabItem, nodeCount));
             }
 
@@ -2077,7 +2031,7 @@ public partial class MainWindow : Window
             {
                 var cloneReport = CodeCloneDetector.DetectClones(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(CodeCloneTabItem))
@@ -2086,7 +2040,6 @@ public partial class MainWindow : Window
                             CodeClonePlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(CodeCloneTabItem, nodeCount));
             }
 
@@ -2096,7 +2049,7 @@ public partial class MainWindow : Window
                 var commitRecords = GitService.Instance.GetFileCommitHistory(folder);
                 var socialDataset = SocialCodeAnalyzer.Analyze(targetGraph, commitRecords);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(SocialCodeTabItem))
@@ -2105,7 +2058,6 @@ public partial class MainWindow : Window
                             SocialCodePlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(SocialCodeTabItem, nodeCount));
             }
 
@@ -2114,7 +2066,7 @@ public partial class MainWindow : Window
             {
                 var dataFlowDataset = TaintAnalyzer.Analyze(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(DataFlowTabItem))
@@ -2123,7 +2075,6 @@ public partial class MainWindow : Window
                             DataFlowPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(DataFlowTabItem, nodeCount));
             }
 
@@ -2133,7 +2084,7 @@ public partial class MainWindow : Window
                 var baseline = _apiDiffBaselineGraph;
                 var apiDiffReport = baseline != null ? ApiDiffAnalyzer.Compare(baseline, targetGraph) : null;
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(ApiDiffTabItem))
@@ -2142,7 +2093,6 @@ public partial class MainWindow : Window
                             ApiDiffPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(ApiDiffTabItem, nodeCount));
             }
 
@@ -2151,7 +2101,7 @@ public partial class MainWindow : Window
             {
                 var crudDataset = CrudMatrixAnalyzer.Analyze(targetGraph);
                 if (!token.IsCancellationRequested)
-                {
+
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Remove(CrudMatrixTabItem))
@@ -2160,7 +2110,6 @@ public partial class MainWindow : Window
                             CrudMatrixPlaceholder?.SetState(isPending: false, isComputing: false);
                         }
                     });
-                }
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(CrudMatrixTabItem, nodeCount));
             }
         }, token);
@@ -2232,17 +2181,15 @@ public partial class MainWindow : Window
     {
         _analyticsCts?.Cancel();
         if (BackgroundAnalyticsPanel != null)
-        {
+
             BackgroundAnalyticsPanel.IsVisible = false;
-        }
 
         // Reimposta lo stato dei placeholder per tutte le schede ancora dirty (non calcolate)
         void ResetIfDirty(AnalyticsPlaceholderControl? placeholder, TabItem? tabItem)
         {
             if (placeholder != null && tabItem != null && _dirtyAnalyticsTabs.Contains(tabItem))
-            {
+
                 placeholder.SetState(isPending: true, isComputing: false);
-            }
         }
 
         ResetIfDirty(DsmPlaceholder, DsmTabItem);
@@ -2282,11 +2229,8 @@ public partial class MainWindow : Window
         var s = SettingsService.Instance.Settings;
         var key = GetTabKey(selectedItem);
         if (!s.EnableBackgroundAnalytics && (key == null || !_enabledAnalyticsTabs.Contains(key)))
-        {
-            // Se la pre-elaborazione automatica in background è disabilitata e la scheda non è abilitata per questo progetto,
-            // non avvia automaticamente: il tab mostrerà il placeholder con il pulsante "Avvia Analisi".
+
             return;
-        }
 
         RunAnalyticsForTab(selectedItem);
     }
@@ -2301,9 +2245,8 @@ public partial class MainWindow : Window
 
         var key = GetTabKey(selectedItem);
         if (key != null)
-        {
+
             MarkAnalyticsTabEnabled(key);
-        }
 
         var targetGraph = GetTargetSemanticGraph();
         var nodeCount = targetGraph.Symbols.Count;
@@ -2594,9 +2537,8 @@ public partial class MainWindow : Window
     {
         var title = GetTabTitle(tabItem);
         if (!string.IsNullOrWhiteSpace(title))
-        {
+
             return LocalizationService.Instance.Get("Analytics_ComputingNamedTitle", title);
-        }
         return LocalizationService.Instance["Analytics_ComputingTitle"];
     }
 
@@ -2659,7 +2601,7 @@ public partial class MainWindow : Window
         if (isChecked)
         {
             if (this.TryFindResource("IconCheck", out var res) && res is StreamGeometry geo)
-            {
+
                 mi.Icon = new PathIcon
                 {
                     Data = geo,
@@ -2667,7 +2609,6 @@ public partial class MainWindow : Window
                     Height = 12,
                     Foreground = this.FindResource("ThemeAccentBrush") as IBrush ?? Brushes.DodgerBlue
                 };
-            }
         }
         else
         {
@@ -2698,9 +2639,8 @@ public partial class MainWindow : Window
     private void OnExplorerProjectVisibilityChanged(object? sender, ExplorerTreeItem item)
     {
         if (item.ProjectId.HasValue)
-        {
+
             Graph.SetProjectVisibility(item.ProjectId.Value, item.IsProjectVisible);
-        }
     }
 
     /// <summary>
@@ -2717,9 +2657,8 @@ public partial class MainWindow : Window
             void SyncTreeItemVisibility(ExplorerTreeItem item)
             {
                 if (item.IsProjectRoot && item.ProjectId.HasValue)
-                {
+
                     item.IsProjectVisible = Graph.IsProjectVisible(item.ProjectId.Value);
-                }
                 foreach (var child in item.Children)
                 {
                     SyncTreeItemVisibility(child);
@@ -2880,9 +2819,8 @@ public partial class MainWindow : Window
         _selectedNode = node;
 
         if (!_isSyncingSelection && node != null)
-        {
+
             BlastRadiusGridControl.SelectNode(node.Id);
-        }
 
         if (node is null)
         {
@@ -2920,9 +2858,8 @@ public partial class MainWindow : Window
         // Seleziona e inquadra la schermata se presente nel grafo ScreenFlow
         var screenId = node.Id;
         if (ScreenFlow.Graph?.FindScreen(screenId) is null && node.ParentId.HasValue)
-        {
+
             screenId = node.ParentId.Value;
-        }
         if (ScreenFlow.Graph?.FindScreen(screenId) is not null)
         {
             ScreenFlow.SelectScreen(screenId);
@@ -2955,20 +2892,19 @@ public partial class MainWindow : Window
         if (item.IsGroup) return; // double-clicking group expands/collapses tree
 
         if (!string.IsNullOrEmpty(item.FilePath))
-        {
+
             OpenOriginalFile(item.FilePath, item.LineStart);
-        }
+
         else if (_graph != null)
         {
             var node = _graph.GetNode(item.NodeId);
             if (node?.SemanticSymbol?.FilePath != null)
-            {
+
                 OpenOriginalFile(node.SemanticSymbol.FilePath, node.SemanticSymbol.LineStart);
-            }
+
             else if (!string.IsNullOrEmpty(_currentFolderPath))
-            {
-                OpenContainingFolder(_currentFolderPath);
-            }
+
+    OpenContainingFolder(_currentFolderPath);
         }
     }
 
@@ -2978,9 +2914,8 @@ public partial class MainWindow : Window
     private void OnExplorerOpenFileRequested(object? sender, ExplorerTreeItem item)
     {
         if (!item.IsGroup && item.HasFile)
-        {
+
             OpenOriginalFile(item.FilePath, item.LineStart);
-        }
     }
 
     /// <summary>
@@ -2989,9 +2924,8 @@ public partial class MainWindow : Window
     private void OnExplorerOpenFolderRequested(object? sender, ExplorerTreeItem item)
     {
         if (!item.IsGroup && item.HasFile)
-        {
+
             OpenContainingFolder(item.FilePath);
-        }
     }
 
     /// <summary>
@@ -3000,9 +2934,8 @@ public partial class MainWindow : Window
     private void OnExplorerCopyPathRequested(object? sender, ExplorerTreeItem item)
     {
         if (!item.IsGroup && item.HasFile)
-        {
+
             CopyFilePathToClipboard(item.FilePath);
-        }
     }
 
     /// <summary>
@@ -3046,9 +2979,8 @@ public partial class MainWindow : Window
     private void OnInspectorCopyCodeRequested(object? sender, string code)
     {
         if (_selectedNode != null)
-        {
+
             StatusText.Text = LocalizationService.Instance.Get("Status_CopiedCodeSnippet", _selectedNode.Name);
-        }
     }
 
     #endregion
@@ -3111,9 +3043,9 @@ public partial class MainWindow : Window
 
         string json;
         if (semGraph != null && symbol != null)
-        {
+
             json = CodeGraphJsonExporter.ExportSliceToJson(semGraph, symbol, indented: true);
-        }
+
         else
         {
             var filePath = symbol?.FilePath;
@@ -3294,14 +3226,12 @@ public partial class MainWindow : Window
     private string? ResolveEffectiveFilePath(string? filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
-        {
+
             return _currentFolderPath;
-        }
 
         if (Path.IsPathRooted(filePath) && (File.Exists(filePath) || Directory.Exists(filePath)))
-        {
+
             return filePath;
-        }
 
         if (!string.IsNullOrEmpty(_currentFolderPath))
         {
@@ -3664,9 +3594,9 @@ public partial class MainWindow : Window
     {
         SearchResultsPopup.IsOpen = false;
         if (item.Node != null)
-        {
+
             SelectAndFocusGraphNode(item.Node);
-        }
+
         else if (item.ExecuteAction != null)
         {
             item.ExecuteAction.Invoke();
@@ -3778,9 +3708,8 @@ public partial class MainWindow : Window
 
         // Costruisci il Control Flow Graph (CFG) se è una routine
         if (sym != null && _graph?.SemanticGraph != null && (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property))
-        {
+
             ControlFlow.Graph = ControlFlowBuilder.BuildForSymbol(sym, _graph.SemanticGraph);
-        }
 
         UpdateStatusLanguage(node.Language);
 
@@ -3812,15 +3741,13 @@ public partial class MainWindow : Window
         {
             await Task.Delay(80, ct);
             if (!ct.IsCancellationRequested && !isCompleted)
-            {
+
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     if (!ct.IsCancellationRequested && !isCompleted && _selectedNode?.Id == targetId)
-                    {
+
                         ShowLoading(localizationService["Loading_NodeAnalysisTitle"], localizationService.Get("Loading_NodeAnalysisSub", node.Name));
-                    }
                 });
-            }
         }, ct);
 
         try
@@ -3843,17 +3770,15 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             if (!ct.IsCancellationRequested && _selectedNode?.Id == targetId)
-            {
+
                 StatusText.Text = localizationService.Get("Status_NodeAnalysisError", ex.Message);
-            }
         }
         finally
         {
             isCompleted = true;
             if (_selectedNode?.Id == targetId)
-            {
+
                 HideLoading();
-            }
         }
     }
 
@@ -3892,9 +3817,8 @@ public partial class MainWindow : Window
         EnsureActiveTabAnalyticsLoaded();
 
         if (CentralTabControl.SelectedItem == GridTabItem && _selectedNode != null)
-        {
+
             BlastRadiusGridControl.SelectNode(_selectedNode.Id);
-        }
     }
 
     /// <summary>
@@ -4403,9 +4327,9 @@ public partial class MainWindow : Window
         {
             string markdown;
             if (semGraph != null && symbol != null)
-            {
+
                 markdown = await Task.Run(() => CodeGraphMarkdownExporter.ExportSlice(semGraph, symbol));
-            }
+
             else
             {
                 var filePath = symbol?.FilePath;
@@ -4452,9 +4376,8 @@ public partial class MainWindow : Window
     private void OnExportSuccessOpenFolderRequested(object? sender, string fullPath)
     {
         if (!string.IsNullOrEmpty(fullPath))
-        {
+
             OpenContainingFolder(fullPath);
-        }
     }
 
     #endregion
@@ -4502,9 +4425,8 @@ public partial class MainWindow : Window
     private void ShowLayoutConfirmModal()
     {
         if (_pendingLayoutMode.HasValue)
-        {
+
             LayoutConfirmModalControl.Show(_pendingLayoutMode.Value);
-        }
     }
 
     private void OnLayoutConfirmModalConfirmed(object? sender, Layout.GraphLayoutMode mode)
@@ -4524,18 +4446,16 @@ public partial class MainWindow : Window
         var targetIndex = (int)mode;
 
         if (LayoutComboBox.SelectedIndex != targetIndex)
-        {
+
             LayoutComboBox.SelectedIndex = targetIndex;
-        }
 
         if (_graph != null)
         {
             Layout.GraphLayoutManager.ApplyLayout(_graph, mode);
             Graph.InvalidateVisual();
             if (resetView)
-            {
+
                 ResetGraphView();
-            }
             ScheduleLayoutAutoSave();
         }
 
@@ -4618,9 +4538,8 @@ public partial class MainWindow : Window
             var targetProject = _graph.Nodes.FirstOrDefault(n => n.Kind == SymbolKind.Project && Graph.IsProjectVisible(n.Id))
                                 ?? _graph.Nodes.FirstOrDefault(n => n.Kind == SymbolKind.Project);
             if (targetProject != null)
-            {
+
                 Graph.FocusOnNode(targetProject.Id);
-            }
         }
     }
 
@@ -4644,9 +4563,8 @@ public partial class MainWindow : Window
         if (LayoutComboBox.SelectedIndex < 0) return;
         var mode = (Layout.GraphLayoutMode)LayoutComboBox.SelectedIndex;
         if (mode != _currentLayoutMode)
-        {
+
             RequestSetLayoutMode(mode, resetView: true);
-        }
     }
 
     /// <summary>
@@ -4706,9 +4624,8 @@ public partial class MainWindow : Window
         ApiDiffTabHeader.IsVisible = showLabels;
         CrudMatrixTabHeader.IsVisible = showLabels;
         if (TabLabelsCheckIcon != null)
-        {
+
             TabLabelsCheckIcon.IsVisible = showLabels;
-        }
     }
 
     /// <summary>
@@ -4767,9 +4684,8 @@ public partial class MainWindow : Window
         {
             var firstVisible = CentralTabControl.Items.OfType<TabItem>().FirstOrDefault(t => t.IsVisible);
             if (firstVisible != null)
-            {
+
                 CentralTabControl.SelectedItem = firstVisible;
-            }
         }
     }
 
@@ -4779,9 +4695,8 @@ public partial class MainWindow : Window
         var newValue = !SettingsService.Instance.Settings.EnableBackgroundAnalytics;
         SettingsService.Instance.Update(s => s.EnableBackgroundAnalytics = newValue);
         if (newValue && _graph != null && _dirtyAnalyticsTabs.Count > 0)
-        {
+
             StartAllPendingAnalytics();
-        }
     }
 
     /// <summary>Avvia il calcolo di tutte le schede analitiche in sospeso dal menu Analisi.</summary>
@@ -4891,9 +4806,8 @@ public partial class MainWindow : Window
 
         // Se il clic non è avvenuto su un'intestazione TabItem appartenente al TabControl principale, ignora
         if (tabItem == null || CentralTabControl == null || !CentralTabControl.Items.OfType<TabItem>().Contains(tabItem))
-        {
+
             return;
-        }
 
         if (CentralTabControl.Resources.TryGetResource("AnalyticsTabContextMenu", null, out var res) && res is ContextMenu menu)
         {
@@ -4903,11 +4817,10 @@ public partial class MainWindow : Window
 
             var tabTitle = GetTabTitle(tabItem);
             if (CtxTabHide != null)
-            {
+
                 CtxTabHide.Header = !string.IsNullOrWhiteSpace(tabTitle)
                     ? LocalizationService.Instance.Get("TabContext_HideTabNamed", tabTitle)
                     : LocalizationService.Instance["TabContext_HideTab"];
-            }
 
             menu.Open(tabItem);
             e.Handled = true;
@@ -4925,13 +4838,11 @@ public partial class MainWindow : Window
             if (tb != null && !string.IsNullOrWhiteSpace(tb.Text)) return tb.Text;
         }
         if (tabItem.Header is TextBlock textBlock && !string.IsNullOrWhiteSpace(textBlock.Text))
-        {
+
             return textBlock.Text;
-        }
         if (tabItem.Header is string str && !string.IsNullOrWhiteSpace(str))
-        {
+
             return str;
-        }
         return string.Empty;
     }
 
@@ -4942,9 +4853,8 @@ public partial class MainWindow : Window
     {
         var tabItem = _contextMenuTargetTabItem ?? GetTabItemFromSender(sender);
         if (tabItem != null)
-        {
+
             HideTab(tabItem);
-        }
     }
 
     /// <summary>
@@ -5168,9 +5078,8 @@ public partial class MainWindow : Window
                 // Aggiorna l'icona vettoriale in base al provider VCS
                 var iconKey = vcsType == VcsType.Svn ? "IconSvn" : "IconGitBranch";
                 if (this.TryFindResource(iconKey, out var res) && res is Geometry geo)
-                {
+
                     GitBranchIcon.Data = geo;
-                }
 
                 var tooltipKey = vcsType == VcsType.Svn ? "Svn_BranchTooltip" : "Git_BranchTooltip";
                 ToolTip.SetTip(GitBranchButton, LocalizationService.Instance.Get(tooltipKey, branch));
@@ -5217,9 +5126,9 @@ public partial class MainWindow : Window
     {
         var query = GitBranchSearchBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrEmpty(query))
-        {
+
             GitBranchListBox.ItemsSource = _allVcsBranches;
-        }
+
         else
         {
             GitBranchListBox.ItemsSource = _allVcsBranches
@@ -5243,9 +5152,8 @@ public partial class MainWindow : Window
 
         var current = VcsService.Instance.GetCurrentBranch(_currentFolderPath, out var vcsType);
         if (string.Equals(current, selectedBranch.Name, StringComparison.OrdinalIgnoreCase))
-        {
+
             return;
-        }
 
         if (string.IsNullOrEmpty(_currentFolderPath)) return;
 
@@ -5297,9 +5205,8 @@ public partial class MainWindow : Window
         {
             var update = await UpdateService.Instance.CheckForUpdatesAsync();
             if (update != null)
-            {
+
                 ShowUpdateModal(update);
-            }
         }
         catch
         {
@@ -5319,9 +5226,9 @@ public partial class MainWindow : Window
         {
             var update = await UpdateService.Instance.CheckForUpdatesAsync(forceCheck: true);
             if (update != null)
-            {
+
                 ShowUpdateModal(update);
-            }
+
             else
             {
                 StatusText.Text = localizationService.Get("Update_NoUpdates", UpdateService.CurrentVersionString);
@@ -5419,9 +5326,8 @@ public partial class MainWindow : Window
         else
         {
             if (ProjectExplorerControl.Bounds.Width >= 160)
-            {
+
                 _savedExplorerWidth = ProjectExplorerControl.Bounds.Width;
-            }
             CentralGrid.ColumnDefinitions[0].MinWidth = 0;
             CentralGrid.ColumnDefinitions[0].MaxWidth = 0;
             CentralGrid.ColumnDefinitions[0].Width = new GridLength(0, GridUnitType.Pixel);
@@ -5431,13 +5337,12 @@ public partial class MainWindow : Window
         }
 
         if (updateSettings)
-        {
+
             SettingsService.Instance.Update(s =>
             {
                 s.IsExplorerVisible = _isExplorerVisible;
                 if (_isExplorerVisible) s.ExplorerWidth = _savedExplorerWidth;
             });
-        }
 
         UpdatePanelToggleVisuals();
     }
@@ -5472,13 +5377,12 @@ public partial class MainWindow : Window
         else
         {
             if (RightPanelContainer.Bounds.Width >= 200)
-            {
+
                 _savedInspectorWidth = RightPanelContainer.Bounds.Width;
-            }
+
             else if (SymbolInspectorControl.Bounds.Width >= 200)
-            {
-                _savedInspectorWidth = SymbolInspectorControl.Bounds.Width;
-            }
+
+    _savedInspectorWidth = SymbolInspectorControl.Bounds.Width;
             CentralGrid.ColumnDefinitions[4].MinWidth = 0;
             CentralGrid.ColumnDefinitions[4].MaxWidth = 0;
             CentralGrid.ColumnDefinitions[4].Width = new GridLength(0, GridUnitType.Pixel);
@@ -5488,13 +5392,12 @@ public partial class MainWindow : Window
         }
 
         if (updateSettings)
-        {
+
             SettingsService.Instance.Update(s =>
             {
                 s.IsInspectorVisible = _isInspectorVisible;
                 if (_isInspectorVisible) s.InspectorWidth = _savedInspectorWidth;
             });
-        }
 
         UpdatePanelToggleVisuals();
     }
@@ -5722,9 +5625,8 @@ public partial class MainWindow : Window
         if (CtxTabShowAll != null) CtxTabShowAll.Header = localizationService["TabContext_ShowAllTabs"];
         if (CtxTabManage != null) CtxTabManage.Header = localizationService["TabContext_ManageTabs"];
         if (_graph is not null)
-        {
+
             ProjectExplorerControl.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds) };
-        }
 
         // Tab Centrali
         GraphTabHeader.Text = localizationService["Tab_GraphView"];
@@ -5876,16 +5778,15 @@ public partial class MainWindow : Window
         UpdateStatsBar();
         ToolTip.SetTip(BackgroundAnalyticsStopButton, localizationService["Tooltip_StopBackgroundAnalytics"]);
         if (_selectedNode == null)
-        {
+
             StatusText.Text = localizationService["Status_Ready"];
-        }
+
         else
         {
             StatusText.Text = localizationService.Get("Status_Selected", _selectedNode.Kind, _selectedNode.QualifiedName);
             if (_selectedNode.SemanticSymbol is { } sym && _graph?.Queries is { } q && q.TryGetCachedImpactReport(sym, 10, out var cachedReport) && cachedReport != null)
-            {
+
                 SymbolInspectorControl?.UpdateImpactDetails(cachedReport, q.GetDirectCallees(sym), q.GetInstantiatedClasses(sym));
-            }
         }
     }
 

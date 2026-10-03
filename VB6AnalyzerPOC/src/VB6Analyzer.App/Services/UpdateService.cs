@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
@@ -47,32 +47,28 @@ public sealed class UpdateService
 
         // Se l'endpoint non è ancora configurato, restituiamo null senza generare errori
         if (string.IsNullOrWhiteSpace(endpoint))
-        {
+
             return null;
-        }
 
         try
         {
             // Esecuzione richiesta HTTP al server degli aggiornamenti
             using var response = await _httpClient.GetAsync(endpoint, ct).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
-            {
+
                 return null;
-            }
 
             using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false), cancellationToken: ct).ConfigureAwait(false);
             var root = doc.RootElement;
 
             if (!root.TryGetProperty("version", out var verProp) || verProp.ValueKind != JsonValueKind.String)
-            {
+
                 return null;
-            }
 
             var versionStr = verProp.GetString();
             if (string.IsNullOrWhiteSpace(versionStr))
-            {
+
                 return null;
-            }
 
             if (Version.TryParse(versionStr.TrimStart('v', 'V'), out var remoteVersion))
             {
@@ -83,21 +79,18 @@ public sealed class UpdateService
 
                     string downloadUrl = string.Empty;
                     if (root.TryGetProperty("downloadUrl", out var dlProp) && dlProp.ValueKind == JsonValueKind.String)
-                    {
+
                         downloadUrl = dlProp.GetString() ?? string.Empty;
-                    }
 
                     DateTime? publishedAt = null;
                     if (root.TryGetProperty("publishedAt", out var pubProp) && pubProp.ValueKind == JsonValueKind.String && DateTime.TryParse(pubProp.GetString(), out var dt))
-                    {
+
                         publishedAt = dt;
-                    }
 
                     bool isMandatory = false;
                     if (root.TryGetProperty("isMandatory", out var mandProp))
-                    {
+
                         isMandatory = mandProp.ValueKind == JsonValueKind.True;
-                    }
 
                     return new AppUpdateInfo
                     {
@@ -124,9 +117,8 @@ public sealed class UpdateService
     private static (string DefaultValue, Dictionary<string, string>? Localized) ParseLocalizedField(JsonElement root, string propertyName)
     {
         if (!root.TryGetProperty(propertyName, out var prop))
-        {
+
             return (string.Empty, null);
-        }
 
         if (prop.ValueKind == JsonValueKind.String)
         {
@@ -146,9 +138,8 @@ public sealed class UpdateService
                     var text = item.Value.GetString() ?? string.Empty;
                     dict[item.Name] = text;
                     if (string.IsNullOrEmpty(fallback) || item.Name.Equals("it", StringComparison.OrdinalIgnoreCase))
-                    {
+
                         fallback = text;
-                    }
                 }
             }
 
@@ -164,9 +155,8 @@ public sealed class UpdateService
     public void OpenDownloadPage(string? downloadUrl)
     {
         if (string.IsNullOrWhiteSpace(downloadUrl))
-        {
+
             downloadUrl = "https://github.com/macondo-studio/macondo";
-        }
 
         try
         {

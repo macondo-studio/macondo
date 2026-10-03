@@ -74,9 +74,8 @@ public static class HotspotAnalyzer
             double churn = callers;
             if (fileChurnHistory != null && !string.IsNullOrEmpty(sym.FilePath) &&
                 fileChurnHistory.TryGetValue(sym.FilePath, out int commits))
-            {
+
                 churn = (commits * 2.0) + callers;
-            }
 
             // Dimensione volumetrica dell'elemento (usata per il raggio visivo della bolla nel chart)
             double size = Math.Max(4.0, (sym.Parameters.Count * 3.0) + (callees * 4.0) + 10.0);
@@ -101,9 +100,8 @@ public static class HotspotAnalyzer
 
         // Se non ci sono elementi da analizzare, restituisce un dataset vuoto con valori di default
         if (items.Count == 0)
-        {
+
             return new HotspotDataset { ThresholdX = 5, ThresholdY = 5, MaxX = 10, MaxY = 10 };
-        }
 
         // ---------------------------------------------------------------------
         // PASSO 4: Calcolo delle medie statistiche e dei massimi di scala della codebase.

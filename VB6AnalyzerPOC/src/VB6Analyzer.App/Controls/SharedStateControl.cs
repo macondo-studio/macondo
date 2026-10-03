@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -356,9 +356,8 @@ public sealed class SharedStateControl : UserControl
         _accessorsDataGrid.DoubleTapped += (s, e) =>
         {
             if (_accessorsDataGrid.SelectedItem is SharedAccessorGridRow selected)
-            {
+
                 AccessorDoubleTapped?.Invoke(this, selected.Accessor);
-            }
         };
 
         ConfigureAccessorsColumns(_accessorsDataGrid);
@@ -452,27 +451,25 @@ public sealed class SharedStateControl : UserControl
             _selectedVarTitleText.Text = localizationService.Get("SharedState_Detail_Selected", item.ModuleName, item.VariableName, item.TotalAccessorsCount, item.WritersCount);
         }
         else if (_variableRows.Count == 0 && _allItems.Count > 0)
-        {
-            _selectedVarTitleText.Text = localizationService["SharedState_Detail_NoMatches"];
-        }
-        else
+
+    _selectedVarTitleText.Text = localizationService["SharedState_Detail_NoMatches"];
+
+else
         {
             _selectedVarTitleText.Text = localizationService["SharedState_Detail_Prompt"];
         }
 
         if (_allItems.Count > 0)
-        {
+
             _statsTextBlock.Text = localizationService.Get("SharedState_Stats_Shown", _variableRows.Count, _allItems.Count);
-        }
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
         if (change.Property == DatasetProperty)
-        {
+
             ReloadDataset();
-        }
     }
 
     private void ReloadDataset()
@@ -516,17 +513,15 @@ public sealed class SharedStateControl : UserControl
         var filtered = _allItems.AsEnumerable();
 
         if (!string.IsNullOrEmpty(search))
-        {
+
             filtered = filtered.Where(i =>
                 i.VariableName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                 i.ModuleName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                 i.QualifiedName.Contains(search, StringComparison.OrdinalIgnoreCase));
-        }
 
         if (crossModuleOnly)
-        {
+
             filtered = filtered.Where(i => i.CrossModuleWritersCount > 0);
-        }
 
         if (selectedRiskIndex > 0)
         {
@@ -554,9 +549,9 @@ public sealed class SharedStateControl : UserControl
         _statsTextBlock.Text = LocalizationService.Instance.Get("SharedState_Stats_Shown", _variableRows.Count, _allItems.Count);
 
         if (_variableRows.Count > 0)
-        {
+
             _variablesDataGrid.SelectedIndex = 0;
-        }
+
         else
         {
             _accessorRows.Clear();

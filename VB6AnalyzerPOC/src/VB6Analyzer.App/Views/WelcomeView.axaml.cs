@@ -73,17 +73,15 @@ public partial class WelcomeView : UserControl
                         : (File.Exists(firstPath) ? Path.GetDirectoryName(firstPath) : null);
 
                     if (!string.IsNullOrEmpty(cacheFolder) && Directory.Exists(cacheFolder) && !ProjectCacheService.Instance.HasCache(cacheFolder))
-                    {
+
                         targetPending = firstPath;
-                    }
                 }
             }
 
             // Se la cronologia non ha fornito un target senza cache, ricade sulla cartella salvata nelle impostazioni
             if (string.IsNullOrEmpty(targetPending) && !string.IsNullOrEmpty(settings.LastOpenedFolder) && Directory.Exists(settings.LastOpenedFolder) && !ProjectCacheService.Instance.HasCache(settings.LastOpenedFolder))
-            {
+
                 targetPending = settings.LastOpenedFolder;
-            }
         }
 
         // Se è presente un progetto valido (cartella o file) privo di cache, visualizza la card con il pulsante di avvio analisi
@@ -172,9 +170,8 @@ public partial class WelcomeView : UserControl
     private void OnWelcomePendingAnalyzeClicked(object? sender, RoutedEventArgs e)
     {
         if (WelcomePendingPathText.Tag is string path && !string.IsNullOrEmpty(path) && (Directory.Exists(path) || File.Exists(path)))
-        {
+
             PendingAnalyzeRequested?.Invoke(this, path);
-        }
     }
 
     /// <summary>
@@ -207,8 +204,7 @@ public partial class WelcomeView : UserControl
     private void OnWelcomeRecentItemPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if ((sender as Control)?.DataContext is WelcomeRecentItem item && item.Paths.Count > 0)
-        {
+
             RecentItemClicked?.Invoke(this, item.Paths);
-        }
     }
 }

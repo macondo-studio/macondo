@@ -44,9 +44,8 @@ public partial class InfoWindow : Window
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-        {
+
             BeginMoveDrag(e);
-        }
     }
 
     private void OnCloseClicked(object? sender, RoutedEventArgs e)

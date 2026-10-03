@@ -36,15 +36,13 @@ public partial class AnalyticsPlaceholderControl : UserControl
 
         var startBtn = this.FindControl<Button>("StartButton");
         if (startBtn != null)
-        {
+
             startBtn.Click += (_, _) => StartAnalysisRequested?.Invoke(this, EventArgs.Empty);
-        }
 
         var startAllBtn = this.FindControl<Button>("StartAllButton");
         if (startAllBtn != null)
-        {
+
             startAllBtn.Click += (_, _) => StartAllRequested?.Invoke(this, EventArgs.Empty);
-        }
 
         UpdateLocalizedUI();
     }
@@ -126,10 +124,9 @@ public partial class AnalyticsPlaceholderControl : UserControl
         double progressPercent;
 
         if (ratio <= 1.0)
-        {
-            // Transizione fluida quadratica fino al 90%
+
             progressPercent = 90.0 * (1.0 - Math.Pow(1.0 - ratio, 2.0));
-        }
+
         else
         {
             // Asintoto morbido verso il 98% in caso di computazioni più lunghe del previsto
@@ -149,11 +146,10 @@ public partial class AnalyticsPlaceholderControl : UserControl
         if (progressBar != null) progressBar.Value = progressPercent;
         if (percentText != null) percentText.Text = $"{(int)progressPercent}%";
         if (computingText != null)
-        {
+
             computingText.Text = elapsedSeconds < est
                 ? string.Format(loc["Analytics_TimeRemaining"], remainingSeconds)
                 : loc["Analytics_Computing"];
-        }
     }
 
     public void UpdateLocalizedUI()

@@ -17,9 +17,8 @@ public partial class App : Application
         Services.LocalizationService.Instance.SetLanguage(Services.SettingsService.Instance.Settings.Language);
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
+
             desktop.MainWindow = new MainWindow();
-        }
 
         base.OnFrameworkInitializationCompleted();
     }

@@ -39,9 +39,8 @@ public static class SharedStateAnalyzer
 
                 // Accetta se appartenente a un modulo standard .bas, classe o struttura
                 if (parent != null && parent.Kind is SymbolKind.Module or SymbolKind.Class or SymbolKind.Struct)
-                {
+
                     globalVars.Add(sym);
-                }
             }
         }
 
@@ -86,9 +85,8 @@ public static class SharedStateAnalyzer
                 if (existingAccessor != null)
                 {
                     if (existingAccessor.AccessKind != accessKind)
-                    {
+
                         existingAccessor.AccessKind = SharedStateAccessKind.ReadWrite;
-                    }
                 }
                 else
                 {

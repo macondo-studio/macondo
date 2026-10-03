@@ -77,9 +77,8 @@ internal static class Program
         var subNames = new SubNameCollectorVisitor();
         subNames.Visit(tree);
         if (subNames.Names.Count > 0)
-        {
+
             Console.WriteLine($"Sub trovati: {string.Join(", ", subNames.Names)}");
-        }
 
         Console.WriteLine("Parse tree (formato LISP, per ispezione visiva):");
         Console.WriteLine(tree.ToStringTree(parser));

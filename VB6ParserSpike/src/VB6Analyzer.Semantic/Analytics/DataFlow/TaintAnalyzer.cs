@@ -118,16 +118,14 @@ public static class TaintAnalyzer
             if (rel.Kind is RelationshipKind.Calls or RelationshipKind.Writes)
             {
                 if (adj.TryGetValue(rel.SourceId, out var neighbors))
-                {
+
                     neighbors.Add(rel.TargetId);
-                }
             }
             else if (rel.Kind is RelationshipKind.Reads)
             {
                 if (adj.TryGetValue(rel.TargetId, out var neighbors))
-                {
+
                     neighbors.Add(rel.SourceId);
-                }
             }
         }
 
@@ -144,7 +142,7 @@ public static class TaintAnalyzer
 
                 var path = FindShortestPath(srcSym.Id, sinkSym.Id, adj, symbolById);
                 if (path != null && path.Count > 1)
-                {
+
                     dataset.TaintPaths.Add(new TaintPath
                     {
                         SourceSymbol = srcSym,
@@ -153,7 +151,6 @@ public static class TaintAnalyzer
                         SinkKind = sinkKind,
                         PropagationChain = path
                     });
-                }
             }
         }
 
@@ -172,14 +169,13 @@ public static class TaintAnalyzer
             bool isRead = readTargets.Contains(f.Id);
 
             if (isWritten && !isRead)
-            {
+
                 dataset.Anomalies.Add(new DefUseAnomaly
                 {
                     VariableSymbol = f,
                     AnomalyType = "DeadStore",
                     Description = $"The field or variable '{f.Name}' is written/assigned to but never read anywhere in the program."
                 });
-            }
         }
 
         // Ordina mettendo in cima i percorsi più diretti (minor numero di hop) verso sink critici

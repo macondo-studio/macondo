@@ -347,9 +347,8 @@ public sealed class ApiDiffControl : UserControl
     {
         base.OnPropertyChanged(change);
         if (change.Property == ReportProperty)
-        {
+
             OnReportChanged(change.GetNewValue<ApiDiffReport?>());
-        }
     }
 
     private static Border CreateKpiCard(string title, out TextBlock valueBlock, string accentHex)

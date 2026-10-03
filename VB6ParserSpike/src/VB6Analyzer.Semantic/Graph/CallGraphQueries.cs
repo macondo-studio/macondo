@@ -106,9 +106,8 @@ public sealed class CallGraphQueries
     {
         var key = (source.Id, target.Id, maxDepth);
         if (_executionPathsCache.TryGetValue(key, out var cachedPaths))
-        {
+
             return cachedPaths;
-        }
 
         var paths = new List<CallPath>();
         var currentPath = new List<Symbol> { source };
@@ -209,9 +208,8 @@ public sealed class CallGraphQueries
         foreach (var sym in routineSymbols)
         {
             if (state[sym.Id] == NodeColor.White)
-            {
+
                 DfsDetectCycles(sym, state, path, cycles);
-            }
         }
 
         return cycles;
@@ -254,10 +252,8 @@ public sealed class CallGraphQueries
                     }
                 }
                 else if (calleeState == NodeColor.White)
-                {
-                    // Nodo non ancora esplorato: prosegue la visita ricorsiva
-                    DfsDetectCycles(callee, state, path, cycles);
-                }
+
+    DfsDetectCycles(callee, state, path, cycles);
             }
         }
 
@@ -297,9 +293,8 @@ public sealed class CallGraphQueries
     {
         var key = (symbol.Id, maxDepth);
         if (_impactReportCache.TryGetValue(key, out var cachedReport))
-        {
+
             return cachedReport;
-        }
 
         var analyzer = new Impact.ImpactAnalyzer(_graph, this);
         var report = analyzer.AnalyzeSymbolImpact(symbol, maxDepth, cancellationToken);

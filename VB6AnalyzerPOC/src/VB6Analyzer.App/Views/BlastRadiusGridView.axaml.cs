@@ -68,9 +68,8 @@ public partial class BlastRadiusGridView : UserControl
         InitializeComponent();
         var defaultRiskIndex = SettingsService.Instance.Settings.DefaultRiskFilterIndex;
         if (RiskFilterComboBox != null)
-        {
+
             RiskFilterComboBox.SelectedIndex = Math.Clamp(defaultRiskIndex, 0, 4);
-        }
     }
 
     /// <summary>
@@ -148,9 +147,8 @@ public partial class BlastRadiusGridView : UserControl
         {
             Clear();
             if (!string.IsNullOrEmpty(_currentFolderPath) && _currentGraph != null)
-            {
+
                 _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _currentGraph, Array.Empty<BlastRadiusGridRow>(), _hasUserMovedNodes);
-            }
             return;
         }
 
@@ -182,13 +180,12 @@ public partial class BlastRadiusGridView : UserControl
                     var report = queries.GetImpactReport(sym);
                     string containerName = "(globale)";
                     if (node.ParentId.HasValue && graph.GetNode(node.ParentId.Value) is { } parentNode)
-                    {
+
                         containerName = parentNode.Name;
-                    }
+
                     else if (!string.IsNullOrEmpty(sym.FilePath))
-                    {
-                        containerName = Path.GetFileName(sym.FilePath);
-                    }
+
+    containerName = Path.GetFileName(sym.FilePath);
                     var affectedForms = report.AffectedForms.Select(f => f.Name).ToList();
 
                     result.Add(new BlastRadiusGridRow
@@ -222,13 +219,11 @@ public partial class BlastRadiusGridView : UserControl
                         Dispatcher.UIThread.Post(() =>
                         {
                             if (GridLoadingProgressBar != null && GridLoadingProgressBar.IsVisible)
-                            {
+
                                 GridLoadingProgressBar.Value = current;
-                            }
                             if (GridStatsTextBlock != null)
-                            {
+
                                 GridStatsTextBlock.Text = LocalizationService.Instance.Get("Grid_CalculatingProgress", current, totalCount, percent);
-                            }
                         });
                     }
                 }
@@ -245,9 +240,8 @@ public partial class BlastRadiusGridView : UserControl
 
             // Salva in background nella cache persistente se stiamo analizzando una cartella su disco
             if (!string.IsNullOrEmpty(_currentFolderPath) && _currentGraph != null)
-            {
+
                 _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _currentGraph, _allBlastRadiusRows, _hasUserMovedNodes);
-            }
         }
         catch (Exception ex)
         {
@@ -256,9 +250,8 @@ public partial class BlastRadiusGridView : UserControl
         finally
         {
             if (GridLoadingProgressBar != null)
-            {
+
                 GridLoadingProgressBar.IsVisible = false;
-            }
         }
     }
 
@@ -275,18 +268,16 @@ public partial class BlastRadiusGridView : UserControl
         IEnumerable<BlastRadiusGridRow> query = _allBlastRadiusRows;
 
         if (_hiddenProjectIds.Count > 0)
-        {
+
             query = query.Where(r => !r.ProjectId.HasValue || !_hiddenProjectIds.Contains(r.ProjectId.Value));
-        }
 
         if (!string.IsNullOrEmpty(filterText))
-        {
+
             query = query.Where(r =>
                 r.Name.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
                 r.ContainerName.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
                 r.ProjectName.Contains(filterText, StringComparison.OrdinalIgnoreCase) ||
                 r.QualifiedName.Contains(filterText, StringComparison.OrdinalIgnoreCase));
-        }
 
         if (selectedRiskIndex > 0)
         {
@@ -300,9 +291,8 @@ public partial class BlastRadiusGridView : UserControl
             };
 
             if (targetRisk.HasValue)
-            {
+
                 query = query.Where(r => r.RiskLevel == targetRisk.Value);
-            }
         }
 
         var filteredList = query.ToList();
@@ -374,9 +364,8 @@ public partial class BlastRadiusGridView : UserControl
     {
         ApplyGridFilters();
         if (RiskFilterComboBox != null)
-        {
+
             SettingsService.Instance.Update(s => s.DefaultRiskFilterIndex = RiskFilterComboBox.SelectedIndex);
-        }
     }
 
     private void OnRefreshGridClicked(object? sender, RoutedEventArgs e)
@@ -395,16 +384,14 @@ public partial class BlastRadiusGridView : UserControl
     private void OnGridRowDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (BlastRadiusDataGrid.SelectedItem is BlastRadiusGridRow row)
-        {
+
             NavigateToNodeRequested?.Invoke(this, row.NodeId);
-        }
     }
 
     private void OnShowInGraphButtonClicked(object? sender, RoutedEventArgs e)
     {
         if (sender is Button { DataContext: BlastRadiusGridRow row })
-        {
+
             NavigateToNodeRequested?.Invoke(this, row.NodeId);
-        }
     }
 }

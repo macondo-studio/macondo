@@ -49,9 +49,8 @@ public static class TreemapLayoutEngine
         foreach (var child in parent.Children)
         {
             if (child.Children.Count > 0 && child.Bounds.Width > 20 && child.Bounds.Height > 20)
-            {
+
                 LayoutChildren(child, child.Bounds, Math.Max(1.5, padding - 0.5));
-            }
         }
     }
 
@@ -179,9 +178,9 @@ public static class TreemapLayoutEngine
 
         // Restituisce l'area rettangolare residua tagliando via la riga appena posizionata
         if (isHorizontal)
-        {
+
             return new TreemapRect(rect.X + rowBreadth, rect.Y, Math.Max(0, rect.Width - rowBreadth), rect.Height);
-        }
+
         else
         {
             return new TreemapRect(rect.X, rect.Y + rowBreadth, rect.Width, Math.Max(0, rect.Height - rowBreadth));

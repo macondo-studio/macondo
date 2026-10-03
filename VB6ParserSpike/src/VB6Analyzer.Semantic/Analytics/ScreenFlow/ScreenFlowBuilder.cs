@@ -37,7 +37,7 @@ public static class ScreenFlowBuilder
             .ToList();
 
         if (uiSymbols.Count == 0)
-        {
+
             uiSymbols = graph.Symbols
                 .Where(s => s.Kind == SymbolKind.Class && 
                            (s.Name.EndsWith("Form", StringComparison.OrdinalIgnoreCase) ||
@@ -45,7 +45,6 @@ public static class ScreenFlowBuilder
                             s.Name.EndsWith("Dialog", StringComparison.OrdinalIgnoreCase) ||
                             s.Name.EndsWith("View", StringComparison.OrdinalIgnoreCase)))
                 .ToList();
-        }
 
         // Mappa da ID del simbolo membro (controllo UI o routine) a ID della form contenitrice
         var memberToScreenMap = new Dictionary<Guid, Guid>();
@@ -88,9 +87,8 @@ public static class ScreenFlowBuilder
             if (rel.Kind != RelationshipKind.Calls && 
                 rel.Kind != RelationshipKind.Instantiates && 
                 rel.Kind != RelationshipKind.HandlesEvent)
-            {
+
                 continue;
-            }
 
             Guid srcScreenId = Guid.Empty;
             Guid tgtScreenId = Guid.Empty;
@@ -99,9 +97,8 @@ public static class ScreenFlowBuilder
             if (memberToScreenMap.TryGetValue(rel.TargetId, out var tId)) tgtScreenId = tId;
 
             if (tgtScreenId == Guid.Empty && screensMap.ContainsKey(rel.TargetId))
-            {
+
                 tgtScreenId = rel.TargetId;
-            }
 
             // Se la sorgente e la destinazione appartengono a due form distinte, registriamo la transizione
             if (srcScreenId != Guid.Empty && tgtScreenId != Guid.Empty && srcScreenId != tgtScreenId)
@@ -120,7 +117,7 @@ public static class ScreenFlowBuilder
                     t.TriggerRoutineName == (srcSym?.Name ?? ""));
 
                 if (!exists)
-                {
+
                     result.Transitions.Add(new ScreenFlowTransition
                     {
                         SourceScreenId = srcScreenId,
@@ -131,7 +128,6 @@ public static class ScreenFlowBuilder
                         TransitionKind = kind,
                         Description = $"{srcSym?.Name ?? "Event"} -> {tgtSym?.Name ?? "Screen"}"
                     });
-                }
             }
         }
 

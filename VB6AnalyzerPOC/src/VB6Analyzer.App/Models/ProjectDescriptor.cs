@@ -132,17 +132,15 @@ public sealed class ProjectDescriptor
                     foreach (var csprojFile in csprojFiles)
                     {
                         if (seenProjectFiles.Add(csprojFile))
-                        {
+
                             descriptors.Add(ParseCsprojFile(csprojFile));
-                        }
                     }
 
                     foreach (var vbpFile in vbpFiles)
                     {
                         if (seenProjectFiles.Add(vbpFile))
-                        {
+
                             descriptors.Add(ParseVbpFile(vbpFile));
-                        }
                     }
                 }
                 else
@@ -179,7 +177,7 @@ public sealed class ProjectDescriptor
                         var files = GetAllSourceFilesInDirectory(fullPath);
 
                         if (files.Count > 0)
-                        {
+
                             descriptors.Add(new ProjectDescriptor
                             {
                                 Id = Guid.NewGuid(),
@@ -189,7 +187,6 @@ public sealed class ProjectDescriptor
                                 CsprojPath = null,
                                 SourceFiles = files
                             });
-                        }
                     }
                 }
             }
@@ -272,13 +269,12 @@ public sealed class ProjectDescriptor
                             {
                                 var ext = Path.GetExtension(absPath).ToLowerInvariant();
                                 if (ext == ".csproj")
-                                {
+
                                     result.Add(ParseCsprojFile(absPath));
-                                }
+
                                 else if (ext == ".vbp")
-                                {
-                                    result.Add(ParseVbpFile(absPath));
-                                }
+
+    result.Add(ParseVbpFile(absPath));
                             }
                         }
                     }
@@ -336,7 +332,7 @@ public sealed class ProjectDescriptor
 
         // Se nessun file è stato trovato specificamente dal .vbp, effettua scansione cartella
         if (sourceFiles.Count == 0 && Directory.Exists(folder))
-        {
+
             sourceFiles = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
                 .Where(f => f.EndsWith(".cls", StringComparison.OrdinalIgnoreCase) ||
                             f.EndsWith(".bas", StringComparison.OrdinalIgnoreCase) ||
@@ -344,7 +340,6 @@ public sealed class ProjectDescriptor
                             f.EndsWith(".ctl", StringComparison.OrdinalIgnoreCase))
                 .OrderBy(f => Path.GetFileName(f))
                 .ToList();
-        }
 
         return new ProjectDescriptor
         {
@@ -376,9 +371,8 @@ public sealed class ProjectDescriptor
                         var relVbp = trimmed[(eqIdx + 1)..].Trim();
                         var absVbp = Path.IsPathRooted(relVbp) ? relVbp : Path.Combine(vbgFolder, relVbp);
                         if (File.Exists(absVbp))
-                        {
+
                             result.Add(ParseVbpFile(absVbp));
-                        }
                     }
                 }
             }

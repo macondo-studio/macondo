@@ -90,7 +90,7 @@ public sealed class DsmMatrixDto
             {
                 var cell = dsm.GetCell(r, c);
                 if (cell != null && (cell.Weight > 0 || cell.IsInCycle))
-                {
+
                     dto.NonEmptyCells.Add(new DsmCellDto
                     {
                         RowIndex = cell.RowIndex,
@@ -101,7 +101,6 @@ public sealed class DsmMatrixDto
                         IsInCycle = cell.IsInCycle,
                         DependencyKinds = cell.DependencyKinds.ToString()
                     });
-                }
             }
         }
 
@@ -136,9 +135,8 @@ public static class AnalysisJsonExporter
     public static string ExportToJson<T>(T data, bool indented = true)
     {
         if (data is DsmMatrix dsm)
-        {
+
             return ExportDsmToJson(dsm, indented);
-        }
 
         return JsonSerializer.Serialize(data, indented ? DefaultOptions : CompactOptions);
     }

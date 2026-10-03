@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -178,9 +178,8 @@ public sealed class DeadCodeControl : UserControl
         _searchBox.PropertyChanged += (s, e) =>
         {
             if (e.Property == TextBox.TextProperty)
-            {
+
                 ApplyFilter();
-            }
         };
         Grid.SetColumn(_searchBox, 0);
 
@@ -302,17 +301,15 @@ public sealed class DeadCodeControl : UserControl
         _grid.SelectionChanged += (s, e) =>
         {
             if (_grid.SelectedItem is DeadCodeGridRow row)
-            {
+
                 ItemSelected?.Invoke(this, row.Item);
-            }
         };
 
         _grid.DoubleTapped += (s, e) =>
         {
             if (_grid.SelectedItem is DeadCodeGridRow row)
-            {
+
                 ItemDoubleTapped?.Invoke(this, row.Item);
-            }
         };
 
         Grid.SetRow(_grid, 2);
@@ -410,9 +407,8 @@ public sealed class DeadCodeControl : UserControl
     {
         base.OnPropertyChanged(change);
         if (change.Property == DatasetProperty)
-        {
+
             LoadDataset(change.GetNewValue<DeadCodeDataset?>());
-        }
     }
 
     private void LoadDataset(DeadCodeDataset? dataset)
@@ -460,9 +456,8 @@ public sealed class DeadCodeControl : UserControl
                     !item.QualifiedName.ToLowerInvariant().Contains(search) &&
                     !item.ContainerName.ToLowerInvariant().Contains(search) &&
                     !item.FilePath.ToLowerInvariant().Contains(search))
-                {
+
                     continue;
-                }
             }
 
             _rows.Add(new DeadCodeGridRow { Item = item });

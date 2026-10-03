@@ -55,9 +55,8 @@ public sealed class ProjectCacheService
 
         var fullPath = Path.GetFullPath(path);
         if (File.Exists(fullPath))
-        {
+
             fullPath = Path.GetDirectoryName(fullPath) ?? fullPath;
-        }
 
         return fullPath
             .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
@@ -241,9 +240,9 @@ public sealed class ProjectCacheService
 
             List<string> tabsToSave;
             if (enabledAnalyticsTabs != null)
-            {
+
                 tabsToSave = enabledAnalyticsTabs.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-            }
+
             else if (File.Exists(cacheFile))
             {
                 try

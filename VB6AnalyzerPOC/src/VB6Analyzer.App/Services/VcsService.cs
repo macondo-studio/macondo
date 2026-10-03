@@ -26,14 +26,12 @@ public sealed class VcsService
         if (string.IsNullOrWhiteSpace(folderPath)) return VcsType.None;
 
         if (GitService.Instance.IsGitRepository(folderPath))
-        {
+
             return VcsType.Git;
-        }
 
         if (SvnService.Instance.IsSvnRepository(folderPath))
-        {
+
             return VcsType.Svn;
-        }
 
         return VcsType.None;
     }
@@ -66,7 +64,7 @@ public sealed class VcsService
         var vcsType = DetectVcsType(folderPath);
 
         if (vcsType == VcsType.Git)
-        {
+
             return GitService.Instance.GetBranches(folderPath)
                 .Select(b => new VcsBranchInfo
                 {
@@ -75,10 +73,9 @@ public sealed class VcsService
                     IsCurrent = b.IsCurrent,
                     VcsType = VcsType.Git
                 }).ToList();
-        }
 
         if (vcsType == VcsType.Svn)
-        {
+
             return SvnService.Instance.GetBranches(folderPath)
                 .Select(b => new VcsBranchInfo
                 {
@@ -87,7 +84,6 @@ public sealed class VcsService
                     IsCurrent = b.IsCurrent,
                     VcsType = VcsType.Svn
                 }).ToList();
-        }
 
         return new List<VcsBranchInfo>();
     }
@@ -98,14 +94,12 @@ public sealed class VcsService
     public async Task<(bool Success, string? Error)> SwitchBranchAsync(string? folderPath, VcsBranchInfo branch)
     {
         if (branch.VcsType == VcsType.Git)
-        {
+
             return await GitService.Instance.CheckoutBranchAsync(folderPath, branch.Target);
-        }
 
         if (branch.VcsType == VcsType.Svn)
-        {
+
             return await SvnService.Instance.SwitchBranchAsync(folderPath, branch.Target);
-        }
 
         return (false, "Sistema di controllo versione non supportato.");
     }

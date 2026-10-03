@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -202,14 +202,14 @@ public sealed class MartinMetricsControl : Control
             context.DrawEllipse(bubbleBrush, null, center, radius, radius);
 
             if (_selectedItem?.Id == item.Id)
-            {
+
                 context.DrawEllipse(null, new Pen(Brushes.Gold, 2.5), center, radius + 3, radius + 3);
-            }
+
             else if (_hoveredItem?.Id == item.Id)
-            {
-                context.DrawEllipse(null, new Pen(Brushes.White, 2.0), center, radius + 2, radius + 2);
-            }
-            else
+
+    context.DrawEllipse(null, new Pen(Brushes.White, 2.0), center, radius + 2, radius + 2);
+
+else
             {
                 context.DrawEllipse(null, new Pen(new SolidColorBrush(Color.FromArgb(120, 255, 255, 255)), 0.8), center, radius, radius);
             }
@@ -224,9 +224,8 @@ public sealed class MartinMetricsControl : Control
 
         // 5. Hover Card
         if (_hoveredItem != null)
-        {
+
             DrawHoverCard(context, _hoveredItem);
-        }
     }
 
     private static IBrush GetZoneBrush(MartinZone zone)
@@ -335,9 +334,8 @@ public sealed class MartinMetricsControl : Control
             double dy = pt.Y - py;
 
             if (dx * dx + dy * dy <= radius * radius)
-            {
+
                 return item;
-            }
         }
 
         return null;

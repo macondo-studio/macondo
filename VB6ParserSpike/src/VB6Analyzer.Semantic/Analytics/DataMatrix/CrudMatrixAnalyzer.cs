@@ -208,9 +208,8 @@ public static class CrudMatrixAnalyzer
             name.StartsWith("Insert", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Add", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("SaveNew", StringComparison.OrdinalIgnoreCase))
-        {
+
             ops |= CrudOperation.Create;
-        }
 
         // READ: Get, Find, Load, Read, Fetch, Select
         if (name.StartsWith("Get", StringComparison.OrdinalIgnoreCase) ||
@@ -219,27 +218,24 @@ public static class CrudMatrixAnalyzer
             name.StartsWith("Read", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Fetch", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Select", StringComparison.OrdinalIgnoreCase))
-        {
+
             ops |= CrudOperation.Read;
-        }
 
         // UPDATE: Update, Modify, Save, Edit
         if (name.StartsWith("Update", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Modify", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Save", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Edit", StringComparison.OrdinalIgnoreCase))
-        {
+
             ops |= CrudOperation.Update;
-        }
 
         // DELETE: Delete, Remove, Purge, Drop
         if (name.StartsWith("Delete", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Remove", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Purge", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Drop", StringComparison.OrdinalIgnoreCase))
-        {
+
             ops |= CrudOperation.Delete;
-        }
 
         return (matchedEntity, ops);
     }

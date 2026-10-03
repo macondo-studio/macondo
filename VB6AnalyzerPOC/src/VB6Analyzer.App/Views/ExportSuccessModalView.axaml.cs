@@ -68,9 +68,8 @@ public partial class ExportSuccessModalView : UserControl
     private void OnOpenFolderClicked(object? sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrEmpty(_fullPath))
-        {
+
             OpenFolderRequested?.Invoke(this, _fullPath);
-        }
     }
 
     private void OnCloseClicked(object? sender, RoutedEventArgs e)

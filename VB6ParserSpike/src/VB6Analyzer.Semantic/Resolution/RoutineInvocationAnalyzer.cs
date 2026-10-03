@@ -248,9 +248,8 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
 
         // 3. Visita le istruzioni interne al blocco With
         if (context.block() != null)
-        {
+
             Visit(context.block());
-        }
 
         // 4. Ripristina lo scope precedente
         _scopeStack.Pop();
@@ -380,9 +379,8 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
         {
             var result = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
             if (result.TargetSymbol != null && result.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
-            {
+
                 RecordCallSite(context.GetText().Trim(), context.Start.Line, result);
-            }
         }
         return base.VisitVsICS(context);
     }
@@ -397,9 +395,8 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
         {
             var targetResult = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
             if (targetResult.TargetSymbol != null && targetResult.TargetSymbol.Kind is SymbolKind.Property or SymbolKind.Method)
-            {
+
                 RecordCallSite(context.implicitCallStmt_InStmt().GetText().Trim(), context.Start.Line, targetResult);
-            }
         }
         return base.VisitLetStmt(context);
     }
@@ -414,9 +411,8 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
         {
             var targetResult = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
             if (targetResult.TargetSymbol != null && targetResult.TargetSymbol.Kind is SymbolKind.Property or SymbolKind.Method)
-            {
+
                 RecordCallSite(context.implicitCallStmt_InStmt().GetText().Trim(), context.Start.Line, targetResult);
-            }
         }
         return base.VisitSetStmt(context);
     }
@@ -489,9 +485,8 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
 
             // Se la radice stessa è una chiamata a routine, registra il relativo call-site
             if (currentResult.TargetSymbol != null && currentResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
-            {
+
                 RecordCallSite(currentResult.TargetSymbol.Name, context.Start.Line, currentResult);
-            }
 
             // 3b. Risoluzione progressiva di ciascun membro successivo della catena (.Member1.Member2...)
             foreach (var memberCall in membersCall.iCS_S_MemberCall())
@@ -505,9 +500,8 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
                     // Risolve il membro 'memberName' sul tipo semantico ricavato dal risultato precedente
                     currentResult = _symbolResolver.ResolveMemberOnTarget(currentResult, memberName);
                     if (currentResult.TargetSymbol != null && currentResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
-                    {
+
                         RecordCallSite(memberName, context.Start.Line, currentResult);
-                    }
                 }
             }
 
@@ -542,9 +536,8 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
             if (_callSites.Any(c => c.Line == line &&
                                    c.EnclosingRoutineName == _currentRoutineName &&
                                    c.Result.TargetSymbol?.Id == result.TargetSymbol.Id))
-            {
+
                 return;
-            }
         }
 
         _callSites.Add(new ResolvedCallSite

@@ -96,7 +96,7 @@ public static class ApiDiffAnalyzer
                     !IsPublicApi(s));
 
                 if (stillExistsPrivate != null)
-                {
+
                     report.Differences.Add(new ApiDifferenceItem
                     {
                         SymbolQualifiedName = oldSym.QualifiedName,
@@ -107,7 +107,7 @@ public static class ApiDiffAnalyzer
                         OldSymbol = oldSym,
                         NewSymbol = stillExistsPrivate
                     });
-                }
+
                 else
                 {
                     // 2b. Verifica se è una modifica di firma per un metodo con lo stesso QualifiedName
@@ -145,7 +145,7 @@ public static class ApiDiffAnalyzer
         foreach (var (key, newSym) in newPublic)
         {
             if (!processedNewKeys.Contains(key))
-            {
+
                 report.Differences.Add(new ApiDifferenceItem
                 {
                     SymbolQualifiedName = newSym.QualifiedName,
@@ -155,7 +155,6 @@ public static class ApiDiffAnalyzer
                     Description = $"Backward-compatible public API added: '{newSym.QualifiedName}' ({newSym.Kind}).",
                     NewSymbol = newSym
                 });
-            }
         }
 
         // =========================================================================
@@ -177,7 +176,7 @@ public static class ApiDiffAnalyzer
 
         // Verifica modifica del modificatore statico
         if (oldSym.IsStatic != newSym.IsStatic)
-        {
+
             report.Differences.Add(new ApiDifferenceItem
             {
                 SymbolQualifiedName = oldSym.QualifiedName,
@@ -188,14 +187,13 @@ public static class ApiDiffAnalyzer
                 OldSymbol = oldSym,
                 NewSymbol = newSym
             });
-        }
 
         // Verifica modifica del tipo di ritorno
         var oldReturn = oldSym.ReturnType ?? oldSym.DeclaredTypeName;
         var newReturn = newSym.ReturnType ?? newSym.DeclaredTypeName;
         if (!string.IsNullOrEmpty(oldReturn) && !string.IsNullOrEmpty(newReturn) &&
             !string.Equals(oldReturn, newReturn, StringComparison.OrdinalIgnoreCase))
-        {
+
             report.Differences.Add(new ApiDifferenceItem
             {
                 SymbolQualifiedName = oldSym.QualifiedName,
@@ -206,7 +204,6 @@ public static class ApiDiffAnalyzer
                 OldSymbol = oldSym,
                 NewSymbol = newSym
             });
-        }
 
         int oldParamCount = oldSym.Parameters.Count;
         int newParamCount = newSym.Parameters.Count;

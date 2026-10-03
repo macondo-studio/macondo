@@ -18,9 +18,8 @@ public static class CodeGraphMarkdownExporter
         var sb = new StringBuilder();
 
         if (options.IncludeSummary)
-        {
+
             AppendSummary(sb, graph);
-        }
 
         // Raggruppa i simboli di primo livello per file sorgente
         var topLevelKinds = new HashSet<SymbolKind>
@@ -60,9 +59,8 @@ public static class CodeGraphMarkdownExporter
             renderedSymbolIds.Add(topSymbol.Id);
             sb.AppendLine($"## {topSymbol.Kind}: `{topSymbol.Name}` ({Path.GetFileName(topSymbol.FilePath)})");
             if (options.IncludeLineNumbers && topSymbol.LineStart > 0)
-            {
+
                 sb.AppendLine($"*Lines: {topSymbol.LineStart}-{topSymbol.LineEnd} | Scope: {topSymbol.Accessibility}*");
-            }
             sb.AppendLine();
 
             var childIds = childrenLookup.GetValueOrDefault(topSymbol.Id, new List<Guid>());
@@ -261,9 +259,9 @@ public static class CodeGraphMarkdownExporter
             .ToList();
 
         if (incomingCalls.Count == 0)
-        {
+
             sb.AppendLine("*No direct callers or references found in graph.*");
-        }
+
         else
         {
             foreach (var inc in incomingCalls)
@@ -284,9 +282,9 @@ public static class CodeGraphMarkdownExporter
             .ToList();
 
         if (outgoing.Count == 0)
-        {
+
             sb.AppendLine("*No outbound routine calls or type instantiations.*");
-        }
+
         else
         {
             foreach (var outRel in outgoing)

@@ -144,7 +144,7 @@ public static class CodeGraphJsonExporter
             };
 
             if (sym.Parameters.Count > 0)
-            {
+
                 symDto.Parameters = sym.Parameters.Select(p => new ParameterDto
                 {
                     Name = p.Name,
@@ -157,7 +157,6 @@ public static class CodeGraphJsonExporter
                     DefaultValue = p.DefaultValue,
                     Line = p.Line
                 }).ToList();
-            }
 
             dto.Symbols.Add(symDto);
         }

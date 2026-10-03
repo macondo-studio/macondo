@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -250,9 +250,8 @@ public sealed class TemporalCouplingControl : UserControl
         _pairsDataGrid.DoubleTapped += (s, e) =>
         {
             if (_pairsDataGrid.SelectedItem is TemporalCouplingGridRow selected)
-            {
+
                 PairDoubleTapped?.Invoke(this, selected.Pair);
-            }
         };
 
         ConfigureColumns(_pairsDataGrid);
@@ -318,18 +317,16 @@ public sealed class TemporalCouplingControl : UserControl
         }
 
         if (_allPairs.Count > 0)
-        {
+
             _statsTextBlock.Text = localizationService.Get("Temporal_Stats_Shown", _rows.Count, _allPairs.Count);
-        }
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
         if (change.Property == DatasetProperty)
-        {
+
             ReloadDataset();
-        }
     }
 
     private void ReloadDataset()
@@ -375,16 +372,14 @@ public sealed class TemporalCouplingControl : UserControl
         var filtered = _allPairs.Where(p => p.JaccardIndex >= minJaccard);
 
         if (!string.IsNullOrEmpty(search))
-        {
+
             filtered = filtered.Where(p =>
                 p.FileA.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                 p.FileB.Contains(search, StringComparison.OrdinalIgnoreCase));
-        }
 
         if (hiddenOnly)
-        {
+
             filtered = filtered.Where(p => !p.HasStaticDependency);
-        }
 
         var resultList = filtered.OrderByDescending(p => p.JaccardIndex)
                                  .ThenByDescending(p => p.CoChangeCount)

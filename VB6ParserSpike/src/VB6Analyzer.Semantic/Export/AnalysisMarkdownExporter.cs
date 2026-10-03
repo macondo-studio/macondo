@@ -624,9 +624,9 @@ public static class AnalysisMarkdownExporter
         sb.AppendLine("## 2. Architectural Rules & Governance");
         sb.AppendLine();
         if (rules.Violations.Count == 0)
-        {
+
             sb.AppendLine("No architectural rule violations detected.");
-        }
+
         else
         {
             sb.AppendLine($"Detected **{rules.TotalViolations}** violation(s) across {rules.TotalRulesEvaluated} evaluated rules.");
@@ -638,9 +638,8 @@ public static class AnalysisMarkdownExporter
                 sb.AppendLine($"| **{v.Severity}** | {v.Rule.Name} | `{v.SourceSymbol?.Name ?? "-"}` | `{v.TargetSymbol?.Name ?? "-"}` | {v.Message} |");
             }
             if (rules.Violations.Count > 15)
-            {
+
                 sb.AppendLine($"*... and {rules.Violations.Count - 15} more violations.*");
-            }
         }
         sb.AppendLine();
 
@@ -672,9 +671,8 @@ public static class AnalysisMarkdownExporter
                 sb.AppendLine($"| `{item.Name}` | {item.Category} | `{item.ContainerName}` | `{f}` | {item.Reason} |");
             }
             if (deadCode.Items.Count > 15)
-            {
+
                 sb.AppendLine($"*... and {deadCode.Items.Count - 15} more dead code items.*");
-            }
         }
         sb.AppendLine();
 

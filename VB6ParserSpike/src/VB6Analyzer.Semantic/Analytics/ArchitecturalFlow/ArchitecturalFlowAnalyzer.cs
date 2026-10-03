@@ -36,16 +36,15 @@ public static class ArchitecturalFlowAnalyzer
         foreach (var sym in graph.Symbols)
         {
             if (containerById.ContainsKey(sym.Id))
-            {
+
                 symbolToContainerMap[sym.Id] = sym.Id;
-            }
+
             else
             {
                 var parentRel = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.Contains && r.TargetId == sym.Id);
                 if (parentRel != null && containerById.ContainsKey(parentRel.SourceId))
-                {
+
                     symbolToContainerMap[sym.Id] = parentRel.SourceId;
-                }
             }
         }
 

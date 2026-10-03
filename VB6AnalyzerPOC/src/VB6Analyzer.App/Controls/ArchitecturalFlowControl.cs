@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -190,9 +190,8 @@ public sealed class ArchitecturalFlowControl : Control
 
         // 5. Tooltip di dettaglio su hover
         if (_hoveredNode != null)
-        {
+
             RenderTooltip(context, bounds, _hoveredNode, dataset);
-        }
     }
 
     private void RenderKpiHeader(DrawingContext context, Rect bounds, ArchitecturalFlowDataset dataset)

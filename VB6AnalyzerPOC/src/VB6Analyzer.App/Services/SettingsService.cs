@@ -76,9 +76,8 @@ public sealed class SettingsService
             {
                 var dir = Path.GetDirectoryName(_settingsFilePath);
                 if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                {
+
                     Directory.CreateDirectory(dir);
-                }
 
                 var json = JsonSerializer.Serialize(Settings, _jsonOptions);
                 File.WriteAllText(_settingsFilePath, json);

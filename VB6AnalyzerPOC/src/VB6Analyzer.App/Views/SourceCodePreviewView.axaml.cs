@@ -39,9 +39,8 @@ public partial class SourceCodePreviewView : UserControl
         SettingsService.Instance.SettingsChanged += (_, _) =>
         {
             if (_currentNode != null)
-            {
+
                 ShowSourceCode(_currentNode);
-            }
         };
     }
 
@@ -226,9 +225,8 @@ public partial class SourceCodePreviewView : UserControl
         ToolTip.SetTip(OpenFolderButton, localizationService["CodePreview_Tooltip_OpenFolder"]);
 
         if (_currentNode != null)
-        {
+
             ShowSourceCode(_currentNode);
-        }
     }
 
     private static string[]? TryReadFileLines(string filePath)
@@ -268,9 +266,8 @@ public partial class SourceCodePreviewView : UserControl
         {
             var topLevel = TopLevel.GetTopLevel(this);
             if (topLevel?.Clipboard != null)
-            {
+
                 await topLevel.Clipboard.SetTextAsync(_currentSourceCode);
-            }
         }
         catch
         {

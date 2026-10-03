@@ -159,9 +159,8 @@ public static class FakeGraphGenerator
             var line = random.Next(1, 80);
 
             if (caller.SemanticSymbol != null && callee.SemanticSymbol != null)
-            {
+
                 semanticGraph.AddCalls(caller.SemanticSymbol, callee.SemanticSymbol, line, ResolutionConfidence.Exact);
-            }
 
             visualGraph.Edges.Add(new GraphEdge
             {
@@ -183,9 +182,8 @@ public static class FakeGraphGenerator
                 var targetClass = classContainers[random.Next(classContainers.Count)];
 
                 if (sourceMethod.SemanticSymbol != null && targetClass.SemanticSymbol != null)
-                {
+
                     semanticGraph.AddInstantiates(sourceMethod.SemanticSymbol, targetClass.SemanticSymbol, 15);
-                }
 
                 visualGraph.Edges.Add(new GraphEdge
                 {

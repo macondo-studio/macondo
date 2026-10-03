@@ -130,9 +130,8 @@ public sealed class CodeCloneControl : UserControl
     {
         base.OnPropertyChanged(change);
         if (change.Property == ReportProperty)
-        {
+
             OnReportChanged(change.GetNewValue<CodeCloneReport?>());
-        }
     }
 
     private static Border CreateKpiCard(string title, out TextBlock valueBlock, string accentHex)

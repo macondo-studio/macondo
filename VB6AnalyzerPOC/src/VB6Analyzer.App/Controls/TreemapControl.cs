@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -93,9 +93,8 @@ public sealed class TreemapControl : Control
     private void InvalidateLayoutAndVisual()
     {
         if (_currentRoot != null && Bounds.Width > 50 && Bounds.Height > 50)
-        {
+
             TreemapLayoutEngine.Layout(_currentRoot, new TreemapRect(12, 36, Bounds.Width - 24, Bounds.Height - 48));
-        }
         InvalidateVisual();
     }
 
@@ -168,9 +167,8 @@ public sealed class TreemapControl : Control
 
         // Disegna tooltip/card flottante in basso a sinistra per l'elemento hovered
         if (_hoveredItem != null && _hoveredItem != root)
-        {
+
             DrawHoverCard(context, _hoveredItem);
-        }
     }
 
     private static readonly IBrush BrushLow = new SolidColorBrush(Color.Parse("#164E3D"));
@@ -227,14 +225,14 @@ public sealed class TreemapControl : Control
             context.FillRectangle(fillBrush, rect);
 
             if (_selectedItem?.Id == item.Id)
-            {
+
                 context.DrawRectangle(_selectedBorderPen, rect);
-            }
+
             else if (_hoveredItem?.Id == item.Id)
-            {
-                context.DrawRectangle(_hoverBorderPen, rect);
-            }
-            else
+
+    context.DrawRectangle(_hoverBorderPen, rect);
+
+else
             {
                 context.DrawRectangle(_leafBorderPen, rect);
             }

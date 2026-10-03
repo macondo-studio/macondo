@@ -76,9 +76,8 @@ public sealed class TypeResolver
                 // I tipi utente sono accessibili per nome semplice o qualificato
                 _userTypesByName[symbol.Name] = symbol;
                 if (!string.IsNullOrEmpty(symbol.QualifiedName) && !symbol.QualifiedName.Equals(symbol.Name, StringComparison.OrdinalIgnoreCase))
-                {
+
                     _userTypesByName[symbol.QualifiedName] = symbol;
-                }
             }
         }
     }
@@ -93,7 +92,7 @@ public sealed class TypeResolver
     {
         // In VB6, se la clausola 'As Tipo' è omessa, il tipo predefinito è Variant (dinamico)
         if (string.IsNullOrWhiteSpace(typeName))
-        {
+
             return new TypeInfo
             {
                 Name = "Variant",
@@ -101,7 +100,6 @@ public sealed class TypeResolver
                 IsDynamicOrVariant = true,
                 UserTypeSymbol = null
             };
-        }
 
         var cleanName = typeName.Trim();
 
@@ -111,7 +109,7 @@ public sealed class TypeResolver
 
         // 1. Verifica se è un tipo a tipizzazione dinamica (Object o Variant)
         if (DynamicTypes.Contains(cleanName))
-        {
+
             return new TypeInfo
             {
                 Name = cleanName,
@@ -119,11 +117,10 @@ public sealed class TypeResolver
                 IsDynamicOrVariant = true,
                 UserTypeSymbol = null
             };
-        }
 
         // 2. Verifica se è un tipo primitivo integrato
         if (PrimitiveTypes.Contains(cleanName))
-        {
+
             return new TypeInfo
             {
                 Name = cleanName,
@@ -131,11 +128,10 @@ public sealed class TypeResolver
                 IsDynamicOrVariant = false,
                 UserTypeSymbol = null
             };
-        }
 
         // 3. Verifica se è un tipo dichiarato dall'utente nel progetto locale
         if (_userTypesByName.TryGetValue(cleanName, out var userSymbol))
-        {
+
             return new TypeInfo
             {
                 Name = cleanName,
@@ -143,7 +139,6 @@ public sealed class TypeResolver
                 IsDynamicOrVariant = false,
                 UserTypeSymbol = userSymbol
             };
-        }
 
         // 4. Tipo esterno non presente nel progetto (es. libreria COM ADODB.Recordset, MSXML2.DOMDocument, ecc.)
         return new TypeInfo

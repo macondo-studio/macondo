@@ -227,9 +227,8 @@ public static class ProjectAnalysisService
 
             // Imposta il QualifiedName con il prefisso del progetto se workspace multi-progetto
             if (projects.Count > 1)
-            {
+
                 vbResult.ModuleSymbol.QualifiedName = $"{proj.Name}.{vbResult.ModuleSymbol.Name}";
-            }
         }
 
         foreach (var (csResult, localGraph, proj, projSymbol) in concurrentCsResults)
@@ -242,9 +241,8 @@ public static class ProjectAnalysisService
             {
                 semanticGraph.AddContains(projSymbol, topSym);
                 if (projects.Count > 1 && !topSym.QualifiedName.StartsWith(proj.Name + ".", StringComparison.OrdinalIgnoreCase))
-                {
+
                     topSym.QualifiedName = $"{proj.Name}.{topSym.QualifiedName}";
-                }
             }
         }
 
@@ -329,9 +327,8 @@ public static class ProjectAnalysisService
             {
                 var projs = ProjectDescriptor.DiscoverFromPaths(new[] { dir });
                 if (projs.Count > 0 && projs.Any(p => p.SourceFiles.Count > 0))
-                {
+
                     return AnalyzeProjects(projs, progress, cancellationToken);
-                }
             }
         }
 

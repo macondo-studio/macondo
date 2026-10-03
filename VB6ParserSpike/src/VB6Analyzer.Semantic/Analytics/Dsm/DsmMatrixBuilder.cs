@@ -53,9 +53,8 @@ public static class DsmMatrixBuilder
             .ToList();
 
         if (containers.Count == 0)
-        {
+
             containers = graph.Symbols.Where(s => s.Kind != SymbolKind.Project).ToList();
-        }
 
         // Mappa di lookup O(1): qualsiasi ID di simbolo o membro -> ID del container di appartenenza
         var symbolToContainer = new Dictionary<Guid, Guid>();
@@ -105,9 +104,8 @@ public static class DsmMatrixBuilder
             // Risaliamo dai simboli specifici (es. Sub Chiamante -> Sub Chiamata) ai rispettivi moduli
             if (!symbolToContainer.TryGetValue(rel.SourceId, out var srcContainerId) ||
                 !symbolToContainer.TryGetValue(rel.TargetId, out var tgtContainerId))
-            {
+
                 continue;
-            }
 
             // Ignoriamo le dipendenze intra-modulo (sulla diagonale principale)
             if (srcContainerId == tgtContainerId)
@@ -115,9 +113,8 @@ public static class DsmMatrixBuilder
 
             if (!containerIndexMap.TryGetValue(srcContainerId, out var rowIdx) ||
                 !containerIndexMap.TryGetValue(tgtContainerId, out var colIdx))
-            {
+
                 continue;
-            }
 
             // Recupera la cella (riga = chiamante/sorgente, colonna = chiamato/destinazione)
             var cell = matrix.GetCell(rowIdx, colIdx);
@@ -159,9 +156,8 @@ public static class DsmMatrixBuilder
         // FASE 6: Ordinamento geometrico della matrice se richiesto.
         // ---------------------------------------------------------------------
         if (ordering != DsmOrdering.Alphabetical)
-        {
+
             SortMatrix(matrix, ordering);
-        }
 
         return matrix;
     }
@@ -189,9 +185,8 @@ public static class DsmMatrixBuilder
             for (int c = 0; c < n; c++)
             {
                 if (matrix.GetCell(r, c).HasDependency)
-                {
+
                     adj[r].Add(c);
-                }
             }
         }
 
@@ -208,9 +203,8 @@ public static class DsmMatrixBuilder
         for (int i = 0; i < n; i++)
         {
             if (indices[i] == -1)
-            {
+
                 StrongConnect(i, ref index, indices, lowlink, onStack, stack, adj, sccs);
-            }
         }
 
         // 4. Analisi delle SCC rilevate: una SCC con Count > 1 rappresenta un ciclo di dipendenze circolari
@@ -282,10 +276,8 @@ public static class DsmMatrixBuilder
                 lowlink[u] = Math.Min(lowlink[u], lowlink[v]);
             }
             else if (onStack[v])
-            {
-                // Il successore v è attualmente nello stack di chiamata: back-edge verso un antenato della stessa SCC
-                lowlink[u] = Math.Min(lowlink[u], indices[v]);
-            }
+
+    lowlink[u] = Math.Min(lowlink[u], indices[v]);
         }
 
         // Se u è la radice della componente fortemente connessa (nessun nodo sopra di esso può risalire oltre u)
@@ -323,9 +315,9 @@ public static class DsmMatrixBuilder
 
         // 1. Ordina la lista degli elementi secondo la strategia prescelta
         if (ordering == DsmOrdering.ByKindAndName)
-        {
+
             sortedItems = oldItems.OrderBy(x => x.Kind).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ToList();
-        }
+
         else
         {
             // TopologicalOrPartitioned: raggruppa prima i moduli con dipendenze circolari, poi per tipo e nome

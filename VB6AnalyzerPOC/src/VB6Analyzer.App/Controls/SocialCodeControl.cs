@@ -146,9 +146,8 @@ public sealed class SocialCodeControl : UserControl
     {
         base.OnPropertyChanged(change);
         if (change.Property == DatasetProperty)
-        {
+
             OnDatasetChanged(change.GetNewValue<SocialCodeDataset?>());
-        }
     }
 
     private static Border CreateKpiCard(string title, out TextBlock valueBlock, string accentHex)

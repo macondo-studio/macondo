@@ -54,9 +54,8 @@ public partial class SettingsWindow : Window
             {
                 var resourceKey = WindowState == WindowState.Maximized ? "IconWindowRestore" : "IconWindowMaximize";
                 if (this.TryFindResource(resourceKey, out var res) && res is Geometry geo)
-                {
+
                     MaximizeIcon.Data = geo;
-                }
             }
         };
     }
@@ -70,9 +69,8 @@ public partial class SettingsWindow : Window
         }
 
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-        {
+
             BeginMoveDrag(e);
-        }
     }
 
     private void OnMaximizeClicked(object? sender, RoutedEventArgs e)
@@ -184,9 +182,8 @@ public partial class SettingsWindow : Window
         }
 
         if (primaryBrush != null)
-        {
+
             ContentBorder.Background = primaryBrush;
-        }
 
         if (borderBrush != null)
         {
@@ -631,9 +628,9 @@ public partial class SettingsWindow : Window
     {
         var filter = ShortcutSearchBox?.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrEmpty(filter))
-        {
+
             ShortcutsList.ItemsSource = _allShortcuts;
-        }
+
         else
         {
             ShortcutsList.ItemsSource = _allShortcuts

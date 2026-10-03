@@ -167,9 +167,8 @@ public static class ControlFlowBuilder
         cfg.Edges.Add(new ControlFlowEdge { SourceBlockId = bodyBlock.Id, TargetBlockId = finalExit.Id, BranchKind = ControlFlowBranchKind.Fallthrough });
         cfg.Edges.Add(new ControlFlowEdge { SourceBlockId = altBlock.Id, TargetBlockId = finalExit.Id, BranchKind = ControlFlowBranchKind.Fallthrough });
         if (errorHandlerBlock != null)
-        {
+
             cfg.Edges.Add(new ControlFlowEdge { SourceBlockId = errorHandlerBlock.Id, TargetBlockId = finalExit.Id, BranchKind = ControlFlowBranchKind.Fallthrough });
-        }
 
         // Calcolo della Complessità Ciclomatica di McCabe: M = 1 + numero di punti di decisione (If/Select/Loop)
         cfg.CyclomaticComplexity = 1 + cfg.Blocks.Count(b => b.BlockKind is ControlFlowBlockKind.DecisionIf or ControlFlowBlockKind.DecisionSelect or ControlFlowBlockKind.LoopHeader);
@@ -236,9 +235,8 @@ public static class ControlFlowBuilder
             }
 
             if (nextLevel.Count > 0)
-            {
+
                 levels.Add(nextLevel);
-            }
         }
 
         // 2. Calcolo coordinate geometriche 2D (Centratura orizzontale e spaziatura verticale)

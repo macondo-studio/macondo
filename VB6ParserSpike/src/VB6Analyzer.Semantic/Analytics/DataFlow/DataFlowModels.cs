@@ -48,9 +48,8 @@ public sealed class TaintPattern
             var clean = p.Replace("*", "");
             if (symbol.Name.Contains(clean, StringComparison.OrdinalIgnoreCase) ||
                 symbol.QualifiedName.Contains(clean, StringComparison.OrdinalIgnoreCase))
-            {
+
                 return true;
-            }
         }
         return false;
     }

@@ -127,9 +127,8 @@ public sealed class CodeGraph
                     }
 
                     if (currentSymbols.TryGetValue(rel.TargetId, out var childSym))
-                    {
+
                         list.Add(childSym);
-                    }
                 }
             }
 
@@ -149,14 +148,12 @@ public sealed class CodeGraph
         lock (_syncLock)
         {
             if (_lastIndexedRelCount != Relationships.Count || _lastIndexedContainsSymbolCount != Symbols.Count)
-            {
+
                 EnsureContainsIndexed();
-            }
 
             if (!_relationshipKeys.Add((rel.SourceId, rel.TargetId, rel.Kind)))
-            {
+
                 return;
-            }
 
             Relationships.Add(rel);
             _lastIndexedRelCount = Relationships.Count;
@@ -171,9 +168,8 @@ public sealed class CodeGraph
                 }
 
                 if (_symbolsById.TryGetValue(rel.TargetId, out var childSym))
-                {
+
                     list.Add(childSym);
-                }
             }
         }
     }

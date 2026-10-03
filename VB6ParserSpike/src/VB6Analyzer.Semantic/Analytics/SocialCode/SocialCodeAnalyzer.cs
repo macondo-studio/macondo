@@ -129,9 +129,8 @@ public static class SocialCodeAnalyzer
             {
                 double p = contrib.OwnershipPercentage / 100.0;
                 if (p > 0.0)
-                {
+
                     entropy -= p * Math.Log2(p);
-                }
             }
             report.KnowledgeEntropy = Math.Round(entropy, 2);
 
@@ -144,18 +143,18 @@ public static class SocialCodeAnalyzer
             // - Low: Bus Factor distribuito su 3 o più sviluppatori
             bool isPrimaryInactive = activeAuthors != null && activeAuthors.Count > 0 && !activeAuthors.Contains(primary.Author);
             if (isPrimaryInactive)
-            {
+
                 report.Risk = BusFactorRisk.Orphan;
-            }
+
             else if (report.BusFactor == 1 && report.PrimaryOwnership >= 80.0)
-            {
-                report.Risk = BusFactorRisk.High;
-            }
-            else if (report.BusFactor == 2)
-            {
-                report.Risk = BusFactorRisk.Medium;
-            }
-            else
+
+    report.Risk = BusFactorRisk.High;
+
+else if (report.BusFactor == 2)
+
+    report.Risk = BusFactorRisk.Medium;
+
+else
             {
                 report.Risk = BusFactorRisk.Low;
             }
@@ -163,9 +162,8 @@ public static class SocialCodeAnalyzer
             dataset.Files.Add(report);
 
             if (!dataset.PrimaryOwnershipCountByAuthor.TryGetValue(primary.Author, out var count))
-            {
+
                 count = 0;
-            }
             dataset.PrimaryOwnershipCountByAuthor[primary.Author] = count + 1;
         }
 

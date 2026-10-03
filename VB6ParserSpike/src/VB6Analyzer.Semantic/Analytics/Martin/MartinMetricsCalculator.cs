@@ -85,9 +85,9 @@ public static class MartinMetricsCalculator
             int concreteCount = 0;
 
             if (c.Kind == SymbolKind.Interface)
-            {
+
                 abstractCount = Math.Max(1, totalMembers);
-            }
+
             else
             {
                 foreach (var m in children)
@@ -95,24 +95,22 @@ public static class MartinMetricsCalculator
                     if (m.Kind is SymbolKind.Method or SymbolKind.Property)
                     {
                         if (m.Kind == SymbolKind.Interface)
-                        {
+
                             abstractCount++;
-                        }
+
                         else
                         {
                             concreteCount++;
                         }
                     }
                     else if (m.Kind is SymbolKind.Field or SymbolKind.Constant)
-                    {
-                        concreteCount++;
-                    }
+
+    concreteCount++;
                 }
 
                 if (totalMembers == 0)
-                {
+
                     concreteCount = 1;
-                }
             }
 
             var totalSymbolsForAbs = abstractCount + concreteCount;
@@ -124,18 +122,18 @@ public static class MartinMetricsCalculator
             // Assegna la zona
             MartinZone zone;
             if (abstractness < 0.35 && instability < 0.35)
-            {
+
                 zone = MartinZone.ZoneOfPain;
-            }
+
             else if (abstractness > 0.65 && instability > 0.65)
-            {
-                zone = MartinZone.ZoneOfUselessness;
-            }
-            else if (distanceRaw <= 0.3)
-            {
-                zone = MartinZone.MainSequence;
-            }
-            else
+
+    zone = MartinZone.ZoneOfUselessness;
+
+else if (distanceRaw <= 0.3)
+
+    zone = MartinZone.MainSequence;
+
+else
             {
                 zone = MartinZone.Balanced;
             }

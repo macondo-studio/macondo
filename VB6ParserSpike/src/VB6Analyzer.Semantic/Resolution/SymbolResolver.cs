@@ -51,9 +51,8 @@ public sealed class SymbolResolver
         foreach (var symbol in _graph.Symbols)
         {
             if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl)
-            {
+
                 _moduleScopes[symbol.Id] = new ModuleScope(symbol, _graph, _projectScope);
-            }
         }
     }
 
@@ -99,14 +98,13 @@ public sealed class SymbolResolver
         // 1. Se il target è un tipo a binding dinamico (Object / Variant) -> Late Binding
         if (string.Equals(targetResult.TargetTypeName, "Object", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(targetResult.TargetTypeName, "Variant", StringComparison.OrdinalIgnoreCase))
-        {
+
             return new ResolutionResult
             {
                 Confidence = ResolutionConfidence.Unknown,
                 TargetTypeName = "Variant",
                 Details = $"Late binding su oggetto non tipizzato ({targetResult.TargetTypeName})"
             };
-        }
 
         Symbol? targetTypeSymbol = null;
 
@@ -115,16 +113,14 @@ public sealed class SymbolResolver
         {
             var sym = targetResult.TargetSymbol;
             if (sym.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type)
-            {
-                // Il target è direttamente una classe, modulo o tipo (es. "Customer.Update" o "UtilsModule.LogMessage")
+
                 targetTypeSymbol = sym;
-            }
+
             else if (sym.ResolvedTypeSymbolId.HasValue)
-            {
-                // Il target è una variabile/campo tipizzata con tipo utente (es. "localCust" di tipo "Customer")
-                targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == sym.ResolvedTypeSymbolId.Value);
-            }
-            else if (sym.DeclaredTypeName is not null)
+
+    targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == sym.ResolvedTypeSymbolId.Value);
+
+else if (sym.DeclaredTypeName is not null)
             {
                 // Prova la risoluzione del nome del tipo dichiarato
                 var typeInfo = _typeResolver.ResolveType(sym.DeclaredTypeName);
@@ -136,9 +132,9 @@ public sealed class SymbolResolver
             // Il target è un parametro formale (es. "cust" di tipo "Customer")
             var param = targetResult.TargetParameter;
             if (param.ResolvedTypeSymbolId.HasValue)
-            {
+
                 targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == param.ResolvedTypeSymbolId.Value);
-            }
+
             else if (param.DeclaredTypeName is not null)
             {
                 var typeInfo = _typeResolver.ResolveType(param.DeclaredTypeName);
@@ -146,10 +142,10 @@ public sealed class SymbolResolver
             }
         }
         else if (targetResult.ResolvedTypeSymbolId.HasValue)
-        {
-            targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == targetResult.ResolvedTypeSymbolId.Value);
-        }
-        else if (targetResult.TargetTypeName is not null)
+
+    targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == targetResult.ResolvedTypeSymbolId.Value);
+
+else if (targetResult.TargetTypeName is not null)
         {
             var typeInfo = _typeResolver.ResolveType(targetResult.TargetTypeName);
             targetTypeSymbol = typeInfo.UserTypeSymbol;
@@ -162,7 +158,7 @@ public sealed class SymbolResolver
                 .FirstOrDefault(m => string.Equals(m.Name, memberName, StringComparison.OrdinalIgnoreCase));
 
             if (member != null)
-            {
+
                 return new ResolutionResult
                 {
                     TargetSymbol = member,
@@ -170,7 +166,6 @@ public sealed class SymbolResolver
                     TargetTypeName = member.DeclaredTypeName,
                     ResolvedTypeSymbolId = member.ResolvedTypeSymbolId
                 };
-            }
 
             return new ResolutionResult
             {

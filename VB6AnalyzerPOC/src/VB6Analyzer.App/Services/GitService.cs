@@ -37,9 +37,8 @@ public sealed class GitService
             {
                 var gitPath = Path.Combine(dir.FullName, ".git");
                 if (Directory.Exists(gitPath) || File.Exists(gitPath))
-                {
+
                     return dir.FullName;
-                }
                 dir = dir.Parent;
             }
         }
@@ -73,9 +72,8 @@ public sealed class GitService
             {
                 var content = File.ReadAllText(headFile).Trim();
                 if (content.StartsWith("ref: refs/heads/"))
-                {
+
                     return content.Substring("ref: refs/heads/".Length);
-                }
             }
         }
         catch
@@ -86,9 +84,8 @@ public sealed class GitService
         // 2. Fallback su comando CLI git rev-parse
         var (exitCode, stdout, _) = RunGitCommand(root, "rev-parse --abbrev-ref HEAD");
         if (exitCode == 0 && !string.IsNullOrWhiteSpace(stdout))
-        {
+
             return stdout.Trim();
-        }
 
         return null;
     }
@@ -116,13 +113,12 @@ public sealed class GitService
                 var branchName = trimmed.TrimStart('*', ' ').Trim();
 
                 if (!string.IsNullOrEmpty(branchName))
-                {
+
                     branches.Add(new GitBranchInfo
                     {
                         Name = branchName,
                         IsCurrent = isCurrent || string.Equals(branchName, currentBranch, StringComparison.OrdinalIgnoreCase)
                     });
-                }
             }
         }
 
@@ -179,21 +175,18 @@ public sealed class GitService
             if (trimmed == "--COMMIT--")
             {
                 if (currentCommitFiles != null && currentCommitFiles.Count > 0)
-                {
+
                     result.Add(currentCommitFiles);
-                }
                 currentCommitFiles = new List<string>();
             }
             else if (currentCommitFiles != null)
-            {
-                currentCommitFiles.Add(trimmed);
-            }
+
+    currentCommitFiles.Add(trimmed);
         }
 
         if (currentCommitFiles != null && currentCommitFiles.Count > 0)
-        {
+
             result.Add(currentCommitFiles);
-        }
 
         return result;
     }
@@ -225,9 +218,9 @@ public sealed class GitService
                 var meta = trimmed.Substring("--COMMIT--".Length).Split('\t');
                 currentAuthor = meta.Length > 0 && !string.IsNullOrWhiteSpace(meta[0]) ? meta[0].Trim() : "Unknown";
                 if (meta.Length > 1 && DateTime.TryParse(meta[1], out var dt))
-                {
+
                     currentTimestamp = dt;
-                }
+
                 else
                 {
                     currentTimestamp = DateTime.UtcNow;
@@ -276,9 +269,8 @@ public sealed class GitService
         var result = await Task.Run(() => RunGitCommand(root, $"checkout \"{branchName}\""));
 
         if (result.ExitCode == 0)
-        {
+
             return (true, null);
-        }
 
         var error = !string.IsNullOrWhiteSpace(result.StdErr) ? result.StdErr.Trim() : result.StdOut.Trim();
         return (false, error);

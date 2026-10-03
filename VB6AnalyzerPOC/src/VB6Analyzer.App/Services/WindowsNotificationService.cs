@@ -133,9 +133,8 @@ public static class WindowsNotificationService
 
             IntPtr hIcon = SendMessage(hWnd, WM_GETICON, (IntPtr)ICON_BIG, IntPtr.Zero);
             if (hIcon == IntPtr.Zero)
-            {
+
                 hIcon = SendMessage(hWnd, WM_GETICON, (IntPtr)ICON_SMALL, IntPtr.Zero);
-            }
 
             var safeTitle = title.Length > 63 ? title[..63] : title;
             var safeMessage = message.Length > 255 ? message[..255] : message;

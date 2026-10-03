@@ -2220,9 +2220,8 @@ public sealed class LocalizationService
     {
         var roundedSec = Math.Max(0.1, Math.Round(seconds, 1));
         if (roundedSec < 60)
-        {
+
             return Get("Loading_TimeRemainingFormat", roundedSec);
-        }
         var mins = (int)(roundedSec / 60);
         var secs = (int)(roundedSec % 60);
         return CurrentLanguage == AppLanguage.English
@@ -2237,9 +2236,8 @@ public sealed class LocalizationService
     {
         var roundedSec = Math.Max(0.1, Math.Round(seconds, 1));
         if (roundedSec < 60)
-        {
+
             return Get("Loading_TimeEstimatedFormat", roundedSec);
-        }
         var mins = (int)(roundedSec / 60);
         var secs = (int)(roundedSec % 60);
         return CurrentLanguage == AppLanguage.English

@@ -63,9 +63,8 @@ public sealed class ComponentSelector
             if (symbol.Name.Contains(cleanP, StringComparison.OrdinalIgnoreCase) ||
                 symbol.QualifiedName.Contains(cleanP, StringComparison.OrdinalIgnoreCase) ||
                 symbol.FilePath.Contains(cleanP, StringComparison.OrdinalIgnoreCase))
-            {
+
                 return true;
-            }
         }
 
         return false;

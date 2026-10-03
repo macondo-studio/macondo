@@ -47,9 +47,8 @@ public static class DeadCodeAnalyzer
             if (IsNaturalEntryPoint(sym, graph))
             {
                 if (reachableIds.Add(sym.Id))
-                {
+
                     queue.Enqueue(sym.Id);
-                }
             }
         }
 
@@ -62,9 +61,8 @@ public static class DeadCodeAnalyzer
                 if (sym.Accessibility == Accessibility.Public || sym.Kind == SymbolKind.Interface)
                 {
                     if (reachableIds.Add(sym.Id))
-                    {
+
                         queue.Enqueue(sym.Id);
-                    }
                 }
             }
         }
@@ -82,9 +80,8 @@ public static class DeadCodeAnalyzer
                 if (IsAutoInvokedMember(child.Name))
                 {
                     if (reachableIds.Add(child.Id))
-                    {
+
                         queue.Enqueue(child.Id);
-                    }
                 }
             }
 
@@ -94,16 +91,14 @@ public static class DeadCodeAnalyzer
                 if (rel.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.UsesType or RelationshipKind.Inherits or RelationshipKind.Implements)
                 {
                     if (reachableIds.Add(rel.TargetId))
-                    {
+
                         queue.Enqueue(rel.TargetId);
-                    }
 
                     // Se il target è un membro interno (es. metodo), rendi raggiungibile anche il suo modulo/classe padre
                     var parentRel = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.Contains && r.TargetId == rel.TargetId);
                     if (parentRel != null && reachableIds.Add(parentRel.SourceId))
-                    {
+
                         queue.Enqueue(parentRel.SourceId);
-                    }
                 }
             }
         }
@@ -200,9 +195,8 @@ public static class DeadCodeAnalyzer
         if (string.Equals(sym.Name, "Main", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(sym.Name, "Sub Main", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(sym.Name, "Program.Main", StringComparison.OrdinalIgnoreCase))
-        {
+
             return true;
-        }
 
         // 2. Gestori di eventi UI o del runtime (es. cmdSalva_Click, Form_Load)
         if (sym.Kind is SymbolKind.Method or SymbolKind.Property)
@@ -223,9 +217,8 @@ public static class DeadCodeAnalyzer
 
         // 3. Form, Finestre o UserControl (caricati dal runtime o da config di progetto)
         if (sym.Kind is SymbolKind.Form or SymbolKind.UserControl)
-        {
+
             return true;
-        }
 
         return false;
     }

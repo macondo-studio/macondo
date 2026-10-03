@@ -220,8 +220,7 @@ public sealed class ThemeService
         }
 
         if (Color.TryParse(colorHex, out var color))
-        {
+
             Application.Current!.Resources[key] = new SolidColorBrush(color);
-        }
     }
 }

@@ -150,9 +150,8 @@ public sealed class CrudMatrixControl : UserControl
     {
         base.OnPropertyChanged(change);
         if (change.Property == DatasetProperty)
-        {
+
             OnDatasetChanged(change.GetNewValue<CrudMatrixDataset?>());
-        }
     }
 
     private static Border CreateKpiCard(string title, out TextBlock valueBlock, string accentHex)

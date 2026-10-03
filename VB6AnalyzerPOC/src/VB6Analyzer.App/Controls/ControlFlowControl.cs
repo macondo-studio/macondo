@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -209,14 +209,14 @@ public sealed class ControlFlowControl : Control
                 context.FillRectangle(bgBrush, blockRect, 4.0f);
 
                 if (_selectedBlock?.Id == block.Id)
-                {
+
                     context.DrawRectangle(new Pen(_selectedBorderBrush, 2.5), blockRect, 4.0f);
-                }
+
                 else if (_hoveredBlock?.Id == block.Id)
-                {
-                    context.DrawRectangle(new Pen(Brushes.White, 1.5), blockRect, 4.0f);
-                }
-                else
+
+    context.DrawRectangle(new Pen(Brushes.White, 1.5), blockRect, 4.0f);
+
+else
                 {
                     context.DrawRectangle(borderPen, blockRect, 4.0f);
                 }
@@ -307,9 +307,8 @@ public sealed class ControlFlowControl : Control
         {
             var delta = pos - _pointerDownScreenPos;
             if (!_isPanning && (Math.Abs(delta.X) > PanThreshold || Math.Abs(delta.Y) > PanThreshold))
-            {
+
                 _isPanning = true;
-            }
 
             if (_isPanning)
             {

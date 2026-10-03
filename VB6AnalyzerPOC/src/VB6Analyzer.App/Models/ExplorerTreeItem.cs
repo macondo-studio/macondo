@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using Macondo.App.Services;
 using Macondo.Semantic.Model;
 
@@ -145,11 +145,10 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
 
         var topLevelChildren = graph.GetChildren(project.Id).ToList();
         if (topLevelChildren.Count == 0)
-        {
+
             topLevelChildren = graph.Nodes
                 .Where(n => n.Id != project.Id && (n.ParentId == null || n.ParentId == project.Id) && n.Kind != SymbolKind.Project)
                 .ToList();
-        }
 
         // Raggruppa i file di primo livello per tipologia (Kind)
         var groups = topLevelChildren
@@ -215,7 +214,7 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
         {
             var childItem = Build(graph, child, projectFolderPath);
             if (string.IsNullOrEmpty(childItem.FilePath) && !string.IsNullOrEmpty(item.FilePath))
-            {
+
                 childItem = new ExplorerTreeItem
                 {
                     Name = childItem.Name,
@@ -233,7 +232,6 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
                     LineStart = childItem.LineStart,
                     LineEnd = childItem.LineEnd
                 };
-            }
             item.Children.Add(childItem);
         }
 

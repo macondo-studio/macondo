@@ -68,10 +68,8 @@ public sealed class CallGraphBuilder
                     // Individua la routine contenitore che effettua la chiamata all'interno del modulo
                     var callerRoutine = FindEnclosingRoutine(extraction.ModuleSymbol, callSite.EnclosingRoutineName);
                     if (callerRoutine != null)
-                    {
-                        // Inserisce l'arco CALLS nel CodeGraph con riga sorgente e livello di confidenza
+
                         _graph.AddCalls(callerRoutine, callSite.Result.TargetSymbol, callSite.Line, callSite.Result.Confidence);
-                    }
                 }
             }
 
@@ -92,9 +90,8 @@ public sealed class CallGraphBuilder
                 var targetType = _symbolResolver.TypeResolver.ResolveType(ifaceName).UserTypeSymbol
                                  ?? _graph.Symbols.FirstOrDefault(s => s.Kind is SymbolKind.Class or SymbolKind.Interface && string.Equals(s.Name, ifaceName, StringComparison.OrdinalIgnoreCase));
                 if (targetType != null)
-                {
+
                     _graph.AddImplements(extraction.ModuleSymbol, targetType, line);
-                }
             }
         }
 
@@ -124,11 +121,10 @@ public sealed class CallGraphBuilder
                     {
                         var receiverType = _symbolResolver.TypeResolver.ResolveType(callSite.ReceiverExpressionText).UserTypeSymbol;
                         if (receiverType != null)
-                        {
+
                             targetMethod = _graph.GetChildren(receiverType.Id)
                                 .FirstOrDefault(s => s.Kind is SymbolKind.Method or SymbolKind.Property &&
                                                     string.Equals(s.Name, callSite.InvokedMethodName, StringComparison.OrdinalIgnoreCase));
-                        }
                     }
 
                     // Passo B: Se il metodo non è stato risolto tramite receiver (es. chiamata diretta 'Process()' o receiver non tipizzato),
@@ -141,9 +137,8 @@ public sealed class CallGraphBuilder
                             foreach (var s in _graph.Symbols)
                             {
                                 if (s.Kind is SymbolKind.Method or SymbolKind.Property && !routineIndexByName.ContainsKey(s.Name))
-                                {
+
                                     routineIndexByName[s.Name] = s;
-                                }
                             }
                         }
 
@@ -152,9 +147,8 @@ public sealed class CallGraphBuilder
 
                     // Passo C: Se il metodo bersaglio è stato individuato, inserisce l'arco CALLS nel CodeGraph
                     if (targetMethod != null)
-                    {
+
                         _graph.AddCalls(callSite.CallerSymbol, targetMethod, callSite.Line, ResolutionConfidence.Exact);
-                    }
                 }
 
                 // 2. Risoluzione Istanziazioni C# (INSTANTIATES da 'new ClassName()')
@@ -162,9 +156,8 @@ public sealed class CallGraphBuilder
                 {
                     var targetType = _symbolResolver.TypeResolver.ResolveType(inst.TargetTypeName).UserTypeSymbol;
                     if (targetType != null)
-                    {
+
                         _graph.AddInstantiates(inst.SourceSymbol, targetType, inst.Line, ResolutionConfidence.Exact);
-                    }
                 }
 
                 // 3. Risoluzione Ereditarietà e Interfacce C# (INHERITS / IMPLEMENTS da ': BaseType, IInterface')
@@ -176,9 +169,9 @@ public sealed class CallGraphBuilder
                         // Se il tipo derivato è un'interfaccia o il bersaglio è una classe -> INHERITS;
                         // Se una classe/struct implementa un'interfaccia -> IMPLEMENTS
                         if (inh.DerivedTypeSymbol.Kind == SymbolKind.Interface || baseType.Kind != SymbolKind.Interface)
-                        {
+
                             _graph.AddInherits(inh.DerivedTypeSymbol, baseType, inh.Line);
-                        }
+
                         else
                         {
                             _graph.AddImplements(inh.DerivedTypeSymbol, baseType, inh.Line);
@@ -199,9 +192,8 @@ public sealed class CallGraphBuilder
             {
                 var targetClass = _graph.FindSymbolById(symbol.ResolvedTypeSymbolId.Value);
                 if (targetClass != null)
-                {
+
                     _graph.AddInstantiates(symbol, targetClass, symbol.LineStart);
-                }
             }
         }
 
@@ -219,9 +211,8 @@ public sealed class CallGraphBuilder
             {
                 var targetType = _graph.FindSymbolById(symbol.ResolvedTypeSymbolId.Value);
                 if (targetType != null)
-                {
+
                     _graph.AddUsesType(symbol, targetType, symbol.LineStart);
-                }
             }
 
             // 3b. Tipo di ritorno dichiarato su funzioni e proprietà getter
@@ -229,9 +220,8 @@ public sealed class CallGraphBuilder
             {
                 var returnType = _graph.FindSymbolById(symbol.ResolvedReturnTypeSymbolId.Value);
                 if (returnType != null)
-                {
+
                     _graph.AddUsesType(symbol, returnType, symbol.LineStart);
-                }
             }
 
             // 3c. Tipi dichiarati sui singoli parametri formali della routine
@@ -241,9 +231,8 @@ public sealed class CallGraphBuilder
                 {
                     var paramType = _graph.FindSymbolById(param.ResolvedTypeSymbolId.Value);
                     if (paramType != null)
-                    {
+
                         _graph.AddUsesType(symbol, paramType, param.Line);
-                    }
                 }
             }
         }
@@ -273,10 +262,8 @@ public sealed class CallGraphBuilder
                         var controlSymbol = moduleChildren.FirstOrDefault(s => s.Kind == SymbolKind.Field &&
                                                                                string.Equals(s.Name, prefix, StringComparison.OrdinalIgnoreCase));
                         if (controlSymbol != null)
-                        {
-                            // Collega il controllo UI alla routine gestore evento (Control -> Handler)
+
                             _graph.AddHandlesEvent(controlSymbol, routine, routine.LineStart);
-                        }
                     }
 
                     // Collega sempre il modulo container (Form, UserControl o Class) come generatore dell'evento

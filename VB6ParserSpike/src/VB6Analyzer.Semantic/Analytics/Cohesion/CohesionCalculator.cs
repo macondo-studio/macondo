@@ -155,13 +155,12 @@ public static class CohesionCalculator
             if (routineIds.Contains(rel.SourceId))
             {
                 if ((rel.Kind == RelationshipKind.Reads || rel.Kind == RelationshipKind.Writes) && fieldIds.Contains(rel.TargetId))
-                {
+
                     routineFields[rel.SourceId].Add(rel.TargetId);
-                }
+
                 else if (rel.Kind == RelationshipKind.Calls && routineIds.Contains(rel.TargetId) && rel.TargetId != rel.SourceId)
-                {
-                    routineInternalCalls[rel.SourceId].Add(rel.TargetId);
-                }
+
+    routineInternalCalls[rel.SourceId].Add(rel.TargetId);
             }
         }
 
@@ -225,9 +224,8 @@ public static class CohesionCalculator
             {
                 var currId = queue.Dequeue();
                 if (routineMap.TryGetValue(currId, out var rSym))
-                {
+
                     cluster.Methods.Add(rSym);
-                }
 
                 foreach (var fId in routineFields[currId])
                 {
@@ -237,18 +235,16 @@ public static class CohesionCalculator
                 foreach (var neighbor in adj[currId])
                 {
                     if (visited.Add(neighbor))
-                    {
+
                         queue.Enqueue(neighbor);
-                    }
                 }
             }
 
             foreach (var fId in clusterFieldIds)
             {
                 if (fieldMap.TryGetValue(fId, out var fSym))
-                {
+
                     cluster.AccessedFields.Add(fSym);
-                }
             }
 
             report.Clusters.Add(cluster);
@@ -267,9 +263,8 @@ public static class CohesionCalculator
         {
             int size = cluster.Methods.Count;
             if (size > 1)
-            {
+
                 reachablePairs += (size * (size - 1)) / 2;
-            }
         }
 
         report.LooseClassCohesion = totalPossiblePairs > 0
@@ -310,21 +305,18 @@ public static class CohesionCalculator
             if (routineIds.Contains(rel.SourceId))
             {
                 if (rel.Kind == RelationshipKind.Calls)
-                {
+
                     responseMethods.Add(rel.TargetId);
-                }
 
                 if (memberToContainerMap.TryGetValue(rel.TargetId, out var targetContId) && targetContId != container.Id)
-                {
+
                     externalContainersCoupled.Add(targetContId);
-                }
             }
             else if (rel.SourceId == container.Id)
             {
                 if (memberToContainerMap.TryGetValue(rel.TargetId, out var targetContId) && targetContId != container.Id)
-                {
+
                     externalContainersCoupled.Add(targetContId);
-                }
             }
         }
 

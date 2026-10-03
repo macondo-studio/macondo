@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -233,9 +233,8 @@ public sealed class DsmControl : Control
 
                     // Selezione attiva
                     if (_selectedCell != null && _selectedCell.RowIndex == r && _selectedCell.ColumnIndex == c)
-                    {
+
                         context.DrawRectangle(_selectedCellPen, cellRect);
-                    }
 
                     context.DrawRectangle(_gridLinePen, cellRect);
                 }
@@ -250,9 +249,8 @@ public sealed class DsmControl : Control
                     var headerRect = new Rect(-HeaderWidth, r * CellSize, HeaderWidth - 4, CellSize);
                     
                     if (r == _hoveredRow)
-                    {
+
                         context.FillRectangle(_hoverHeaderBrush, headerRect);
-                    }
 
                     // Badge numerico indice riga
                     var idxFmt = new FormattedText(
@@ -349,9 +347,8 @@ public sealed class DsmControl : Control
         {
             var delta = pos - _pointerDownScreenPos;
             if (!_isPanning && (Math.Abs(delta.X) > PanThreshold || Math.Abs(delta.Y) > PanThreshold))
-            {
+
                 _isPanning = true;
-            }
 
             if (_isPanning)
             {
@@ -383,9 +380,8 @@ public sealed class DsmControl : Control
         }
 
         if (oldRow != _hoveredRow || oldCol != _hoveredCol)
-        {
+
             InvalidateVisual();
-        }
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
@@ -409,9 +405,8 @@ public sealed class DsmControl : Control
             {
                 int row = (int)(localY / CellSize);
                 if (row >= 0 && row < Matrix.Size)
-                {
+
                     ItemSelected?.Invoke(this, Matrix.Items[row]);
-                }
             }
         }
 

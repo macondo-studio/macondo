@@ -45,58 +45,42 @@ public partial class LoadingOverlayView : UserControl
     public void UpdateProgress(int current, int total, string countText, string statsText, string? timeText = null, string? subtitle = null)
     {
         if (subtitle != null && LoadingSubtitle.Text != subtitle)
-        {
             LoadingSubtitle.Text = subtitle;
-        }
 
         if (LoadingProgressBar.IsIndeterminate)
-        {
             LoadingProgressBar.IsIndeterminate = false;
-        }
 
         var max = total > 0 ? total : 100;
         if (LoadingProgressBar.Maximum != max)
-        {
             LoadingProgressBar.Maximum = max;
-        }
+
         LoadingProgressBar.Minimum = 0;
         LoadingProgressBar.Value = current;
 
         if (LoadingProgressCount.Text != countText)
-        {
             LoadingProgressCount.Text = countText;
-        }
+
         var showCount = !string.IsNullOrEmpty(countText);
         if (LoadingProgressCount.IsVisible != showCount)
-        {
             LoadingProgressCount.IsVisible = showCount;
-        }
 
         if (LoadingProgressStats.Text != statsText)
-        {
             LoadingProgressStats.Text = statsText;
-        }
+
         var showStats = !string.IsNullOrEmpty(statsText);
         if (LoadingProgressStats.IsVisible != showStats)
-        {
             LoadingProgressStats.IsVisible = showStats;
-        }
 
         var timeStr = timeText ?? string.Empty;
         if (LoadingProgressTime.Text != timeStr)
-        {
             LoadingProgressTime.Text = timeStr;
-        }
+
         var showTime = !string.IsNullOrEmpty(timeStr);
         if (LoadingProgressTime.IsVisible != showTime)
-        {
             LoadingProgressTime.IsVisible = showTime;
-        }
 
         if (!IsVisible)
-        {
             IsVisible = true;
-        }
     }
 
     /// <summary>

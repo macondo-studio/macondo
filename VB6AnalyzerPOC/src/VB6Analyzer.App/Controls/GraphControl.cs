@@ -184,9 +184,8 @@ public sealed class GraphControl : Control
                 var isSelectedInProject = (_selectedNode.Kind == SymbolKind.Project && _selectedNode.Id == projectId) ||
                                           (_selectedNode.ProjectId == projectId);
                 if (isSelectedInProject)
-                {
+
                     SelectNode(null);
-                }
             }
         }
 
@@ -360,30 +359,30 @@ public sealed class GraphControl : Control
 
             IPen pen;
             if (isCalleeEdge)
-            {
+
                 pen = EdgeCalleePen;
-            }
+
             else if (isCallerEdge)
-            {
-                pen = EdgeCallerPen;
-            }
-            else if (isBlastRadiusEdge)
-            {
-                pen = EdgeBlastRadiusPen;
-            }
-            else if (isHighlighted)
-            {
-                pen = EdgeHighlightPen;
-            }
-            else if (_currentHighlightMode is HighlightMode.Callees or HighlightMode.Callers or HighlightMode.BlastRadius)
-            {
-                pen = _edgeDimmedPen;
-            }
-            else if (edge.IsCrossProject)
-            {
-                pen = EdgeCrossProjectPen;
-            }
-            else
+
+    pen = EdgeCallerPen;
+
+else if (isBlastRadiusEdge)
+
+    pen = EdgeBlastRadiusPen;
+
+else if (isHighlighted)
+
+    pen = EdgeHighlightPen;
+
+else if (_currentHighlightMode is HighlightMode.Callees or HighlightMode.Callers or HighlightMode.BlastRadius)
+
+    pen = _edgeDimmedPen;
+
+else if (edge.IsCrossProject)
+
+    pen = EdgeCrossProjectPen;
+
+else
             {
                 pen = GetPenForEdgeKind(edge.Kind);
             }
@@ -395,9 +394,8 @@ public sealed class GraphControl : Control
 
             // Disegna freccia direzionale su chiamate, eventi, istanziazioni o archi attivi/cross-project
             if ((isCalleeEdge || isCallerEdge || edge.IsCrossProject || edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.HandlesEvent) && _scale > 0.25)
-            {
+
                 DrawArrowHead(context, pen.Brush, p1, p2, target.Radius * Math.Clamp(_scale, 0.2, 2.5));
-            }
         }
 
         // 2. Disegna i NODI
@@ -445,25 +443,25 @@ public sealed class GraphControl : Control
                 var fontSize = node.Kind is SymbolKind.Method or SymbolKind.Property ? 10 : 12;
                 IBrush labelBrush;
                 if (isSelected)
-                {
+
                     labelBrush = _isDarkTheme ? Brushes.Gold : new SolidColorBrush(Color.Parse("#B36200"));
-                }
+
                 else if (_currentHighlightMode == HighlightMode.Callees)
-                {
-                    labelBrush = isCallee ? (_isDarkTheme ? new SolidColorBrush(Color.Parse("#00D0FF")) : new SolidColorBrush(Color.Parse("#0088CC"))) :
+
+    labelBrush = isCallee ? (_isDarkTheme ? new SolidColorBrush(Color.Parse("#00D0FF")) : new SolidColorBrush(Color.Parse("#0088CC"))) :
                                  (_calleeContainerIds.Contains(node.Id) ? _defaultLabelBrush : _dimmedLabelBrush);
-                }
-                else if (_currentHighlightMode == HighlightMode.Callers)
-                {
-                    labelBrush = isCaller ? (_isDarkTheme ? new SolidColorBrush(Color.Parse("#FF9933")) : new SolidColorBrush(Color.Parse("#E65C00"))) :
+
+else if (_currentHighlightMode == HighlightMode.Callers)
+
+    labelBrush = isCaller ? (_isDarkTheme ? new SolidColorBrush(Color.Parse("#FF9933")) : new SolidColorBrush(Color.Parse("#E65C00"))) :
                                  (_callerContainerIds.Contains(node.Id) ? _defaultLabelBrush : _dimmedLabelBrush);
-                }
-                else if (_currentHighlightMode == HighlightMode.BlastRadius)
-                {
-                    labelBrush = blastDepth.HasValue ? (_isDarkTheme ? Brushes.Gold : new SolidColorBrush(Color.Parse("#C06000"))) :
+
+else if (_currentHighlightMode == HighlightMode.BlastRadius)
+
+    labelBrush = blastDepth.HasValue ? (_isDarkTheme ? Brushes.Gold : new SolidColorBrush(Color.Parse("#C06000"))) :
                                  (isAffectedContainer ? _defaultLabelBrush : _dimmedLabelBrush);
-                }
-                else
+
+else
                 {
                     labelBrush = _defaultLabelBrush;
                 }
@@ -563,21 +561,19 @@ public sealed class GraphControl : Control
                 return BrushBlastTarget; // Rosso acceso = Target di modifica
 
             if (blastDepth.HasValue)
-            {
+
                 return blastDepth.Value switch
                 {
                     1 => BrushBlastDepth1, // Arancione = Chiamante diretto
                     2 => BrushBlastDepth2, // Ambra = Chiamante 2° livello
                     _ => BrushBlastDepth3  // Giallo chiaro = Chiamante 3°+ livello
                 };
-            }
 
             if (isAffectedContainer)
-            {
+
                 return node.Kind == SymbolKind.Form
                     ? BrushAffectedForm // Form UI toccata
                     : BrushAffectedContainer; // Classe/Modulo toccato
-            }
 
             // Nodi non impattati: attenuati
             return _isDarkTheme ? BrushDimmedDark : BrushDimmedLight;
@@ -597,14 +593,12 @@ public sealed class GraphControl : Control
             }
 
             if (node.IsContainer && _calleeContainerIds.Contains(node.Id))
-            {
+
                 return _isDarkTheme ? BrushContainerCalleeDark : BrushContainerCalleeLight;
-            }
 
             if (_selectedNode?.ParentId == node.Id)
-            {
+
                 return _isDarkTheme ? BrushContainerCurrentDark : BrushContainerCurrentLight;
-            }
 
             return _isDarkTheme ? BrushDimmedAltDark : BrushDimmedLight;
         }
@@ -623,14 +617,12 @@ public sealed class GraphControl : Control
             }
 
             if (node.IsContainer && _callerContainerIds.Contains(node.Id))
-            {
+
                 return _isDarkTheme ? BrushContainerCallerDark : BrushContainerCallerLight;
-            }
 
             if (_selectedNode?.ParentId == node.Id)
-            {
+
                 return _isDarkTheme ? BrushContainerCurrentDark : BrushContainerCurrentLight;
-            }
 
             return _isDarkTheme ? BrushDimmedAltDark : BrushDimmedLight;
         }
@@ -708,15 +700,13 @@ public sealed class GraphControl : Control
 
             // Se la categoria non è abilitata nel filtro e il nodo non è forzato/selezionato, non mostrarlo
             if (!isCategoryEnabled && !isForcedVisible)
-            {
+
                 continue;
-            }
 
             var parent = node.ParentId.HasValue ? graph.GetNode(node.ParentId.Value) : null;
             if (parent is { IsExpanded: true } || isForcedVisible || !node.ParentId.HasValue)
-            {
+
                 visible.Add(node.Id);
-            }
         }
         return visible;
     }
@@ -824,9 +814,8 @@ public sealed class GraphControl : Control
             if (_draggedNode != null)
             {
                 if (!_isNodeDragging && screenDistSq > PanThreshold * PanThreshold)
-                {
+
                     _isNodeDragging = true;
-                }
 
                 if (_isNodeDragging)
                 {
@@ -842,9 +831,8 @@ public sealed class GraphControl : Control
             else
             {
                 if (!_isPanning && screenDistSq > PanThreshold * PanThreshold)
-                {
+
                     _isPanning = true;
-                }
 
                 if (_isPanning)
                 {
@@ -866,9 +854,8 @@ public sealed class GraphControl : Control
             {
                 Cursor = new Cursor(StandardCursorType.Hand);
                 if (hit.Id != _selectedNode?.Id)
-                {
+
                     SelectNode(hit);
-                }
             }
             else
             {
@@ -887,9 +874,8 @@ public sealed class GraphControl : Control
     {
         base.OnPointerExited(e);
         if (!_isPointerDown)
-        {
+
             Cursor = Cursor.Default;
-        }
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
@@ -902,15 +888,14 @@ public sealed class GraphControl : Control
             if (_draggedNode != null)
             {
                 if (!_isNodeDragging)
-                {
+
                     SelectNode(_draggedNode);
-                }
+
                 else
                 {
                     if (_selectedNode?.Id != _draggedNode.Id)
-                    {
+
                         SelectNode(_draggedNode);
-                    }
                     NodeMoved?.Invoke(this, EventArgs.Empty);
                 }
             }
@@ -1041,16 +1026,15 @@ public sealed class GraphControl : Control
             _highlightedNodeIds.Add(node.Id);
 
             if (node.IsContainer)
-            {
+
                 node.IsExpanded = true;
-            }
+
             else if (node.ParentId.HasValue)
             {
                 var parent = graph.GetNode(node.ParentId.Value);
                 if (parent is not null)
-                {
+
                     parent.IsExpanded = true;
-                }
             }
 
             foreach (var edge in graph.Edges)
@@ -1092,15 +1076,13 @@ public sealed class GraphControl : Control
             foreach (var childNode in Graph.GetChildren(_selectedNode.Id))
             {
                 if (childNode.SemanticSymbol is not null && childNode.Kind is SymbolKind.Method or SymbolKind.Property)
-                {
+
                     symbolsToQuery.Add(childNode.SemanticSymbol);
-                }
             }
         }
         else if (_selectedNode.SemanticSymbol is not null)
-        {
-            symbolsToQuery.Add(_selectedNode.SemanticSymbol);
-        }
+
+    symbolsToQuery.Add(_selectedNode.SemanticSymbol);
 
         if (symbolsToQuery.Count == 0)
             return Array.Empty<Symbol>();
@@ -1126,9 +1108,8 @@ public sealed class GraphControl : Control
                     {
                         _callerContainerIds.Add(callerNode.ParentId.Value);
                         if (Graph.GetNode(callerNode.ParentId.Value) is { } parentNode)
-                        {
+
                             parentNode.IsExpanded = true;
-                        }
                     }
                 }
             }
@@ -1136,9 +1117,8 @@ public sealed class GraphControl : Control
 
         // Espandi il container padre del nodo selezionato se presente
         if (_selectedNode.ParentId.HasValue && Graph.GetNode(_selectedNode.ParentId.Value) is { } selParent)
-        {
+
             selParent.IsExpanded = true;
-        }
 
         _currentHighlightMode = HighlightMode.Callers;
         InvalidateVisual();
@@ -1165,15 +1145,13 @@ public sealed class GraphControl : Control
             foreach (var childNode in Graph.GetChildren(_selectedNode.Id))
             {
                 if (childNode.SemanticSymbol is not null && childNode.Kind is SymbolKind.Method or SymbolKind.Property)
-                {
+
                     symbolsToQuery.Add(childNode.SemanticSymbol);
-                }
             }
         }
         else if (_selectedNode.SemanticSymbol is not null)
-        {
-            symbolsToQuery.Add(_selectedNode.SemanticSymbol);
-        }
+
+    symbolsToQuery.Add(_selectedNode.SemanticSymbol);
 
         if (symbolsToQuery.Count == 0)
             return Array.Empty<Symbol>();
@@ -1199,9 +1177,8 @@ public sealed class GraphControl : Control
                     {
                         _calleeContainerIds.Add(calleeNode.ParentId.Value);
                         if (Graph.GetNode(calleeNode.ParentId.Value) is { } parentNode)
-                        {
+
                             parentNode.IsExpanded = true;
-                        }
                     }
                 }
             }
@@ -1209,9 +1186,8 @@ public sealed class GraphControl : Control
 
         // Espandi il container padre del nodo selezionato se presente
         if (_selectedNode.ParentId.HasValue && Graph.GetNode(_selectedNode.ParentId.Value) is { } selParent)
-        {
+
             selParent.IsExpanded = true;
-        }
 
         _currentHighlightMode = HighlightMode.Callees;
         InvalidateVisual();

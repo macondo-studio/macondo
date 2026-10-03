@@ -190,9 +190,8 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
                                   string.Equals(prefix, _moduleSymbol.Name, StringComparison.OrdinalIgnoreCase);
 
             if (isEventHandler)
-            {
+
                 LikelyEventHandlerNames.Add(name);
-            }
         }
 
         // 6. Imposta la Sub come nuovo container attivo ed estrae il corpo (variabili locali, ecc.)
@@ -318,9 +317,8 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             MergeParameters(symbol.Parameters, indexParams);
 
             if (symbol.DeclaredTypeName == null)
-            {
+
                 symbol.DeclaredTypeName = parameters[^1].DeclaredTypeName;
-            }
         }
 
         if (wasCreated)
@@ -353,9 +351,8 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
 
             // In VB6, se la Property non ha un Property Get, il suo tipo è quello dell'ultimo parametro del Let (il valore assegnato)
             if (symbol.DeclaredTypeName == null)
-            {
+
                 symbol.DeclaredTypeName = parameters[^1].DeclaredTypeName;
-            }
         }
 
         if (wasCreated)
@@ -387,19 +384,17 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
 
         // Determina l'accessibilità della riga di variabili
         if (context.DIM() is not null)
-        {
-            // Dim a livello di modulo è Private in VB6; all'interno di una routine è locale (Default)
+
             _currentVarAccessibility = CurrentContainer == _moduleSymbol ? Accessibility.Private : Accessibility.Default;
-        }
+
         else if (context.STATIC() is not null)
         {
             _currentVarAccessibility = Accessibility.Default;
             _currentVarIsStatic = true;
         }
         else if (context.visibility() is not null)
-        {
-            _currentVarAccessibility = GetAccessibility(context.visibility());
-        }
+
+    _currentVarAccessibility = GetAccessibility(context.visibility());
 
         // Visita i singoli elementi della lista (variableSubStmt)
         var result = base.VisitVariableStmt(context);
@@ -583,9 +578,8 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
     {
         var ifaceName = context.ambiguousIdentifier()?.GetText();
         if (!string.IsNullOrWhiteSpace(ifaceName))
-        {
+
             ImplementedInterfaces.Add((ifaceName, context.Start.Line));
-        }
         return null;
     }
 
@@ -603,9 +597,8 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
     {
         _containerStack.Push(container);
         if (body is not null)
-        {
+
             Visit(body);
-        }
         _containerStack.Pop();
     }
 
@@ -664,9 +657,8 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
         foreach (var p in incoming)
         {
             if (!target.Any(t => string.Equals(t.Name, p.Name, StringComparison.OrdinalIgnoreCase)))
-            {
+
                 target.Add(p);
-            }
         }
     }
 

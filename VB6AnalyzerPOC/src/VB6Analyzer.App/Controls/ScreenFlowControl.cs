@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -316,9 +316,9 @@ public sealed class ScreenFlowControl : Control
 
                     // Bordo ed evidenziazione
                     if (isSelected)
-                    {
+
                         context.DrawRectangle(new Pen(_selectedBorderBrush, 2.5), cardRect);
-                    }
+
                     else if (isMatch)
                     {
                         // Glow esterno e bordo evidenziato per ricerca
@@ -326,10 +326,10 @@ public sealed class ScreenFlowControl : Control
                         context.DrawRectangle(_highlightBorderPen, cardRect);
                     }
                     else if (isHovered)
-                    {
-                        context.DrawRectangle(new Pen(Brushes.White, 1.5), cardRect);
-                    }
-                    else
+
+    context.DrawRectangle(new Pen(Brushes.White, 1.5), cardRect);
+
+else
                     {
                         context.DrawRectangle(new Pen(_cardBorderBrush, 1.0), cardRect);
                     }
@@ -420,9 +420,8 @@ public sealed class ScreenFlowControl : Control
         {
             var delta = pos - _pointerDownScreenPos;
             if (!_isPanning && (Math.Abs(delta.X) > PanThreshold || Math.Abs(delta.Y) > PanThreshold))
-            {
+
                 _isPanning = true;
-            }
 
             if (_isPanning)
             {

@@ -69,9 +69,8 @@ public partial class UpdateModalView : UserControl
     private void OnUpdateNowClicked(object? sender, RoutedEventArgs e)
     {
         if (_availableUpdate != null)
-        {
+
             UpdateNowRequested?.Invoke(this, _availableUpdate);
-        }
     }
 
     private void OnUpdateLaterClicked(object? sender, RoutedEventArgs e)

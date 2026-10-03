@@ -94,9 +94,8 @@ public static class ModuleExtractor
 
         // Aggiorna la riga finale del modulo in base all'ultimo token dell'albero se disponibile
         if (tree?.Stop?.Line is int stopLine and > 0)
-        {
+
             moduleSymbol.LineEnd = stopLine;
-        }
 
         // 6. Esegue il SymbolExtractor sul parse tree per estrarre routine, proprietà, variabili, costanti, ecc.
         // Esecuzione resiliente (best-effort): estrae comunque tutti i simboli validi dal parse tree anche

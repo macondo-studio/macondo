@@ -151,9 +151,8 @@ public sealed class MaintainabilityControl : UserControl
     {
         base.OnPropertyChanged(change);
         if (change.Property == DatasetProperty)
-        {
+
             OnDatasetChanged(change.GetNewValue<MaintainabilityDataset?>());
-        }
     }
 
     private static Border CreateKpiCard(string title, out TextBlock valueBlock, string accentHex)

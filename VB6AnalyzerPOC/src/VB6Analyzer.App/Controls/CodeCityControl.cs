@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -104,9 +104,8 @@ public sealed class CodeCityControl : Control
                 BuildingSelected?.Invoke(this, _selectedBuilding);
 
                 if (e.ClickCount == 2)
-                {
+
                     BuildingDoubleTapped?.Invoke(this, _selectedBuilding);
-                }
                 InvalidateVisual();
             }
             else
@@ -202,9 +201,8 @@ public sealed class CodeCityControl : Control
 
         // 5. Tooltip di dettaglio su hover
         if (_hoveredBuilding != null)
-        {
+
             RenderTooltip(context, bounds, _hoveredBuilding);
-        }
     }
 
     private void RenderKpiHeader(DrawingContext context, Rect bounds, CodeCityDataset dataset)

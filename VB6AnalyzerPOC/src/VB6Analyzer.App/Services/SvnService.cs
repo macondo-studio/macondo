@@ -40,9 +40,8 @@ public sealed class SvnService
             {
                 var svnPath = Path.Combine(dir.FullName, ".svn");
                 if (Directory.Exists(svnPath) || File.Exists(svnPath))
-                {
+
                     return dir.FullName;
-                }
                 dir = dir.Parent;
             }
         }
@@ -88,23 +87,21 @@ public sealed class SvnService
             foreach (var line in lines)
             {
                 if (line.StartsWith("Relative URL:", StringComparison.OrdinalIgnoreCase))
-                {
+
                     relativeUrl = line.Substring("Relative URL:".Length).Trim();
-                }
+
                 else if (line.StartsWith("URL:", StringComparison.OrdinalIgnoreCase))
-                {
-                    url = line.Substring("URL:".Length).Trim();
-                }
-                else if (line.StartsWith("Repository Root:", StringComparison.OrdinalIgnoreCase))
-                {
-                    repoRoot = line.Substring("Repository Root:".Length).Trim();
-                }
+
+    url = line.Substring("URL:".Length).Trim();
+
+else if (line.StartsWith("Repository Root:", StringComparison.OrdinalIgnoreCase))
+
+    repoRoot = line.Substring("Repository Root:".Length).Trim();
             }
 
             if (!string.IsNullOrEmpty(relativeUrl))
-            {
+
                 return SimplifySvnRelativeUrl(relativeUrl);
-            }
 
             if (!string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(repoRoot) && url.StartsWith(repoRoot, StringComparison.OrdinalIgnoreCase))
             {
@@ -113,9 +110,8 @@ public sealed class SvnService
             }
 
             if (!string.IsNullOrEmpty(url))
-            {
+
                 return Path.GetFileName(url.TrimEnd('/'));
-            }
         }
 
         return "SVN";
@@ -194,14 +190,13 @@ public sealed class SvnService
 
         // Se la lista è ancora vuota ma siamo in un repo SVN, offri almeno il branch corrente
         if (branches.Count == 0 && !string.IsNullOrEmpty(currentBranchName))
-        {
+
             branches.Add(new SvnBranchInfo
             {
                 Name = currentBranchName,
                 TargetUrl = currentBranchName.StartsWith("^/") ? currentBranchName : $"^/{currentBranchName}",
                 IsCurrent = true
             });
-        }
 
         return branches.OrderByDescending(b => b.IsCurrent)
                        .ThenBy(b => b.Name.Equals("trunk", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
@@ -216,18 +211,17 @@ public sealed class SvnService
     {
         var root = FindSvnRoot(folderPath);
         if (root == null)
-        {
+
             return (false, "Cartella non appartenente a una copia di lavoro SVN.");
-        }
 
         var target = targetUrlOrName.Trim();
         if (!target.StartsWith("^/") && !target.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
             !target.StartsWith("https://", StringComparison.OrdinalIgnoreCase) && !target.StartsWith("svn://", StringComparison.OrdinalIgnoreCase))
         {
             if (string.Equals(target, "trunk", StringComparison.OrdinalIgnoreCase))
-            {
+
                 target = "^/trunk";
-            }
+
             else
             {
                 target = $"^/branches/{target}";
@@ -238,15 +232,13 @@ public sealed class SvnService
         {
             var (exitCode, stdout, stderr) = RunSvnCommand(root, $"switch \"{target}\" --non-interactive", timeoutMs: 30000);
             if (exitCode == 0)
-            {
+
                 return (true, null);
-            }
 
             var err = !string.IsNullOrWhiteSpace(stderr) ? stderr : stdout;
             if (string.IsNullOrWhiteSpace(err))
-            {
+
                 err = $"svn switch è terminato con codice di errore {exitCode}.";
-            }
             return (false, err.Trim());
         });
     }
@@ -258,20 +250,18 @@ public sealed class SvnService
     {
         var clean = relativeUrl.Trim();
         if (clean.StartsWith("^/"))
-        {
+
             clean = clean.Substring(2);
-        }
+
         else if (clean.StartsWith("^"))
-        {
-            clean = clean.Substring(1);
-        }
+
+    clean = clean.Substring(1);
 
         clean = clean.TrimStart('/');
 
         if (clean.StartsWith("branches/", StringComparison.OrdinalIgnoreCase))
-        {
+
             return clean.Substring("branches/".Length);
-        }
 
         return clean;
     }

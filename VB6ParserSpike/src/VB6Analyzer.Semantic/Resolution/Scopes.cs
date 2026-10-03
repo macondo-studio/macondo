@@ -43,9 +43,8 @@ public sealed class ProjectScope : IScope
             {
                 _projectTypes[symbol.Name] = symbol;
                 if (!string.IsNullOrEmpty(symbol.QualifiedName) && !symbol.QualifiedName.Equals(symbol.Name, StringComparison.OrdinalIgnoreCase))
-                {
+
                     _projectTypes[symbol.QualifiedName] = symbol;
-                }
             }
         }
 
@@ -94,18 +93,17 @@ public sealed class ProjectScope : IScope
                 };
             }
             if (basMemberList.Count > 1)
-            {
+
                 return new ResolutionResult
                 {
                     Confidence = ResolutionConfidence.Ambiguous,
                     Details = $"Simbolo '{name}' ambiguo: definito in più moduli standard .bas ({string.Join(", ", basMemberList.Select(m => m.QualifiedName))})"
                 };
-            }
         }
 
         // 2. Cerca tra i tipi di progetto (es. "Customer", "Address")
         if (_projectTypes.TryGetValue(name, out var typeSymbol))
-        {
+
             return new ResolutionResult
             {
                 TargetSymbol = typeSymbol,
@@ -113,19 +111,17 @@ public sealed class ProjectScope : IScope
                 TargetTypeName = typeSymbol.DeclaredTypeName,
                 ResolvedTypeSymbolId = typeSymbol.ResolvedTypeSymbolId
             };
-        }
 
         // 3. Verifica se è un tipo primitivo standard
         var typeInfo = _typeResolver.ResolveType(name);
         if (typeInfo.IsPrimitive)
-        {
+
             return new ResolutionResult
             {
                 Confidence = ResolutionConfidence.Unknown,
                 TargetTypeName = typeInfo.Name,
                 Details = $"Tipo primitivo VB6: {name}"
             };
-        }
 
         return new ResolutionResult
         {
@@ -185,7 +181,7 @@ public sealed class ModuleScope : IScope
     {
         // 1. Keyword Me: si riferisce all'istanza della classe/form corrente
         if (string.Equals(name, "Me", StringComparison.OrdinalIgnoreCase))
-        {
+
             return new ResolutionResult
             {
                 TargetSymbol = _moduleSymbol,
@@ -193,11 +189,10 @@ public sealed class ModuleScope : IScope
                 TargetTypeName = _moduleSymbol.Name,
                 ResolvedTypeSymbolId = _moduleSymbol.Id
             };
-        }
 
         // 2. Membri del modulo corrente (campi, costanti, metodi, proprietà)
         if (_members.TryGetValue(name, out var member))
-        {
+
             return new ResolutionResult
             {
                 TargetSymbol = member,
@@ -205,7 +200,6 @@ public sealed class ModuleScope : IScope
                 TargetTypeName = member.DeclaredTypeName,
                 ResolvedTypeSymbolId = member.ResolvedTypeSymbolId
             };
-        }
 
         // 3. Deferisce allo scope di progetto per membri globali .bas o tipi
         return _projectScope.Resolve(name);
@@ -263,9 +257,8 @@ public sealed class LocalScope : IScope
         foreach (var child in _graph.GetChildren(_routineSymbol.Id))
         {
             if (child.Kind is SymbolKind.Field or SymbolKind.Constant)
-            {
+
                 _localVariables[child.Name] = child;
-            }
         }
     }
 
@@ -276,7 +269,7 @@ public sealed class LocalScope : IScope
     {
         // 1. Variabili locali (Dim / Static)
         if (_localVariables.TryGetValue(name, out var localVar))
-        {
+
             return new ResolutionResult
             {
                 TargetSymbol = localVar,
@@ -284,11 +277,10 @@ public sealed class LocalScope : IScope
                 TargetTypeName = localVar.DeclaredTypeName,
                 ResolvedTypeSymbolId = localVar.ResolvedTypeSymbolId
             };
-        }
 
         // 2. Parametri formali
         if (_parameters.TryGetValue(name, out var param))
-        {
+
             return new ResolutionResult
             {
                 TargetParameter = param,
@@ -296,11 +288,10 @@ public sealed class LocalScope : IScope
                 TargetTypeName = param.DeclaredTypeName,
                 ResolvedTypeSymbolId = param.ResolvedTypeSymbolId
             };
-        }
 
         // 3. Assegnazione al nome della funzione stessa per il valore di ritorno (es. "CalculateTotal = 42")
         if (string.Equals(name, _routineSymbol.Name, StringComparison.OrdinalIgnoreCase))
-        {
+
             return new ResolutionResult
             {
                 TargetSymbol = _routineSymbol,
@@ -308,7 +299,6 @@ public sealed class LocalScope : IScope
                 TargetTypeName = _routineSymbol.DeclaredTypeName,
                 ResolvedTypeSymbolId = _routineSymbol.ResolvedTypeSymbolId
             };
-        }
 
         // 4. Deferisce allo scope genitore (ModuleScope o WithScope sovrastante)
         return _parentScope.Resolve(name);
@@ -371,27 +361,26 @@ public sealed class WithScope : IScope
         if (_targetResult.Confidence == ResolutionConfidence.Unknown ||
             string.Equals(_targetResult.TargetTypeName, "Object", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(_targetResult.TargetTypeName, "Variant", StringComparison.OrdinalIgnoreCase))
-        {
+
             return new ResolutionResult
             {
                 Confidence = ResolutionConfidence.Unknown,
                 Details = $"Late binding contestuale su blocco With con target dinamico/sconosciuto ({_targetResult})"
             };
-        }
 
         // 2. Risolve il tipo target associato all'espressione del With
         Symbol? targetTypeSymbol = _targetResult.TargetSymbol;
         if (targetTypeSymbol == null && _targetResult.ResolvedTypeSymbolId.HasValue)
-        {
+
             targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == _targetResult.ResolvedTypeSymbolId.Value);
-        }
+
         else if (targetTypeSymbol != null && targetTypeSymbol.Kind != SymbolKind.Class && targetTypeSymbol.Kind != SymbolKind.Form && targetTypeSymbol.Kind != SymbolKind.Type)
         {
             // Se targetSymbol è una variabile o parametro, recupera il tipo risolto della variabile
             if (targetTypeSymbol.ResolvedTypeSymbolId.HasValue)
-            {
+
                 targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == targetTypeSymbol.ResolvedTypeSymbolId.Value);
-            }
+
             else if (targetTypeSymbol.DeclaredTypeName != null)
             {
                 var typeInfo = _typeResolver.ResolveType(targetTypeSymbol.DeclaredTypeName);
@@ -406,7 +395,7 @@ public sealed class WithScope : IScope
                 .FirstOrDefault(m => string.Equals(m.Name, memberName, StringComparison.OrdinalIgnoreCase));
 
             if (member != null)
-            {
+
                 return new ResolutionResult
                 {
                     TargetSymbol = member,
@@ -414,7 +403,6 @@ public sealed class WithScope : IScope
                     TargetTypeName = member.DeclaredTypeName,
                     ResolvedTypeSymbolId = member.ResolvedTypeSymbolId
                 };
-            }
 
             return new ResolutionResult
             {

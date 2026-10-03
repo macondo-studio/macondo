@@ -118,9 +118,8 @@ public static class CSharpExtractor
         foreach (var diag in syntaxTree.GetDiagnostics())
         {
             if (diag.Severity == DiagnosticSeverity.Error)
-            {
+
                 errors.Add(diag.ToString());
-            }
         }
 
         // 3. Esecuzione del walker specializzato per l'estrazione gerarchica dei simboli e delle relazioni
@@ -585,11 +584,10 @@ public static class CSharpExtractor
                 }
                 // Caso 2: Invocazione diretta di metodo locale/ereditato (es. 'DoSomething()')
                 else if (node.Expression is IdentifierNameSyntax identifier)
-                {
-                    methodName = identifier.Identifier.ValueText;
-                }
-                // Caso 3: Invocazioni complesse o su delegati (es. 'actions[0]()')
-                else
+
+    methodName = identifier.Identifier.ValueText;
+
+else
                 {
                     methodName = node.Expression.ToString();
                 }

@@ -110,18 +110,16 @@ public partial class ProjectExplorerView : UserControl
     private void OnExplorerDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (ExplorerTree.SelectedItem is ExplorerTreeItem item)
-        {
+
             ItemDoubleTapped?.Invoke(this, item);
-        }
     }
 
     private void OnExplorerOpenItemButtonClick(object? sender, RoutedEventArgs e)
     {
         var item = GetExplorerItemFromSender(sender);
         if (item != null)
-        {
+
             OpenFileRequested?.Invoke(this, item);
-        }
     }
 
     private void OnProjectsSelectAllClicked(object? sender, RoutedEventArgs e)
@@ -132,36 +130,32 @@ public partial class ProjectExplorerView : UserControl
     private void OnExplorerProjectCheckBoxClick(object? sender, RoutedEventArgs e)
     {
         if (sender is CheckBox cb && cb.CommandParameter is ExplorerTreeItem item)
-        {
+
             ProjectVisibilityChanged?.Invoke(this, item);
-        }
     }
 
     private void OnExplorerContextMenuOpenFile(object? sender, RoutedEventArgs e)
     {
         var item = GetExplorerItemFromSender(sender);
         if (item != null && !item.IsGroup && item.HasFile)
-        {
+
             OpenFileRequested?.Invoke(this, item);
-        }
     }
 
     private void OnExplorerContextMenuOpenFolder(object? sender, RoutedEventArgs e)
     {
         var item = GetExplorerItemFromSender(sender);
         if (item != null && !item.IsGroup && item.HasFile)
-        {
+
             OpenFolderRequested?.Invoke(this, item);
-        }
     }
 
     private void OnExplorerContextMenuCopyPath(object? sender, RoutedEventArgs e)
     {
         var item = GetExplorerItemFromSender(sender);
         if (item != null && !item.IsGroup && item.HasFile)
-        {
+
             CopyPathRequested?.Invoke(this, item);
-        }
     }
 
     private void OnExplorerTreePointerPressed(object? sender, PointerPressedEventArgs e)
@@ -172,9 +166,8 @@ public partial class ProjectExplorerView : UserControl
             var visual = e.Source as Visual;
             var tvi = visual?.FindAncestorOfType<TreeViewItem>();
             if (tvi?.DataContext is ExplorerTreeItem item)
-            {
+
                 ExplorerTree.SelectedItem = item;
-            }
         }
     }
 

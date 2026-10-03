@@ -47,18 +47,16 @@ public sealed class ImpactAnalyzer
 
         // 1. Se il simbolo è una routine (Metodo, Funzione o Proprietà), calcola il blast radius basato sul Call Graph
         if (target.Kind is SymbolKind.Method or SymbolKind.Property)
-        {
+
             return AnalyzeRoutineImpact(target, maxDepth, cancellationToken);
-        }
 
         // 2. Se il simbolo è un tipo composito, interfaccia o modulo (Classe, Interfaccia, Struct, Record, Form, Modulo, UserControl, UDT, Enum),
         //    aggrega l'impatto di tutti i suoi membri e delle istanziazioni / dipendenze di tipo / implementazioni / ereditarietà
         if (target.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module
                          or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum
                          or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
-        {
+
             return AnalyzeTypeImpact(target, maxDepth, cancellationToken);
-        }
 
         // 3. Se il target è un campo, variabile o costante, individua il container contenitore
         //    e trova tutti i simboli esterni che dipendono direttamente dal tipo del membro
@@ -100,9 +98,8 @@ public sealed class ImpactAnalyzer
 
         // Inizializza il raggruppamento per profondità 1
         if (directCallers.Count > 0)
-        {
+
             callersByDepth[1] = new List<Symbol>(directCallers);
-        }
 
         // 2. Esegue una visita BFS all'indietro per calcolare tutti i chiamanti transitivi (Depth > 1)
         //    Mantiene un set di ID visitati per prevenire loop in presenza di ricorsione o cicli nel grafo
@@ -176,9 +173,8 @@ public sealed class ImpactAnalyzer
         // Se la routine stessa risiede in un container, include anche il suo container nativo tra i componenti impattati
         var routineContainer = FindEnclosingContainer(routine);
         if (routineContainer != null && !affectedContainers.Any(c => c.Id == routineContainer.Id))
-        {
+
             affectedContainers.Add(routineContainer);
-        }
 
         var affectedForms = affectedContainers.Where(c => c.Kind == SymbolKind.Form).ToList();
         var affectedClasses = affectedContainers.Where(c => c.Kind == SymbolKind.Class).ToList();
@@ -277,9 +273,8 @@ public sealed class ImpactAnalyzer
             foreach (var ic in memberReport.IndirectCallers)
             {
                 if (!directCallersSet.Contains(ic.Symbol.Id) && indirectCallersList.All(x => x.Symbol.Id != ic.Symbol.Id))
-                {
+
                     indirectCallersList.Add(ic);
-                }
             }
 
             maxDepthFound = Math.Max(maxDepthFound, memberReport.MaxDependencyDepth);
@@ -370,9 +365,8 @@ public sealed class ImpactAnalyzer
         if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module
                         or SymbolKind.UserControl or SymbolKind.Project
                         or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
-        {
+
             return symbol;
-        }
 
         // Cerca la relazione genitore CONTAINS (Source CONTAINS Target)
         var parentRel = _graph.Relationships
