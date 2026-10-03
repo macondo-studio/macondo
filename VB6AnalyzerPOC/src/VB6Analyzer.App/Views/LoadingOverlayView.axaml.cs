@@ -42,21 +42,61 @@ public partial class LoadingOverlayView : UserControl
     /// <summary>
     /// Aggiorna i valori di avanzamento e i dettagli numerici della barra di caricamento.
     /// </summary>
-    public void UpdateProgress(int current, int total, string countText, string statsText, string? timeText = null)
+    public void UpdateProgress(int current, int total, string countText, string statsText, string? timeText = null, string? subtitle = null)
     {
-        LoadingProgressBar.IsIndeterminate = false;
+        if (subtitle != null && LoadingSubtitle.Text != subtitle)
+        {
+            LoadingSubtitle.Text = subtitle;
+        }
+
+        if (LoadingProgressBar.IsIndeterminate)
+        {
+            LoadingProgressBar.IsIndeterminate = false;
+        }
+
+        var max = total > 0 ? total : 100;
+        if (LoadingProgressBar.Maximum != max)
+        {
+            LoadingProgressBar.Maximum = max;
+        }
         LoadingProgressBar.Minimum = 0;
-        LoadingProgressBar.Maximum = total > 0 ? total : 100;
         LoadingProgressBar.Value = current;
 
-        LoadingProgressCount.Text = countText;
-        LoadingProgressCount.IsVisible = !string.IsNullOrEmpty(countText);
+        if (LoadingProgressCount.Text != countText)
+        {
+            LoadingProgressCount.Text = countText;
+        }
+        var showCount = !string.IsNullOrEmpty(countText);
+        if (LoadingProgressCount.IsVisible != showCount)
+        {
+            LoadingProgressCount.IsVisible = showCount;
+        }
 
-        LoadingProgressStats.Text = statsText;
-        LoadingProgressStats.IsVisible = !string.IsNullOrEmpty(statsText);
+        if (LoadingProgressStats.Text != statsText)
+        {
+            LoadingProgressStats.Text = statsText;
+        }
+        var showStats = !string.IsNullOrEmpty(statsText);
+        if (LoadingProgressStats.IsVisible != showStats)
+        {
+            LoadingProgressStats.IsVisible = showStats;
+        }
 
-        LoadingProgressTime.Text = timeText ?? string.Empty;
-        LoadingProgressTime.IsVisible = !string.IsNullOrEmpty(timeText);
+        var timeStr = timeText ?? string.Empty;
+        if (LoadingProgressTime.Text != timeStr)
+        {
+            LoadingProgressTime.Text = timeStr;
+        }
+        var showTime = !string.IsNullOrEmpty(timeStr);
+        if (LoadingProgressTime.IsVisible != showTime)
+        {
+            LoadingProgressTime.IsVisible = showTime;
+        }
+
+        if (!IsVisible)
+        {
+            IsVisible = true;
+        }
     }
 
     /// <summary>

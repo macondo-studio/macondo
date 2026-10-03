@@ -686,11 +686,7 @@ public partial class MainWindow : Window
         string? statsText = null,
         string? timeText = null)
     {
-        if (subtitle != null)
-        {
-            LoadingOverlayControl.Show(LoadingOverlayControl.LoadingTitle.Text ?? string.Empty, subtitle, LoadingOverlayControl.LoadingCancelButton.IsVisible, timeText);
-        }
-        LoadingOverlayControl.UpdateProgress((int)current, (int)total, countText ?? string.Empty, statsText ?? string.Empty, timeText);
+        LoadingOverlayControl.UpdateProgress((int)current, (int)total, countText ?? string.Empty, statsText ?? string.Empty, timeText, subtitle);
     }
 
     /// <summary>
