@@ -784,8 +784,8 @@ public partial class MainWindow : Window
             var countStr = localizationService.Get("Loading_FilesProgressFormat", p.CurrentFileIndex, p.TotalFiles, (int)p.Percentage);
             var statsStr = localizationService.Get("Loading_NodesExtractedFormat", p.ExtractedNodesCount);
             var timeStr = p.EstimatedRemainingSeconds.HasValue
-                ? localizationService.Get("Loading_TimeRemainingFormat", p.EstimatedRemainingSeconds.Value)
-                : (p.EstimatedTotalSeconds.HasValue ? localizationService.Get("Loading_TimeEstimatedFormat", p.EstimatedTotalSeconds.Value) : null);
+                ? localizationService.FormatRemainingTime(p.EstimatedRemainingSeconds.Value)
+                : (p.EstimatedTotalSeconds.HasValue ? localizationService.FormatEstimatedTime(p.EstimatedTotalSeconds.Value) : null);
             UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr, timeStr);
         });
 
@@ -1047,8 +1047,8 @@ public partial class MainWindow : Window
                 var countStr = localizationService.Get("Loading_FilesProgressFormat", p.CurrentFileIndex, p.TotalFiles, (int)p.Percentage);
                 var statsStr = localizationService.Get("Loading_NodesExtractedFormat", p.ExtractedNodesCount);
                 var timeStr = p.EstimatedRemainingSeconds.HasValue
-                    ? localizationService.Get("Loading_TimeRemainingFormat", p.EstimatedRemainingSeconds.Value)
-                    : (p.EstimatedTotalSeconds.HasValue ? localizationService.Get("Loading_TimeEstimatedFormat", p.EstimatedTotalSeconds.Value) : null);
+                    ? localizationService.FormatRemainingTime(p.EstimatedRemainingSeconds.Value)
+                    : (p.EstimatedTotalSeconds.HasValue ? localizationService.FormatEstimatedTime(p.EstimatedTotalSeconds.Value) : null);
                 UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr, timeStr);
             });
 
@@ -2219,6 +2219,56 @@ public partial class MainWindow : Window
         _analyticsCts = new CancellationTokenSource();
         SetAllAnalyticsPlaceholdersPending();
         StartBackgroundAnalyticsPrecomputation(_analyticsCts.Token);
+    }
+
+    /// <summary>
+    /// Gestisce il click sul pulsante di arresto delle analisi in background nella barra di stato inferiore.
+    /// </summary>
+    private void OnBackgroundAnalyticsStopButtonClicked(object? sender, RoutedEventArgs e)
+    {
+        StopBackgroundAnalytics();
+    }
+
+    /// <summary>
+    /// Interrompe l'elaborazione delle analisi in background e reimposta i placeholder delle schede non ancora completate in attesa.
+    /// </summary>
+    private void StopBackgroundAnalytics()
+    {
+        _analyticsCts?.Cancel();
+        if (BackgroundAnalyticsPanel != null)
+        {
+            BackgroundAnalyticsPanel.IsVisible = false;
+        }
+
+        // Reimposta lo stato dei placeholder per tutte le schede ancora dirty (non calcolate)
+        void ResetIfDirty(AnalyticsPlaceholderControl? placeholder, TabItem? tabItem)
+        {
+            if (placeholder != null && tabItem != null && _dirtyAnalyticsTabs.Contains(tabItem))
+            {
+                placeholder.SetState(isPending: true, isComputing: false);
+            }
+        }
+
+        ResetIfDirty(DsmPlaceholder, DsmTabItem);
+        ResetIfDirty(TreemapPlaceholder, TreemapTabItem);
+        ResetIfDirty(HotspotPlaceholder, HotspotTabItem);
+        ResetIfDirty(ScreenFlowPlaceholder, ScreenFlowTabItem);
+        ResetIfDirty(MartinPlaceholder, MartinTabItem);
+        ResetIfDirty(DeadCodePlaceholder, DeadCodeTabItem);
+        ResetIfDirty(SharedStatePlaceholder, SharedStateTabItem);
+        ResetIfDirty(TemporalCouplingPlaceholder, TemporalCouplingTabItem);
+        ResetIfDirty(ArchitecturalFlowPlaceholder, ArchitecturalFlowTabItem);
+        ResetIfDirty(CodeCityPlaceholder, CodeCityTabItem);
+        ResetIfDirty(CohesionPlaceholder, CohesionTabItem);
+        ResetIfDirty(MaintainabilityPlaceholder, MaintainabilityTabItem);
+        ResetIfDirty(ArchitecturalRulesPlaceholder, ArchitecturalRulesTabItem);
+        ResetIfDirty(CodeClonePlaceholder, CodeCloneTabItem);
+        ResetIfDirty(SocialCodePlaceholder, SocialCodeTabItem);
+        ResetIfDirty(DataFlowPlaceholder, DataFlowTabItem);
+        ResetIfDirty(ApiDiffPlaceholder, ApiDiffTabItem);
+        ResetIfDirty(CrudMatrixPlaceholder, CrudMatrixTabItem);
+
+        StatusText.Text = LocalizationService.Instance["Status_BackgroundAnalyticsStopped"];
     }
 
     /// <summary>
@@ -5828,6 +5878,7 @@ public partial class MainWindow : Window
 
         // Refresh dynamic strings in Grid and Status
         UpdateStatsBar();
+        ToolTip.SetTip(BackgroundAnalyticsStopButton, localizationService["Tooltip_StopBackgroundAnalytics"]);
         if (_selectedNode == null)
         {
             StatusText.Text = localizationService["Status_Ready"];

@@ -844,6 +844,8 @@ public sealed class LocalizationService
         ["General_Routines"] = "Routine",
         ["Status_BackgroundAnalyticsProgress"] = "Analisi viste... {0}/{1} (~{2:0.0}s)",
         ["Status_BackgroundAnalyticsCompleted"] = "Analisi completata",
+        ["Status_BackgroundAnalyticsStopped"] = "Analisi in background interrotte.",
+        ["Tooltip_StopBackgroundAnalytics"] = "Interrompi analisi in background",
 
         // Blast Radius Grid
         ["Grid_Calculating"] = "Calcolo matrice di impatto in corso ({0} routine)...",
@@ -1920,6 +1922,8 @@ public sealed class LocalizationService
         ["General_Routines"] = "Routines",
         ["Status_BackgroundAnalyticsProgress"] = "Background analysis... {0}/{1} (~{2:0.0}s)",
         ["Status_BackgroundAnalyticsCompleted"] = "Analysis completed",
+        ["Status_BackgroundAnalyticsStopped"] = "Background analysis stopped.",
+        ["Tooltip_StopBackgroundAnalytics"] = "Stop background analysis",
 
         // Blast Radius Grid
         ["Grid_Calculating"] = "Calculating impact matrix ({0} routines)...",
@@ -2208,6 +2212,40 @@ public sealed class LocalizationService
     };
 
     public string this[string key] => Get(key);
+
+    /// <summary>
+    /// Formatta una durata rimanente in secondi in modo user-friendly (es. "~1.5s rimanenti" o "~2m 15s rimanenti").
+    /// </summary>
+    public string FormatRemainingTime(double seconds)
+    {
+        var roundedSec = Math.Max(0.1, Math.Round(seconds, 1));
+        if (roundedSec < 60)
+        {
+            return Get("Loading_TimeRemainingFormat", roundedSec);
+        }
+        var mins = (int)(roundedSec / 60);
+        var secs = (int)(roundedSec % 60);
+        return CurrentLanguage == AppLanguage.English
+            ? $"~{mins}m {secs:D2}s remaining"
+            : $"~{mins}m {secs:D2}s rimanenti";
+    }
+
+    /// <summary>
+    /// Formatta una stima temporale totale in secondi (es. "Tempo stimato: ~12.5s" o "Tempo stimato: ~1m 30s").
+    /// </summary>
+    public string FormatEstimatedTime(double seconds)
+    {
+        var roundedSec = Math.Max(0.1, Math.Round(seconds, 1));
+        if (roundedSec < 60)
+        {
+            return Get("Loading_TimeEstimatedFormat", roundedSec);
+        }
+        var mins = (int)(roundedSec / 60);
+        var secs = (int)(roundedSec % 60);
+        return CurrentLanguage == AppLanguage.English
+            ? $"Estimated time: ~{mins}m {secs:D2}s"
+            : $"Tempo stimato: ~{mins}m {secs:D2}s";
+    }
 
     /// <summary>
     /// Rileva automaticamente la lingua da impostare in base alla lingua e impostazioni regionali di sistema.

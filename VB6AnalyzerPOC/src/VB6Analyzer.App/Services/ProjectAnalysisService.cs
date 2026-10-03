@@ -42,17 +42,17 @@ public static class ProjectAnalysisService
         if (totalFiles <= 0) return 0.5;
 
         var cpuCores = Math.Max(1, Environment.ProcessorCount);
-        // Fattore di parallelismo reale (con scaling sub-lineare per saturazione I/O e thread contention)
-        var parallelFactor = Math.Max(1.0, Math.Min(cpuCores * 0.75, 8.0));
+        // Fattore di parallelismo reale (scaling sub-lineare per saturazione I/O e thread contention con Antlr)
+        var parallelFactor = Math.Max(1.0, Math.Min(cpuCores * 0.7, 8.0));
 
-        // 1. Parsing AST parallelo (~12ms per file distribuito sui core di elaborazione)
-        var parseTime = (totalFiles * 0.012) / parallelFactor;
+        // 1. Parsing AST parallelo (~220ms di CPU time per file sorgente VB6/C# reale)
+        var parseTime = (totalFiles * 0.22) / parallelFactor;
 
-        // 2. Risoluzione semantica globale dei tipi e costruzione del Call Graph (~3.5ms per file)
-        var resolutionTime = 0.25 + (totalFiles * 0.0035);
+        // 2. Risoluzione semantica globale dei tipi e costruzione del Call Graph (~25ms per file)
+        var resolutionTime = 0.5 + (totalFiles * 0.025);
 
         // 3. Overhead fisso di allocazione memoria e adattatore visuale per Avalonia
-        var totalEstimated = 0.2 + parseTime + resolutionTime;
+        var totalEstimated = 0.5 + parseTime + resolutionTime;
 
         return Math.Max(0.5, Math.Round(totalEstimated, 1));
     }
@@ -171,18 +171,36 @@ public static class ProjectAnalysisService
                 Interlocked.Exchange(ref lastReportTicks, nowTicks);
 
                 var elapsedSec = analysisStopwatch.Elapsed.TotalSeconds;
-                var ratio = totalFiles > 0 ? (double)currentDone / totalFiles : 0.0;
                 double remainingSec;
-                if (ratio > 0.05 && elapsedSec > 0.08)
+
+                if (currentDone >= 2 && elapsedSec > 0.15)
                 {
-                    var measuredTotal = elapsedSec / ratio;
-                    var blendedTotal = (estimatedTotalSeconds * (1.0 - ratio)) + (measuredTotal * ratio);
-                    remainingSec = Math.Max(0.1, Math.Round(blendedTotal - elapsedSec, 1));
+                    var measuredRatePerFile = elapsedSec / currentDone;
+                    var remainingFiles = totalFiles - currentDone;
+                    var remainingParseSec = remainingFiles * measuredRatePerFile;
+                    // Il post-processing (TypeResolver, CallGraph, VisualGraph) richiede circa il 25% del tempo di parsing dell'intero workspace
+                    var estimatedPostProcessSec = Math.Max(0.4, (totalFiles * measuredRatePerFile) * 0.25);
+
+                    var dynamicRemaining = remainingParseSec + estimatedPostProcessSec;
+
+                    // Per i primi file, esegue un blending morbido con la stima euristica iniziale per evitare picchi
+                    if (currentDone < 6)
+                    {
+                        var weight = currentDone / 6.0;
+                        var initialRemaining = Math.Max(0.5, estimatedTotalSeconds - elapsedSec);
+                        remainingSec = (initialRemaining * (1.0 - weight)) + (dynamicRemaining * weight);
+                    }
+                    else
+                    {
+                        remainingSec = dynamicRemaining;
+                    }
                 }
                 else
                 {
-                    remainingSec = Math.Max(0.1, Math.Round(estimatedTotalSeconds - elapsedSec, 1));
+                    remainingSec = Math.Max(0.5, estimatedTotalSeconds - elapsedSec);
                 }
+
+                remainingSec = Math.Max(0.1, Math.Round(remainingSec, 1));
 
                 progress?.Report(new ProjectAnalysisProgress
                 {
