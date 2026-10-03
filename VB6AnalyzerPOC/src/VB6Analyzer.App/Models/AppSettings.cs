@@ -72,6 +72,9 @@ public sealed class AppSettings
     /// <summary>Indica se mostrare i nomi testuali accanto alle icone nelle schede di visualizzazione centrali (Vista Grafo, DSM, Treemap...).</summary>
     public bool ShowTabLabels { get; set; } = true;
 
+    /// <summary>Numero massimo di righe sorgente visualizzate nell'anteprima del codice (default: 500 righe).</summary>
+    public int MaxCodePreviewLines { get; set; } = 500;
+
     /// <summary>Indica se abilitare la pre-elaborazione automatica in background delle schede analitiche all'apertura del progetto.</summary>
     public bool EnableBackgroundAnalytics { get; set; } = true;
 

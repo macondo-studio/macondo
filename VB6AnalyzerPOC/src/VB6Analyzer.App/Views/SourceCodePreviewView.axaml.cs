@@ -35,6 +35,14 @@ public partial class SourceCodePreviewView : UserControl
     public SourceCodePreviewView()
     {
         InitializeComponent();
+
+        SettingsService.Instance.SettingsChanged += (_, _) =>
+        {
+            if (_currentNode != null)
+            {
+                ShowSourceCode(_currentNode);
+            }
+        };
     }
 
     /// <summary>
@@ -154,7 +162,7 @@ public partial class SourceCodePreviewView : UserControl
             }
 
             var totalLinesToExtract = endIdx - startIdx + 1;
-            var maxDisplayLines = 500;
+            var maxDisplayLines = Math.Max(50, SettingsService.Instance.Settings.MaxCodePreviewLines);
             var displayCount = Math.Min(totalLinesToExtract, maxDisplayLines);
 
             var lineNumbersBuilder = new StringBuilder();

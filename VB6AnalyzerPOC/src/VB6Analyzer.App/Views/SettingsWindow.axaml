@@ -377,6 +377,27 @@
                                     </Grid>
                                 </Border>
 
+                                <!-- Card Limite Righe Anteprima Codice -->
+                                <Border x:Name="CardMaxCodePreviewLines"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="16">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconFile}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="MaxCodePreviewLinesTitleText" Text="Limite righe anteprima codice sorgente" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="MaxCodePreviewLinesSubText" Text="Numero massimo di righe sorgente renderizzate nella scheda del codice sorgente (50 - 5000 righe)." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <NumericUpDown Grid.Column="2" x:Name="MaxCodePreviewLinesNumeric"
+                                                       Minimum="50" Maximum="5000" Increment="50"
+                                                       FormatString="0" Width="110" Height="32"
+                                                       VerticalAlignment="Center"
+                                                       ValueChanged="OnMaxCodePreviewLinesChanged" />
+                                    </Grid>
+                                </Border>
+
                                 <Rectangle Height="1" Fill="{DynamicResource ThemeBorderDefaultBrush}" Margin="0,8" />
 
                                 <StackPanel Spacing="4" Margin="0,4,0,2">

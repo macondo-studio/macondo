@@ -29,6 +29,7 @@ public partial class SettingsWindow : Window
         UpdateLanguageSelection(LocalizationService.Instance.CurrentLanguage);
         UpdateBehaviorSelection(SettingsService.Instance.Settings.EnableHoverSelection);
         UpdateTabLabelsSelection(SettingsService.Instance.Settings.ShowTabLabels);
+        UpdateMaxCodePreviewLines(SettingsService.Instance.Settings.MaxCodePreviewLines);
         UpdateStartupSelection(SettingsService.Instance.Settings.StartupMode);
         UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
         UpdateLocalizedTexts();
@@ -180,6 +181,7 @@ public partial class SettingsWindow : Window
 
             CardHoverSelection.BorderBrush = borderBrush;
             CardShowTabLabels.BorderBrush = borderBrush;
+            CardMaxCodePreviewLines.BorderBrush = borderBrush;
             CardStartupOnlyIfCached.BorderBrush = borderBrush;
             CardStartupAlways.BorderBrush = borderBrush;
             CardStartupEmpty.BorderBrush = borderBrush;
@@ -223,6 +225,7 @@ public partial class SettingsWindow : Window
 
             CardHoverSelection.Background = surfBrush;
             CardShowTabLabels.Background = surfBrush;
+            CardMaxCodePreviewLines.Background = surfBrush;
             CardStartupOnlyIfCached.Background = surfBrush;
             CardStartupAlways.Background = surfBrush;
             CardStartupEmpty.Background = surfBrush;
@@ -302,6 +305,20 @@ public partial class SettingsWindow : Window
     private void UpdateTabLabelsSelection(bool enabled)
     {
         CheckShowTabLabels.IsVisible = enabled;
+    }
+
+    private void OnMaxCodePreviewLinesChanged(object? sender, NumericUpDownValueChangedEventArgs e)
+    {
+        if (e.NewValue.HasValue)
+        {
+            var val = (int)Math.Clamp(e.NewValue.Value, 50, 5000);
+            SettingsService.Instance.Update(s => s.MaxCodePreviewLines = val);
+        }
+    }
+
+    private void UpdateMaxCodePreviewLines(int lines)
+    {
+        MaxCodePreviewLinesNumeric.Value = lines;
     }
 
     private void OnSelectStartupOnlyIfCached(object? sender, PointerPressedEventArgs e)
@@ -618,6 +635,7 @@ public partial class SettingsWindow : Window
         UpdateLanguageSelection(defaultSettings.Language);
         UpdateBehaviorSelection(defaultSettings.EnableHoverSelection);
         UpdateTabLabelsSelection(defaultSettings.ShowTabLabels);
+        UpdateMaxCodePreviewLines(defaultSettings.MaxCodePreviewLines);
         UpdateStartupSelection(defaultSettings.StartupMode);
         UpdateAnalyticsTabsSelection(defaultSettings);
         UpdateLocalizedTexts();
@@ -672,6 +690,8 @@ public partial class SettingsWindow : Window
         HoverSelectionSubText.Text = localizationService["Settings_HoverSelection_Sub"];
         TabLabelsTitleText.Text = localizationService["Settings_TabLabels_Title"];
         TabLabelsSubText.Text = localizationService["Settings_TabLabels_Sub"];
+        MaxCodePreviewLinesTitleText.Text = localizationService["Settings_MaxCodePreviewLines_Title"];
+        MaxCodePreviewLinesSubText.Text = localizationService["Settings_MaxCodePreviewLines_Sub"];
 
         StartupHeaderTitle.Text = localizationService["Settings_StartupSection"];
         StartupHeaderSub.Text = localizationService["Settings_StartupDesc"];
