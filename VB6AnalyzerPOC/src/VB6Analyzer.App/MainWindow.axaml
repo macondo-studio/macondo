@@ -1364,12 +1364,75 @@
                           ResizeBehavior="PreviousAndNext"
                           Cursor="SizeWestEast" />
 
-            <!-- Pannello Destro: Symbol Inspector & Impact Analysis -->
-            <views:SymbolInspectorView x:Name="SymbolInspectorControl" Grid.Column="4"
-                                       OpenFileRequested="OnInspectorOpenFileRequested"
-                                       OpenFolderRequested="OnInspectorOpenFolderRequested"
-                                       CopySliceRequested="OnInspectorCopySliceRequested"
-                                       SaveSliceRequested="OnInspectorSaveSliceRequested" />
+            <!-- Pannello Destro: TabControl con Symbol Inspector e Anteprima Codice Sorgente -->
+            <Border x:Name="RightPanelContainer" Grid.Column="4"
+                    Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                    BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                    BorderThickness="1,0,0,0">
+                <TabControl x:Name="RightTabControl" SelectedIndex="0" Padding="0">
+                    <TabControl.Styles>
+                        <Style Selector="TabItem">
+                            <Setter Property="FontSize" Value="11" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                            <Setter Property="Padding" Value="12,6" />
+                            <Setter Property="Margin" Value="2,2" />
+                            <Setter Property="CornerRadius" Value="4" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+                            <Setter Property="MinHeight" Value="28" />
+                        </Style>
+                        <Style Selector="TabItem PathIcon">
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+                        </Style>
+                        <Style Selector="TabItem:pointerover">
+                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+                        </Style>
+                        <Style Selector="TabItem:selected">
+                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                            <Setter Property="FontWeight" Value="Bold" />
+                        </Style>
+                        <Style Selector="TabItem:selected PathIcon">
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                        </Style>
+                        <Style Selector="TabItem /template/ Border#PART_SelectedPipe">
+                            <Setter Property="IsVisible" Value="False" />
+                            <Setter Property="Height" Value="0" />
+                            <Setter Property="Opacity" Value="0" />
+                        </Style>
+                    </TabControl.Styles>
+
+                    <!-- Scheda 1: Symbol Inspector -->
+                    <TabItem x:Name="TabItemInspector">
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <PathIcon Data="{StaticResource IconInspect}" Width="12" Height="12" VerticalAlignment="Center" />
+                                <TextBlock x:Name="TabHeaderInspectorText" Text="Inspector" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </TabItem.Header>
+                        <views:SymbolInspectorView x:Name="SymbolInspectorControl"
+                                                   OpenFileRequested="OnInspectorOpenFileRequested"
+                                                   OpenFolderRequested="OnInspectorOpenFolderRequested"
+                                                   CopySliceRequested="OnInspectorCopySliceRequested"
+                                                   SaveSliceRequested="OnInspectorSaveSliceRequested" />
+                    </TabItem>
+
+                    <!-- Scheda 2: Anteprima Codice Sorgente -->
+                    <TabItem x:Name="TabItemSourceCode">
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <PathIcon Data="{StaticResource IconFile}" Width="12" Height="12" VerticalAlignment="Center" />
+                                <TextBlock x:Name="TabHeaderSourceCodeText" Text="Codice Sorgente" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </TabItem.Header>
+                        <views:SourceCodePreviewView x:Name="SourceCodePreviewControl"
+                                                     OpenFileRequested="OnInspectorOpenFileRequested"
+                                                     OpenFolderRequested="OnInspectorOpenFolderRequested"
+                                                     CopyCodeRequested="OnInspectorCopyCodeRequested" />
+                    </TabItem>
+                </TabControl>
+            </Border>
         </Grid>
 
         <!-- Barra di Stato Inferiore -->

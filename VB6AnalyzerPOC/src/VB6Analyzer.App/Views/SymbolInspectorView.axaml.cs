@@ -55,7 +55,7 @@ public partial class SymbolInspectorView : UserControl
     }
 
     /// <summary>
-    /// Visualizza i metadati statici immediati del nodo selezionato (nome, qualified name, categoria, visibilità, linguaggio, tipo, parametri e coordinate file).
+    /// Visualizza i metadati statici immediati del nodo selezionato (nome, qualified name, categoria, visibilità, linguaggio, tipo, parametri, coordinate file e anteprima codice).
     /// </summary>
     /// <param name="node">Il nodo del grafo selezionato.</param>
     public void ShowSymbolMetadata(GraphNode node)
@@ -119,11 +119,27 @@ public partial class SymbolInspectorView : UserControl
             InspectorParamsSection.IsVisible = false;
         }
 
-        // File e coordinate di riga
-        if (sym != null && sym.FilePath != null)
+        // File, coordinate di riga e conteggio righe
+        if (sym != null && !string.IsNullOrEmpty(sym.FilePath))
         {
             InspectorFileSection.IsVisible = true;
-            InspectorFile.Text = $"{Path.GetFileName(sym.FilePath)} (Righe {sym.LineStart}-{sym.LineEnd})";
+            var fileName = Path.GetFileName(sym.FilePath);
+            var startLine = sym.LineStart;
+            var endLine = sym.LineEnd;
+            var loc = (startLine > 0 && endLine >= startLine) ? (endLine - startLine + 1) : (startLine > 0 ? 1 : 0);
+
+            if (startLine > 0 && endLine >= startLine)
+            {
+                InspectorFile.Text = $"{fileName} ({string.Format(LocalizationService.Instance["Inspector_CodeLines_Format"], startLine, endLine, loc)})";
+            }
+            else if (startLine > 0)
+            {
+                InspectorFile.Text = $"{fileName} ({string.Format(LocalizationService.Instance["Inspector_CodeLines_Single"], startLine)})";
+            }
+            else
+            {
+                InspectorFile.Text = fileName;
+            }
         }
         else
         {

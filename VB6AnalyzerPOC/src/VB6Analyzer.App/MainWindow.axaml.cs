@@ -505,9 +505,9 @@ public partial class MainWindow : Window
                 {
                     s.ExplorerWidth = ProjectExplorerControl.Bounds.Width;
                 }
-                if (_isInspectorVisible && SymbolInspectorControl.Bounds.Width >= 200)
+                if (_isInspectorVisible && (RightPanelContainer.Bounds.Width >= 200 || SymbolInspectorControl.Bounds.Width >= 200))
                 {
-                    s.InspectorWidth = SymbolInspectorControl.Bounds.Width;
+                    s.InspectorWidth = RightPanelContainer.Bounds.Width >= 200 ? RightPanelContainer.Bounds.Width : SymbolInspectorControl.Bounds.Width;
                 }
                 s.ShowMethods = Graph.ShowMethods;
                 s.ShowProperties = Graph.ShowProperties;
@@ -2986,6 +2986,17 @@ public partial class MainWindow : Window
         await ExportLlmSliceAsync();
     }
 
+    /// <summary>
+    /// Gestisce la notifica di copia del frammento di codice sorgente dall'Inspector.
+    /// </summary>
+    private void OnInspectorCopyCodeRequested(object? sender, string code)
+    {
+        if (_selectedNode != null)
+        {
+            StatusText.Text = LocalizationService.Instance.Get("Status_CopiedCodeSnippet", _selectedNode.Name);
+        }
+    }
+
     #endregion
 
     #region Menu Contestuale Nodi del Grafo
@@ -3688,6 +3699,7 @@ public partial class MainWindow : Window
     private void ShowEmptyInspector()
     {
         SymbolInspectorControl.ShowEmpty(_graph != null);
+        SourceCodePreviewControl.ShowEmpty(_graph != null);
         UpdateStatusLanguage();
     }
 
@@ -3704,8 +3716,9 @@ public partial class MainWindow : Window
         _selectionCts = new CancellationTokenSource();
         var ct = _selectionCts.Token;
 
-        // 1. Mostra istantaneamente i metadati statici del simbolo
+        // 1. Mostra istantaneamente i metadati statici del simbolo e l'anteprima del codice sorgente
         SymbolInspectorControl.ShowSymbolMetadata(node);
+        SourceCodePreviewControl.ShowSourceCode(node);
 
         var sym = node.SemanticSymbol;
 
@@ -4055,6 +4068,7 @@ public partial class MainWindow : Window
             var surfaceBrush = new SolidColorBrush(bgSurface);
             ProjectExplorerControl.Background = surfaceBrush;
             SymbolInspectorControl.Background = surfaceBrush;
+            RightPanelContainer.Background = surfaceBrush;
         }
 
         if (Color.TryParse(theme.BorderDefault, out var borderCol))
@@ -4066,6 +4080,7 @@ public partial class MainWindow : Window
             FloatingHudBorder.BorderBrush = borderBrush;
             ProjectExplorerControl.BorderBrush = borderBrush;
             SymbolInspectorControl.BorderBrush = borderBrush;
+            RightPanelContainer.BorderBrush = borderBrush;
             LeftGridSplitter.Background = borderBrush;
             RightGridSplitter.Background = borderBrush;
         }
@@ -5397,12 +5412,16 @@ public partial class MainWindow : Window
             CentralGrid.ColumnDefinitions[4].MaxWidth = 800;
             CentralGrid.ColumnDefinitions[4].Width = new GridLength(w, GridUnitType.Pixel);
             CentralGrid.ColumnDefinitions[3].Width = new GridLength(4, GridUnitType.Pixel);
-            SymbolInspectorControl.IsVisible = true;
+            RightPanelContainer.IsVisible = true;
             RightGridSplitter.IsVisible = true;
         }
         else
         {
-            if (SymbolInspectorControl.Bounds.Width >= 200)
+            if (RightPanelContainer.Bounds.Width >= 200)
+            {
+                _savedInspectorWidth = RightPanelContainer.Bounds.Width;
+            }
+            else if (SymbolInspectorControl.Bounds.Width >= 200)
             {
                 _savedInspectorWidth = SymbolInspectorControl.Bounds.Width;
             }
@@ -5410,7 +5429,7 @@ public partial class MainWindow : Window
             CentralGrid.ColumnDefinitions[4].MaxWidth = 0;
             CentralGrid.ColumnDefinitions[4].Width = new GridLength(0, GridUnitType.Pixel);
             CentralGrid.ColumnDefinitions[3].Width = new GridLength(0, GridUnitType.Pixel);
-            SymbolInspectorControl.IsVisible = false;
+            RightPanelContainer.IsVisible = false;
             RightGridSplitter.IsVisible = false;
         }
 
@@ -5767,9 +5786,12 @@ public partial class MainWindow : Window
             }
         }
 
-        // Sub-views localizations
+        // Right panel tabs and sub-views localizations
+        TabHeaderInspectorText.Text = localizationService["Tab_Inspector"];
+        TabHeaderSourceCodeText.Text = localizationService["Tab_SourceCode"];
         ProjectExplorerControl?.UpdateLocalizedUI();
         SymbolInspectorControl?.UpdateLocalizedUI();
+        SourceCodePreviewControl?.UpdateLocalizedUI();
         BlastRadiusGridControl?.UpdateLocalizedUI();
         LoadingOverlayControl?.UpdateLocalizedUI();
         UpdateModalControl?.UpdateLocalizedUI();
