@@ -661,16 +661,17 @@ public partial class MainWindow : Window
         double progressMax = 100,
         string? countText = null,
         string? statsText = null,
+        string? timeText = null,
         bool canCancel = true)
     {
         _loadingCts?.Cancel();
         _loadingCts?.Dispose();
         _loadingCts = canCancel ? new CancellationTokenSource() : null;
 
-        LoadingOverlayControl.Show(title, subtitle, canCancel);
-        if (!isIndeterminate || !string.IsNullOrEmpty(countText) || !string.IsNullOrEmpty(statsText))
+        LoadingOverlayControl.Show(title, subtitle, canCancel, timeText);
+        if (!isIndeterminate || !string.IsNullOrEmpty(countText) || !string.IsNullOrEmpty(statsText) || !string.IsNullOrEmpty(timeText))
         {
-            LoadingOverlayControl.UpdateProgress((int)progressValue, (int)progressMax, countText ?? string.Empty, statsText ?? string.Empty);
+            LoadingOverlayControl.UpdateProgress((int)progressValue, (int)progressMax, countText ?? string.Empty, statsText ?? string.Empty, timeText);
         }
     }
 
@@ -682,13 +683,14 @@ public partial class MainWindow : Window
         double total,
         string? subtitle = null,
         string? countText = null,
-        string? statsText = null)
+        string? statsText = null,
+        string? timeText = null)
     {
         if (subtitle != null)
         {
-            LoadingOverlayControl.Show(LoadingOverlayControl.LoadingTitle.Text ?? string.Empty, subtitle, LoadingOverlayControl.LoadingCancelButton.IsVisible);
+            LoadingOverlayControl.Show(LoadingOverlayControl.LoadingTitle.Text ?? string.Empty, subtitle, LoadingOverlayControl.LoadingCancelButton.IsVisible, timeText);
         }
-        LoadingOverlayControl.UpdateProgress((int)current, (int)total, countText ?? string.Empty, statsText ?? string.Empty);
+        LoadingOverlayControl.UpdateProgress((int)current, (int)total, countText ?? string.Empty, statsText ?? string.Empty, timeText);
     }
 
     /// <summary>
@@ -781,7 +783,10 @@ public partial class MainWindow : Window
         {
             var countStr = localizationService.Get("Loading_FilesProgressFormat", p.CurrentFileIndex, p.TotalFiles, (int)p.Percentage);
             var statsStr = localizationService.Get("Loading_NodesExtractedFormat", p.ExtractedNodesCount);
-            UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr);
+            var timeStr = p.EstimatedRemainingSeconds.HasValue
+                ? localizationService.Get("Loading_TimeRemainingFormat", p.EstimatedRemainingSeconds.Value)
+                : (p.EstimatedTotalSeconds.HasValue ? localizationService.Get("Loading_TimeEstimatedFormat", p.EstimatedTotalSeconds.Value) : null);
+            UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr, timeStr);
         });
 
         try
@@ -1041,7 +1046,10 @@ public partial class MainWindow : Window
             {
                 var countStr = localizationService.Get("Loading_FilesProgressFormat", p.CurrentFileIndex, p.TotalFiles, (int)p.Percentage);
                 var statsStr = localizationService.Get("Loading_NodesExtractedFormat", p.ExtractedNodesCount);
-                UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr);
+                var timeStr = p.EstimatedRemainingSeconds.HasValue
+                    ? localizationService.Get("Loading_TimeRemainingFormat", p.EstimatedRemainingSeconds.Value)
+                    : (p.EstimatedTotalSeconds.HasValue ? localizationService.Get("Loading_TimeEstimatedFormat", p.EstimatedTotalSeconds.Value) : null);
+                UpdateLoadingProgress(p.CurrentFileIndex, p.TotalFiles, p.PhaseMessage, countStr, statsStr, timeStr);
             });
 
             StatusText.Text = localizationService.Get("Status_AnalyzingSources", paths.Count);

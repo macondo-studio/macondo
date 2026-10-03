@@ -36,4 +36,14 @@ public sealed class ProjectAnalysisProgress
     /// Percentuale di completamento da 0 a 100.
     /// </summary>
     public double Percentage => TotalFiles > 0 ? Math.Clamp((double)CurrentFileIndex / TotalFiles * 100.0, 0.0, 100.0) : 0.0;
+
+    /// <summary>
+    /// Durata totale stimata dell'analisi in secondi.
+    /// </summary>
+    public double? EstimatedTotalSeconds { get; set; }
+
+    /// <summary>
+    /// Tempo rimanente stimato in secondi per il completamento dell'analisi e generazione del CodeGraph.
+    /// </summary>
+    public double? EstimatedRemainingSeconds { get; set; }
 }

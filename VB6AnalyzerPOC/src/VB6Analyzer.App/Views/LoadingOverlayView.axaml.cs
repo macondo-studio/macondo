@@ -26,7 +26,7 @@ public partial class LoadingOverlayView : UserControl
     /// <summary>
     /// Mostra l'overlay di caricamento con titolo e sottotitolo personalizzati.
     /// </summary>
-    public void Show(string title, string subtitle, bool canCancel = true)
+    public void Show(string title, string subtitle, bool canCancel = true, string? timeText = null)
     {
         LoadingTitle.Text = title;
         LoadingSubtitle.Text = subtitle;
@@ -34,13 +34,15 @@ public partial class LoadingOverlayView : UserControl
         LoadingProgressBar.IsIndeterminate = true;
         LoadingProgressCount.IsVisible = false;
         LoadingProgressStats.IsVisible = false;
+        LoadingProgressTime.Text = timeText ?? string.Empty;
+        LoadingProgressTime.IsVisible = !string.IsNullOrEmpty(timeText);
         IsVisible = true;
     }
 
     /// <summary>
     /// Aggiorna i valori di avanzamento e i dettagli numerici della barra di caricamento.
     /// </summary>
-    public void UpdateProgress(int current, int total, string countText, string statsText)
+    public void UpdateProgress(int current, int total, string countText, string statsText, string? timeText = null)
     {
         LoadingProgressBar.IsIndeterminate = false;
         LoadingProgressBar.Minimum = 0;
@@ -52,6 +54,9 @@ public partial class LoadingOverlayView : UserControl
 
         LoadingProgressStats.Text = statsText;
         LoadingProgressStats.IsVisible = !string.IsNullOrEmpty(statsText);
+
+        LoadingProgressTime.Text = timeText ?? string.Empty;
+        LoadingProgressTime.IsVisible = !string.IsNullOrEmpty(timeText);
     }
 
     /// <summary>

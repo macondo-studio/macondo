@@ -458,6 +458,8 @@ public sealed class LocalizationService
         ["Loading_GeneratingVisualGraph"] = "Generazione grafo visuale e layout...",
         ["Loading_FilesProgressFormat"] = "{0} / {1} file ({2}%)",
         ["Loading_NodesExtractedFormat"] = "{0} nodi rilevati",
+        ["Loading_TimeRemainingFormat"] = "~{0:0.0}s rimanenti",
+        ["Loading_TimeEstimatedFormat"] = "Tempo stimato: ~{0:0.0}s",
         ["Loading_Cancel"] = "Annulla",
 
         // Modale Conferma Esportazione
@@ -1532,6 +1534,8 @@ public sealed class LocalizationService
         ["Loading_GeneratingVisualGraph"] = "Generating visual graph layout...",
         ["Loading_FilesProgressFormat"] = "{0} / {1} files ({2}%)",
         ["Loading_NodesExtractedFormat"] = "{0} nodes detected",
+        ["Loading_TimeRemainingFormat"] = "~{0:0.0}s remaining",
+        ["Loading_TimeEstimatedFormat"] = "Estimated time: ~{0:0.0}s",
         ["Loading_Cancel"] = "Cancel",
 
         // Export Confirmation Modal

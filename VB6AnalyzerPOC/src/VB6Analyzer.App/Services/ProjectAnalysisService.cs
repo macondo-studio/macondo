@@ -34,6 +34,30 @@ public static class ProjectAnalysisService
     }
 
     /// <summary>
+    /// Calcola la durata stimata in secondi per la scansione, il parsing AST, la risoluzione semantica
+    /// e la generazione del CodeGraph in base al numero di file sorgente e progetti del workspace.
+    /// </summary>
+    public static double GetEstimatedProjectAnalysisSeconds(int totalFiles, int projectCount = 1)
+    {
+        if (totalFiles <= 0) return 0.5;
+
+        var cpuCores = Math.Max(1, Environment.ProcessorCount);
+        // Fattore di parallelismo reale (con scaling sub-lineare per saturazione I/O e thread contention)
+        var parallelFactor = Math.Max(1.0, Math.Min(cpuCores * 0.75, 8.0));
+
+        // 1. Parsing AST parallelo (~12ms per file distribuito sui core di elaborazione)
+        var parseTime = (totalFiles * 0.012) / parallelFactor;
+
+        // 2. Risoluzione semantica globale dei tipi e costruzione del Call Graph (~3.5ms per file)
+        var resolutionTime = 0.25 + (totalFiles * 0.0035);
+
+        // 3. Overhead fisso di allocazione memoria e adattatore visuale per Avalonia
+        var totalEstimated = 0.2 + parseTime + resolutionTime;
+
+        return Math.Max(0.5, Math.Round(totalEstimated, 1));
+    }
+
+    /// <summary>
     /// Esegue l'analisi completa di una lista di progetti VB6 creando un unico CodeGraph unificato
     /// con risoluzione cross-project di tipi, chiamate e istanziazioni.
     /// </summary>
@@ -46,6 +70,8 @@ public static class ProjectAnalysisService
         cancellationToken.ThrowIfCancellationRequested();
 #endif
         var totalFiles = projects.Sum(p => p.SourceFiles.Count);
+        var estimatedTotalSeconds = GetEstimatedProjectAnalysisSeconds(totalFiles, projects.Count);
+        var analysisStopwatch = System.Diagnostics.Stopwatch.StartNew();
         var semanticGraph = new Semantic.Model.CodeGraph();
         var extractionResults = new List<ModuleExtractionResult>(totalFiles);
         var csharpResults = new List<CSharpExtractionResult>(totalFiles);
@@ -84,6 +110,8 @@ public static class ProjectAnalysisService
             TotalFiles = totalFiles,
             CurrentFileName = firstFile != null ? Path.GetFileName(firstFile) : string.Empty,
             ExtractedNodesCount = semanticGraph.Symbols.Count,
+            EstimatedTotalSeconds = estimatedTotalSeconds,
+            EstimatedRemainingSeconds = estimatedTotalSeconds,
             PhaseMessage = firstFile != null
                 ? LocalizationService.Instance.Get("Loading_ParsingFile", Path.GetFileName(firstFile))
                 : LocalizationService.Instance["Loading_ResolvingTypes"]
@@ -141,12 +169,29 @@ public static class ProjectAnalysisService
             if (currentDone == totalFiles || (nowTicks - Interlocked.Read(ref lastReportTicks)) > 80)
             {
                 Interlocked.Exchange(ref lastReportTicks, nowTicks);
+
+                var elapsedSec = analysisStopwatch.Elapsed.TotalSeconds;
+                var ratio = totalFiles > 0 ? (double)currentDone / totalFiles : 0.0;
+                double remainingSec;
+                if (ratio > 0.05 && elapsedSec > 0.08)
+                {
+                    var measuredTotal = elapsedSec / ratio;
+                    var blendedTotal = (estimatedTotalSeconds * (1.0 - ratio)) + (measuredTotal * ratio);
+                    remainingSec = Math.Max(0.1, Math.Round(blendedTotal - elapsedSec, 1));
+                }
+                else
+                {
+                    remainingSec = Math.Max(0.1, Math.Round(estimatedTotalSeconds - elapsedSec, 1));
+                }
+
                 progress?.Report(new ProjectAnalysisProgress
                 {
                     CurrentFileIndex = currentDone,
                     TotalFiles = totalFiles,
                     CurrentFileName = fileName,
                     ExtractedNodesCount = concurrentVbResults.Count + concurrentCsResults.Count,
+                    EstimatedTotalSeconds = estimatedTotalSeconds,
+                    EstimatedRemainingSeconds = remainingSec,
                     PhaseMessage = LocalizationService.Instance.Get("Loading_ParsingFile", fileName)
                 });
             }
@@ -195,6 +240,8 @@ public static class ProjectAnalysisService
             TotalFiles = totalFiles,
             CurrentFileName = string.Empty,
             ExtractedNodesCount = semanticGraph.Symbols.Count,
+            EstimatedTotalSeconds = estimatedTotalSeconds,
+            EstimatedRemainingSeconds = Math.Max(0.1, Math.Round(estimatedTotalSeconds * 0.15, 1)),
             PhaseMessage = LocalizationService.Instance["Loading_ResolvingTypes"]
         });
 
@@ -211,6 +258,8 @@ public static class ProjectAnalysisService
             TotalFiles = totalFiles,
             CurrentFileName = string.Empty,
             ExtractedNodesCount = semanticGraph.Symbols.Count,
+            EstimatedTotalSeconds = estimatedTotalSeconds,
+            EstimatedRemainingSeconds = Math.Max(0.1, Math.Round(estimatedTotalSeconds * 0.08, 1)),
             PhaseMessage = LocalizationService.Instance["Loading_BuildingCallGraph"]
         });
 
@@ -228,6 +277,8 @@ public static class ProjectAnalysisService
             TotalFiles = totalFiles,
             CurrentFileName = string.Empty,
             ExtractedNodesCount = semanticGraph.Symbols.Count,
+            EstimatedTotalSeconds = estimatedTotalSeconds,
+            EstimatedRemainingSeconds = 0.1,
             PhaseMessage = LocalizationService.Instance["Loading_GeneratingVisualGraph"]
         });
 
