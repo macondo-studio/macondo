@@ -6,7 +6,8 @@
         Title="Impostazioni"
         Icon="avares://Macondo/Assets/Icons/icon1_star_knot.ico"
         Width="780" Height="530"
-        CanResize="False"
+        MinWidth="680" MinHeight="450"
+        CanResize="True"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource ThemeBackgroundPrimaryBrush}"
         ExtendClientAreaToDecorationsHint="True"
@@ -30,27 +31,39 @@
                 <!-- Area Trascinamento -->
                 <Border Grid.Column="1" Background="Transparent" PointerPressed="OnTitleBarPointerPressed" />
 
-                <!-- Pulsante Chiudi -->
-                <Button Grid.Column="2" x:Name="CloseButton"
-                        Width="46" Height="36"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        CornerRadius="0"
-                        Padding="0"
-                        HorizontalContentAlignment="Center"
-                        VerticalContentAlignment="Center"
-                        ToolTip.Tip="Chiudi"
-                        Click="OnCloseClicked">
-                    <Button.Styles>
-                        <Style Selector="Button:pointerover">
+                <!-- Pulsanti Finestra (Ingrandisci/Ripristina + Chiudi) -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <StackPanel.Styles>
+                        <Style Selector="Button.caption-btn">
+                            <Setter Property="Width" Value="46" />
+                            <Setter Property="Height" Value="36" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="CornerRadius" Value="0" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="HorizontalContentAlignment" Value="Center" />
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+                        </Style>
+                        <Style Selector="Button.caption-btn:pointerover">
+                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+                        </Style>
+                        <Style Selector="Button.caption-close:pointerover">
                             <Setter Property="Background" Value="#E81123" />
                         </Style>
-                        <Style Selector="Button:pointerover PathIcon">
+                        <Style Selector="Button.caption-close:pointerover PathIcon">
                             <Setter Property="Foreground" Value="#FFFFFF" />
                         </Style>
-                    </Button.Styles>
-                    <PathIcon Data="{StaticResource IconWindowClose}" Width="10" Height="10" Foreground="{DynamicResource ThemeTextSecondaryBrush}" />
-                </Button>
+                    </StackPanel.Styles>
+
+                    <Button x:Name="MaximizeButton" Classes="caption-btn" ToolTip.Tip="Ingrandisci / Ripristina" Click="OnMaximizeClicked">
+                        <PathIcon x:Name="MaximizeIcon" Data="{StaticResource IconWindowMaximize}" Width="10" Height="10" />
+                    </Button>
+                    <Button x:Name="CloseButton" Classes="caption-btn caption-close" ToolTip.Tip="Chiudi" Click="OnCloseClicked">
+                        <PathIcon Data="{StaticResource IconWindowClose}" Width="10" Height="10" />
+                    </Button>
+                </StackPanel>
             </Grid>
         </Border>
 
@@ -392,7 +405,7 @@
                                         </StackPanel>
                                         <NumericUpDown Grid.Column="2" x:Name="MaxCodePreviewLinesNumeric"
                                                        Minimum="50" Maximum="5000" Increment="50"
-                                                       FormatString="0" Width="110" Height="32"
+                                                       FormatString="0" Width="160" Height="32"
                                                        VerticalAlignment="Center"
                                                        ValueChanged="OnMaxCodePreviewLinesChanged" />
                                     </Grid>

@@ -47,14 +47,37 @@ public partial class SettingsWindow : Window
             ApplyTheme(theme);
             UpdateThemeSelection(theme.Theme);
         };
+
+        PropertyChanged += (s, e) =>
+        {
+            if (e.Property == WindowStateProperty && MaximizeIcon != null)
+            {
+                var resourceKey = WindowState == WindowState.Maximized ? "IconWindowRestore" : "IconWindowMaximize";
+                if (this.TryFindResource(resourceKey, out var res) && res is Geometry geo)
+                {
+                    MaximizeIcon.Data = geo;
+                }
+            }
+        };
     }
 
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
     {
+        if (e.ClickCount == 2)
+        {
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+            return;
+        }
+
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
             BeginMoveDrag(e);
         }
+    }
+
+    private void OnMaximizeClicked(object? sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     }
 
     private void OnCloseClicked(object? sender, RoutedEventArgs e)
