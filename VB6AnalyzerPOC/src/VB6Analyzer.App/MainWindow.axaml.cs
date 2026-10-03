@@ -543,6 +543,13 @@ public partial class MainWindow : Window
         ApplyTabsVisibility(settings);
         UpdateLocalizedUI();
 
+        // Connessione esplicita eventi modali e overlay
+        LoadingOverlayControl.CancelRequested += OnLoadingCancelRequested;
+        UpdateModalControl.UpdateNowRequested += OnUpdateModalNowRequested;
+        UpdateModalControl.UpdateLaterRequested += OnUpdateModalLaterRequested;
+        ExportSuccessModalControl.OpenFolderRequested += OnExportSuccessOpenFolderRequested;
+        LayoutConfirmModalControl.Confirmed += OnLayoutConfirmModalConfirmed;
+
         // ------------------------------------------------------------------------------------------------
         // Caricamento del Progetto all'Avvio: Gestione Intelligente in base a StartupMode e Cronologia Recenti
         // ------------------------------------------------------------------------------------------------
@@ -669,6 +676,9 @@ public partial class MainWindow : Window
         string? statsText = null,
         string? timeText = null)
     {
+        if (!LoadingOverlayControl.IsVisible || _loadingCts == null || _loadingCts.IsCancellationRequested)
+            return;
+
         LoadingOverlayControl.UpdateProgress((int)current, (int)total, countText ?? string.Empty, statsText ?? string.Empty, timeText, subtitle);
     }
 
@@ -678,8 +688,10 @@ public partial class MainWindow : Window
     private void OnLoadingCancelRequested(object? sender, EventArgs e)
     {
         if (_loadingCts != null && !_loadingCts.IsCancellationRequested)
-
+        {
             _loadingCts.Cancel();
+            StatusText.Text = LocalizationService.Instance["Status_AnalysisCancelled"];
+        }
     }
 
     /// <summary>
@@ -722,9 +734,7 @@ public partial class MainWindow : Window
             }
             StatusText.Text = localizationService["Status_FakeGraphGenerating"];
             _graph = await Task.Run(() => Generation.FakeGraphGenerator.Generate(seed: Environment.TickCount), token);
-#if !DEBUG
             token.ThrowIfCancellationRequested();
-#endif
             ApplyGraphToUI();
             StatusText.Text = localizationService["Status_FakeGraphGenerated"];
         }
@@ -782,9 +792,7 @@ public partial class MainWindow : Window
             }
             StatusText.Text = localizationService["Loading_FixturesSub"];
             _graph = await Task.Run(() => ProjectAnalysisService.LoadDefaultFixtures(progress, token), token);
-#if !DEBUG
             token.ThrowIfCancellationRequested();
-#endif
             ApplyGraphToUI();
             StatusText.Text = localizationService["Status_FixturesLoaded"];
 
@@ -967,16 +975,12 @@ public partial class MainWindow : Window
             // 1. Tenta il ripristino ultra-rapido dalla cache solo se non forzato e se esiste uno snapshot valido su disco
             if (!forceReanalyze && paths.Count == 1 && !string.IsNullOrEmpty(targetFolder) && Directory.Exists(targetFolder))
             {
-                var cachedSnapshot = await ProjectCacheService.Instance.TryLoadSnapshotAsync(targetFolder);
-#if !DEBUG
+                var cachedSnapshot = await ProjectCacheService.Instance.TryLoadSnapshotAsync(targetFolder, token);
                 token.ThrowIfCancellationRequested();
-#endif
                 if (cachedSnapshot != null)
                 {
-                    var (cachedGraph, cachedRows) = await Task.Run(() => ProjectCacheService.Instance.RestoreGraphAndRows(cachedSnapshot), token);
-#if !DEBUG
+                    var (cachedGraph, cachedRows) = await Task.Run(() => ProjectCacheService.Instance.RestoreGraphAndRows(cachedSnapshot, token), token);
                     token.ThrowIfCancellationRequested();
-#endif
                     _graph = cachedGraph;
                     _currentFolderPath = targetFolder;
                     _currentPaths = paths.ToList();
@@ -1006,9 +1010,7 @@ public partial class MainWindow : Window
                     // Rileva eventuali modifiche ai sorgenti intervenute dopo il salvataggio della cache
                     var isStale = ProjectCacheService.Instance.CheckStaleness(cachedSnapshot, targetFolder);
                     if (isStale)
-
                         StatusText.Text = localizationService.Get("Status_CacheStale", cachedSnapshot.ProjectName);
-
                     else
                     {
                         StatusText.Text = localizationService.Get("Status_LoadedFromCache", cachedSnapshot.ProjectName, cachedSnapshot.AnalyzedAtUtc.ToLocalTime().ToString("g"));
@@ -1030,9 +1032,7 @@ public partial class MainWindow : Window
 
             StatusText.Text = localizationService.Get("Status_AnalyzingSources", paths.Count);
             _graph = await Task.Run(() => ProjectAnalysisService.AnalyzePaths(paths, progress, token), token);
-#if !DEBUG
             token.ThrowIfCancellationRequested();
-#endif
             _currentFolderPath = targetFolder ?? firstPath;
             _currentPaths = paths.ToList();
             if (!string.IsNullOrEmpty(targetFolder) && Directory.Exists(targetFolder))

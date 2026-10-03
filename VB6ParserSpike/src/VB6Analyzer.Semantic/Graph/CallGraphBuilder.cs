@@ -42,7 +42,8 @@ public sealed class CallGraphBuilder
     /// </summary>
     /// <param name="extractionResults">Elenco dei risultati di estrazione dei moduli VB6 contenenti gli AST (<see cref="ModuleExtractionResult"/>).</param>
     /// <param name="csharpResults">Elenco opzionale dei risultati di estrazione dei file sorgente C# (<see cref="CSharpExtractionResult"/>).</param>
-    public void BuildGraph(IEnumerable<ModuleExtractionResult> extractionResults, IEnumerable<CSharpExtractionResult>? csharpResults = null)
+    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere l'elaborazione del Call Graph.</param>
+    public void BuildGraph(IEnumerable<ModuleExtractionResult> extractionResults, IEnumerable<CSharpExtractionResult>? csharpResults = null, CancellationToken cancellationToken = default)
     {
         // =========================================================================
         // FASE 1: GENERAZIONE RELAZIONI DA AST DI MODULI VB6 (CALLS & INSTANTIATES)
@@ -51,6 +52,7 @@ public sealed class CallGraphBuilder
         // L'analizzatore identifica tutte le chiamate esplicite (Call Foo), implicite (Foo arg) e istanziazioni (New Foo).
         foreach (var extraction in extractionResults)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (extraction.ParseTree == null)
                 continue;
 
@@ -61,6 +63,7 @@ public sealed class CallGraphBuilder
             // 1a. Generazione delle relazioni CALLS tra routine chiamante e routine chiamata
             foreach (var callSite in analyzer.CallSites)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 // Verifica che il bersaglio risolto sia effettivamente una routine (Metodo o Proprietà)
                 if (callSite.Result.TargetSymbol != null &&
                     callSite.Result.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
@@ -68,7 +71,6 @@ public sealed class CallGraphBuilder
                     // Individua la routine contenitore che effettua la chiamata all'interno del modulo
                     var callerRoutine = FindEnclosingRoutine(extraction.ModuleSymbol, callSite.EnclosingRoutineName);
                     if (callerRoutine != null)
-
                         _graph.AddCalls(callerRoutine, callSite.Result.TargetSymbol, callSite.Line, callSite.Result.Confidence);
                 }
             }
@@ -76,6 +78,7 @@ public sealed class CallGraphBuilder
             // 1b. Generazione delle relazioni INSTANTIATES da espressioni esplicite 'New Type' (es. "Set x = New Customer")
             foreach (var inst in analyzer.Instantiations)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (inst.TargetClassSymbol != null)
                 {
                     // Il chiamante è la routine contenitrice oppure il modulo stesso se a livello di dichiarazione
@@ -87,10 +90,10 @@ public sealed class CallGraphBuilder
             // 1c. Generazione delle relazioni IMPLEMENTS da istruzioni 'Implements InterfaceName'
             foreach (var (ifaceName, line) in extraction.ImplementedInterfaces)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var targetType = _symbolResolver.TypeResolver.ResolveType(ifaceName).UserTypeSymbol
                                  ?? _graph.Symbols.FirstOrDefault(s => s.Kind is SymbolKind.Class or SymbolKind.Interface && string.Equals(s.Name, ifaceName, StringComparison.OrdinalIgnoreCase));
                 if (targetType != null)
-
                     _graph.AddImplements(extraction.ModuleSymbol, targetType, line);
             }
         }
@@ -110,9 +113,12 @@ public sealed class CallGraphBuilder
 
             foreach (var csResult in csharpResults)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // 1. Risoluzione Invocazioni di Metodi C# (CALLS)
                 foreach (var callSite in csResult.CallSites)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     Symbol? targetMethod = null;
 
                     // Passo A: Se è presente un'espressione ricevitore (es. "customerService.Process()"),
@@ -121,7 +127,6 @@ public sealed class CallGraphBuilder
                     {
                         var receiverType = _symbolResolver.TypeResolver.ResolveType(callSite.ReceiverExpressionText).UserTypeSymbol;
                         if (receiverType != null)
-
                             targetMethod = _graph.GetChildren(receiverType.Id)
                                 .FirstOrDefault(s => s.Kind is SymbolKind.Method or SymbolKind.Property &&
                                                     string.Equals(s.Name, callSite.InvokedMethodName, StringComparison.OrdinalIgnoreCase));
@@ -137,7 +142,6 @@ public sealed class CallGraphBuilder
                             foreach (var s in _graph.Symbols)
                             {
                                 if (s.Kind is SymbolKind.Method or SymbolKind.Property && !routineIndexByName.ContainsKey(s.Name))
-
                                     routineIndexByName[s.Name] = s;
                             }
                         }
@@ -147,31 +151,29 @@ public sealed class CallGraphBuilder
 
                     // Passo C: Se il metodo bersaglio è stato individuato, inserisce l'arco CALLS nel CodeGraph
                     if (targetMethod != null)
-
                         _graph.AddCalls(callSite.CallerSymbol, targetMethod, callSite.Line, ResolutionConfidence.Exact);
                 }
 
                 // 2. Risoluzione Istanziazioni C# (INSTANTIATES da 'new ClassName()')
                 foreach (var inst in csResult.Instantiations)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     var targetType = _symbolResolver.TypeResolver.ResolveType(inst.TargetTypeName).UserTypeSymbol;
                     if (targetType != null)
-
                         _graph.AddInstantiates(inst.SourceSymbol, targetType, inst.Line, ResolutionConfidence.Exact);
                 }
 
                 // 3. Risoluzione Ereditarietà e Interfacce C# (INHERITS / IMPLEMENTS da ': BaseType, IInterface')
                 foreach (var inh in csResult.Inheritances)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     var baseType = _symbolResolver.TypeResolver.ResolveType(inh.BaseOrInterfaceTypeName).UserTypeSymbol;
                     if (baseType != null)
                     {
                         // Se il tipo derivato è un'interfaccia o il bersaglio è una classe -> INHERITS;
                         // Se una classe/struct implementa un'interfaccia -> IMPLEMENTS
                         if (inh.DerivedTypeSymbol.Kind == SymbolKind.Interface || baseType.Kind != SymbolKind.Interface)
-
                             _graph.AddInherits(inh.DerivedTypeSymbol, baseType, inh.Line);
-
                         else
                         {
                             _graph.AddImplements(inh.DerivedTypeSymbol, baseType, inh.Line);
@@ -188,11 +190,11 @@ public sealed class CallGraphBuilder
         // dichiara una variabile e contestualmente genera un'istanziazione implicita (IsNewInstance == true).
         foreach (var symbol in _graph.Symbols)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (symbol.IsNewInstance && symbol.ResolvedTypeSymbolId.HasValue)
             {
                 var targetClass = _graph.FindSymbolById(symbol.ResolvedTypeSymbolId.Value);
                 if (targetClass != null)
-
                     _graph.AddInstantiates(symbol, targetClass, symbol.LineStart);
             }
         }
@@ -206,12 +208,13 @@ public sealed class CallGraphBuilder
         // - Parametri formali di routine e metodi (param.ResolvedTypeSymbolId).
         foreach (var symbol in _graph.Symbols)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // 3a. Tipo dichiarato su variabili locali, campi di modulo o proprietà
             if (symbol.ResolvedTypeSymbolId.HasValue)
             {
                 var targetType = _graph.FindSymbolById(symbol.ResolvedTypeSymbolId.Value);
                 if (targetType != null)
-
                     _graph.AddUsesType(symbol, targetType, symbol.LineStart);
             }
 
@@ -220,18 +223,17 @@ public sealed class CallGraphBuilder
             {
                 var returnType = _graph.FindSymbolById(symbol.ResolvedReturnTypeSymbolId.Value);
                 if (returnType != null)
-
                     _graph.AddUsesType(symbol, returnType, symbol.LineStart);
             }
 
             // 3c. Tipi dichiarati sui singoli parametri formali della routine
             foreach (var param in symbol.Parameters)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (param.ResolvedTypeSymbolId.HasValue)
                 {
                     var paramType = _graph.FindSymbolById(param.ResolvedTypeSymbolId.Value);
                     if (paramType != null)
-
                         _graph.AddUsesType(symbol, paramType, param.Line);
                 }
             }
@@ -247,10 +249,12 @@ public sealed class CallGraphBuilder
         // - Collega sempre il contenitore radice (Form, UserControl o Class) alla routine.
         foreach (var extraction in extractionResults)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var moduleChildren = _graph.GetChildren(extraction.ModuleSymbol.Id).ToList();
 
             foreach (var eventHandlerName in extraction.LikelyEventHandlerNames)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var routine = moduleChildren.FirstOrDefault(s => s.Kind is SymbolKind.Method or SymbolKind.Property &&
                                                                 string.Equals(s.Name, eventHandlerName, StringComparison.OrdinalIgnoreCase));
                 if (routine != null)
@@ -262,7 +266,6 @@ public sealed class CallGraphBuilder
                         var controlSymbol = moduleChildren.FirstOrDefault(s => s.Kind == SymbolKind.Field &&
                                                                                string.Equals(s.Name, prefix, StringComparison.OrdinalIgnoreCase));
                         if (controlSymbol != null)
-
                             _graph.AddHandlesEvent(controlSymbol, routine, routine.LineStart);
                     }
 

@@ -17,7 +17,9 @@ public sealed class ProjectDescriptor
     /// Ispeziona un insieme di percorsi (cartelle, file .vbp, .vbg, .csproj, .sln o file sorgente)
     /// e restituisce i descrittori di tutti i progetti individuati.
     /// </summary>
-    public static List<ProjectDescriptor> DiscoverFromPaths(IEnumerable<string> paths)
+    /// <param name="paths">Percorsi di cartelle o file di progetto.</param>
+    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
+    public static List<ProjectDescriptor> DiscoverFromPaths(IEnumerable<string> paths, CancellationToken cancellationToken = default)
     {
         var descriptors = new List<ProjectDescriptor>();
         var seenFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -25,6 +27,7 @@ public sealed class ProjectDescriptor
 
         foreach (var rawPath in paths)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (string.IsNullOrWhiteSpace(rawPath)) continue;
             var fullPath = Path.GetFullPath(rawPath);
 
@@ -34,9 +37,10 @@ public sealed class ProjectDescriptor
                 if (ext == ".vbg")
                 {
                     // Visual Basic Group file
-                    var vbgProjects = ParseVbgFile(fullPath);
+                    var vbgProjects = ParseVbgFile(fullPath, cancellationToken);
                     foreach (var vbgProj in vbgProjects)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
                         if (seenFolders.Add(vbgProj.FolderPath))
                             descriptors.Add(vbgProj);
                     }
@@ -44,9 +48,10 @@ public sealed class ProjectDescriptor
                 else if (ext == ".sln")
                 {
                     // Visual Studio Solution file
-                    var slnProjects = ParseSlnFile(fullPath);
+                    var slnProjects = ParseSlnFile(fullPath, cancellationToken);
                     foreach (var slnProj in slnProjects)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
                         var key = slnProj.ProjectFilePath ?? slnProj.FolderPath;
                         if (seenProjectFiles.Add(key))
                             descriptors.Add(slnProj);
@@ -56,7 +61,7 @@ public sealed class ProjectDescriptor
                 {
                     if (seenProjectFiles.Add(fullPath))
                     {
-                        var proj = ParseVbpFile(fullPath);
+                        var proj = ParseVbpFile(fullPath, cancellationToken);
                         descriptors.Add(proj);
                     }
                 }
@@ -64,7 +69,7 @@ public sealed class ProjectDescriptor
                 {
                     if (seenProjectFiles.Add(fullPath))
                     {
-                        var proj = ParseCsprojFile(fullPath);
+                        var proj = ParseCsprojFile(fullPath, cancellationToken);
                         descriptors.Add(proj);
                     }
                 }
@@ -94,9 +99,11 @@ public sealed class ProjectDescriptor
                 {
                     foreach (var slnFile in slnFiles)
                     {
-                        var slnProjects = ParseSlnFile(slnFile);
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var slnProjects = ParseSlnFile(slnFile, cancellationToken);
                         foreach (var slnProj in slnProjects)
                         {
+                            cancellationToken.ThrowIfCancellationRequested();
                             var key = slnProj.ProjectFilePath ?? slnProj.FolderPath;
                             if (seenProjectFiles.Add(key))
                                 descriptors.Add(slnProj);
@@ -110,9 +117,11 @@ public sealed class ProjectDescriptor
                 {
                     foreach (var vbgFile in vbgFiles)
                     {
-                        var vbgProjects = ParseVbgFile(vbgFile);
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var vbgProjects = ParseVbgFile(vbgFile, cancellationToken);
                         foreach (var vbgProj in vbgProjects)
                         {
+                            cancellationToken.ThrowIfCancellationRequested();
                             if (seenFolders.Add(vbgProj.FolderPath))
                                 descriptors.Add(vbgProj);
                         }
@@ -121,31 +130,34 @@ public sealed class ProjectDescriptor
                 }
 
                 // 2. Cerca file .csproj o .vbp nella cartella o sottocartelle
+                cancellationToken.ThrowIfCancellationRequested();
                 var csprojFiles = Directory.GetFiles(fullPath, "*.csproj", SearchOption.AllDirectories)
                     .Where(f => !IsInIgnoredFolder(f))
                     .ToArray();
 
+                cancellationToken.ThrowIfCancellationRequested();
                 var vbpFiles = Directory.GetFiles(fullPath, "*.vbp", SearchOption.AllDirectories);
 
                 if (csprojFiles.Length > 0 || vbpFiles.Length > 0)
                 {
                     foreach (var csprojFile in csprojFiles)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
                         if (seenProjectFiles.Add(csprojFile))
-
-                            descriptors.Add(ParseCsprojFile(csprojFile));
+                            descriptors.Add(ParseCsprojFile(csprojFile, cancellationToken));
                     }
 
                     foreach (var vbpFile in vbpFiles)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
                         if (seenProjectFiles.Add(vbpFile))
-
-                            descriptors.Add(ParseVbpFile(vbpFile));
+                            descriptors.Add(ParseVbpFile(vbpFile, cancellationToken));
                     }
                 }
                 else
                 {
                     // 3. Nessun file di progetto (.csproj/.vbp/.sln/.vbg): scansione dei file sorgente
+                    cancellationToken.ThrowIfCancellationRequested();
                     var subDirs = Directory.GetDirectories(fullPath).Where(d => !IsInIgnoredFolder(d)).ToArray();
                     var foundInSubDirs = false;
 
@@ -153,7 +165,8 @@ public sealed class ProjectDescriptor
                     {
                         foreach (var subDir in subDirs)
                         {
-                            var subFiles = GetAllSourceFilesInDirectory(subDir);
+                            cancellationToken.ThrowIfCancellationRequested();
+                            var subFiles = GetAllSourceFilesInDirectory(subDir, cancellationToken);
                             if (subFiles.Count > 0)
                             {
                                 foundInSubDirs = true;
@@ -174,10 +187,9 @@ public sealed class ProjectDescriptor
                     if (!foundInSubDirs)
                     {
                         var folderName = Path.GetFileName(fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-                        var files = GetAllSourceFilesInDirectory(fullPath);
+                        var files = GetAllSourceFilesInDirectory(fullPath, cancellationToken);
 
                         if (files.Count > 0)
-
                             descriptors.Add(new ProjectDescriptor
                             {
                                 Id = Guid.NewGuid(),
@@ -195,10 +207,11 @@ public sealed class ProjectDescriptor
         return descriptors;
     }
 
-    private static List<string> GetAllSourceFilesInDirectory(string dir)
+    private static List<string> GetAllSourceFilesInDirectory(string dir, CancellationToken cancellationToken = default)
     {
         if (!Directory.Exists(dir)) return new List<string>();
 
+        cancellationToken.ThrowIfCancellationRequested();
         return Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories)
             .Where(f => !IsInIgnoredFolder(f) &&
                         (f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
@@ -221,12 +234,13 @@ public sealed class ProjectDescriptor
                               p.Equals("node_modules", StringComparison.OrdinalIgnoreCase));
     }
 
-    public static ProjectDescriptor ParseCsprojFile(string csprojPath)
+    public static ProjectDescriptor ParseCsprojFile(string csprojPath, CancellationToken cancellationToken = default)
     {
         var folder = Path.GetDirectoryName(csprojPath) ?? "";
         var fileNameWithoutExt = Path.GetFileNameWithoutExtension(csprojPath);
         var projName = fileNameWithoutExt;
 
+        cancellationToken.ThrowIfCancellationRequested();
         var sourceFiles = Directory.GetFiles(folder, "*.cs", SearchOption.AllDirectories)
             .Where(f => !IsInIgnoredFolder(f))
             .OrderBy(f => Path.GetFileName(f))
@@ -242,16 +256,18 @@ public sealed class ProjectDescriptor
         };
     }
 
-    public static List<ProjectDescriptor> ParseSlnFile(string slnPath)
+    public static List<ProjectDescriptor> ParseSlnFile(string slnPath, CancellationToken cancellationToken = default)
     {
         var result = new List<ProjectDescriptor>();
         var slnFolder = Path.GetDirectoryName(slnPath) ?? "";
 
         if (File.Exists(slnPath))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var lines = File.ReadAllLines(slnPath);
             foreach (var line in lines)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var trimmed = line.Trim();
                 if (trimmed.StartsWith("Project(", StringComparison.OrdinalIgnoreCase))
                 {
@@ -269,12 +285,9 @@ public sealed class ProjectDescriptor
                             {
                                 var ext = Path.GetExtension(absPath).ToLowerInvariant();
                                 if (ext == ".csproj")
-
-                                    result.Add(ParseCsprojFile(absPath));
-
+                                    result.Add(ParseCsprojFile(absPath, cancellationToken));
                                 else if (ext == ".vbp")
-
-    result.Add(ParseVbpFile(absPath));
+                                    result.Add(ParseVbpFile(absPath, cancellationToken));
                             }
                         }
                     }
@@ -285,7 +298,7 @@ public sealed class ProjectDescriptor
         return result;
     }
 
-    private static ProjectDescriptor ParseVbpFile(string vbpPath)
+    private static ProjectDescriptor ParseVbpFile(string vbpPath, CancellationToken cancellationToken = default)
     {
         var folder = Path.GetDirectoryName(vbpPath) ?? "";
         var fileNameWithoutExt = Path.GetFileNameWithoutExtension(vbpPath);
@@ -294,9 +307,11 @@ public sealed class ProjectDescriptor
 
         if (File.Exists(vbpPath))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var lines = File.ReadAllLines(vbpPath);
             foreach (var line in lines)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var trimmed = line.Trim();
                 if (trimmed.StartsWith("Name=", StringComparison.OrdinalIgnoreCase))
                 {
@@ -332,7 +347,8 @@ public sealed class ProjectDescriptor
 
         // Se nessun file è stato trovato specificamente dal .vbp, effettua scansione cartella
         if (sourceFiles.Count == 0 && Directory.Exists(folder))
-
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             sourceFiles = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
                 .Where(f => f.EndsWith(".cls", StringComparison.OrdinalIgnoreCase) ||
                             f.EndsWith(".bas", StringComparison.OrdinalIgnoreCase) ||
@@ -340,6 +356,7 @@ public sealed class ProjectDescriptor
                             f.EndsWith(".ctl", StringComparison.OrdinalIgnoreCase))
                 .OrderBy(f => Path.GetFileName(f))
                 .ToList();
+        }
 
         return new ProjectDescriptor
         {
@@ -351,16 +368,18 @@ public sealed class ProjectDescriptor
         };
     }
 
-    private static List<ProjectDescriptor> ParseVbgFile(string vbgPath)
+    private static List<ProjectDescriptor> ParseVbgFile(string vbgPath, CancellationToken cancellationToken = default)
     {
         var result = new List<ProjectDescriptor>();
         var vbgFolder = Path.GetDirectoryName(vbgPath) ?? "";
 
         if (File.Exists(vbgPath))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var lines = File.ReadAllLines(vbgPath);
             foreach (var line in lines)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var trimmed = line.Trim();
                 if (trimmed.StartsWith("StartupProject=", StringComparison.OrdinalIgnoreCase) ||
                     trimmed.StartsWith("Project=", StringComparison.OrdinalIgnoreCase))
@@ -371,8 +390,7 @@ public sealed class ProjectDescriptor
                         var relVbp = trimmed[(eqIdx + 1)..].Trim();
                         var absVbp = Path.IsPathRooted(relVbp) ? relVbp : Path.Combine(vbgFolder, relVbp);
                         if (File.Exists(absVbp))
-
-                            result.Add(ParseVbpFile(absVbp));
+                            result.Add(ParseVbpFile(absVbp, cancellationToken));
                     }
                 }
             }

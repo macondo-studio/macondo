@@ -63,20 +63,21 @@ public sealed class TypeResolver
     /// Inizializza il resolver indicizzando tutti i tipi dichiarati nel grafo.
     /// </summary>
     /// <param name="graph">Il CodeGraph contenente tutti i simboli del progetto.</param>
-    public TypeResolver(CodeGraph graph)
+    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere l'elaborazione.</param>
+    public TypeResolver(CodeGraph graph, CancellationToken cancellationToken = default)
     {
         _graph = graph;
 
         // Costruisce l'indice dei tipi utente (Class, Form, UserControl, Type UDT, Enum, Interface, Struct, Record) presenti nel grafo.
         foreach (var symbol in _graph.Symbols)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum
                             or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
             {
                 // I tipi utente sono accessibili per nome semplice o qualificato
                 _userTypesByName[symbol.Name] = symbol;
                 if (!string.IsNullOrEmpty(symbol.QualifiedName) && !symbol.QualifiedName.Equals(symbol.Name, StringComparison.OrdinalIgnoreCase))
-
                     _userTypesByName[symbol.QualifiedName] = symbol;
             }
         }
@@ -92,7 +93,6 @@ public sealed class TypeResolver
     {
         // In VB6, se la clausola 'As Tipo' è omessa, il tipo predefinito è Variant (dinamico)
         if (string.IsNullOrWhiteSpace(typeName))
-
             return new TypeInfo
             {
                 Name = "Variant",
@@ -109,7 +109,6 @@ public sealed class TypeResolver
 
         // 1. Verifica se è un tipo a tipizzazione dinamica (Object o Variant)
         if (DynamicTypes.Contains(cleanName))
-
             return new TypeInfo
             {
                 Name = cleanName,
@@ -120,7 +119,6 @@ public sealed class TypeResolver
 
         // 2. Verifica se è un tipo primitivo integrato
         if (PrimitiveTypes.Contains(cleanName))
-
             return new TypeInfo
             {
                 Name = cleanName,
@@ -131,7 +129,6 @@ public sealed class TypeResolver
 
         // 3. Verifica se è un tipo dichiarato dall'utente nel progetto locale
         if (_userTypesByName.TryGetValue(cleanName, out var userSymbol))
-
             return new TypeInfo
             {
                 Name = cleanName,
@@ -155,10 +152,13 @@ public sealed class TypeResolver
     /// popolando gli ID dei tipi risolti (<see cref="Symbol.ResolvedTypeSymbolId"/>, <see cref="Symbol.ResolvedReturnTypeSymbolId"/>,
     /// <see cref="ParameterSymbol.ResolvedTypeSymbolId"/>).
     /// </summary>
-    public void ResolveAllTypes()
+    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere la risoluzione.</param>
+    public void ResolveAllTypes(CancellationToken cancellationToken = default)
     {
         foreach (var symbol in _graph.Symbols)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Risolve il tipo dichiarato su campi, costanti, ecc.
             if (symbol.DeclaredTypeName != null)
             {

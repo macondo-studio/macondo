@@ -94,10 +94,14 @@ public sealed class ProjectCacheService
     /// Tenta di caricare lo snapshot di cache per la cartella o file di progetto specificato.
     /// Restituisce null se la cache non esiste o non è valida.
     /// </summary>
-    public async Task<ProjectCacheSnapshot?> TryLoadSnapshotAsync(string folderOrFilePath)
+    /// <param name="folderOrFilePath">Percorso della cartella o file di progetto.</param>
+    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
+    public async Task<ProjectCacheSnapshot?> TryLoadSnapshotAsync(string folderOrFilePath, CancellationToken cancellationToken = default)
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (string.IsNullOrWhiteSpace(folderOrFilePath))
                 return null;
 
@@ -106,12 +110,16 @@ public sealed class ProjectCacheService
                 return null;
 
             await using var stream = File.OpenRead(cacheFile);
-            var snapshot = await JsonSerializer.DeserializeAsync<ProjectCacheSnapshot>(stream, _jsonOptions);
+            var snapshot = await JsonSerializer.DeserializeAsync<ProjectCacheSnapshot>(stream, _jsonOptions, cancellationToken);
 
             if (snapshot is null || snapshot.SchemaVersion != 1 || snapshot.Symbols.Count == 0)
                 return null;
 
             return snapshot;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch
         {
@@ -123,15 +131,23 @@ public sealed class ProjectCacheService
     /// <summary>
     /// Ricostruisce il VisualCodeGraph (con semantic graph e queries attive) e le righe della tabella Blast Radius.
     /// </summary>
-    public (VisualCodeGraph Graph, List<BlastRadiusGridRow> Rows) RestoreGraphAndRows(ProjectCacheSnapshot snapshot)
+    /// <param name="snapshot">Snapshot di cache caricato.</param>
+    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
+    public (VisualCodeGraph Graph, List<BlastRadiusGridRow> Rows) RestoreGraphAndRows(ProjectCacheSnapshot snapshot, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         // 1. Ricostruzione del CodeGraph semantico
         var semanticGraph = new CodeGraph();
         semanticGraph.Symbols.AddRange(snapshot.Symbols);
         semanticGraph.Relationships.AddRange(snapshot.Relationships);
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         // 2. Creazione dell'adattatore visuale
         var visualGraph = GraphVisualAdapter.FromSemanticGraph(semanticGraph, snapshot.ProjectName);
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         // 3. Ripristino delle coordinate geometriche salvate
         if (snapshot.LayoutNodes.Count > 0)
@@ -139,6 +155,7 @@ public sealed class ProjectCacheService
             var layoutMap = snapshot.LayoutNodes.ToDictionary(n => n.Id);
             foreach (var node in visualGraph.Nodes)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (layoutMap.TryGetValue(node.Id, out var layout))
                 {
                     node.X = layout.X;
@@ -153,6 +170,7 @@ public sealed class ProjectCacheService
         var rows = new List<BlastRadiusGridRow>(snapshot.BlastRadiusRows.Count);
         foreach (var r in snapshot.BlastRadiusRows)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var targetSym = semanticGraph.FindSymbolById(r.NodeId);
             if (targetSym is null) continue;
 

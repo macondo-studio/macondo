@@ -20,10 +20,8 @@ public static class ProjectAnalysisService
         IProgress<ProjectAnalysisProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
-#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
-#endif
-        var projects = ProjectDescriptor.DiscoverFromPaths(paths);
+        var projects = ProjectDescriptor.DiscoverFromPaths(paths, cancellationToken);
         if (projects.Count == 0)
         {
             var emptySemanticGraph = new Semantic.Model.CodeGraph();
@@ -66,9 +64,7 @@ public static class ProjectAnalysisService
         IProgress<ProjectAnalysisProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
-#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
-#endif
         var totalFiles = projects.Sum(p => p.SourceFiles.Count);
         var estimatedTotalSeconds = GetEstimatedProjectAnalysisSeconds(totalFiles, projects.Count);
         var analysisStopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -80,9 +76,7 @@ public static class ProjectAnalysisService
         // 1. Registra i simboli radice di ciascun Progetto
         foreach (var proj in projects)
         {
-#if !DEBUG
             cancellationToken.ThrowIfCancellationRequested();
-#endif
             var isCs = proj.SourceFiles.Any(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) ||
                        (proj.ProjectFilePath != null && (proj.ProjectFilePath.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) || proj.ProjectFilePath.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)));
             var projLang = isCs ? SourceLanguage.CSharp : SourceLanguage.VisualBasic6;
@@ -138,9 +132,9 @@ public static class ProjectAnalysisService
 
         Parallel.ForEach(fileWorkItems, parallelOptions, item =>
         {
-#if !DEBUG
-            cancellationToken.ThrowIfCancellationRequested();
-#endif
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
             var file = item.FilePath;
             var fileName = Path.GetFileName(file);
             var fileExtension = Path.GetExtension(file);
@@ -150,17 +144,25 @@ public static class ProjectAnalysisService
                 var source = File.ReadAllText(file);
                 var localGraph = new Semantic.Model.CodeGraph();
 
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
                 if (string.Equals(fileExtension, ".cs", StringComparison.OrdinalIgnoreCase))
                 {
                     var csResult = CSharpExtractor.ExtractCSharpFile(localGraph, file, source);
-                    concurrentCsResults.Add((csResult, localGraph, item.Project, item.ProjSymbol));
+                    if (!cancellationToken.IsCancellationRequested)
+                        concurrentCsResults.Add((csResult, localGraph, item.Project, item.ProjSymbol));
                 }
                 else
                 {
                     var vbResult = ModuleExtractor.ExtractModule(localGraph, file, source);
-                    concurrentVbResults.Add((vbResult, localGraph, item.Project, item.ProjSymbol));
+                    if (!cancellationToken.IsCancellationRequested)
+                        concurrentVbResults.Add((vbResult, localGraph, item.Project, item.ProjSymbol));
                 }
             }
+
+            if (cancellationToken.IsCancellationRequested)
+                return;
 
             var currentDone = Interlocked.Increment(ref processedFiles);
 
@@ -215,6 +217,8 @@ public static class ProjectAnalysisService
             }
         });
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         // 2b. Unione deterministica e atomica dei grafi locali nel CodeGraph globale del Workspace
         foreach (var (vbResult, localGraph, proj, projSymbol) in concurrentVbResults)
         {
@@ -227,7 +231,6 @@ public static class ProjectAnalysisService
 
             // Imposta il QualifiedName con il prefisso del progetto se workspace multi-progetto
             if (projects.Count > 1)
-
                 vbResult.ModuleSymbol.QualifiedName = $"{proj.Name}.{vbResult.ModuleSymbol.Name}";
         }
 
@@ -241,15 +244,12 @@ public static class ProjectAnalysisService
             {
                 semanticGraph.AddContains(projSymbol, topSym);
                 if (projects.Count > 1 && !topSym.QualifiedName.StartsWith(proj.Name + ".", StringComparison.OrdinalIgnoreCase))
-
                     topSym.QualifiedName = $"{proj.Name}.{topSym.QualifiedName}";
             }
         }
 
         // 3. Risoluzione globale dei tipi (TypeResolver) su tutto il Workspace
-#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
-#endif
         progress?.Report(new ProjectAnalysisProgress
         {
             CurrentFileIndex = totalFiles,
@@ -261,13 +261,11 @@ public static class ProjectAnalysisService
             PhaseMessage = LocalizationService.Instance["Loading_ResolvingTypes"]
         });
 
-        var typeResolver = new TypeResolver(semanticGraph);
-        typeResolver.ResolveAllTypes();
+        var typeResolver = new TypeResolver(semanticGraph, cancellationToken);
+        typeResolver.ResolveAllTypes(cancellationToken);
 
         // 4. Risoluzione simboli e costruzione del Call Graph cross-project
-#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
-#endif
         progress?.Report(new ProjectAnalysisProgress
         {
             CurrentFileIndex = totalFiles,
@@ -281,12 +279,10 @@ public static class ProjectAnalysisService
 
         var symbolResolver = new SymbolResolver(semanticGraph, typeResolver);
         var callGraphBuilder = new CallGraphBuilder(semanticGraph, symbolResolver);
-        callGraphBuilder.BuildGraph(extractionResults, csharpResults);
+        callGraphBuilder.BuildGraph(extractionResults, csharpResults, cancellationToken);
 
         // 5. Adattamento al modello visuale per Avalonia
-#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
-#endif
         progress?.Report(new ProjectAnalysisProgress
         {
             CurrentFileIndex = totalFiles,
@@ -309,9 +305,7 @@ public static class ProjectAnalysisService
     /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere l'analisi in corso.</param>
     public static VisualCodeGraph LoadDefaultFixtures(IProgress<ProjectAnalysisProgress>? progress = null, CancellationToken cancellationToken = default)
     {
-#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
-#endif
         var baseDir = AppContext.BaseDirectory;
         var candidates = new[]
         {
@@ -325,9 +319,8 @@ public static class ProjectAnalysisService
         {
             if (Directory.Exists(dir))
             {
-                var projs = ProjectDescriptor.DiscoverFromPaths(new[] { dir });
+                var projs = ProjectDescriptor.DiscoverFromPaths(new[] { dir }, cancellationToken);
                 if (projs.Count > 0 && projs.Any(p => p.SourceFiles.Count > 0))
-
                     return AnalyzeProjects(projs, progress, cancellationToken);
             }
         }

@@ -139,9 +139,7 @@ public sealed class CallGraphQueries
         int maxDepth,
         CancellationToken cancellationToken)
     {
-#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
-#endif
 
         // 1. Limite di sicurezza: arresta la ricerca al raggiungimento di 50 cammini distinti per evitare esplosione combinatoria
         if (results.Count >= 50)
@@ -162,9 +160,7 @@ public sealed class CallGraphQueries
         var callees = GetDirectCallees(current);
         foreach (var callee in callees)
         {
-#if !DEBUG
             cancellationToken.ThrowIfCancellationRequested();
-#endif
 
             // 5. Backtracking: evita cicli infiniti visitando solo nodi non già presenti nel cammino attivo
             if (!visitedOnPath.Contains(callee.Id))

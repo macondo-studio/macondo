@@ -21,6 +21,7 @@ public partial class LoadingOverlayView : UserControl
     public LoadingOverlayView()
     {
         InitializeComponent();
+        LoadingCancelButton.Click += OnCancelClicked;
     }
 
     /// <summary>
@@ -31,6 +32,8 @@ public partial class LoadingOverlayView : UserControl
         LoadingTitle.Text = title;
         LoadingSubtitle.Text = subtitle;
         LoadingCancelButton.IsVisible = canCancel;
+        LoadingCancelButton.IsEnabled = true;
+        UpdateLocalizedUI();
         LoadingProgressBar.IsIndeterminate = true;
         LoadingProgressCount.IsVisible = false;
         LoadingProgressStats.IsVisible = false;
@@ -44,6 +47,9 @@ public partial class LoadingOverlayView : UserControl
     /// </summary>
     public void UpdateProgress(int current, int total, string countText, string statsText, string? timeText = null, string? subtitle = null)
     {
+        if (!IsVisible || !LoadingCancelButton.IsEnabled)
+            return;
+
         if (subtitle != null && LoadingSubtitle.Text != subtitle)
             LoadingSubtitle.Text = subtitle;
 
@@ -78,9 +84,6 @@ public partial class LoadingOverlayView : UserControl
         var showTime = !string.IsNullOrEmpty(timeStr);
         if (LoadingProgressTime.IsVisible != showTime)
             LoadingProgressTime.IsVisible = showTime;
-
-        if (!IsVisible)
-            IsVisible = true;
     }
 
     /// <summary>
@@ -101,6 +104,8 @@ public partial class LoadingOverlayView : UserControl
 
     private void OnCancelClicked(object? sender, RoutedEventArgs e)
     {
+        LoadingCancelButton.IsEnabled = false;
+        LoadingSubtitle.Text = LocalizationService.Instance["Loading_Cancelling"];
         CancelRequested?.Invoke(this, EventArgs.Empty);
     }
 }

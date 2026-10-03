@@ -41,13 +41,10 @@ public sealed class ImpactAnalyzer
     /// <param name="cancellationToken">Token opzionale per annullare l'analisi.</param>
     public ImpactReport AnalyzeSymbolImpact(Symbol target, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
-#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
-#endif
 
         // 1. Se il simbolo è una routine (Metodo, Funzione o Proprietà), calcola il blast radius basato sul Call Graph
         if (target.Kind is SymbolKind.Method or SymbolKind.Property)
-
             return AnalyzeRoutineImpact(target, maxDepth, cancellationToken);
 
         // 2. Se il simbolo è un tipo composito, interfaccia o modulo (Classe, Interfaccia, Struct, Record, Form, Modulo, UserControl, UDT, Enum),
@@ -55,7 +52,6 @@ public sealed class ImpactAnalyzer
         if (target.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module
                          or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum
                          or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
-
             return AnalyzeTypeImpact(target, maxDepth, cancellationToken);
 
         // 3. Se il target è un campo, variabile o costante, individua il container contenitore
@@ -87,9 +83,7 @@ public sealed class ImpactAnalyzer
     /// </summary>
     private ImpactReport AnalyzeRoutineImpact(Symbol routine, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
-#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
-#endif
 
         // 1. Recupera i chiamanti diretti (Depth 1) tramite le query del Call Graph
         var directCallers = _queries.GetDirectCallers(routine).ToList();
@@ -98,7 +92,6 @@ public sealed class ImpactAnalyzer
 
         // Inizializza il raggruppamento per profondità 1
         if (directCallers.Count > 0)
-
             callersByDepth[1] = new List<Symbol>(directCallers);
 
         // 2. Esegue una visita BFS all'indietro per calcolare tutti i chiamanti transitivi (Depth > 1)
@@ -119,9 +112,7 @@ public sealed class ImpactAnalyzer
 
         while (queue.Count > 0)
         {
-#if !DEBUG
             cancellationToken.ThrowIfCancellationRequested();
-#endif
 
             var (current, depth) = queue.Dequeue();
 
@@ -173,7 +164,6 @@ public sealed class ImpactAnalyzer
         // Se la routine stessa risiede in un container, include anche il suo container nativo tra i componenti impattati
         var routineContainer = FindEnclosingContainer(routine);
         if (routineContainer != null && !affectedContainers.Any(c => c.Id == routineContainer.Id))
-
             affectedContainers.Add(routineContainer);
 
         var affectedForms = affectedContainers.Where(c => c.Kind == SymbolKind.Form).ToList();
@@ -191,9 +181,7 @@ public sealed class ImpactAnalyzer
 
         foreach (var root in rootCallers)
         {
-#if !DEBUG
             cancellationToken.ThrowIfCancellationRequested();
-#endif
             // Esegue DFS per trovare tutti i percorsi aciclici dalla radice alla routine
             var rootPaths = _queries.FindExecutionPaths(root, routine, maxDepth, cancellationToken);
             executionPathsList.AddRange(rootPaths);
@@ -238,9 +226,7 @@ public sealed class ImpactAnalyzer
     /// </summary>
     private ImpactReport AnalyzeTypeImpact(Symbol typeSymbol, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
-#if !DEBUG
         cancellationToken.ThrowIfCancellationRequested();
-#endif
 
         var members = _graph.GetChildren(typeSymbol.Id).ToList();
         var directCallersSet = new HashSet<Guid>();
@@ -256,9 +242,7 @@ public sealed class ImpactAnalyzer
         // ---------------------------------------------------------------------
         foreach (var member in members.Where(m => m.Kind is SymbolKind.Method or SymbolKind.Property))
         {
-#if !DEBUG
             cancellationToken.ThrowIfCancellationRequested();
-#endif
 
             var memberReport = AnalyzeRoutineImpact(member, maxDepth, cancellationToken);
 
