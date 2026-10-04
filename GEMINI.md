@@ -22,7 +22,10 @@ Ogni volta che l'utente richiede di aggiornare la versione del software, rilasci
    - Eseguire `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln` per confermare che la compilazione vada a buon fine con 0 errori.
    - Eseguire lo script `./scripts/publish-single-file.ps1` (oppure `./scripts/bump-and-publish.ps1`) per creare il nuovo file eseguibile unico distribuibile (`publish/win-x64/Macondo.exe`).
 
-3. **Proposta Note di Rilascio per GitHub**:
+3. **Proposta Aggiornamenti Contenuti del Sito Web (Showcase / Feature Cards)**:
+   - In fase di rilascio o bump di versione, se sono state introdotte nuove funzionalità rilevanti, impattanti o visibili per l'utente (es. nuova CLI headless per CI/CD, anteprima codice sorgente integrata, nuove metriche o controlli di esecuzione on-demand), valutare e **proporre attivamente modifiche/integrazioni ai contenuti delle pagine del sito web** (`site/index.html`, `site/it.html`, showcase, feature cards o specifiche tecniche) per valorizzare al massimo il software verso il pubblico.
+
+4. **Proposta Note di Rilascio per GitHub**:
    - Proporre sempre all'utente il testo formattato in Markdown pronto da incollare nel campo "Describe this release" di GitHub (strutturato con What's New, Key Features, Bug Fixes / Improvements, stile formale e pulito SENZA emoji).
 
 ## Esecuzione dei Test Unitari
