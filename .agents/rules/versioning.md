@@ -3,10 +3,11 @@ description: Regola automatica per la sincronizzazione delle versioni su tutti i
 trigger: always_on
 ---
 
-# Sincronizzazione Automatica delle Versioni
+# Sincronizzazione Automatica delle Versioni e del Sito Web
 
 - **Repository privata (sorgenti app e sito)**: `.` (sito in `site/`)
 - **Repository pubblica (distribuzione sito web)**: `../macondo`
+- **Regola Generale Sito Web**: Copiare SEMPRE l'intero contenuto aggiornato di `site/` dentro `../macondo` (escluso `.git`) ad ogni modifica del sito o della versione.
 
 Quando l'utente richiede di incrementare o aggiornare la versione di Macondo (es. "aggiorna la versione a 1.2.0", "bump version", "nuova release"):
 

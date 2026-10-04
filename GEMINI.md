@@ -1,8 +1,9 @@
 # Regole e Convenzioni del Progetto Macondo (VB6 Analyzer)
 
-## Struttura Repository e Sito Web
+## Struttura Repository e Sincronizzazione Sito Web
 - **Sorgenti del sito web (repository privata Macondo / Vb6Analyzer)**: `.\site`
-- **Repository pubblica del sito web**: `../macondo` (il commit su questa repo viene effettuato dall'utente solo quando si desidera pubblicare le modifiche online).
+- **Repository pubblica del sito web**: `../macondo`
+- **Regola di Sincronizzazione Obbligatoria**: Ogni volta che vengono modificati file nella cartella `site/` (pagine HTML, immagini, CSS, script o file `version.json`), copiare SEMPRE e immediatamente l'intero contenuto aggiornato della cartella `site/` dentro `../macondo` (preservando la cartella `.git` della repo pubblica), in modo che sia sempre allineata e pronta per il commit dell'utente.
 
 ## Gestione Versioni e Release (SemVer)
 
