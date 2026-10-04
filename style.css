@@ -681,9 +681,16 @@ strong, b {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
-  text-decoration: none;
+  text-decoration: none !important;
   color: inherit;
   cursor: pointer;
+}
+
+.analysis-card:visited,
+.analysis-card:active,
+.analysis-card:link {
+  color: inherit;
+  text-decoration: none !important;
 }
 
 .analysis-card:hover {
@@ -691,6 +698,8 @@ strong, b {
   background: var(--bg-surface-elevated);
   transform: translateY(-2px);
   box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.5);
+  text-decoration: none !important;
+  color: inherit;
 }
 
 .analysis-card-top {
