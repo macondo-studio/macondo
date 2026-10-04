@@ -517,6 +517,28 @@ public partial class SettingsWindow : Window
         UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
     }
 
+    private void OnToggleTabInspector(object? sender, PointerPressedEventArgs e)
+    {
+        var updated = !SettingsService.Instance.Settings.ShowTabInspector;
+        SettingsService.Instance.Update(s =>
+        {
+            s.ShowTabInspector = updated;
+            if (updated) s.IsInspectorVisible = true;
+        });
+        UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
+    }
+
+    private void OnToggleTabSourceCode(object? sender, PointerPressedEventArgs e)
+    {
+        var updated = !SettingsService.Instance.Settings.ShowTabSourceCode;
+        SettingsService.Instance.Update(s =>
+        {
+            s.ShowTabSourceCode = updated;
+            if (updated) s.IsInspectorVisible = true;
+        });
+        UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
+    }
+
     private void OnToggleBackgroundAnalytics(object? sender, PointerPressedEventArgs e)
     {
         var updated = !SettingsService.Instance.Settings.EnableBackgroundAnalytics;
@@ -528,6 +550,7 @@ public partial class SettingsWindow : Window
     {
         SettingsService.Instance.Update(s =>
         {
+            s.IsInspectorVisible = true;
             s.ShowTabGraph = true;
             s.ShowTabDsm = true;
             s.ShowTabTreemap = true;
@@ -549,6 +572,8 @@ public partial class SettingsWindow : Window
             s.ShowTabDataFlow = true;
             s.ShowTabApiDiff = true;
             s.ShowTabCrudMatrix = true;
+            s.ShowTabInspector = true;
+            s.ShowTabSourceCode = true;
         });
         UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
     }
@@ -578,6 +603,8 @@ public partial class SettingsWindow : Window
             s.ShowTabDataFlow = false;
             s.ShowTabApiDiff = false;
             s.ShowTabCrudMatrix = false;
+            s.ShowTabInspector = false;
+            s.ShowTabSourceCode = false;
         });
         UpdateAnalyticsTabsSelection(SettingsService.Instance.Settings);
     }
@@ -606,6 +633,8 @@ public partial class SettingsWindow : Window
         CheckTabDataFlow.IsVisible = s.ShowTabDataFlow;
         CheckTabApiDiff.IsVisible = s.ShowTabApiDiff;
         CheckTabCrudMatrix.IsVisible = s.ShowTabCrudMatrix;
+        CheckTabInspector.IsVisible = s.ShowTabInspector;
+        CheckTabSourceCode.IsVisible = s.ShowTabSourceCode;
     }
 
     // =========================================================================
@@ -771,6 +800,10 @@ public partial class SettingsWindow : Window
         TabApiDiffDesc.Text = localizationService["Settings_Tab_ApiDiff_Desc"];
         TabCrudMatrixTitle.Text = localizationService["Tab_CrudMatrix"];
         TabCrudMatrixDesc.Text = localizationService["Settings_Tab_CrudMatrix_Desc"];
+        TabInspectorTitle.Text = localizationService["Tab_Inspector"];
+        TabInspectorDesc.Text = localizationService["Settings_Tab_Inspector_Desc"];
+        TabSourceCodeTitle.Text = localizationService["Tab_SourceCode"];
+        TabSourceCodeDesc.Text = localizationService["Settings_Tab_SourceCode_Desc"];
 
         ShortcutsHeaderTitle.Text = localizationService["Settings_Shortcuts_Header"];
         ShortcutsHeaderSub.Text = localizationService["Settings_Shortcuts_Sub"];

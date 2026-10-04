@@ -279,6 +279,17 @@
                                         <PathIcon x:Name="TabCrudMatrixCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
                                     </MenuItem.Icon>
                                 </MenuItem>
+                                <Separator />
+                                <MenuItem x:Name="ToggleTabInspectorMenuItem" Header="Inspector" Click="OnToggleTabInspectorMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabInspectorCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="ToggleTabSourceCodeMenuItem" Header="Codice Sorgente" Click="OnToggleTabSourceCodeMenuClicked">
+                                    <MenuItem.Icon>
+                                        <PathIcon x:Name="TabSourceCodeCheckIcon" Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
                             </MenuItem>
                         </MenuItem>
                         <MenuItem x:Name="AnalysisMenu" Header="_Analisi">
@@ -1370,6 +1381,27 @@
                     BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
                     BorderThickness="1,0,0,0">
                 <TabControl x:Name="RightTabControl" SelectedIndex="0" Padding="0">
+                    <TabControl.Resources>
+                        <!-- Menu Contestuale Tasto Destro sulle Schede del Pannello Destro (Inspector / Codice Sorgente) -->
+                        <ContextMenu x:Key="RightTabContextMenu">
+                            <MenuItem x:Name="CtxRightTabHide" Header="Nascondi scheda" Click="OnTabContextMenuHideClicked">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconClearFilter}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator />
+                            <MenuItem x:Name="CtxRightTabShowAll" Header="Mostra tutte le schede" Click="OnTabContextMenuShowAllClicked">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="CtxRightTabManage" Header="Personalizza schede..." Click="OnTabContextMenuManageClicked">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconSettings}" Width="12" Height="12" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </TabControl.Resources>
                     <TabControl.Styles>
                         <Style Selector="TabItem">
                             <Setter Property="FontSize" Value="11" />

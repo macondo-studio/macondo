@@ -141,6 +141,12 @@ public sealed class AppSettings
     /// <summary>Indica se la scheda Matrice CRUD è visibile.</summary>
     public bool ShowTabCrudMatrix { get; set; } = true;
 
+    /// <summary>Indica se la scheda Symbol Inspector nel pannello destro è visibile.</summary>
+    public bool ShowTabInspector { get; set; } = true;
+
+    /// <summary>Indica se la scheda Anteprima Codice Sorgente nel pannello destro è visibile.</summary>
+    public bool ShowTabSourceCode { get; set; } = true;
+
     /// <summary>Elenco degli ultimi progetti o cartelle analizzati (massimo 10 elementi).</summary>
     public List<RecentProjectItem> RecentProjects { get; set; } = new();
 

@@ -92,8 +92,9 @@ public partial class MainWindow : Window
         Graph.AddHandler(Control.ContextRequestedEvent, OnGraphContextRequested, RoutingStrategies.Tunnel);
         Graph.NodeMoved += (_, _) => OnGraphNodeMoved();
 
-        // Schede di Analisi (TabControl): menu contestuale su clic destro per nascondere o gestire i tab
+        // Schede di Analisi e Pannello Destro: menu contestuale su clic destro per nascondere o gestire i tab
         CentralTabControl.AddHandler(Control.ContextRequestedEvent, OnCentralTabControlContextRequested, RoutingStrategies.Tunnel);
+        RightTabControl.AddHandler(Control.ContextRequestedEvent, OnRightTabControlContextRequested, RoutingStrategies.Tunnel);
 
         // Menu Bar Superiore - File (Command + Click per massima affidabilità)
         OpenProjectFilesMenuItem.Command = new ActionCommand(async () => await OpenProjectFilesAsync());
@@ -458,7 +459,7 @@ public partial class MainWindow : Window
             SetExplorerVisibility(false, updateSettings: false);
         }
 
-        if (settings.IsInspectorVisible)
+        if (settings.IsInspectorVisible && (settings.ShowTabInspector || settings.ShowTabSourceCode))
 
             CentralGrid.ColumnDefinitions[4].Width = new GridLength(_savedInspectorWidth);
 
@@ -4655,6 +4656,8 @@ else
         if (ApiDiffTabItem != null) ApiDiffTabItem.IsVisible = s.ShowTabApiDiff;
         if (CrudMatrixTabItem != null) CrudMatrixTabItem.IsVisible = s.ShowTabCrudMatrix;
         if (GridTabItem != null) GridTabItem.IsVisible = s.ShowTabBlastRadiusGrid;
+        if (TabItemInspector != null) TabItemInspector.IsVisible = s.ShowTabInspector;
+        if (TabItemSourceCode != null) TabItemSourceCode.IsVisible = s.ShowTabSourceCode;
 
         if (TabGraphCheckIcon != null) TabGraphCheckIcon.IsVisible = s.ShowTabGraph;
         if (TabDsmCheckIcon != null) TabDsmCheckIcon.IsVisible = s.ShowTabDsm;
@@ -4677,6 +4680,8 @@ else
         if (TabApiDiffCheckIcon != null) TabApiDiffCheckIcon.IsVisible = s.ShowTabApiDiff;
         if (TabCrudMatrixCheckIcon != null) TabCrudMatrixCheckIcon.IsVisible = s.ShowTabCrudMatrix;
         if (TabBlastRadiusGridCheckIcon != null) TabBlastRadiusGridCheckIcon.IsVisible = s.ShowTabBlastRadiusGrid;
+        if (TabInspectorCheckIcon != null) TabInspectorCheckIcon.IsVisible = s.ShowTabInspector;
+        if (TabSourceCodeCheckIcon != null) TabSourceCodeCheckIcon.IsVisible = s.ShowTabSourceCode;
         if (BackgroundAnalyticsCheckIcon != null) BackgroundAnalyticsCheckIcon.IsVisible = s.EnableBackgroundAnalytics;
 
         // Se la scheda attualmente attiva viene nascosta, ripiega in sicurezza sulla prima scheda visibile
@@ -4686,6 +4691,29 @@ else
             if (firstVisible != null)
 
                 CentralTabControl.SelectedItem = firstVisible;
+        }
+
+        // Se la scheda del pannello destro attualmente attiva viene nascosta, ripiega in sicurezza sulla prima visibile
+        if (RightTabControl?.SelectedItem is TabItem currentRightTab && !currentRightTab.IsVisible)
+        {
+            var firstVisibleRight = RightTabControl.Items.OfType<TabItem>().FirstOrDefault(t => t.IsVisible);
+            if (firstVisibleRight != null)
+
+                RightTabControl.SelectedItem = firstVisibleRight;
+        }
+
+        // Se entrambe le schede del pannello destro sono nascoste, chiudi e comprimi l'intero pannello
+        if (!s.ShowTabInspector && !s.ShowTabSourceCode)
+        {
+            SetInspectorVisibility(false, updateSettings: false);
+        }
+        else if (s.IsInspectorVisible)
+        {
+            SetInspectorVisibility(true, updateSettings: false);
+        }
+        else
+        {
+            SetInspectorVisibility(false, updateSettings: false);
         }
     }
 
@@ -4789,6 +4817,28 @@ else
     private void OnToggleTabBlastRadiusGridMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabBlastRadiusGrid = !s.ShowTabBlastRadiusGrid);
 
+    /// <summary>Alterna la visibilità del tab Symbol Inspector nelle impostazioni.</summary>
+    private void OnToggleTabInspectorMenuClicked(object? sender, RoutedEventArgs e)
+    {
+        var newValue = !SettingsService.Instance.Settings.ShowTabInspector;
+        SettingsService.Instance.Update(s =>
+        {
+            s.ShowTabInspector = newValue;
+            if (newValue) s.IsInspectorVisible = true;
+        });
+    }
+
+    /// <summary>Alterna la visibilità del tab Anteprima Codice Sorgente nelle impostazioni.</summary>
+    private void OnToggleTabSourceCodeMenuClicked(object? sender, RoutedEventArgs e)
+    {
+        var newValue = !SettingsService.Instance.Settings.ShowTabSourceCode;
+        SettingsService.Instance.Update(s =>
+        {
+            s.ShowTabSourceCode = newValue;
+            if (newValue) s.IsInspectorVisible = true;
+        });
+    }
+
     #endregion
 
     #region Menu Contestuale Schede di Analisi (TabControl)
@@ -4819,6 +4869,38 @@ else
             if (CtxTabHide != null)
 
                 CtxTabHide.Header = !string.IsNullOrWhiteSpace(tabTitle)
+                    ? LocalizationService.Instance.Get("TabContext_HideTabNamed", tabTitle)
+                    : LocalizationService.Instance["TabContext_HideTab"];
+
+            menu.Open(tabItem);
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>
+    /// Gestisce la richiesta di apertura del menu contestuale sulle intestazioni delle schede del pannello destro (Inspector / Codice Sorgente).
+    /// Mostra le opzioni per nascondere la scheda specifica, mostrare tutte le schede o aprire la personalizzazione.
+    /// </summary>
+    private void OnRightTabControlContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        var visual = e.Source as Visual;
+        var tabItem = visual as TabItem ?? visual?.FindAncestorOfType<TabItem>();
+
+        // Se il clic non è avvenuto su un'intestazione TabItem appartenente al TabControl destro, ignora
+        if (tabItem == null || RightTabControl == null || !RightTabControl.Items.OfType<TabItem>().Contains(tabItem))
+
+            return;
+
+        if (RightTabControl.Resources.TryGetResource("RightTabContextMenu", null, out var res) && res is ContextMenu menu)
+        {
+            _contextMenuTargetTabItem = tabItem;
+            menu.DataContext = tabItem;
+            menu.PlacementTarget = tabItem;
+
+            var tabTitle = GetTabTitle(tabItem);
+            if (CtxRightTabHide != null)
+
+                CtxRightTabHide.Header = !string.IsNullOrWhiteSpace(tabTitle)
                     ? LocalizationService.Instance.Get("TabContext_HideTabNamed", tabTitle)
                     : LocalizationService.Instance["TabContext_HideTab"];
 
@@ -4885,6 +4967,8 @@ else
             s.ShowTabApiDiff = true;
             s.ShowTabCrudMatrix = true;
             s.ShowTabBlastRadiusGrid = true;
+            s.ShowTabInspector = true;
+            s.ShowTabSourceCode = true;
         });
     }
 
@@ -4901,7 +4985,11 @@ else
     /// </summary>
     private void HideTab(TabItem tabItem)
     {
-        if (tabItem == GraphTabItem)
+        if (tabItem == TabItemInspector)
+            SettingsService.Instance.Update(s => s.ShowTabInspector = false);
+        else if (tabItem == TabItemSourceCode)
+            SettingsService.Instance.Update(s => s.ShowTabSourceCode = false);
+        else if (tabItem == GraphTabItem)
             SettingsService.Instance.Update(s => s.ShowTabGraph = false);
         else if (tabItem == DsmTabItem)
             SettingsService.Instance.Update(s => s.ShowTabDsm = false);
@@ -5366,6 +5454,15 @@ else
         _isInspectorVisible = isVisible;
         if (isVisible)
         {
+            if (!SettingsService.Instance.Settings.ShowTabInspector && !SettingsService.Instance.Settings.ShowTabSourceCode)
+            {
+                SettingsService.Instance.Update(s =>
+                {
+                    s.ShowTabInspector = true;
+                    s.ShowTabSourceCode = true;
+                });
+            }
+
             var w = _savedInspectorWidth >= 200 ? _savedInspectorWidth : 360;
             CentralGrid.ColumnDefinitions[4].MinWidth = 240;
             CentralGrid.ColumnDefinitions[4].MaxWidth = 800;
@@ -5624,6 +5721,11 @@ else
         if (CtxTabHide != null) CtxTabHide.Header = localizationService["TabContext_HideTab"];
         if (CtxTabShowAll != null) CtxTabShowAll.Header = localizationService["TabContext_ShowAllTabs"];
         if (CtxTabManage != null) CtxTabManage.Header = localizationService["TabContext_ManageTabs"];
+        if (CtxRightTabHide != null) CtxRightTabHide.Header = localizationService["TabContext_HideTab"];
+        if (CtxRightTabShowAll != null) CtxRightTabShowAll.Header = localizationService["TabContext_ShowAllTabs"];
+        if (CtxRightTabManage != null) CtxRightTabManage.Header = localizationService["TabContext_ManageTabs"];
+        if (ToggleTabInspectorMenuItem != null) ToggleTabInspectorMenuItem.Header = localizationService["Tab_Inspector"];
+        if (ToggleTabSourceCodeMenuItem != null) ToggleTabSourceCodeMenuItem.Header = localizationService["Tab_SourceCode"];
         if (_graph is not null)
 
             ProjectExplorerControl.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds) };

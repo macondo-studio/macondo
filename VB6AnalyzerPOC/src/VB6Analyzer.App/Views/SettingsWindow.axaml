@@ -939,6 +939,44 @@
                                         </Border>
                                     </Grid>
                                 </Border>
+
+                                <!-- Card Symbol Inspector -->
+                                <Border x:Name="CardTabInspector"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabInspector">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconInspect}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabInspectorTitle" Text="Inspector" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabInspectorDesc" Text="Pannello di ispezione dettagliata del simbolo selezionato." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabInspector" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Card Anteprima Codice Sorgente -->
+                                <Border x:Name="CardTabSourceCode"
+                                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                                        BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14" Cursor="Hand" PointerPressed="OnToggleTabSourceCode">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="{DynamicResource ThemeBackgroundElevatedBrush}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconFile}" Width="16" Height="16" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock x:Name="TabSourceCodeTitle" Text="Codice Sorgente" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ThemeTextPrimaryBrush}" />
+                                            <TextBlock x:Name="TabSourceCodeDesc" Text="Anteprima sintattica del codice sorgente con azioni rapide." FontSize="11" Foreground="{DynamicResource ThemeTextSecondaryBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" x:Name="CheckTabSourceCode" Width="22" Height="22" CornerRadius="11" Background="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="11" Height="11" Foreground="#FFFFFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
                             </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
