@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -155,8 +155,8 @@
 
   <!-- Feature 1: Visual Graph -->
   <section id="graph" class="feature-block">
-    <div class="container feature-grid-2">
-      <div>
+    <div class="container">
+      <div style="max-width: 820px; margin: 0 auto;">
         <div class="feature-tag">Visual Exploration</div>
         <h2 class="feature-heading">Understand every dependency at a glance.</h2>
         <p class="feature-desc">Exhaustive AST parsing of Visual Basic 6.0 projects (<code>.vbp</code>, <code>.frm</code>, <code>.bas</code>, <code>.cls</code>, <code>.ctl</code>) and modern C# / .NET solutions (<code>.csproj</code>, <code>.sln</code>, <code>.cs</code>). Explore call hierarchies with 4 tailored layout algorithms.</p>
@@ -174,18 +174,6 @@
             <span>Fluid 60 FPS rendering even across large enterprise codebases with 10,000+ symbols.</span>
           </li>
         </ul>
-      </div>
-
-      <div class="feature-card-visual">
-        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); line-height: 1.8;">
-          <div style="color: #ffffff; margin-bottom: 8px;">Multi-Language AST Resolution Pipeline:</div>
-          <div>&bull; VB6: <span>Forms (.FRM), Modules (.BAS), Classes (.CLS), Controls (.CTL)</span></div>
-          <div>&bull; C#/.NET: <span>Solutions (.SLN), Projects (.CSPROJ), Classes &amp; Records (.CS)</span></div>
-          <div>&bull; Relationships: <span>CALLS, INSTANTIATES, USES_TYPE, READS, WRITES</span></div>
-          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle); color: var(--text-headline);">
-            High-performance cross-language graph resolution (60 FPS)
-          </div>
-        </div>
       </div>
     </div>
   </section>
@@ -446,9 +434,9 @@
   <section id="ai" class="feature-block">
     <div class="container feature-grid-2">
       <div>
-        <div class="feature-tag">AI &amp; Modernization</div>
-        <h2 class="feature-heading">The ideal bridge between legacy code and AI models.</h2>
-        <p class="feature-desc">Extract compact, structured Markdown Repo Maps and semantic context slices ready for Claude, ChatGPT, Gemini, Copilot, Cursor, etc. to guide your C#/.NET modernization and refactoring.</p>
+        <div class="feature-tag">CI/CD, AI &amp; Modernization</div>
+        <h2 class="feature-heading">The ideal bridge between legacy code, pipelines, and modern AI.</h2>
+        <p class="feature-desc">Extract compact, structured Markdown and JSON Repo Maps ready for Claude, ChatGPT, Gemini, Copilot, Cursor, or run automated quality audits in your CI/CD pipelines (GitHub Actions, Azure DevOps) to accelerate refactoring and modernization into modern C#/.NET.</p>
         <ul class="feature-points">
           <li class="feature-point">
             <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
@@ -460,7 +448,7 @@
           </li>
           <li class="feature-point">
             <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
-            <span>Headless CLI execution for CI/CD pipelines or as a tool for autonomous AI agents (Claude Code, Cursor, Antigravity, MCP, etc.).</span>
+            <span>Headless CLI execution for CI/CD Quality Gates or as a tool for autonomous AI agents (Claude Code, Cursor, Antigravity, MCP, etc.).</span>
           </li>
         </ul>
       </div>
@@ -473,7 +461,7 @@
           <div style="color: #888; margin-bottom: 4px;"># Analyze legacy VB6 project</div>
           <div style="color: var(--accent); margin-bottom: 14px;">Macondo.exe analyze "C:\Projects\MyVB6Project\App.vbp" --export-json "graph.json"</div>
 
-          <div style="color: #888; margin-bottom: 4px;"># Export both formats simultaneously</div>
+          <div style="color: #888; margin-bottom: 4px;"># Export both formats simultaneously for CI/CD</div>
           <div style="color: var(--accent);">Macondo.exe analyze "C:\Projects\MyProject" --export-md "repo-map.md" --export-json "graph.json"</div>
         </div>
       </div>
@@ -497,6 +485,21 @@
         <div class="card-minimal">
           <h3 class="card-title">Cache &amp; Native Speed</h3>
           <p class="card-body">Lightning-fast persistent disk cache: reopen complex enterprise projects with hundreds of files in milliseconds.</p>
+        </div>
+
+        <div class="card-minimal">
+          <h3 class="card-title">CLI &amp; CI/CD Automation</h3>
+          <p class="card-body">Run headless analyses from the command line, generate Markdown/JSON reports, and enforce structural quality gates directly in your DevOps pipelines.</p>
+        </div>
+
+        <div class="card-minimal">
+          <h3 class="card-title">Source Preview &amp; LOC</h3>
+          <p class="card-body">Inspect original source code lines and LOC metrics directly within the Symbol Inspector with instant clipboard copy and zero context switching.</p>
+        </div>
+
+        <div class="card-minimal">
+          <h3 class="card-title">On-Demand Execution</h3>
+          <p class="card-body">Granular control over background computations, real-time remaining time estimation, and instant project cancellation with zero UI freezing.</p>
         </div>
       </div>
     </div>

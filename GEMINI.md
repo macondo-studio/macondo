@@ -4,6 +4,7 @@
 - **Sorgenti del sito web (repository privata Macondo / Vb6Analyzer)**: `.\site`
 - **Repository pubblica del sito web**: `../macondo`
 - **Regola di Sincronizzazione Obbligatoria**: Ogni volta che vengono modificati file nella cartella `site/` (pagine HTML, immagini, CSS, script o file `version.json`), copiare SEMPRE e immediatamente l'intero contenuto aggiornato della cartella `site/` dentro `../macondo` (preservando la cartella `.git` della repo pubblica), in modo che sia sempre allineata e pronta per il commit dell'utente.
+- **Nessuna Build per Modifiche al Solo Sito**: Quando le modifiche riguardano unicamente file del sito web (`site/`, HTML, CSS, script, immagini) e non il codice sorgente C#/.NET, **NON eseguire la compilazione (`dotnet build`)**. La build va eseguita solo quando si modifica il codice C# o durante la procedura di bump/rilascio versione.
 
 ## Gestione Versioni e Release (SemVer)
 

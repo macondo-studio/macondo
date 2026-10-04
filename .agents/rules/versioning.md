@@ -8,6 +8,7 @@ trigger: always_on
 - **Repository privata (sorgenti app e sito)**: `.` (sito in `site/`)
 - **Repository pubblica (distribuzione sito web)**: `../macondo`
 - **Regola Generale Sito Web**: Copiare SEMPRE l'intero contenuto aggiornato di `site/` dentro `../macondo` (escluso `.git`) ad ogni modifica del sito o della versione.
+- **Nessuna Build per Modifiche al Solo Sito**: Quando si apportano modifiche unicamente ai file del sito web (`site/`, HTML, CSS, JS, immagini), **NON eseguire la compilazione (`dotnet build`)**. La build va effettuata solo quando si modifica il codice C#/.NET o durante le procedure di bump di versione.
 
 Quando l'utente richiede di incrementare o aggiornare la versione di Macondo (es. "aggiorna la versione a 1.2.0", "bump version", "nuova release"):
 
