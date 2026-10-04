@@ -94,6 +94,7 @@
           <li><a href="#graph">Graph &amp; Blast Radius</a></li>
           <li><a href="#analyses">Analyses</a></li>
           <li><a href="#ai">AI &amp; Modernization</a></li>
+          <li><a href="guide.html">Guide</a></li>
           <li><a href="#specs">Specifications</a></li>
           <li>
             <a href="releases.html" class="nav-releases">
@@ -173,7 +174,7 @@
         <div class="card-minimal" style="padding: 32px; display: flex; flex-direction: column;">
           <div class="feature-tag" style="margin-bottom: 8px;">Visual Exploration</div>
           <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-headline); margin-bottom: 12px; letter-spacing: -0.02em;">Map relationships at high performance</h3>
-          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">Exhaustive AST parsing of VB6 and C#/.NET solutions. Visualize calls, instantiations, and resolved types on a responsive 60 FPS vector canvas.</p>
+          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">Exhaustive AST parsing of VB6 and C#/.NET solutions. Visualize calls, instantiations, and resolved types on a responsive <strong>60 FPS vector canvas</strong>.</p>
           <ul class="feature-points" style="margin-top: auto;">
             <li class="feature-point">
               <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
@@ -194,7 +195,7 @@
         <div class="card-minimal" style="padding: 32px; display: flex; flex-direction: column;">
           <div class="feature-tag" style="margin-bottom: 8px;">Impact Analysis (Blast Radius)</div>
           <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-headline); margin-bottom: 12px; letter-spacing: -0.02em;">Refactor without fear of breaking production</h3>
-          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">Recursively trace all upstream callers to identify exactly which forms, classes, or services will be impacted before editing a single line.</p>
+          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;"><strong>Recursively trace all upstream callers</strong> to identify exactly which forms, classes, or services will be impacted before editing a single line.</p>
           <ul class="feature-points" style="margin-top: auto;">
             <li class="feature-point">
               <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
@@ -248,188 +249,125 @@
         <!-- Category 1: Visual Exploration & Flows -->
         <div id="cat-visual" class="analysis-pane active" role="tabpanel">
           <div class="analyses-grid">
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">2D Semantic Code Graph</h4>
-                <span class="analysis-pill">Multi-Layout</span>
-              </div>
-              <p class="analysis-card-desc">Interactive 60 FPS vector canvas with 4 layout engines (Standard Radial, Affinity, Clustered Islands, and Force-Directed) and dynamic symbol expansion.</p>
-            </div>
+            <a href="guide.html#graph-layouts" class="analysis-card">
+              <h4 class="analysis-card-title">2D Semantic Code Graph</h4>
+              <p class="analysis-card-desc">Interactive <strong>60 FPS vector canvas</strong> with 4 layout engines (Standard Radial, Affinity, Clustered Islands, and Force-Directed) and dynamic symbol expansion.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Screen Flow</h4>
-                <span class="analysis-pill">UI Flow</span>
-              </div>
-              <p class="analysis-card-desc">Visual map of user interface navigation and transitions between Forms, dialogs, and windows, identifying entry points and screen chains.</p>
-            </div>
+            <a href="guide.html#screen-flow" class="analysis-card">
+              <h4 class="analysis-card-title">Screen Flow</h4>
+              <p class="analysis-card-desc">Visual map of <strong>user interface navigation</strong> and transitions between Forms, dialogs, and windows, identifying entry points and screen chains.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Control Flow Graph (CFG)</h4>
-                <span class="analysis-pill">Routine Logic</span>
-              </div>
-              <p class="analysis-card-desc">Basic Block decomposition per routine showing execution paths, decision nodes, branch conditions, and looping structures.</p>
-            </div>
+            <a href="guide.html#control-flow" class="analysis-card">
+              <h4 class="analysis-card-title">Control Flow Graph (CFG)</h4>
+              <p class="analysis-card-desc"><strong>Basic Block decomposition</strong> per routine showing execution paths, decision nodes, branch conditions, and looping structures.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Architectural Flow (Chord)</h4>
-                <span class="analysis-pill">Layer Coupling</span>
-              </div>
-              <p class="analysis-card-desc">Circular Chord diagram quantifying call volumes and cross-layer interdependence across architectural layers, packages, and namespaces.</p>
-            </div>
+            <a href="guide.html#architectural-flow" class="analysis-card">
+              <h4 class="analysis-card-title">Architectural Flow (Chord)</h4>
+              <p class="analysis-card-desc">Circular Chord diagram quantifying call volumes and <strong>cross-layer interdependence</strong> across architectural layers, packages, and namespaces.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">CodeCity 3D</h4>
-                <span class="analysis-pill">Urban Metaphor</span>
-              </div>
-              <p class="analysis-card-desc">Interactive 3D software city where buildings represent files/classes: height reflects LOC, base area reflects complexity, and color reflects risk.</p>
-            </div>
+            <a href="guide.html#codecity" class="analysis-card">
+              <h4 class="analysis-card-title">CodeCity 3D</h4>
+              <p class="analysis-card-desc"><strong>Interactive 3D software city</strong> where buildings represent files/classes: height reflects LOC, base area reflects complexity, and color reflects risk.</p>
+            </a>
           </div>
         </div>
 
         <!-- Category 2: Architecture & Quality Metrics -->
         <div id="cat-arch" class="analysis-pane" role="tabpanel" hidden>
           <div class="analyses-grid">
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Design Structure Matrix (DSM)</h4>
-                <span class="analysis-pill">Circular Loops</span>
-              </div>
-              <p class="analysis-card-desc">High-density square dependency matrix to instantly spot hidden couplings, feedback cycles, and recursive loops across modules.</p>
-            </div>
+            <a href="guide.html#dsm" class="analysis-card">
+              <h4 class="analysis-card-title">Design Structure Matrix (DSM)</h4>
+              <p class="analysis-card-desc">High-density square dependency matrix to instantly spot hidden couplings, <strong>feedback cycles, and recursive loops</strong> across modules.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Metrics Treemap</h4>
-                <span class="analysis-pill">LOC &amp; Complexity</span>
-              </div>
-              <p class="analysis-card-desc">Hierarchical proportional treemap with interactive drill-down: instantly pinpoint where lines of code and cyclomatic complexity are clustered.</p>
-            </div>
+            <a href="guide.html#treemap" class="analysis-card">
+              <h4 class="analysis-card-title">Metrics Treemap</h4>
+              <p class="analysis-card-desc">Hierarchical proportional treemap with interactive drill-down: instantly pinpoint where lines of code and <strong>cyclomatic complexity</strong> are clustered.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Martin Package Metrics</h4>
-                <span class="analysis-pill">Afferent/Efferent</span>
-              </div>
-              <p class="analysis-card-desc">Rigorous computation of Afferent/Efferent Coupling (Ca, Ce), Instability (I), Abstractness (A), and Distance from the Main Sequence (D).</p>
-            </div>
+            <a href="guide.html#martin-metrics" class="analysis-card">
+              <h4 class="analysis-card-title">Martin Package Metrics</h4>
+              <p class="analysis-card-desc">Rigorous computation of <strong>Afferent/Efferent Coupling</strong> (Ca, Ce), Instability (I), Abstractness (A), and Distance from the Main Sequence (D).</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Cohesion &amp; LCOM</h4>
-                <span class="analysis-pill">SRP &amp; Cohesion</span>
-              </div>
-              <p class="analysis-card-desc">Lack of Cohesion of Methods (LCOM4 / Henderson-Sellers) scoring to identify bloated god-classes and Single Responsibility Principle violations.</p>
-            </div>
+            <a href="guide.html#cohesion" class="analysis-card">
+              <h4 class="analysis-card-title">Cohesion &amp; LCOM</h4>
+              <p class="analysis-card-desc">Lack of Cohesion of Methods (LCOM4) scoring to identify bloated <strong>god-classes</strong> and Single Responsibility Principle violations.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Maintainability Index (MI)</h4>
-                <span class="analysis-pill">SEI Standard</span>
-              </div>
-              <p class="analysis-card-desc">Standard maintainability rating (0–100) computed from Halstead Volume, McCabe Cyclomatic Complexity, and effective code line counts.</p>
-            </div>
+            <a href="guide.html#maintainability" class="analysis-card">
+              <h4 class="analysis-card-title">Maintainability Index (MI)</h4>
+              <p class="analysis-card-desc">Standard <strong>maintainability rating (0–100)</strong> computed from Halstead Volume, McCabe Cyclomatic Complexity, and effective code line counts.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Architectural Rules</h4>
-                <span class="analysis-pill">Layer Enforcer</span>
-              </div>
-              <p class="analysis-card-desc">Automated validation of architectural constraints (e.g. preventing the UI presentation layer from directly touching database storage).</p>
-            </div>
+            <a href="guide.html#architectural-rules" class="analysis-card">
+              <h4 class="analysis-card-title">Architectural Rules</h4>
+              <p class="analysis-card-desc">Automated validation of <strong>architectural constraints</strong> (e.g. preventing the UI presentation layer from directly touching database storage).</p>
+            </a>
           </div>
         </div>
 
         <!-- Category 3: Risk, Impact & Maintenance -->
         <div id="cat-risk" class="analysis-pane" role="tabpanel" hidden>
           <div class="analyses-grid">
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Blast Radius &amp; Risk Scoring</h4>
-                <span class="analysis-pill">Upstream Impact</span>
-              </div>
-              <p class="analysis-card-desc">Recursive upstream caller tracing with automated regression risk scoring from Low to Critical and a navigable interactive audit grid.</p>
-            </div>
+            <a href="guide.html#blast-radius" class="analysis-card">
+              <h4 class="analysis-card-title">Blast Radius &amp; Risk Scoring</h4>
+              <p class="analysis-card-desc">Recursive upstream caller tracing with automated <strong>regression risk scoring</strong> from Low to Critical and a navigable interactive audit grid.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Risk Hotspots</h4>
-                <span class="analysis-pill">2D Scatter</span>
-              </div>
-              <p class="analysis-card-desc">2D scatter plot correlating Cyclomatic Complexity with Change Frequency/Fan-in to highlight fragile components prone to regressions.</p>
-            </div>
+            <a href="guide.html#risk-hotspots" class="analysis-card">
+              <h4 class="analysis-card-title">Risk Hotspots</h4>
+              <p class="analysis-card-desc"><strong>2D scatter plot</strong> correlating Cyclomatic Complexity with Change Frequency/Fan-in to highlight fragile components prone to regressions.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Dead Code &amp; Orphan Routines</h4>
-                <span class="analysis-pill">Code Cleanup</span>
-              </div>
-              <p class="analysis-card-desc">Automated detection and isolation of uncalled routines, unused classes, and orphan functions to trim bloat before migration.</p>
-            </div>
+            <a href="guide.html#dead-code" class="analysis-card">
+              <h4 class="analysis-card-title">Dead Code &amp; Orphan Routines</h4>
+              <p class="analysis-card-desc">Automated detection and isolation of <strong>uncalled routines</strong>, unused classes, and orphan functions to trim bloat before migration.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Shared State &amp; Globals</h4>
-                <span class="analysis-pill">Shared State</span>
-              </div>
-              <p class="analysis-card-desc">Exhaustive mapping of global and public variables with precise tracking of which routines read and write each shared variable.</p>
-            </div>
+            <a href="guide.html#shared-state" class="analysis-card">
+              <h4 class="analysis-card-title">Shared State &amp; Globals</h4>
+              <p class="analysis-card-desc">Exhaustive mapping of <strong>global and public variables</strong> with precise tracking of which routines read and write each shared variable.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Temporal Coupling (VCS)</h4>
-                <span class="analysis-pill">Git &amp; SVN</span>
-              </div>
-              <p class="analysis-card-desc">Commit history mining to uncover modules that are not structurally linked but frequently change together over time.</p>
-            </div>
+            <a href="guide.html#temporal-coupling" class="analysis-card">
+              <h4 class="analysis-card-title">Temporal Coupling (VCS)</h4>
+              <p class="analysis-card-desc">Commit history mining to uncover modules that are not structurally linked but frequently <strong>change together</strong> over time.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Code Clones (CPD)</h4>
-                <span class="analysis-pill">Clone Detection</span>
-              </div>
-              <p class="analysis-card-desc">Token-based duplicate code detection to identify copy-pasted blocks, redundant logic, and refactoring candidates.</p>
-            </div>
+            <a href="guide.html#code-clones" class="analysis-card">
+              <h4 class="analysis-card-title">Code Clones (CPD)</h4>
+              <p class="analysis-card-desc">Token-based <strong>duplicate code detection</strong> to identify copy-pasted blocks, redundant logic, and refactoring candidates.</p>
+            </a>
           </div>
         </div>
 
         <!-- Category 4: Data, Interfaces & Team -->
         <div id="cat-data" class="analysis-pane" role="tabpanel" hidden>
           <div class="analyses-grid">
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Data Flow &amp; Taint Analysis</h4>
-                <span class="analysis-pill">Data Propagation</span>
-              </div>
-              <p class="analysis-card-desc">Tracking data propagation and variable state across method call boundaries to identify taint paths and sensitive data handling.</p>
-            </div>
+            <a href="guide.html#data-flow" class="analysis-card">
+              <h4 class="analysis-card-title">Data Flow &amp; Taint Analysis</h4>
+              <p class="analysis-card-desc">Tracking data propagation and variable state across method call boundaries to identify <strong>taint paths</strong> and sensitive data handling.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">CRUD Matrix</h4>
-                <span class="analysis-pill">Data Access</span>
-              </div>
-              <p class="analysis-card-desc">Cross-reference matrix linking business routines with database tables, cataloging Create, Read, Update, and Delete operations.</p>
-            </div>
+            <a href="guide.html#crud-matrix" class="analysis-card">
+              <h4 class="analysis-card-title">CRUD Matrix</h4>
+              <p class="analysis-card-desc">Cross-reference matrix linking business routines with database tables, cataloging <strong>Create, Read, Update, and Delete</strong> operations.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">API Diff &amp; SemVer</h4>
-                <span class="analysis-pill">Breaking Changes</span>
-              </div>
-              <p class="analysis-card-desc">Semantic comparison across code revisions to identify breaking changes, method signature alterations, and public API additions.</p>
-            </div>
+            <a href="guide.html#api-diff" class="analysis-card">
+              <h4 class="analysis-card-title">API Diff &amp; SemVer</h4>
+              <p class="analysis-card-desc">Semantic comparison across code revisions to identify <strong>breaking changes</strong>, method signature alterations, and public API additions.</p>
+            </a>
 
-            <div class="analysis-card">
-              <div class="analysis-card-top">
-                <h4 class="analysis-card-title">Social Code &amp; Bus Factor</h4>
-                <span class="analysis-pill">Team Knowledge</span>
-              </div>
-              <p class="analysis-card-desc">VCS authorship and code ownership distribution analysis to calculate Bus Factor and mitigate developer knowledge silos.</p>
-            </div>
+            <a href="guide.html#social-code" class="analysis-card">
+              <h4 class="analysis-card-title">Social Code &amp; Bus Factor</h4>
+              <p class="analysis-card-desc">VCS authorship and code ownership distribution analysis to calculate <strong>Bus Factor</strong> and mitigate developer knowledge silos.</p>
+            </a>
           </div>
         </div>
       </div>
@@ -513,32 +451,32 @@
         <div class="specs-carousel-track" id="specsTrack">
           <div class="specs-card">
             <h3 class="card-title">100% Free</h3>
-            <p class="card-body">No subscriptions, no paywalls, no artificial limitations. Built as an open engineering tool for developers.</p>
+            <p class="card-body"><strong>No subscriptions</strong>, no paywalls, no artificial limitations. Built as an open engineering tool for developers.</p>
           </div>
 
           <div class="specs-card">
             <h3 class="card-title">Absolute Privacy</h3>
-            <p class="card-body">Runs 100% locally on your machine. Zero source code or telemetry ever leaves your computer.</p>
+            <p class="card-body">Runs <strong>100% locally</strong> on your machine. Zero source code or telemetry ever leaves your computer.</p>
           </div>
 
           <div class="specs-card">
             <h3 class="card-title">Cache &amp; Native Speed</h3>
-            <p class="card-body">Lightning-fast persistent disk cache: reopen complex enterprise projects with hundreds of files in milliseconds.</p>
+            <p class="card-body">Lightning-fast <strong>persistent disk cache</strong>: reopen complex enterprise projects with hundreds of files in milliseconds.</p>
           </div>
 
           <div class="specs-card">
             <h3 class="card-title">CLI &amp; CI/CD Automation</h3>
-            <p class="card-body">Run headless analyses from the command line, generate Markdown/JSON reports, and enforce structural quality gates directly in your DevOps pipelines.</p>
+            <p class="card-body">Run <strong>headless analyses</strong> from the command line, generate Markdown/JSON reports, and enforce structural quality gates directly in your DevOps pipelines.</p>
           </div>
 
           <div class="specs-card">
             <h3 class="card-title">Source Preview &amp; LOC</h3>
-            <p class="card-body">Inspect original source code lines and LOC metrics directly within the Symbol Inspector with instant clipboard copy and zero context switching.</p>
+            <p class="card-body">Inspect original source code lines and LOC metrics directly within the <strong>Symbol Inspector</strong> with instant clipboard copy and zero context switching.</p>
           </div>
 
           <div class="specs-card">
             <h3 class="card-title">On-Demand Execution</h3>
-            <p class="card-body">Granular control over background computations, real-time remaining time estimation, and instant project cancellation with zero UI freezing.</p>
+            <p class="card-body">Granular control over background computations, real-time remaining time estimation, and <strong>instant project cancellation</strong> with zero UI freezing.</p>
           </div>
         </div>
 
@@ -572,6 +510,7 @@
         <a href="LICENSE.md" target="_blank">License</a>
         <a href="privacy.html">Privacy</a>
         <a href="releases.html">Releases</a>
+        <a href="guide.html">Guide</a>
         <a href="#graph">Graph &amp; Blast Radius</a>
         <a href="#analyses">Analyses</a>
         <a href="#ai">AI &amp; Modernization</a>
