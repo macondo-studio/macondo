@@ -329,6 +329,37 @@ function initLanguageSwitcher() {
   });
 }
 
+function initAnalysesTabs() {
+  const tabButtons = document.querySelectorAll('.analysis-tab-btn');
+  const panes = document.querySelectorAll('.analysis-pane');
+  if (!tabButtons.length || !panes.length) return;
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-tab');
+      if (!targetId) return;
+
+      tabButtons.forEach(b => {
+        const isActive = b === btn;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      panes.forEach(pane => {
+        if (pane.id === targetId) {
+          pane.hidden = false;
+          // Trigger reflow to restart animation smoothly
+          void pane.offsetWidth;
+          pane.classList.add('active');
+        } else {
+          pane.classList.remove('active');
+          pane.hidden = true;
+        }
+      });
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Set current year dynamically
   const yearEl = document.getElementById('current-year');
@@ -337,6 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initLanguageSwitcher();
+  initAnalysesTabs();
   fetchVersion();
   loadReleases();
 });
