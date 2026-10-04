@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Informativa sulla Privacy • Macondo</title>
   <meta name="description" content="Informativa sulla Privacy di Macondo: 100% offline, zero telemetria, privacy assoluta per il tuo codice sorgente (inclusi VB6 e C#).">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 
   <!-- Canonical & Multilingual Hreflang -->
   <link rel="canonical" href="https://macondo-studio.com/privacy-it.html">
@@ -31,7 +31,12 @@
   <meta property="og:title" content="Informativa sulla Privacy • Macondo">
   <meta property="og:description" content="Informativa sulla Privacy di Macondo: 100% offline, zero telemetria, privacy assoluta per il tuo codice sorgente (inclusi VB6 e C#).">
   <meta property="og:image" content="https://macondo-studio.com/VistaGrafoIta.png">
+  <meta property="og:image:width" content="1920">
+  <meta property="og:image:height" content="1080">
+  <meta property="og:image:alt" content="Informativa sulla Privacy Macondo">
   <meta property="og:site_name" content="Macondo">
+  <meta property="og:locale" content="it_IT">
+  <meta property="og:locale:alternate" content="en_US">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
@@ -39,6 +44,47 @@
   <meta name="twitter:title" content="Informativa sulla Privacy • Macondo">
   <meta name="twitter:description" content="Informativa sulla Privacy di Macondo: 100% offline, zero telemetria, privacy assoluta per il tuo codice sorgente (inclusi VB6 e C#).">
   <meta name="twitter:image" content="https://macondo-studio.com/VistaGrafoIta.png">
+  <meta name="twitter:image:alt" content="Informativa sulla Privacy Macondo">
+
+  <!-- Structured Data: WebPage & Breadcrumbs (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://macondo-studio.com/privacy-it.html#page",
+        "name": "Informativa sulla Privacy Macondo",
+        "description": "Informativa sulla Privacy di Macondo: 100% offline, zero telemetria, privacy assoluta per il tuo codice sorgente.",
+        "url": "https://macondo-studio.com/privacy-it.html",
+        "inLanguage": "it",
+        "publisher": {
+          "@type": "Organization",
+          "name": "Macondo Studio",
+          "url": "https://macondo-studio.com"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://macondo-studio.com/privacy-it.html#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://macondo-studio.com/it.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Informativa Privacy",
+            "item": "https://macondo-studio.com/privacy-it.html"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 
   <!-- Favicon & Stylesheet -->
   <link rel="stylesheet" href="style.css">
@@ -58,10 +104,17 @@
 
       <nav>
         <ul class="nav">
-          <li><a href="it.html#graph">Grafo</a></li>
-          <li><a href="it.html#blast">Blast Radius</a></li>
+          <li><a href="it.html#graph">Grafo &amp; Blast Radius</a></li>
+          <li><a href="it.html#analyses">Analisi</a></li>
           <li><a href="it.html#ai">AI &amp; Modernizzazione</a></li>
-          <li><a href="it.html#specs">Specifiche</a></li>          
+          <li><a href="it.html#specs">Specifiche</a></li>
+          <li><a href="guide-it.html">Guida</a></li>
+          <li>
+            <a href="releases-it.html" class="nav-releases">
+              <span>Release</span>
+              <span class="nav-version-tag">v1.5.0</span>
+            </a>
+          </li>
         </ul>
       </nav>
 
@@ -163,6 +216,7 @@
         <a href="LICENSE.md" target="_blank">Licenza</a>
         <a href="privacy-it.html">Privacy</a>
         <a href="releases-it.html">Release</a>
+        <a href="guide-it.html">Guida</a>
         <a href="it.html#graph">Grafo</a>
         <a href="it.html#blast">Blast Radius</a>
         <a href="it.html#ai">AI &amp; Modernizzazione</a>

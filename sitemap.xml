@@ -47,13 +47,22 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://macondo-studio.com/releases-it.html</loc>
-    <xhtml:link rel="alternate" hreflang="it" href="https://macondo-studio.com/releases-it.html" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://macondo-studio.com/releases.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://macondo-studio.com/releases.html" />
-    <lastmod>2026-09-15</lastmod>
+    <loc>https://macondo-studio.com/guide.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://macondo-studio.com/guide.html" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://macondo-studio.com/guide-it.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://macondo-studio.com/guide.html" />
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://macondo-studio.com/guide-it.html</loc>
+    <xhtml:link rel="alternate" hreflang="it" href="https://macondo-studio.com/guide-it.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://macondo-studio.com/guide.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://macondo-studio.com/guide.html" />
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
 </urlset>
 

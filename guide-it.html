@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Specifiche Analisi &amp; Guida Architetturale • Macondo</title>
+  <meta name="description" content="Guida tecnica esaustiva, formulazioni matematiche e riferimenti algoritmici per tutte le oltre 20 analisi statiche, metriche e motori deterministici in Macondo.">
+  <meta name="keywords" content="Guida Macondo, specifiche analisi statica, complessità ciclomatica McCabe, volume Halstead, formula indice manutenibilità, LCOM4, metriche Martin, algoritmo Blast Radius, CodeCity 3D, matrice DSM, reverse engineering VB6, parser AST C#">
+  <meta name="author" content="Macondo Studio">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+  <!-- Canonical & Multilingual Hreflang -->
+  <link rel="canonical" href="https://macondo-studio.com/guide-it.html">
+  <link rel="alternate" hreflang="en" href="https://macondo-studio.com/guide.html">
+  <link rel="alternate" hreflang="it" href="https://macondo-studio.com/guide-it.html">
+  <link rel="alternate" hreflang="x-default" href="https://macondo-studio.com/guide.html">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://macondo-studio.com/guide-it.html">
+  <meta property="og:title" content="Specifiche Analisi &amp; Guida Architetturale • Macondo">
+  <meta property="og:description" content="Guida tecnica esaustiva, formulazioni matematiche e riferimenti algoritmici per tutte le oltre 20 analisi statiche, metriche e motori deterministici in Macondo.">
+  <meta property="og:image" content="https://macondo-studio.com/VistaGrafoIta.png">
+  <meta property="og:image:width" content="1920">
+  <meta property="og:image:height" content="1080">
+  <meta property="og:image:alt" content="Guida all'Analisi del Codice e Grafo Semantico Macondo">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:site_name" content="Macondo">
+  <meta property="og:locale" content="it_IT">
+  <meta property="og:locale:alternate" content="en_US">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://macondo-studio.com/guide-it.html">
+  <meta name="twitter:title" content="Specifiche Analisi &amp; Guida Architetturale • Macondo">
+  <meta name="twitter:description" content="Guida tecnica esaustiva, formulazioni matematiche e riferimenti algoritmici per tutte le oltre 20 analisi statiche, metriche e motori deterministici in Macondo.">
+  <meta name="twitter:image" content="https://macondo-studio.com/VistaGrafoIta.png">
+  <meta name="twitter:image:alt" content="Guida all'Analisi del Codice e Grafo Semantico Macondo">
+
+  <!-- Structured Data: TechArticle & Breadcrumbs (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "TechArticle",
+        "@id": "https://macondo-studio.com/guide-it.html#article",
+        "isPartOf": {
+          "@type": "WebPage",
+          "@id": "https://macondo-studio.com/guide-it.html"
+        },
+        "headline": "Specifiche delle Analisi e Guida Architetturale • Macondo",
+        "description": "Guida tecnica esaustiva e formulazioni matematiche per tutte le 20+ analisi statiche, metriche architetturali e algoritmi deterministici in Macondo.",
+        "inLanguage": "it",
+        "mainEntityOfPage": "https://macondo-studio.com/guide-it.html",
+        "image": "https://macondo-studio.com/VistaGrafoIta.png",
+        "author": {
+          "@type": "Organization",
+          "name": "Macondo Studio",
+          "url": "https://macondo-studio.com"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Macondo Studio",
+          "url": "https://macondo-studio.com",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://macondo-studio.com/logo.svg"
+          }
+        },
+        "about": [
+          { "@type": "Thing", "name": "Analisi Statica del Codice" },
+          { "@type": "Thing", "name": "Architettura Software" },
+          { "@type": "Thing", "name": "Visual Basic 6.0" },
+          { "@type": "Thing", "name": "C# .NET" },
+          { "@type": "Thing", "name": "Complessità Ciclomatica" },
+          { "@type": "Thing", "name": "Indice di Manutenibilità" },
+          { "@type": "Thing", "name": "Matrice DSM" },
+          { "@type": "Thing", "name": "Blast Radius e Analisi d'Impatto" }
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://macondo-studio.com/guide-it.html#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://macondo-studio.com/it.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Guida & Specifiche",
+            "item": "https://macondo-studio.com/guide-it.html"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <!-- Stylesheet & Icons -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="alternate icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="favicon-192x192.png">
+</head>
+<body>
+
+  <!-- Minimal Header -->
+  <header class="header">
+    <div class="container header-inner">
+      <a href="it.html" class="brand">
+        <img src="logo.svg" alt="Macondo Logo" class="brand-icon">
+        <span>Macondo</span>
+      </a>
+
+      <nav>
+        <ul class="nav">
+          <li><a href="it.html#graph">Grafo &amp; Blast Radius</a></li>
+          <li><a href="it.html#analyses">Analisi</a></li>
+          <li><a href="it.html#ai">AI &amp; Modernizzazione</a></li>
+          <li><a href="it.html#specs">Specifiche</a></li>
+          <li><a href="guide-it.html" class="active" style="color: var(--accent-light);">Guida</a></li>
+          <li>
+            <a href="releases-it.html" class="nav-releases">
+              <span>Release</span>
+              <span class="nav-version-tag">v1.5.0</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="header-right">
+        <a href="guide.html" class="lang-btn" title="Switch to English" onclick="try { localStorage.setItem('macondo_lang', 'en'); } catch(e){}">
+          <span class="current">IT</span> / <span>EN</span>
+        </a>
+        <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-primary">Scarica</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Guide Hero Section -->
+  <main class="legal-page">
+    <div class="container">
+      <div class="guide-header">
+        <div class="legal-nav-back" style="margin-bottom: 12px;">
+          <a href="it.html" class="back-link">&larr; Torna alla Home</a>
+        </div>
+        <div class="feature-tag">Documentazione Software</div>
+        <h1 class="legal-title" style="font-size: 2.4rem; margin-bottom: 8px;">Specifiche delle Analisi &amp; Guida ai Concetti</h1>
+        <p class="legal-subtitle" style="font-size: 1.05rem;">Formulazioni teoriche esaustive, definizioni delle metriche e riferimenti algoritmici per tutti gli strumenti integrati in Macondo.</p>
+      </div>
+
+      <!-- 2-Column Guide Layout -->
+      <div class="guide-layout">
+        <!-- Sticky Sidebar Navigation -->
+        <aside class="guide-sidebar">
+          <div class="guide-nav-group">
+            <div class="guide-nav-title">Architettura &amp; Grafo</div>
+            <ul class="guide-nav-list">
+              <li><a href="#overview" class="guide-nav-link">Panoramica &amp; Motore</a></li>
+              <li><a href="#graph-layouts" class="guide-nav-link">Motori di Layout 2D</a></li>
+              <li><a href="#node-legend" class="guide-nav-link">Legenda Nodi &amp; Archi</a></li>
+            </ul>
+          </div>
+
+          <div class="guide-nav-group">
+            <div class="guide-nav-title">Visualizzazione &amp; Flussi</div>
+            <ul class="guide-nav-list">
+              <li><a href="#screen-flow" class="guide-nav-link">Flusso Schermate (UI)</a></li>
+              <li><a href="#control-flow" class="guide-nav-link">Control Flow Graph (CFG)</a></li>
+              <li><a href="#architectural-flow" class="guide-nav-link">Flusso Architetturale (Chord)</a></li>
+              <li><a href="#codecity" class="guide-nav-link">CodeCity 3D</a></li>
+            </ul>
+          </div>
+
+          <div class="guide-nav-group">
+            <div class="guide-nav-title">Architettura &amp; Qualità</div>
+            <ul class="guide-nav-list">
+              <li><a href="#dsm" class="guide-nav-link">Design Structure Matrix (DSM)</a></li>
+              <li><a href="#treemap" class="guide-nav-link">Treemap delle Metriche</a></li>
+              <li><a href="#martin-metrics" class="guide-nav-link">Metriche Pacchetto di Martin</a></li>
+              <li><a href="#cohesion" class="guide-nav-link">Coesione &amp; LCOM4</a></li>
+              <li><a href="#maintainability" class="guide-nav-link">Maintainability Index (MI)</a></li>
+              <li><a href="#architectural-rules" class="guide-nav-link">Regole Architetturali</a></li>
+            </ul>
+          </div>
+
+          <div class="guide-nav-group">
+            <div class="guide-nav-title">Rischio &amp; Debito Tecnico</div>
+            <ul class="guide-nav-list">
+              <li><a href="#blast-radius" class="guide-nav-link">Blast Radius (Impatto)</a></li>
+              <li><a href="#risk-hotspots" class="guide-nav-link">Hotspot di Rischio</a></li>
+              <li><a href="#dead-code" class="guide-nav-link">Dead Code &amp; Funzioni Orfane</a></li>
+              <li><a href="#shared-state" class="guide-nav-link">Stato Condiviso &amp; Variabili Globali</a></li>
+              <li><a href="#temporal-coupling" class="guide-nav-link">Accoppiamento Temporale (VCS)</a></li>
+              <li><a href="#code-clones" class="guide-nav-link">Cloni di Codice (CPD)</a></li>
+            </ul>
+          </div>
+
+          <div class="guide-nav-group">
+            <div class="guide-nav-title">Dati, Interfacce &amp; CLI</div>
+            <ul class="guide-nav-list">
+              <li><a href="#data-flow" class="guide-nav-link">Data Flow &amp; Taint</a></li>
+              <li><a href="#crud-matrix" class="guide-nav-link">Matrice Dati CRUD</a></li>
+              <li><a href="#api-diff" class="guide-nav-link">API Diff &amp; SemVer</a></li>
+              <li><a href="#social-code" class="guide-nav-link">Social Code &amp; Bus Factor</a></li>
+              <li><a href="#cli-automation" class="guide-nav-link">CLI &amp; DevOps CI/CD</a></li>
+            </ul>
+          </div>
+        </aside>
+
+        <!-- Main Documentation Content -->
+        <div class="guide-content">
+
+          <!-- 0. Overview -->
+          <section id="overview" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Panoramica &amp; Filosofia Architetturale</h2>
+              </div>
+              <div class="guide-body">
+                <p>Macondo è una suite ingegneristica di reverse engineering e analisi statica offline e deterministica per soluzioni software Visual Basic 6.0 e C# / .NET. Elabora i file sorgente direttamente senza richiedere runtime storici, registrazioni COM o dipendenze da IDE legacy.</p>
+                <p><strong>Modello Formale del Grafo di Codice:</strong></p>
+                <div class="guide-formula">G = (V, E)
+V = { Contenitori: Form, Moduli, Classi, Control } ∪ { Membri: Sub, Function, Property, Campi, Costanti, UDT }
+E = { CALLS, INSTANTIATES, USES_TYPE, READS, WRITES, INHERITS, IMPLEMENTS }</div>
+                <p><strong>Cache Persistente su Disco:</strong> Al completamento dell'analisi, l'istantanea del grafo semantico e gli indici di impatto vengono salvati su disco in formato ottimizzato. I successivi avvii caricano istantaneamente in millisecondi con verifica automatica dei timestamp di modifica.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 1. Graph Layouts -->
+          <section id="graph-layouts" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Motori di Layout del Grafo 2D</h2>
+              </div>
+              <div class="guide-body">
+                <p>Macondo integra 4 algoritmi di layout specializzati per evidenziare topologie architetturali, gerarchie di dipendenza e domini isolati:</p>
+                <ul>
+                  <li><strong>Radiale Standard:</strong> Anelli orbitali concentrici che si irradiano verso l'esterno a partire dai punti di ingresso principali. Ideale per cogliere l'architettura complessiva.</li>
+                  <li><strong>Radiale di Affinità:</strong> Anelli concentrici con attrazione angolare che raggruppa componenti frequentemente interagenti per minimizzare gli incroci di archi.</li>
+                  <li><strong>Cluster a Isole:</strong> Raggruppa fisicamente l'architettura in isole funzionali segregate: Form UI, Moduli di Logica, Classi di Dominio e Controlli Utente.</li>
+                  <li><strong>Force-Directed:</strong> Simula la repulsione elettrostatica tra nodi con forze a molla lungo le relazioni di chiamata (modello Fruchterman-Reingold), accentrando i nodi ad alto traffico.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 2. Node & Edge Legend -->
+          <section id="node-legend" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Legenda dei Nodi, Colori &amp; Archi</h2>
+              </div>
+              <div class="guide-body">
+                <p><strong>Nodi Contenitore:</strong> File sorgente principali visualizzati come nodi macro con supporto all'espansione dinamica:</p>
+                <ul>
+                  <li><strong>Form (.frm):</strong> Blu (#4FA8E8) — Finestre e dialoghi dell'interfaccia utente.</li>
+                  <li><strong>Moduli (.bas):</strong> Viola (#C084F0) — Logica procedurale globale e funzioni di utilità.</li>
+                  <li><strong>Classi (.cls / .cs):</strong> Verde (#54C08C) — Entità di dominio, servizi e logica applicativa.</li>
+                  <li><strong>Controlli Utente (.ctl):</strong> Arancione (#F08C4A) — Componenti grafici e controlli ActiveX riutilizzabili.</li>
+                </ul>
+                <p><strong>Nodi Membro &amp; Routine:</strong> Sotto-nodi visualizzati espandendo un contenitore:</p>
+                <ul>
+                  <li><strong>Sub / Function:</strong> Grigio Slate (#7D7D8E) — Metodi eseguibili e routine procedurali.</li>
+                  <li><strong>Property (Get / Let / Set):</strong> Oro (#E8B838) — Accessori incapsulati per i campi di stato.</li>
+                  <li><strong>Campi / Variabili di Stato:</strong> Azzurro (#60A5FA) — Variabili di modulo e statiche.</li>
+                  <li><strong>Costanti (Const):</strong> Corallo (#F87171) — Valori immutabili dichiarati.</li>
+                  <li><strong>Tipi / Enum:</strong> Menta (#34D399) — User-Defined Types (UDT) ed enumerazioni.</li>
+                </ul>
+                <p><strong>Relazioni degli Archi Semantici:</strong></p>
+                <ul>
+                  <li><strong>CALLS:</strong> Freccia verde acqua diretta dalla procedura chiamante verso la routine invocata.</li>
+                  <li><strong>INSTANTIATES:</strong> Freccia ambra che indica la creazione di un'istanza (<code>Set x = New Class</code> o <code>Dim x As New</code>).</li>
+                  <li><strong>USES_TYPE:</strong> Freccia lavanda che rappresenta dipendenze da parametri, campi o tipi di ritorno.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 3. Screen Flow -->
+          <section id="screen-flow" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Flusso Schermate (Screen Flow UI)</h2>
+              </div>
+              <div class="guide-body">
+                <p>Mappa visiva che ricostruisce esaustivamente le transizioni tra interfacce grafiche e gli eventi del ciclo di vita dei form senza richiedere l'esecuzione dell'app.</p>
+                <p><strong>Invocazioni UI Rilevate:</strong></p>
+                <ul>
+                  <li><strong>Aperture &amp; Istanze:</strong> <code>.Show</code>, <code>Load Form</code> e aperture modali (<code>vbModal</code>).</li>
+                  <li><strong>Chiusure &amp; Scaricamento:</strong> Chiamate a <code>.Hide</code> e istruzioni <code>Unload Me</code>.</li>
+                  <li><strong>Catene di Schermate:</strong> Ricostruisce le sequenze di navigazione complete dal menu principale ai flussi di dialogo e conferma.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 4. Control Flow Graph -->
+          <section id="control-flow" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Control Flow Graph (CFG)</h2>
+              </div>
+              <div class="guide-body">
+                <p>Decompone una singola Sub, Function o Property in un grafo orientato di Basic Block di istruzioni lineari e diramazioni condizionali.</p>
+                <p><strong>Strutture di Controllo Mappate:</strong></p>
+                <ul>
+                  <li><strong>Nodi Decisionali:</strong> <code>If...Then...Else</code>, <code>Select Case</code>.</li>
+                  <li><strong>Cicli &amp; Loop:</strong> <code>For...Next</code>, <code>For Each</code>, <code>Do...While</code>, <code>While...Wend</code>.</li>
+                  <li><strong>Gestione Errori &amp; Salti:</strong> <code>On Error GoTo</code>, <code>Resume</code>, etichette <code>GoTo</code>.</li>
+                </ul>
+                <p>Fondamentale per analizzare logiche complesse "spaghetti code", individuare blocchi non raggiungibili e progettare test unitari completi.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 5. Architectural Flow (Chord) -->
+          <section id="architectural-flow" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Flusso Architetturale (Diagramma Chord)</h2>
+              </div>
+              <div class="guide-body">
+                <p>Visualizzazione circolare a corde (Chord) che quantifica i volumi di interazione cross-layer e l'accoppiamento tra namespace e livelli architetturali.</p>
+                <ul>
+                  <li><strong>Spessore della Corda:</strong> Proporzionale al numero complessivo di chiamate tra componenti o package.</li>
+                  <li><strong>Raggruppamento per Livelli:</strong> Organizza i componenti per layer (Presentazione UI, Dominio Applicativo, Persistenza Dati, Utilità).</li>
+                  <li><strong>Rilevamento Violazioni:</strong> Evidenzia all'istante chiamate anomale che violano i confini architetturali (es. moduli di persistenza che invocano form grafici).</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 6. CodeCity 3D -->
+          <section id="codecity" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">CodeCity 3D (Mappa Polimetrica)</h2>
+              </div>
+              <div class="guide-body">
+                <p>Trasforma l'intera codebase in una città tridimensionale interattiva ispirata alla metodologia di visualizzazione polimetrica di Wettel &amp; Lanza:</p>
+                <ul>
+                  <li><strong>Distretti / Quartieri:</strong> Rappresentano cartelle, package o sotto-progetti architetturali.</li>
+                  <li><strong>Edifici:</strong> Rappresentano singoli file, classi o moduli.</li>
+                  <li><strong>Base dell'Edificio (Larghezza &times; Profondità):</strong> Proporzionale alle linee di codice effettive (LOC).</li>
+                  <li><strong>Altezza dell'Edificio:</strong> Proporzionale alla Complessità Ciclomatica di McCabe.</li>
+                  <li><strong>Colore dell'Edificio:</strong> Rispecchia il livello di rischio, frequenza di modifica (churn) o densità di debito tecnico.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 7. DSM -->
+          <section id="dsm" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Design Structure Matrix (DSM)</h2>
+              </div>
+              <div class="guide-body">
+                <p>Matrice adiacente quadrata \( N \times N \) che mappa ogni accoppiamento diretto e indiretto tra tutti i moduli del sistema software.</p>
+                <p><strong>Identificazione dei Cicli tramite Tarjan:</strong></p>
+                <div class="guide-formula">Matrice Triangolare Inferiore Ideale: \( M_{i,j} = 0 \quad \forall i &lt; j \)
+Le celle sopra la diagonale principale (\( i &lt; j \)) evidenziano dipendenze cicliche o violazioni di stratificazione.</div>
+                <p>Consente di individuare all'istante cluster ciclici ricorsivi e guidare il disaccoppiamento ordinato prima di avviare migrazioni a microservizi o architetture pulite.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 8. Treemap -->
+          <section id="treemap" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Treemap delle Metriche (Squarified Treemap)</h2>
+              </div>
+              <div class="guide-body">
+                <p>Mappa gerarchica proporzionale basata sull'algoritmo Squarified Treemap per visualizzare la distribuzione volumetrica del codice:</p>
+                <ul>
+                  <li><strong>Superficie dei Rettangoli:</strong> Scalata in base alla metrica primaria selezionata (es. Linee di Codice, Numero di Membri, Volume di Halstead).</li>
+                  <li><strong>Scala Cromatica:</strong> Riflette la metrica secondaria (es. Complessità Ciclomatica media o Indice di Manutenibilità).</li>
+                  <li>Permette di individuare a colpo d'occhio file sovradimensionati che concentrano la maggior parte della complessità del sistema.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 9. Martin Package Metrics -->
+          <section id="martin-metrics" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Metriche di Pacchetto di Robert C. Martin</h2>
+              </div>
+              <div class="guide-body">
+                <p>Valuta il bilanciamento architetturale, la stabilità e il livello di astrazione di package e moduli secondo i principi SOLID:</p>
+                <div class="guide-formula">\( C_a \) (Afferent Coupling): Numero di classi esterne che dipendono da questo package.
+\( C_e \) (Efferent Coupling): Numero di classi esterne da cui questo package dipende.
+Instabilità (\( I \)): \( I = \frac{C_e}{C_a + C_e} \quad (0 = \text{Stabile}, 1 = \text{Instabile}) \)
+Astrazione (\( A \)): \( A = \frac{N_a}{N_c} \quad (N_a: \text{Tipi Astratti/Interfacce}, N_c: \text{Totale Classi}) \)
+Distanza dalla Sequenza Principale (\( D \)): \( D = |A + I - 1| \quad (D = 0 \text{ indica bilanciamento ottimale}) \)</div>
+                <p>Identifica componenti nella "Zona di Dolore" (iper-stabili ma concreti, rigidi al cambiamento) e nella "Zona di Inutilità" (iper-astratti ma privi di utilizzatori concreti).</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 10. Cohesion & LCOM -->
+          <section id="cohesion" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Coesione &amp; Lack of Cohesion in Methods (LCOM4)</h2>
+              </div>
+              <div class="guide-body">
+                <p>Misura il grado di coesione interna dei metodi di una classe in base all'accesso ai campi di stato d'istanza condivisi:</p>
+                <div class="guide-formula">LCOM4: Numero di componenti connesse nel grafo non orientato \( G = (M, E) \)
+\( M \): Metodi della classe | Arco \( (m_1, m_2) \in E \): Esiste se entrambi i metodi accedono ad almeno un campo condiviso.
+\( \text{LCOM4} = 1 \): Classe coesa con singola responsabilità.
+\( \text{LCOM4} &gt; 1 \): La classe ha responsabilità multiple e disgiunte (violazione SRP, candidata a suddivisione).</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 11. Maintainability Index -->
+          <section id="maintainability" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Maintainability Index (MI) &amp; Metriche di Halstead</h2>
+              </div>
+              <div class="guide-body">
+                <p>Valutazione quantitativa della manutenibilità del codice (scala 0–100) calcolata secondo la formula standard del Software Engineering Institute (SEI):</p>
+                <div class="guide-formula">\( V \) (Halstead Volume) \(= N \log_2(n) \quad (N = N_1 + N_2, n = n_1 + n_2)\)
+\( G \) (McCabe Cyclomatic Complexity)
+\( \text{LOC} \) (Effective Lines of Code)
+\( \text{MI} = \max\left(0, \frac{171 - 5.2 \ln(V) - 0.23 G - 16.2 \ln(\text{LOC})}{171} \times 100\right) \)</div>
+                <p><strong>Soglie di Manutenibilità:</strong> &gt; 85: Alta (Verde) | 65–85: Moderata (Giallo) | &lt; 65: Bassa, alto debito tecnico (Rosso).</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 12. Architectural Rules -->
+          <section id="architectural-rules" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Regole Architetturali &amp; Layer Enforcement</h2>
+              </div>
+              <div class="guide-body">
+                <p>Motore dichiarativo di conformità architetturale che verifica sistematicamente il rispetto dei vincoli tra livelli del software:</p>
+                <ul>
+                  <li>Verifica regole personalizzate (es. <em>"Il layer di presentazione non deve accedere direttamente alle tabelle del database"</em>).</li>
+                  <li>Rileva importazioni vietate, bypass di strati intermedi (Layer Skipping) e accoppiamenti anomali.</li>
+                  <li>Eseguibile in modalità automatica per bloccare build non conformi nei flussi di integrazione continua (CI/CD).</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 13. Blast Radius -->
+          <section id="blast-radius" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Blast Radius &amp; Punteggio di Rischio</h2>
+              </div>
+              <div class="guide-body">
+                <p>Tracciamento ricorsivo deterministico di tutti i chiamanti a monte (upstream callers) per calcolare l'impatto di modifica su una routine o proprietà prima di toccare il codice:</p>
+                <div class="guide-formula">Punteggio di Rischio \( R(s) \):
+\( R(s) = w_1 \cdot \text{Chiamanti}(s) + w_2 \cdot \text{ProfonditàMax}(s) + w_3 \cdot \text{ComplessitàCiclomatica}(s) + w_4 \cdot \text{Accoppiamento}(s) \)</div>
+                <ul>
+                  <li><strong>Basso Rischio (Verde):</strong> Modifiche locali a routine foglia senza dipendenze multiple.</li>
+                  <li><strong>Medio Rischio (Giallo):</strong> Impatto limitato a un singolo modulo o form.</li>
+                  <li><strong>Alto / Critico (Rosso):</strong> Routine centrale invocata trasversalmente da decine di form e classi.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 14. Risk Hotspots -->
+          <section id="risk-hotspots" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Risk Hotspot Radar</h2>
+              </div>
+              <div class="guide-body">
+                <p>Scatter plot 2D che correla la Complessità Ciclomatica interna con il Fan-In strutturale e la frequenza di modifica (Churn) per isolare i punti di massima fragilità:</p>
+                <ul>
+                  <li>Isola routine con elevata complessità e altissimo numero di chiamanti, priorità assolute per refactoring e test di regressione.</li>
+                  <li>Genera un elenco graduato per severità con raccomandazioni mirate di scomposizione.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 15. Dead Code -->
+          <section id="dead-code" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Dead Code &amp; Routine Orfane</h2>
+              </div>
+              <div class="guide-body">
+                <p>Analisi di raggiungibilità globale su tutto il grafo delle chiamate per individuare elementi non utilizzati:</p>
+                <ul>
+                  <li>Rileva Sub, Function, Property, Costanti e Form dichiarati ma mai invocati da alcun punto di ingresso attivo.</li>
+                  <li>Filtra automaticamente handler di eventi GUI standard di VB6 (es. <code>Form_Load</code>, <code>Command1_Click</code>) per evitare falsi positivi.</li>
+                  <li>Quantifica il volume di righe di codice eliminabili prima di avviare migrazioni software.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 16. Shared State -->
+          <section id="shared-state" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Stato Condiviso &amp; Variabili Globali</h2>
+              </div>
+              <div class="guide-body">
+                <p>Mappatura completa di tutte le variabili <code>Public</code> e <code>Global</code> dichiarate nei moduli standard con tracciamento di chi legge e chi scrive:</p>
+                <ul>
+                  <li>Identifica variabili globali ad alta densità di scrittura da punti disgiunti del codice.</li>
+                  <li>Evidenzia potenziale corruzione silenziosa dello stato e precondizioni per refactoring a pattern moderni (Dependency Injection).</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 17. Temporal Coupling -->
+          <section id="temporal-coupling" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Accoppiamento Temporale (VCS Co-Change Mining)</h2>
+              </div>
+              <div class="guide-body">
+                <p>Analizza la cronologia dei commit Git per rilevare file che cambiano sistematicamente insieme pur non avendo una dipendenza sintattica formale:</p>
+                <div class="guide-formula">Frequenza di Co-Modifica: \( C(A, B) = \frac{\text{Commit}(A \cap B)}{\text{Commit}(A \cup B)} \)</div>
+                <p>Un valore elevato rivela accoppiamenti logici nascosti o duplicazioni di regole di business tra componenti non collegati.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 18. Code Clones -->
+          <section id="code-clones" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Cloni di Codice (Copy-Paste Detector CPD)</h2>
+              </div>
+              <div class="guide-body">
+                <p>Algoritmo a tokenizzazione e rolling hash per identificare duplicazioni strutturali di codice:</p>
+                <ul>
+                  <li><strong>Cloni di Tipo 1:</strong> Blocchi di codice identici (spazi e commenti ignorati).</li>
+                  <li><strong>Cloni di Tipo 2:</strong> Blocchi identici con identificatori, nomi di variabili o tipi rinominati.</li>
+                  <li><strong>Cloni di Tipo 3:</strong> Blocchi con lievi modifiche o istruzioni aggiunte/rimosse.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 19. Data Flow -->
+          <section id="data-flow" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Data Flow &amp; Taint Analysis</h2>
+              </div>
+              <div class="guide-body">
+                <p>Traccia la propagazione di input esterni e variabili utente (Sources) verso query SQL, API di sistema o comandi di shell (Sinks):</p>
+                <ul>
+                  <li>Verifica la presenza di routine di validazione o sanificazione lungo i percorsi di dati.</li>
+                  <li>Rileva vulnerabilità di sicurezza (SQL Injection, Command Injection) e flussi di dati non convalidati.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 20. CRUD Matrix -->
+          <section id="crud-matrix" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Matrice CRUD &amp; Accesso Database</h2>
+              </div>
+              <div class="guide-body">
+                <p>Mappa incrociata delle operazioni di database (Create, Read, Update, Delete) estratte dalle query SQL statiche e chiamate ADODB/DAO:</p>
+                <ul>
+                  <li>Associa a ciascuna tabella o entità tutte le routine applicative che vi accedono.</li>
+                  <li>Evidenzia entità orfane (scritte ma mai lette) e tabelle critiche soggette a continue mutazioni.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 21. API Diff -->
+          <section id="api-diff" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">API Diff &amp; Breaking Changes (SemVer)</h2>
+              </div>
+              <div class="guide-body">
+                <p>Confronto semantico tra l'interfaccia pubblica di due versioni del progetto:</p>
+                <ul>
+                  <li><strong>Breaking Change (Major):</strong> Rimozione di metodi pubblici, modifica dei tipi di parametro o del tipo di ritorno.</li>
+                  <li><strong>Non-Breaking (Minor):</strong> Aggiunta di nuovi metodi o proprietà pubbliche compatibili.</li>
+                  <li><strong>Patch:</strong> Modifiche interne all'implementazione senza alterare le firme pubbliche.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 22. Social Code -->
+          <section id="social-code" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Social Code &amp; Bus Factor</h2>
+              </div>
+              <div class="guide-body">
+                <p>Incrocia l'albero del codice con la storia dei commit Git per calcolare la dispersione della conoscenza:</p>
+                <ul>
+                  <li>Calcola la proprietà del codice (Code Ownership) per ciascun modulo.</li>
+                  <li>Stima il <strong>Bus Factor</strong>: il numero minimo di sviluppatori la cui assenza comporterebbe la perdita di conoscenza critica sul progetto.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 23. CLI Automation -->
+          <section id="cli-automation" class="guide-section">
+            <div class="guide-card">
+              <div class="guide-card-header">
+                <h2 class="guide-card-title">Automazione CLI &amp; DevOps CI/CD</h2>
+              </div>
+              <div class="guide-body">
+                <p>Macondo supporta l'esecuzione headless da riga di comando per automatizzare quality gate e audit nelle pipeline CI/CD (GitHub Actions, Azure DevOps, GitLab CI):</p>
+                <div class="guide-formula">Macondo.exe analyze "Solution.sln" --fail-on-violations --fail-on-mi 65</div>
+                <ul>
+                  <li>Esporta report completi in formato Markdown, JSON, SVG vettoriale e CSV.</li>
+                  <li>Restituisce codici di uscita conformi per bloccare automaticamente le pipeline di build in caso di violazione delle soglie di qualità.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Minimal Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>&copy; <span id="current-year">2026</span> Macondo</span>
+      <div class="footer-links">
+        <a href="https://github.com/macondo-studio" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://github.com/macondo-studio/macondo/issues" target="_blank" rel="noopener noreferrer">Issue</a>
+        <a href="mailto:info@macondo-studio.com">Contatti</a>
+        <a href="LICENSE.md" target="_blank">Licenza</a>
+        <a href="privacy-it.html">Privacy</a>
+        <a href="releases-it.html">Release</a>
+        <a href="guide-it.html">Guida</a>
+        <a href="it.html#graph">Grafo</a>
+        <a href="it.html#analyses">Analisi</a>
+        <a href="it.html#download">Scarica</a>
+      </div>
+    </div>
+    <div class="container footer-disclaimer">
+      <p>Tutti i marchi e i nomi commerciali citati appartengono ai rispettivi titolari e sono utilizzati esclusivamente a scopo descrittivo e di interoperabilità.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

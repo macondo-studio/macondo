@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Release Notes &amp; Changelog • Macondo</title>
   <meta name="description" content="Official release notes, changelog, and download links for all versions of Macondo Visual Code Graph &amp; Blast Radius analyzer.">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 
   <!-- Canonical & Multilingual Hreflang -->
   <link rel="canonical" href="https://macondo-studio.com/releases.html">
@@ -32,7 +32,12 @@
   <meta property="og:title" content="Release Notes &amp; Changelog • Macondo">
   <meta property="og:description" content="Official release notes, changelog, and download links for all versions of Macondo Visual Code Graph &amp; Blast Radius analyzer.">
   <meta property="og:image" content="https://macondo-studio.com/VistaGrafoEng.png">
+  <meta property="og:image:width" content="1920">
+  <meta property="og:image:height" content="1080">
+  <meta property="og:image:alt" content="Macondo Releases and Changelog">
   <meta property="og:site_name" content="Macondo">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="it_IT">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
@@ -40,6 +45,47 @@
   <meta name="twitter:title" content="Release Notes &amp; Changelog • Macondo">
   <meta name="twitter:description" content="Official release notes, changelog, and download links for all versions of Macondo Visual Code Graph &amp; Blast Radius analyzer.">
   <meta name="twitter:image" content="https://macondo-studio.com/VistaGrafoEng.png">
+  <meta name="twitter:image:alt" content="Macondo Releases and Changelog">
+
+  <!-- Structured Data: CollectionPage & Breadcrumbs (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": "https://macondo-studio.com/releases.html#page",
+        "name": "Macondo Release Notes & Changelog",
+        "description": "Official release notes, version history, and download links for Macondo.",
+        "url": "https://macondo-studio.com/releases.html",
+        "inLanguage": "en",
+        "publisher": {
+          "@type": "Organization",
+          "name": "Macondo Studio",
+          "url": "https://macondo-studio.com"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://macondo-studio.com/releases.html#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://macondo-studio.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Releases",
+            "item": "https://macondo-studio.com/releases.html"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 
   <!-- Favicon & Stylesheet -->
   <link rel="stylesheet" href="style.css">
@@ -59,11 +105,17 @@
 
       <nav>
         <ul class="nav">
-          <li><a href="index.html#graph">Graph</a></li>
-          <li><a href="index.html#blast">Blast Radius</a></li>
+          <li><a href="index.html#graph">Graph &amp; Blast Radius</a></li>
+          <li><a href="index.html#analyses">Analyses</a></li>
           <li><a href="index.html#ai">AI &amp; Modernization</a></li>
           <li><a href="index.html#specs">Specifications</a></li>
-          <li><a href="releases.html" style="color: var(--text-headline); font-weight: 500;">Releases</a></li>
+          <li><a href="guide.html">Guide</a></li>
+          <li>
+            <a href="releases.html" class="nav-releases">
+              <span>Releases</span>
+              <span class="nav-version-tag">v1.5.0</span>
+            </a>
+          </li>
         </ul>
       </nav>
 
@@ -78,40 +130,33 @@
 
   <!-- Releases Content Section -->
   <main class="legal-page">
-    <div class="container">
-      <div class="legal-box" style="max-width: 900px;">
-        
-        <div class="legal-nav-back">
+    <div class="container" style="max-width: 900px;">
+      
+      <div class="releases-header">
+        <div class="legal-nav-back" style="margin-bottom: 12px;">
           <a href="index.html" class="back-link">&larr; Back to Home</a>
         </div>
-
-        <div class="legal-header">
-          <div class="hero-pill" style="margin-bottom: 12px; display: inline-flex;">
-            <span class="hero-pill-badge">GitHub</span>
-            <span>Official Releases &amp; Changelog</span>
-          </div>
-          <h1 class="legal-title">Release Notes</h1>
-          <p class="legal-subtitle">Comprehensive history of all Macondo updates, new architectural features, bug fixes, and performance improvements.</p>
-          
-          <div class="releases-header-actions">
-            <a href="https://github.com/macondo-studio/macondo/releases" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-              View on GitHub &rarr;
-            </a>
-            <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-accent btn-sm">
-              Download Latest (Macondo.exe)
-            </a>
-          </div>
+        <h1 class="legal-title" style="font-size: 2.4rem; margin-bottom: 8px;">Release Notes</h1>
+        <p class="legal-subtitle" style="font-size: 1.05rem;">Comprehensive history of all Macondo updates, new architectural features, bug fixes, and performance improvements.</p>
+        
+        <div class="releases-header-actions" style="margin-top: 20px;">
+          <a href="https://github.com/macondo-studio/macondo/releases" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+            View on GitHub &rarr;
+          </a>
+          <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-accent btn-sm">
+            Download Latest (Macondo.exe)
+          </a>
         </div>
-
-        <!-- Dynamic Releases Container -->
-        <div id="releases-container">
-          <div class="releases-loading">
-            <div class="releases-spinner"></div>
-            <div>Loading latest release notes from GitHub...</div>
-          </div>
-        </div>
-
       </div>
+
+      <!-- Dynamic Releases Container -->
+      <div id="releases-container">
+        <div class="releases-loading">
+          <div class="releases-spinner"></div>
+          <div>Loading latest release notes from GitHub...</div>
+        </div>
+      </div>
+
     </div>
   </main>
 
@@ -126,6 +171,7 @@
         <a href="LICENSE.md" target="_blank">License</a>
         <a href="privacy.html">Privacy</a>
         <a href="releases.html">Releases</a>
+        <a href="guide.html">Guide</a>
       </div>
     </div>
     <div class="container">

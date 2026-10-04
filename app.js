@@ -33,6 +33,12 @@ function updateVersionBadge() {
       ? `Macondo v${remoteVersion} per Windows • Gratuito`
       : `Macondo v${remoteVersion} for Windows • Free`;
   }
+  document.querySelectorAll('.statusbar-title').forEach(el => {
+    el.textContent = `Macondo v${remoteVersion}`;
+  });
+  document.querySelectorAll('.nav-version-tag').forEach(el => {
+    el.textContent = `v${remoteVersion}`;
+  });
 }
 
 function updateReleaseDates() {
@@ -329,6 +335,260 @@ function initLanguageSwitcher() {
   });
 }
 
+function initAnalysesTabs() {
+  const tabButtons = document.querySelectorAll('.analysis-tab-btn');
+  const panes = document.querySelectorAll('.analysis-pane');
+  if (!tabButtons.length || !panes.length) return;
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-tab');
+      if (!targetId) return;
+
+      tabButtons.forEach(b => {
+        const isActive = b === btn;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      panes.forEach(pane => {
+        if (pane.id === targetId) {
+          pane.hidden = false;
+          // Trigger reflow to restart animation smoothly
+          void pane.offsetWidth;
+          pane.classList.add('active');
+        } else {
+          pane.classList.remove('active');
+          pane.hidden = true;
+        }
+      });
+    });
+  });
+}
+
+function initSpecsCarousel() {
+  const track = document.getElementById('specsTrack');
+  const dotsContainer = document.getElementById('specsDots');
+  if (!track || !dotsContainer) return;
+
+  const cards = Array.from(track.querySelectorAll('.specs-card'));
+  if (!cards.length) return;
+
+  let autoScrollTimer = null;
+  const intervalMs = 3000;
+
+  function renderDots() {
+    dotsContainer.innerHTML = '';
+    cards.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'specs-dot' + (i === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', `Slide ${i + 1}`);
+      dot.addEventListener('click', () => {
+        stop();
+        const cardWidth = track.clientWidth;
+        track.scrollTo({ left: i * cardWidth, behavior: 'smooth' });
+        updateActiveDot(i);
+        start();
+      });
+      dotsContainer.appendChild(dot);
+    });
+  }
+
+  function updateActiveDot(index) {
+    const dots = dotsContainer.querySelectorAll('.specs-dot');
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === index);
+    });
+  }
+
+  function advance() {
+    const cardWidth = track.clientWidth;
+    const currentIdx = Math.round(track.scrollLeft / (cardWidth || 1));
+    const nextIdx = (currentIdx + 1) % cards.length;
+
+    track.scrollTo({ left: nextIdx * cardWidth, behavior: 'smooth' });
+    updateActiveDot(nextIdx);
+  }
+
+  function start() {
+    stop();
+    autoScrollTimer = setInterval(advance, intervalMs);
+  }
+
+  function stop() {
+    if (autoScrollTimer) {
+      clearInterval(autoScrollTimer);
+      autoScrollTimer = null;
+    }
+  }
+
+  let scrollTimeout = null;
+  track.addEventListener('scroll', () => {
+    if (scrollTimeout) cancelAnimationFrame(scrollTimeout);
+    scrollTimeout = requestAnimationFrame(() => {
+      const cardWidth = track.clientWidth;
+      const activeIdx = Math.min(
+        cards.length - 1,
+        Math.max(0, Math.round(track.scrollLeft / (cardWidth || 1)))
+      );
+      updateActiveDot(activeIdx);
+    });
+  }, { passive: true });
+
+  renderDots();
+  start();
+
+  window.addEventListener('resize', () => {
+    const cardWidth = track.clientWidth;
+    const activeDot = dotsContainer.querySelector('.specs-dot.active');
+    const activeIdx = activeDot ? Array.from(dotsContainer.children).indexOf(activeDot) : 0;
+    track.scrollTo({ left: activeIdx * cardWidth, behavior: 'auto' });
+  }, { passive: true });
+
+  track.addEventListener('mouseenter', stop);
+  track.addEventListener('mouseleave', start);
+  track.addEventListener('touchstart', stop, { passive: true });
+  track.addEventListener('touchend', start, { passive: true });
+}
+
+function initGuideScrollSpy() {
+  const sidebar = document.querySelector('.guide-sidebar');
+  const navLinks = document.querySelectorAll('.guide-nav-link');
+  const sections = document.querySelectorAll('.guide-section, .guide-content > section');
+
+  if (!sidebar || navLinks.length === 0 || sections.length === 0) return;
+
+  const linkMap = new Map();
+  navLinks.forEach(link => {
+    const href = link.getAttribute('href');
+    if (href && href.startsWith('#')) {
+      linkMap.set(href.slice(1), link);
+    }
+  });
+
+  let activeSectionId = null;
+  let isManualClick = false;
+  let manualClickTimeout = null;
+
+  function setActive(id, scrollSidebar = true) {
+    if (!id) return;
+    activeSectionId = id;
+
+    navLinks.forEach(link => link.classList.remove('active'));
+    sections.forEach(sec => sec.classList.remove('active-section'));
+
+    const targetLink = linkMap.get(id);
+    if (targetLink) {
+      targetLink.classList.add('active');
+      if (scrollSidebar) {
+        // Center the active link within the sidebar
+        const linkOffsetTop = targetLink.offsetTop;
+        const linkHeight = targetLink.offsetHeight;
+        const sidebarHeight = sidebar.clientHeight;
+        const targetScrollTop = linkOffsetTop - (sidebarHeight / 2) + (linkHeight / 2);
+        sidebar.scrollTo({
+          top: Math.max(0, targetScrollTop),
+          behavior: 'smooth'
+        });
+      }
+    }
+
+    const targetSection = document.getElementById(id);
+    if (targetSection) {
+      targetSection.classList.add('active-section');
+    }
+  }
+
+  // Handle sidebar navigation clicks
+  navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        const targetId = href.slice(1);
+        isManualClick = true;
+        if (manualClickTimeout) clearTimeout(manualClickTimeout);
+        setActive(targetId, true);
+        manualClickTimeout = setTimeout(() => {
+          isManualClick = false;
+        }, 700);
+      }
+    });
+  });
+
+  function getActiveSectionId() {
+    // 0. If scrolled near or at the bottom of the page, select the last section
+    const scrollBottom = window.innerHeight + window.scrollY;
+    const docHeight = document.documentElement.scrollHeight;
+    if (scrollBottom >= docHeight - 120 && sections.length > 0) {
+      return sections[sections.length - 1].id;
+    }
+
+    const thresholdY = 180; // 84px header + comfort reading margin
+
+    // 1. Check which section spans the reading line
+    for (let i = 0; i < sections.length; i++) {
+      const sec = sections[i];
+      const rect = sec.getBoundingClientRect();
+      if (rect.top <= thresholdY && rect.bottom > thresholdY) {
+        return sec.id;
+      }
+    }
+
+    // 2. If above the very first section
+    const firstRect = sections[0].getBoundingClientRect();
+    if (firstRect.top > thresholdY) {
+      return sections[0].id;
+    }
+
+    // 3. Closest section to threshold (for edge cases)
+    let bestSec = sections[0];
+    let minDiff = Infinity;
+    sections.forEach(sec => {
+      const rect = sec.getBoundingClientRect();
+      const diff = Math.abs(rect.top - thresholdY);
+      if (diff < minDiff) {
+        minDiff = diff;
+        bestSec = sec;
+      }
+    });
+
+    return bestSec ? bestSec.id : null;
+  }
+
+  let isTicking = false;
+  function onScroll() {
+    if (isManualClick) return;
+    if (!isTicking) {
+      window.requestAnimationFrame(() => {
+        const currentId = getActiveSectionId();
+        if (currentId && currentId !== activeSectionId) {
+          setActive(currentId, true);
+        }
+        isTicking = false;
+      });
+      isTicking = true;
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Initial load check with hash support
+  if (window.location.hash) {
+    const hashId = window.location.hash.slice(1);
+    if (linkMap.has(hashId)) {
+      isManualClick = true;
+      setActive(hashId, true);
+      setTimeout(() => {
+        isManualClick = false;
+      }, 1000);
+    } else {
+      onScroll();
+    }
+  } else {
+    onScroll();
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Set current year dynamically
   const yearEl = document.getElementById('current-year');
@@ -337,6 +597,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initLanguageSwitcher();
+  initAnalysesTabs();
+  initSpecsCarousel();
+  initGuideScrollSpy();
   fetchVersion();
   loadReleases();
 });
