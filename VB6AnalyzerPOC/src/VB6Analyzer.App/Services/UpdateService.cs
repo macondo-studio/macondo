@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
@@ -19,8 +19,8 @@ public sealed class UpdateService
     public static UpdateService Instance => _instance.Value;
 
     // Versione corrente dell'applicazione Macondo (VB6 Analyzer)
-    public static readonly Version CurrentVersion = new Version(1, 4, 0);
-    public static readonly string CurrentVersionString = "1.4.0";
+    public static readonly Version CurrentVersion = new Version(1, 5, 0);
+    public static readonly string CurrentVersionString = "1.5.0";
 
     // =========================================================================================
     // Endpoint ufficiale per il download del manifesto di aggiornamento (version.json)

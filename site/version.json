@@ -1,14 +1,14 @@
 ﻿{
-    "version":  "1.4.0",
+    "version":  "1.5.0",
     "title":  {
-                  "it":  "Macondo v1.4.0",
-                  "en":  "Macondo v1.4.0"
+                  "it":  "Macondo v1.5.0",
+                  "en":  "Macondo v1.5.0"
               },
     "releaseNotes":  {
-                         "it":  "Supporto multi-linguaggio per analisi nativa C# (.csproj / .cs) e VB6 (.vbp / .frm / .cls / .bas).\nSuite analitica ampliata con oltre 20 strumenti architetturali, metriche avanzate (Blast Radius, LCOM4, Hotspot di rischio, MI, SemVer API Diff) e documentazione in-app con formule matematiche.\nOttimizzazioni per il Semantic Code Graph, gestione thread-safe delle relazioni e persistenza istantanea della cache del workspace.",
-                         "en":  "Native multi-language analysis support for both C# (.csproj / .cs) and Visual Basic 6 (.vbp / .frm / .cls / .bas) projects.\nExpanded analytical suite featuring over 20 architectural tools, advanced metrics (Blast Radius, LCOM4 cohesion, Risk Hotspots, Maintainability Index, SemVer API Diff), and formula-rich in-app documentation.\nOptimized thread-safe Semantic Code Graph relationship indexing and instant workspace cache persistence."
+                         "it":  "Interfaccia a riga di comando (CLI) ed esportatori multi-formato (Markdown e JSON) per CI/CD e report batch.\nPannello di anteprima codice sorgente integrato in Symbol Inspector con metriche LOC e limiti righe configurabili.\nEsecuzione on-demand delle analisi con pulsante di stop, stima real-time del tempo rimanente e placeholder interattivi.\nCancellazione immediata dell\u0027analisi iniziale del progetto tramite token di cancellazione.\nMenu contestuale con tasto destro sulle schede per gestire e personalizzare la visibilità delle viste.\nFinestra impostazioni ridimensionabile con controlli di ingrandimento e ripristino.",
+                         "en":  "Comprehensive Command-Line Interface (CLI) and multi-format exporters (Markdown and JSON) for CI/CD automation.\nEmbedded source code preview panel in Symbol Inspector with LOC metrics and configurable line limits.\nOn-demand background analytics execution with stop controls, real-time remaining time estimation, and progress placeholders.\nInstant project analysis cancellation with deep cancellation token propagation.\nRight-click context menu on all tab headers to customize and toggle view visibility.\nResizable settings dialog with maximize and restore window controls."
                      },
     "downloadUrl":  "https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe",
-    "publishedAt":  "2026-09-28T19:31:57Z",
+    "publishedAt":  "2026-10-04T08:26:41Z",
     "isMandatory":  false
 }
