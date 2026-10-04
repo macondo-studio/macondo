@@ -17,8 +17,9 @@ Ogni volta che l'utente richiede di aggiornare la versione del software, rilasci
      5. `site/index.html` (`softwareVersion`, hero badge)
      6. **Sincronizzazione Repo Pubblica**: Copiare tutti i file aggiornati da `site/` a `../macondo/` (cartella della repo pubblica, preservando `.git`), in modo che sia pronta per il commit dell'utente.
 
-2. **Verifica Post-Aggiornamento**:
-   - Eseguire sempre `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln` per confermare che la compilazione vada a buon fine con 0 errori.
+2. **Verifica Post-Aggiornamento e Generazione Eseguibile Distribuibile**:
+   - Eseguire `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln` per confermare che la compilazione vada a buon fine con 0 errori.
+   - Eseguire lo script `./scripts/publish-single-file.ps1` (oppure `./scripts/bump-and-publish.ps1`) per creare il nuovo file eseguibile unico distribuibile (`publish/win-x64/Macondo.exe`).
 
 3. **Proposta Note di Rilascio per GitHub**:
    - Proporre sempre all'utente il testo formattato in Markdown pronto da incollare nel campo "Describe this release" di GitHub (strutturato con What's New, Key Features, Bug Fixes / Improvements, stile formale e pulito SENZA emoji).

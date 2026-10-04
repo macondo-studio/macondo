@@ -19,7 +19,8 @@ Quando l'utente richiede di incrementare o aggiornare la versione di Macondo (es
      - `site/index.html` (sito web inglese)
    - Copiare tutti i file della cartella `site/` nella cartella della repository pubblica `../macondo/` (preservando `.git`) per predisporre il successivo commit pubblico dell'utente.
 2. Ricompilare la soluzione con `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln` per verificare l'integrità.
-3. Proporre sempre il testo formattato in Markdown per il campo "Describe this release" su GitHub (senza emoji, pulito e formale).
+3. Eseguire lo script `./scripts/publish-single-file.ps1` (oppure `./scripts/bump-and-publish.ps1`) per creare il nuovo eseguibile unico distribuibile (`publish/win-x64/Macondo.exe`).
+4. Proporre sempre il testo formattato in Markdown per il campo "Describe this release" su GitHub (senza emoji, pulito e formale).
 
 ## Note di Rilascio Ordinarie
 - Per ogni modifica o richiesta dell'utente, fornire sempre al termine della risposta una release note sintetica di una sola frase in lingua inglese.
