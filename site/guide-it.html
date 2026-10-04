@@ -1,11 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Specifiche Analisi &amp; Guida Architetturale • Macondo</title>
-  <meta name="description" content="Guida tecnica esaustiva e formulazioni matematiche per tutte le 20+ analisi statiche, metriche architetturali e algoritmi deterministici in Macondo.">
-  <meta name="robots" content="index, follow">
+  <meta name="description" content="Guida tecnica esaustiva, formulazioni matematiche e riferimenti algoritmici per tutte le oltre 20 analisi statiche, metriche e motori deterministici in Macondo.">
+  <meta name="keywords" content="Guida Macondo, specifiche analisi statica, complessità ciclomatica McCabe, volume Halstead, formula indice manutenibilità, LCOM4, metriche Martin, algoritmo Blast Radius, CodeCity 3D, matrice DSM, reverse engineering VB6, parser AST C#">
+  <meta name="author" content="Macondo Studio">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 
   <!-- Canonical & Multilingual Hreflang -->
   <link rel="canonical" href="https://macondo-studio.com/guide-it.html">
@@ -14,12 +16,90 @@
   <link rel="alternate" hreflang="x-default" href="https://macondo-studio.com/guide.html">
 
   <!-- Open Graph -->
-  <meta property="og:type" content="website">
+  <meta property="og:type" content="article">
   <meta property="og:url" content="https://macondo-studio.com/guide-it.html">
   <meta property="og:title" content="Specifiche Analisi &amp; Guida Architetturale • Macondo">
-  <meta property="og:description" content="Guida tecnica esaustiva e formulazioni matematiche per tutte le 20+ analisi statiche, metriche architetturali e algoritmi deterministici in Macondo.">
+  <meta property="og:description" content="Guida tecnica esaustiva, formulazioni matematiche e riferimenti algoritmici per tutte le oltre 20 analisi statiche, metriche e motori deterministici in Macondo.">
   <meta property="og:image" content="https://macondo-studio.com/VistaGrafoIta.png">
+  <meta property="og:image:width" content="1920">
+  <meta property="og:image:height" content="1080">
+  <meta property="og:image:alt" content="Guida all'Analisi del Codice e Grafo Semantico Macondo">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:site_name" content="Macondo">
+  <meta property="og:locale" content="it_IT">
+  <meta property="og:locale:alternate" content="en_US">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://macondo-studio.com/guide-it.html">
+  <meta name="twitter:title" content="Specifiche Analisi &amp; Guida Architetturale • Macondo">
+  <meta name="twitter:description" content="Guida tecnica esaustiva, formulazioni matematiche e riferimenti algoritmici per tutte le oltre 20 analisi statiche, metriche e motori deterministici in Macondo.">
+  <meta name="twitter:image" content="https://macondo-studio.com/VistaGrafoIta.png">
+  <meta name="twitter:image:alt" content="Guida all'Analisi del Codice e Grafo Semantico Macondo">
+
+  <!-- Structured Data: TechArticle & Breadcrumbs (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "TechArticle",
+        "@id": "https://macondo-studio.com/guide-it.html#article",
+        "isPartOf": {
+          "@type": "WebPage",
+          "@id": "https://macondo-studio.com/guide-it.html"
+        },
+        "headline": "Specifiche delle Analisi e Guida Architetturale • Macondo",
+        "description": "Guida tecnica esaustiva e formulazioni matematiche per tutte le 20+ analisi statiche, metriche architetturali e algoritmi deterministici in Macondo.",
+        "inLanguage": "it",
+        "mainEntityOfPage": "https://macondo-studio.com/guide-it.html",
+        "image": "https://macondo-studio.com/VistaGrafoIta.png",
+        "author": {
+          "@type": "Organization",
+          "name": "Macondo Studio",
+          "url": "https://macondo-studio.com"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Macondo Studio",
+          "url": "https://macondo-studio.com",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://macondo-studio.com/logo.svg"
+          }
+        },
+        "about": [
+          { "@type": "Thing", "name": "Analisi Statica del Codice" },
+          { "@type": "Thing", "name": "Architettura Software" },
+          { "@type": "Thing", "name": "Visual Basic 6.0" },
+          { "@type": "Thing", "name": "C# .NET" },
+          { "@type": "Thing", "name": "Complessità Ciclomatica" },
+          { "@type": "Thing", "name": "Indice di Manutenibilità" },
+          { "@type": "Thing", "name": "Matrice DSM" },
+          { "@type": "Thing", "name": "Blast Radius e Analisi d'Impatto" }
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://macondo-studio.com/guide-it.html#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://macondo-studio.com/it.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Guida & Specifiche",
+            "item": "https://macondo-studio.com/guide-it.html"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 
   <!-- Stylesheet & Icons -->
   <link rel="stylesheet" href="style.css">
