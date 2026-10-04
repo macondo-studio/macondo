@@ -72,42 +72,122 @@ function formatReleaseDate(isoString, isIt) {
     : d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
+function formatInline(text) {
+  if (!text) return '';
+  let str = escapeHtml(text);
+  // Bold
+  str = str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Italic
+  str = str.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  // Inline Code
+  str = str.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Links
+  str = str.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  return str;
+}
+
 function renderMarkdown(md) {
   if (!md) return '';
-  let html = escapeHtml(md);
 
-  // Headers
-  html = html.replace(/^### (.*$)/gim, '<h4 class="release-subheading">$1</h4>');
-  html = html.replace(/^## (.*$)/gim, '<h3 class="release-heading">$1</h3>');
-  html = html.replace(/^# (.*$)/gim, '<h2 class="release-mainheading">$1</h2>');
+  const lines = md.split(/\r?\n/);
+  const out = [];
+  const listStack = [];
 
-  // Bold & Italic
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-  // Inline Code
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-  // Links
-  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-  // Unordered lists
-  html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<li>$1</li>');
-  html = html.replace(/(<li>[\s\S]*?<\/li>)/gi, '<ul>$1</ul>');
-  html = html.replace(/<\/ul>\s*<ul>/gi, '');
-
-  // Paragraphs
-  const blocks = html.split(/\n\n+/);
-  html = blocks.map(block => {
-    block = block.trim();
-    if (!block) return '';
-    if (block.startsWith('<h') || block.startsWith('<ul') || block.startsWith('<ol')) {
-      return block;
+  function closeAllLists() {
+    while (listStack.length > 0) {
+      listStack.pop();
+      out.push('</li></ul>');
     }
-    return `<p>${block.replace(/\n/g, '<br>')}</p>`;
-  }).join('');
+  }
 
-  return html;
+  let paragraphLines = [];
+
+  function flushParagraph() {
+    if (paragraphLines.length > 0) {
+      out.push('<p>' + paragraphLines.join('<br>') + '</p>');
+      paragraphLines = [];
+    }
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i];
+    const trimmed = rawLine.trim();
+
+    if (!trimmed) {
+      flushParagraph();
+      closeAllLists();
+      continue;
+    }
+
+    // Headings
+    const h4Match = trimmed.match(/^####\s+(.*)$/);
+    const h3Match = trimmed.match(/^###\s+(.*)$/);
+    const h2Match = trimmed.match(/^##\s+(.*)$/);
+    const h1Match = trimmed.match(/^#\s+(.*)$/);
+
+    if (h1Match || h2Match || h3Match || h4Match) {
+      flushParagraph();
+      closeAllLists();
+      if (h1Match) out.push(`<h2 class="release-mainheading">${formatInline(h1Match[1])}</h2>`);
+      else if (h2Match) out.push(`<h3 class="release-heading">${formatInline(h2Match[1])}</h3>`);
+      else if (h3Match) out.push(`<h4 class="release-subheading">${formatInline(h3Match[1])}</h4>`);
+      else if (h4Match) out.push(`<h5 class="release-subheading">${formatInline(h4Match[1])}</h5>`);
+      continue;
+    }
+
+    // List item (match optional indent, - or *, space, content)
+    const listMatch = rawLine.match(/^(\s*)[-*]\s+(.*)$/);
+    if (listMatch) {
+      flushParagraph();
+      const indentStr = listMatch[1];
+      const indent = indentStr.replace(/\t/g, '    ').length;
+      const content = formatInline(listMatch[2]);
+
+      if (listStack.length === 0) {
+        listStack.push(indent);
+        out.push(`<ul><li>${content}`);
+      } else {
+        const topIndent = listStack[listStack.length - 1];
+        if (indent > topIndent) {
+          listStack.push(indent);
+          out.push(`<ul><li>${content}`);
+        } else if (indent === topIndent) {
+          out.push(`</li><li>${content}`);
+        } else {
+          // Unindent back to appropriate level
+          while (listStack.length > 0 && listStack[listStack.length - 1] > indent) {
+            listStack.pop();
+            out.push('</li></ul>');
+          }
+          if (listStack.length === 0 || listStack[listStack.length - 1] < indent) {
+            listStack.push(indent);
+            out.push(`<ul><li>${content}`);
+          } else {
+            out.push(`</li><li>${content}`);
+          }
+        }
+      }
+      continue;
+    }
+
+    // Regular text / paragraph line
+    if (listStack.length > 0) {
+      const lineIndent = (rawLine.match(/^(\s*)/)[1] || '').replace(/\t/g, '    ').length;
+      if (lineIndent > listStack[listStack.length - 1]) {
+        out.push('<br>' + formatInline(trimmed));
+        continue;
+      } else {
+        closeAllLists();
+      }
+    }
+
+    paragraphLines.push(formatInline(trimmed));
+  }
+
+  flushParagraph();
+  closeAllLists();
+
+  return out.join('');
 }
 
 async function loadReleases() {

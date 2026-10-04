@@ -895,6 +895,17 @@ body {
   margin-bottom: 14px;
 }
 
+.release-body ul ul {
+  margin-top: 6px;
+  margin-bottom: 10px;
+  padding-left: 22px;
+  list-style-type: circle;
+}
+
+.release-body ul ul ul {
+  list-style-type: square;
+}
+
 .release-body li {
   margin-bottom: 6px;
 }
