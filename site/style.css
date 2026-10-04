@@ -26,6 +26,7 @@
   --radius-pill: 980px;
   --radius-sm: 8px;
   --radius-md: 14px;
+  --radius-card: 16px;
   --radius-lg: 20px;
   --radius-xl: 28px;
 }
@@ -519,7 +520,7 @@ strong, b {
 .feature-card-visual {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
   padding: 28px;
 }
 
@@ -533,7 +534,7 @@ strong, b {
 .card-minimal {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-card);
   padding: 26px;
   transition: all 0.2s ease;
 }
@@ -675,7 +676,7 @@ strong, b {
 .analysis-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-card);
   padding: 20px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
@@ -801,7 +802,7 @@ strong, b {
   scroll-snap-align: start;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-card);
   padding: 18px 24px;
   display: flex;
   flex-direction: column;
@@ -928,7 +929,7 @@ strong, b {
 .legal-box {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-card);
   padding: 50px 44px;
   max-width: 820px;
   margin: 0 auto;
@@ -1029,7 +1030,7 @@ strong, b {
 .release-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-card);
   padding: 36px 32px;
   margin-bottom: 28px;
   transition: border-color 0.2s ease;
@@ -1250,7 +1251,7 @@ strong, b {
   padding: 16px;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -1319,7 +1320,7 @@ strong, b {
 .guide-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-card);
   padding: 32px;
   margin-bottom: 24px;
   scroll-margin-top: 84px;
