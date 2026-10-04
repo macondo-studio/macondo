@@ -95,7 +95,12 @@
           <li><a href="#analyses">Analyses</a></li>
           <li><a href="#ai">AI &amp; Modernization</a></li>
           <li><a href="#specs">Specifications</a></li>
-          <li><a href="releases.html">Releases</a></li>
+          <li>
+            <a href="releases.html" class="nav-releases">
+              <span>Releases</span>
+              <span class="nav-version-tag">v1.5.0</span>
+            </a>
+          </li>
         </ul>
       </nav>
 
@@ -111,18 +116,13 @@
   <!-- Hero Section -->
   <section class="hero">
     <div class="container">
-      <a href="releases.html" class="hero-pill" style="text-decoration: none; cursor: pointer;" title="View Release Notes &amp; Changelog">
-        <span class="hero-pill-badge">Release</span>
-        <span class="hero-pill-text">Macondo v1.5.0 for Windows • Free</span>
-      </a>
-
       <h1 class="hero-title">
         <span>See the structure.</span><br>
         <span class="dimmed">Master the code.</span>
       </h1>
 
       <p class="hero-subtitle">
-        Deterministic semantic code graph, dependency analysis, Blast Radius computation, and a comprehensive suite of 20+ analytical tools for <strong>Visual Basic 6.0</strong> and <strong>C# / .NET</strong>. 100% offline, absolute privacy, engineered for AI-guided modernization.
+        Deterministic semantic code graph, dependency analysis, Blast Radius computation, and a comprehensive suite of 20+ analytical tools for <strong>Visual Basic 6.0</strong> and <strong>C# / .NET</strong>.
       </p>
 
       <div class="hero-cta">
@@ -132,21 +132,27 @@
           </svg>
           <span>Download for Windows</span>
         </a>
-        <a href="#analyses" class="btn btn-secondary btn-large">
-          <span>All analyses</span>
-        </a>
-      </div>
-
-      <div class="hero-note">
-        <span>Free • Single portable executable • 100% local • VB6 &amp; C# support</span>
-        <span class="dot-sep">&bull;</span>
-        <span class="release-date-text">Last updated September 10, 2026</span>
       </div>
 
       <!-- App Screenshot Showcase -->
       <div class="showcase-window">
         <div class="screenshot-holder">
           <img id="graph-screenshot" src="VistaGrafoEng.png" alt="Macondo Semantic Graph UI" class="app-screenshot">
+        </div>
+        <div class="showcase-statusbar">
+          <div class="statusbar-left">
+            <span class="statusbar-dot"></span>
+            <span class="statusbar-title">Macondo v1.5.0</span>
+            <span class="statusbar-sep">•</span>
+            <span>Windows x64 Portable</span>
+            <span class="statusbar-sep">•</span>
+            <span>100% Offline</span>
+            <span class="statusbar-sep">•</span>
+            <span>Engineered for AI Modernization</span>
+          </div>
+          <div class="statusbar-right">
+            <span class="release-date-text">Last updated September 10, 2026</span>
+          </div>
         </div>
       </div>
     </div>
@@ -482,49 +488,13 @@
     </div>
   </section>
 
-  <!-- Specifications 3-Column Grid -->
-  <section id="specs" class="feature-block">
+  <!-- Unified Download & Specifications Section -->
+  <section id="specs" class="download-section">
+    <div id="download" style="position: relative; top: -80px;"></div>
     <div class="container">
-      <div class="grid-3">
-        <div class="card-minimal">
-          <h3 class="card-title">100% Free</h3>
-          <p class="card-body">No subscriptions, no paywalls, no artificial limitations. Built as an open engineering tool for developers.</p>
-        </div>
-
-        <div class="card-minimal">
-          <h3 class="card-title">Absolute Privacy</h3>
-          <p class="card-body">Runs 100% locally on your machine. Zero source code or telemetry ever leaves your computer.</p>
-        </div>
-
-        <div class="card-minimal">
-          <h3 class="card-title">Cache &amp; Native Speed</h3>
-          <p class="card-body">Lightning-fast persistent disk cache: reopen complex enterprise projects with hundreds of files in milliseconds.</p>
-        </div>
-
-        <div class="card-minimal">
-          <h3 class="card-title">CLI &amp; CI/CD Automation</h3>
-          <p class="card-body">Run headless analyses from the command line, generate Markdown/JSON reports, and enforce structural quality gates directly in your DevOps pipelines.</p>
-        </div>
-
-        <div class="card-minimal">
-          <h3 class="card-title">Source Preview &amp; LOC</h3>
-          <p class="card-body">Inspect original source code lines and LOC metrics directly within the Symbol Inspector with instant clipboard copy and zero context switching.</p>
-        </div>
-
-        <div class="card-minimal">
-          <h3 class="card-title">On-Demand Execution</h3>
-          <p class="card-body">Granular control over background computations, real-time remaining time estimation, and instant project cancellation with zero UI freezing.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Minimal Download CTA -->
-  <section id="download" class="download-section">
-    <div class="container">
-      <div class="download-box">
+      <div class="download-header">
         <h2 class="download-title">Start analyzing today.</h2>
-        <p class="download-subtitle">Download the standalone Macondo.exe for Windows. No installer or zip archive required, instant start with VB6 &amp; C# support.</p>
+        <p class="download-subtitle">Download the standalone Macondo.exe for Windows. Single Portable Executable (No Install), instant start with VB6 &amp; C# support.</p>
 
         <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-primary btn-large">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -535,18 +505,58 @@
 
         <div class="download-meta">
           <span class="release-date-text">Last updated September 10, 2026</span>
-          <span>&bull;</span>
-          <span>Compatible with Windows 10 &amp; Windows 11 (64-bit)</span>
-          <span>&bull;</span>
-          <span>Single Portable Executable (No Install)</span>
+        </div>
+      </div>
+
+      <!-- Specifications Automatic Carousel -->
+      <div class="specs-carousel-container">
+        <div class="specs-carousel-track" id="specsTrack">
+          <div class="specs-card">
+            <h3 class="card-title">100% Free</h3>
+            <p class="card-body">No subscriptions, no paywalls, no artificial limitations. Built as an open engineering tool for developers.</p>
+          </div>
+
+          <div class="specs-card">
+            <h3 class="card-title">Absolute Privacy</h3>
+            <p class="card-body">Runs 100% locally on your machine. Zero source code or telemetry ever leaves your computer.</p>
+          </div>
+
+          <div class="specs-card">
+            <h3 class="card-title">Cache &amp; Native Speed</h3>
+            <p class="card-body">Lightning-fast persistent disk cache: reopen complex enterprise projects with hundreds of files in milliseconds.</p>
+          </div>
+
+          <div class="specs-card">
+            <h3 class="card-title">CLI &amp; CI/CD Automation</h3>
+            <p class="card-body">Run headless analyses from the command line, generate Markdown/JSON reports, and enforce structural quality gates directly in your DevOps pipelines.</p>
+          </div>
+
+          <div class="specs-card">
+            <h3 class="card-title">Source Preview &amp; LOC</h3>
+            <p class="card-body">Inspect original source code lines and LOC metrics directly within the Symbol Inspector with instant clipboard copy and zero context switching.</p>
+          </div>
+
+          <div class="specs-card">
+            <h3 class="card-title">On-Demand Execution</h3>
+            <p class="card-body">Granular control over background computations, real-time remaining time estimation, and instant project cancellation with zero UI freezing.</p>
+          </div>
         </div>
 
-        <div class="download-feedback">
-          <span>Found a bug or have a suggestion?</span>
-          <a href="https://github.com/macondo-studio/macondo/issues" target="_blank" rel="noopener noreferrer">Open GitHub Issue</a>
-          <span>&bull;</span>
-          <a href="mailto:info@macondo-studio.com">info@macondo-studio.com</a>
+        <div class="specs-carousel-dots" id="specsDots">
+          <button class="specs-dot active" data-index="0" aria-label="Slide 1"></button>
+          <button class="specs-dot" data-index="1" aria-label="Slide 2"></button>
+          <button class="specs-dot" data-index="2" aria-label="Slide 3"></button>
+          <button class="specs-dot" data-index="3" aria-label="Slide 4"></button>
+          <button class="specs-dot" data-index="4" aria-label="Slide 5"></button>
+          <button class="specs-dot" data-index="5" aria-label="Slide 6"></button>
         </div>
+      </div>
+
+      <div class="download-feedback">
+        <span>Found a bug or have a suggestion?</span>
+        <a href="https://github.com/macondo-studio/macondo/issues" target="_blank" rel="noopener noreferrer">Open GitHub Issue</a>
+        <span>&bull;</span>
+        <a href="mailto:info@macondo-studio.com">info@macondo-studio.com</a>
       </div>
     </div>
   </section>

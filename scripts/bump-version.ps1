@@ -96,24 +96,23 @@ if (Test-Path $versionJsonPath) {
     Write-Host "      -> version.json impostato a v$NewVersion con timestamp UTC" -ForegroundColor Green
 }
 
-# 4. Aggiornamento site/it.html & site/index.html (Repo Privata)
-$itHtmlPath = Join-Path $siteRoot "it.html"
-if (Test-Path $itHtmlPath) {
-    Write-Host "[4/5] Aggiornamento $itHtmlPath e index.html..." -ForegroundColor Yellow
-    $itHtml = Get-Content $itHtmlPath -Raw -Encoding UTF8
-    $itHtml = [regex]::Replace($itHtml, '"softwareVersion":\s*"[^"]+"', "`"softwareVersion`": `"$NewVersion`"")
-    $itHtml = [regex]::Replace($itHtml, 'Macondo v\d+\.\d+\.\d+ per Windows', "Macondo v$NewVersion per Windows")
-    Set-Content $itHtmlPath -Value $itHtml -Encoding UTF8 -NoNewline
+# 4. Aggiornamento file HTML del sito web (Repo Privata)
+$htmlFiles = @(
+    Join-Path $siteRoot "it.html",
+    Join-Path $siteRoot "index.html",
+    Join-Path $siteRoot "releases.html",
+    Join-Path $siteRoot "releases-it.html"
+)
+foreach ($htmlPath in $htmlFiles) {
+    if (Test-Path $htmlPath) {
+        $html = Get-Content $htmlPath -Raw -Encoding UTF8
+        $html = [regex]::Replace($html, '"softwareVersion":\s*"[^"]+"', "`"softwareVersion`": `"$NewVersion`"")
+        $html = [regex]::Replace($html, 'Macondo v\d+\.\d+\.\d+', "Macondo v$NewVersion")
+        $html = [regex]::Replace($html, '<span class="nav-version-tag">v\d+\.\d+\.\d+</span>', "<span class=`"nav-version-tag`">v$NewVersion</span>")
+        Set-Content $htmlPath -Value $html -Encoding UTF8 -NoNewline
+    }
 }
-
-$indexHtmlPath = Join-Path $siteRoot "index.html"
-if (Test-Path $indexHtmlPath) {
-    $indexHtml = Get-Content $indexHtmlPath -Raw -Encoding UTF8
-    $indexHtml = [regex]::Replace($indexHtml, '"softwareVersion":\s*"[^"]+"', "`"softwareVersion`": `"$NewVersion`"")
-    $indexHtml = [regex]::Replace($indexHtml, 'Macondo v\d+\.\d+\.\d+ for Windows', "Macondo v$NewVersion for Windows")
-    Set-Content $indexHtmlPath -Value $indexHtml -Encoding UTF8 -NoNewline
-    Write-Host "      -> Pagine del sito web in $siteRoot allineate a v$NewVersion" -ForegroundColor Green
-}
+Write-Host "      -> Pagine del sito web in $siteRoot allineate a v$NewVersion" -ForegroundColor Green
 
 # 5. Sincronizzazione file da site/ alla cartella della repo pubblica macondo
 if (Test-Path $macondoPublicRoot) {

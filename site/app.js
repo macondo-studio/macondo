@@ -33,6 +33,12 @@ function updateVersionBadge() {
       ? `Macondo v${remoteVersion} per Windows • Gratuito`
       : `Macondo v${remoteVersion} for Windows • Free`;
   }
+  document.querySelectorAll('.statusbar-title').forEach(el => {
+    el.textContent = `Macondo v${remoteVersion}`;
+  });
+  document.querySelectorAll('.nav-version-tag').forEach(el => {
+    el.textContent = `v${remoteVersion}`;
+  });
 }
 
 function updateReleaseDates() {
@@ -360,6 +366,91 @@ function initAnalysesTabs() {
   });
 }
 
+function initSpecsCarousel() {
+  const track = document.getElementById('specsTrack');
+  const dotsContainer = document.getElementById('specsDots');
+  if (!track || !dotsContainer) return;
+
+  const cards = Array.from(track.querySelectorAll('.specs-card'));
+  if (!cards.length) return;
+
+  let autoScrollTimer = null;
+  const intervalMs = 3000;
+
+  function renderDots() {
+    dotsContainer.innerHTML = '';
+    cards.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'specs-dot' + (i === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', `Slide ${i + 1}`);
+      dot.addEventListener('click', () => {
+        stop();
+        const cardWidth = track.clientWidth;
+        track.scrollTo({ left: i * cardWidth, behavior: 'smooth' });
+        updateActiveDot(i);
+        start();
+      });
+      dotsContainer.appendChild(dot);
+    });
+  }
+
+  function updateActiveDot(index) {
+    const dots = dotsContainer.querySelectorAll('.specs-dot');
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === index);
+    });
+  }
+
+  function advance() {
+    const cardWidth = track.clientWidth;
+    const currentIdx = Math.round(track.scrollLeft / (cardWidth || 1));
+    const nextIdx = (currentIdx + 1) % cards.length;
+
+    track.scrollTo({ left: nextIdx * cardWidth, behavior: 'smooth' });
+    updateActiveDot(nextIdx);
+  }
+
+  function start() {
+    stop();
+    autoScrollTimer = setInterval(advance, intervalMs);
+  }
+
+  function stop() {
+    if (autoScrollTimer) {
+      clearInterval(autoScrollTimer);
+      autoScrollTimer = null;
+    }
+  }
+
+  let scrollTimeout = null;
+  track.addEventListener('scroll', () => {
+    if (scrollTimeout) cancelAnimationFrame(scrollTimeout);
+    scrollTimeout = requestAnimationFrame(() => {
+      const cardWidth = track.clientWidth;
+      const activeIdx = Math.min(
+        cards.length - 1,
+        Math.max(0, Math.round(track.scrollLeft / (cardWidth || 1)))
+      );
+      updateActiveDot(activeIdx);
+    });
+  }, { passive: true });
+
+  renderDots();
+  start();
+
+  window.addEventListener('resize', () => {
+    const cardWidth = track.clientWidth;
+    const activeDot = dotsContainer.querySelector('.specs-dot.active');
+    const activeIdx = activeDot ? Array.from(dotsContainer.children).indexOf(activeDot) : 0;
+    track.scrollTo({ left: activeIdx * cardWidth, behavior: 'auto' });
+  }, { passive: true });
+
+  track.addEventListener('mouseenter', stop);
+  track.addEventListener('mouseleave', start);
+  track.addEventListener('touchstart', stop, { passive: true });
+  track.addEventListener('touchend', start, { passive: true });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Set current year dynamically
   const yearEl = document.getElementById('current-year');
@@ -369,6 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initLanguageSwitcher();
   initAnalysesTabs();
+  initSpecsCarousel();
   fetchVersion();
   loadReleases();
 });

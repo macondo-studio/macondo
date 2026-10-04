@@ -94,7 +94,12 @@
           <li><a href="#analyses">Analisi</a></li>
           <li><a href="#ai">AI &amp; Modernizzazione</a></li>
           <li><a href="#specs">Specifiche</a></li>
-          <li><a href="releases-it.html">Release</a></li>
+          <li>
+            <a href="releases-it.html" class="nav-releases">
+              <span>Release</span>
+              <span class="nav-version-tag">v1.5.0</span>
+            </a>
+          </li>
         </ul>
       </nav>
 
@@ -110,18 +115,13 @@
   <!-- Hero Section -->
   <section class="hero">
     <div class="container">
-      <a href="releases-it.html" class="hero-pill" style="text-decoration: none; cursor: pointer;" title="Visualizza Note di Rilascio e Changelog">
-        <span class="hero-pill-badge">Release</span>
-        <span class="hero-pill-text">Macondo v1.5.0 per Windows • Gratuito</span>
-      </a>
-
       <h1 class="hero-title">
         <span>Vedi la struttura.</span><br>
         <span class="dimmed">Domina il codice.</span>
       </h1>
 
       <p class="hero-subtitle">
-        Analizzatore semantico, grafo delle dipendenze, calcolo del Blast Radius e suite completa di analisi per codebase legacy e moderne in <strong>Visual Basic 6.0</strong> e <strong>C# / .NET</strong>. 100% offline, privacy assoluta, pronto per la modernizzazione con modelli AI.
+        Analizzatore semantico, grafo delle dipendenze, calcolo del Blast Radius e suite completa di oltre 20 analisi per codebase legacy e moderne in <strong>Visual Basic 6.0</strong> e <strong>C# / .NET</strong>.
       </p>
 
       <div class="hero-cta">
@@ -131,21 +131,27 @@
           </svg>
           <span>Scarica per Windows</span>
         </a>
-        <a href="#analyses" class="btn btn-secondary btn-large">
-          <span>Tutte le analisi</span>
-        </a>
-      </div>
-
-      <div class="hero-note">
-        <span>Gratuito • Nessuna installazione richiesta • 100% locale • Supporto VB6 &amp; C#</span>
-        <span class="dot-sep">&bull;</span>
-        <span class="release-date-text">Ultimo aggiornamento: 10 settembre 2026</span>
       </div>
 
       <!-- App Screenshot Showcase -->
       <div class="showcase-window">
         <div class="screenshot-holder">
           <img id="graph-screenshot" src="VistaGrafoIta.png" alt="Macondo Semantic Graph UI" class="app-screenshot">
+        </div>
+        <div class="showcase-statusbar">
+          <div class="statusbar-left">
+            <span class="statusbar-dot"></span>
+            <span class="statusbar-title">Macondo v1.5.0</span>
+            <span class="statusbar-sep">•</span>
+            <span>Windows x64 Portabile</span>
+            <span class="statusbar-sep">•</span>
+            <span>100% Offline</span>
+            <span class="statusbar-sep">•</span>
+            <span>Pronto per la modernizzazione AI</span>
+          </div>
+          <div class="statusbar-right">
+            <span class="release-date-text">Ultimo aggiornamento: 10 settembre 2026</span>
+          </div>
         </div>
       </div>
     </div>
@@ -481,49 +487,13 @@
     </div>
   </section>
 
-  <!-- Specifications 3-Column Grid -->
-  <section id="specs" class="feature-block">
+  <!-- Sezione Unificata Download e Specifiche -->
+  <section id="specs" class="download-section">
+    <div id="download" style="position: relative; top: -80px;"></div>
     <div class="container">
-      <div class="grid-3">
-        <div class="card-minimal">
-          <h3 class="card-title">100% Gratuito</h3>
-          <p class="card-body">Nessun abbonamento, nessuna licenza a pagamento, nessun limite artificiale. Uno strumento creato per la community di sviluppatori.</p>
-        </div>
-
-        <div class="card-minimal">
-          <h3 class="card-title">Privacy Assoluta</h3>
-          <p class="card-body">Funziona al 100% in locale sul tuo computer. Nessun sorgente o metadato viene mai inviato all'esterno o sul cloud.</p>
-        </div>
-
-        <div class="card-minimal">
-          <h3 class="card-title">Cache &amp; Velocità</h3>
-          <p class="card-body">Cache persistente ultra-veloce su disco: apri progetti enterprise con centinaia di file e moduli in una frazione di secondo.</p>
-        </div>
-
-        <div class="card-minimal">
-          <h3 class="card-title">CLI &amp; Automazione CI/CD</h3>
-          <p class="card-body">Esegui analisi headless da riga di comando, genera report in Markdown/JSON e integra quality gate architetturali nelle pipeline DevOps.</p>
-        </div>
-
-        <div class="card-minimal">
-          <h3 class="card-title">Ispezione Codice &amp; LOC</h3>
-          <p class="card-body">Esamina le righe di codice sorgente originali e le metriche LOC all'interno del Symbol Inspector con copia rapida negli appunti.</p>
-        </div>
-
-        <div class="card-minimal">
-          <h3 class="card-title">Esecuzione On-Demand</h3>
-          <p class="card-body">Controllo granulare delle computazioni in background, stima del tempo rimanente in tempo reale e cancellazione istantanea senza blocchi.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Minimal Download CTA -->
-  <section id="download" class="download-section">
-    <div class="container">
-      <div class="download-box">
+      <div class="download-header">
         <h2 class="download-title">Inizia subito ad analizzare.</h2>
-        <p class="download-subtitle">Scarica direttamente l'eseguibile Macondo per Windows. Nessuna installazione richiesta, avvio istantaneo con supporto a VB6 e C#.</p>
+        <p class="download-subtitle">Scarica direttamente l'eseguibile unico standalone Macondo per Windows. Singolo eseguibile portabile (Nessuna installazione), avvio istantaneo con supporto a VB6 e C#.</p>
 
         <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-primary btn-large">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -534,18 +504,58 @@
 
         <div class="download-meta">
           <span class="release-date-text">Ultimo aggiornamento: 10 settembre 2026</span>
-          <span>&bull;</span>
-          <span>Compatibile con Windows 10 e Windows 11 (64-bit)</span>
-          <span>&bull;</span>
-          <span>Standalone &amp; Portable (Nessuna installazione)</span>
+        </div>
+      </div>
+
+      <!-- Carosello Automatico Specifiche -->
+      <div class="specs-carousel-container">
+        <div class="specs-carousel-track" id="specsTrack">
+          <div class="specs-card">
+            <h3 class="card-title">100% Gratuito</h3>
+            <p class="card-body">Nessun abbonamento, nessuna licenza a pagamento, nessun limite artificiale. Uno strumento creato per la community di sviluppatori.</p>
+          </div>
+
+          <div class="specs-card">
+            <h3 class="card-title">Privacy Assoluta</h3>
+            <p class="card-body">Funziona al 100% in locale sul tuo computer. Nessun sorgente o metadato viene mai inviato all'esterno o sul cloud.</p>
+          </div>
+
+          <div class="specs-card">
+            <h3 class="card-title">Cache &amp; Velocità</h3>
+            <p class="card-body">Cache persistente ultra-veloce su disco: apri progetti enterprise con centinaia di file e moduli in una frazione di secondo.</p>
+          </div>
+
+          <div class="specs-card">
+            <h3 class="card-title">CLI &amp; Automazione CI/CD</h3>
+            <p class="card-body">Esegui analisi headless da riga di comando, genera report in Markdown/JSON e integra quality gate architetturali nelle pipeline DevOps.</p>
+          </div>
+
+          <div class="specs-card">
+            <h3 class="card-title">Ispezione Codice &amp; LOC</h3>
+            <p class="card-body">Esamina le righe di codice sorgente originali e le metriche LOC all'interno del Symbol Inspector con copia rapida negli appunti.</p>
+          </div>
+
+          <div class="specs-card">
+            <h3 class="card-title">Esecuzione On-Demand</h3>
+            <p class="card-body">Controllo granulare delle computazioni in background, stima del tempo rimanente in tempo reale e cancellazione istantanea senza blocchi.</p>
+          </div>
         </div>
 
-        <div class="download-feedback">
-          <span>Hai un suggerimento o vuoi segnalare un bug?</span>
-          <a href="https://github.com/macondo-studio/macondo/issues" target="_blank" rel="noopener noreferrer">Apri una Issue su GitHub</a>
-          <span>&bull;</span>
-          <a href="mailto:info@macondo-studio.com">info@macondo-studio.com</a>
+        <div class="specs-carousel-dots" id="specsDots">
+          <button class="specs-dot active" data-index="0" aria-label="Slide 1"></button>
+          <button class="specs-dot" data-index="1" aria-label="Slide 2"></button>
+          <button class="specs-dot" data-index="2" aria-label="Slide 3"></button>
+          <button class="specs-dot" data-index="3" aria-label="Slide 4"></button>
+          <button class="specs-dot" data-index="4" aria-label="Slide 5"></button>
+          <button class="specs-dot" data-index="5" aria-label="Slide 6"></button>
         </div>
+      </div>
+
+      <div class="download-feedback">
+        <span>Hai un suggerimento o vuoi segnalare un bug?</span>
+        <a href="https://github.com/macondo-studio/macondo/issues" target="_blank" rel="noopener noreferrer">Apri una Issue su GitHub</a>
+        <span>&bull;</span>
+        <a href="mailto:info@macondo-studio.com">info@macondo-studio.com</a>
       </div>
     </div>
   </section>
