@@ -363,10 +363,10 @@ E = { CALLS, INSTANTIATES, USES_TYPE, READS, WRITES, INHERITS, IMPLEMENTS }</div
                 <h2 class="guide-card-title">Design Structure Matrix (DSM)</h2>
               </div>
               <div class="guide-body">
-                <p>Matrice adiacente quadrata \( N \times N \) che mappa ogni accoppiamento diretto e indiretto tra tutti i moduli del sistema software.</p>
+                <p>Matrice adiacente quadrata N &times; N che mappa ogni accoppiamento diretto e indiretto tra tutti i moduli del sistema software.</p>
                 <p><strong>Identificazione dei Cicli tramite Tarjan:</strong></p>
-                <div class="guide-formula">Matrice Triangolare Inferiore Ideale: \( M_{i,j} = 0 \quad \forall i &lt; j \)
-Le celle sopra la diagonale principale (\( i &lt; j \)) evidenziano dipendenze cicliche o violazioni di stratificazione.</div>
+                <div class="guide-formula">Matrice Triangolare Inferiore Ideale: M(i, j) = 0  per ogni i &lt; j
+Le celle sopra la diagonale principale (i &lt; j) evidenziano dipendenze cicliche o violazioni di stratificazione.</div>
                 <p>Consente di individuare all'istante cluster ciclici ricorsivi e guidare il disaccoppiamento ordinato prima di avviare migrazioni a microservizi o architetture pulite.</p>
               </div>
             </div>
@@ -397,11 +397,11 @@ Le celle sopra la diagonale principale (\( i &lt; j \)) evidenziano dipendenze c
               </div>
               <div class="guide-body">
                 <p>Valuta il bilanciamento architetturale, la stabilità e il livello di astrazione di package e moduli secondo i principi SOLID:</p>
-                <div class="guide-formula">\( C_a \) (Afferent Coupling): Numero di classi esterne che dipendono da questo package.
-\( C_e \) (Efferent Coupling): Numero di classi esterne da cui questo package dipende.
-Instabilità (\( I \)): \( I = \frac{C_e}{C_a + C_e} \quad (0 = \text{Stabile}, 1 = \text{Instabile}) \)
-Astrazione (\( A \)): \( A = \frac{N_a}{N_c} \quad (N_a: \text{Tipi Astratti/Interfacce}, N_c: \text{Totale Classi}) \)
-Distanza dalla Sequenza Principale (\( D \)): \( D = |A + I - 1| \quad (D = 0 \text{ indica bilanciamento ottimale}) \)</div>
+                <div class="guide-formula">Accoppiamento Afferente (Ca): Numero di classi esterne che dipendono da questo package
+Accoppiamento Efferente (Ce): Numero di classi esterne da cui questo package dipende
+Instabilità (I): I = Ce / (Ca + Ce) ∈ [0, 1]  (0 = Stabile/Rigido, 1 = Flessibile/Instabile)
+Astrazione (A): A = Na / Nc ∈ [0, 1]  (Na: Tipi Astratti/Interfacce, Nc: Totale Classi)
+Distanza dalla Sequenza Principale (D): D = |A + I - 1| ∈ [0, 1]  (D = 0 indica bilanciamento ottimale)</div>
                 <p>Identifica componenti nella "Zona di Dolore" (iper-stabili ma concreti, rigidi al cambiamento) e nella "Zona di Inutilità" (iper-astratti ma privi di utilizzatori concreti).</p>
               </div>
             </div>
@@ -415,10 +415,10 @@ Distanza dalla Sequenza Principale (\( D \)): \( D = |A + I - 1| \quad (D = 0 \t
               </div>
               <div class="guide-body">
                 <p>Misura il grado di coesione interna dei metodi di una classe in base all'accesso ai campi di stato d'istanza condivisi:</p>
-                <div class="guide-formula">LCOM4: Numero di componenti connesse nel grafo non orientato \( G = (M, E) \)
-\( M \): Metodi della classe | Arco \( (m_1, m_2) \in E \): Esiste se entrambi i metodi accedono ad almeno un campo condiviso.
-\( \text{LCOM4} = 1 \): Classe coesa con singola responsabilità.
-\( \text{LCOM4} &gt; 1 \): La classe ha responsabilità multiple e disgiunte (violazione SRP, candidata a suddivisione).</div>
+                <div class="guide-formula">LCOM4 = Numero di componenti connesse nel grafo dei metodi G = (M, E)
+M = Metodi della classe | Arco (m1, m2): Esiste se entrambi i metodi accedono ad almeno un campo condiviso
+LCOM4 = 1 → Alta Coesione (rispetta il Single Responsibility Principle)
+LCOM4 &gt; 1 → Classe con responsabilità multiple e disgiunte (candidata a suddivisione in più classi)</div>
               </div>
             </div>
           </section>
@@ -431,10 +431,10 @@ Distanza dalla Sequenza Principale (\( D \)): \( D = |A + I - 1| \quad (D = 0 \t
               </div>
               <div class="guide-body">
                 <p>Valutazione quantitativa della manutenibilità del codice (scala 0–100) calcolata secondo la formula standard del Software Engineering Institute (SEI):</p>
-                <div class="guide-formula">\( V \) (Halstead Volume) \(= N \log_2(n) \quad (N = N_1 + N_2, n = n_1 + n_2)\)
-\( G \) (McCabe Cyclomatic Complexity)
-\( \text{LOC} \) (Effective Lines of Code)
-\( \text{MI} = \max\left(0, \frac{171 - 5.2 \ln(V) - 0.23 G - 16.2 \ln(\text{LOC})}{171} \times 100\right) \)</div>
+                <div class="guide-formula">Volume di Halstead: V = (N1 + N2) * log2(n1 + n2)
+Complessità Ciclomatica di McCabe: CC
+Linee di Codice Effettive: LOC
+MI = max(0, ((171 - 5.2 * ln(V) - 0.23 * CC - 16.2 * ln(LOC)) / 171) * 100)</div>
                 <p><strong>Soglie di Manutenibilità:</strong> &gt; 85: Alta (Verde) | 65–85: Moderata (Giallo) | &lt; 65: Bassa, alto debito tecnico (Rosso).</p>
               </div>
             </div>
@@ -465,8 +465,7 @@ Distanza dalla Sequenza Principale (\( D \)): \( D = |A + I - 1| \quad (D = 0 \t
               </div>
               <div class="guide-body">
                 <p>Tracciamento ricorsivo deterministico di tutti i chiamanti a monte (upstream callers) per calcolare l'impatto di modifica su una routine o proprietà prima di toccare il codice:</p>
-                <div class="guide-formula">Punteggio di Rischio \( R(s) \):
-\( R(s) = w_1 \cdot \text{Chiamanti}(s) + w_2 \cdot \text{ProfonditàMax}(s) + w_3 \cdot \text{ComplessitàCiclomatica}(s) + w_4 \cdot \text{Accoppiamento}(s) \)</div>
+                <div class="guide-formula">Punteggio di Rischio: R(s) = w1 * Chiamanti(s) + w2 * ProfonditàMax(s) + w3 * ComplessitàCiclomatica(s) + w4 * Accoppiamento(s)</div>
                 <ul>
                   <li><strong>Basso Rischio (Verde):</strong> Modifiche locali a routine foglia senza dipendenze multiple.</li>
                   <li><strong>Medio Rischio (Giallo):</strong> Impatto limitato a un singolo modulo o form.</li>
@@ -533,7 +532,7 @@ Distanza dalla Sequenza Principale (\( D \)): \( D = |A + I - 1| \quad (D = 0 \t
               </div>
               <div class="guide-body">
                 <p>Analizza la cronologia dei commit Git per rilevare file che cambiano sistematicamente insieme pur non avendo una dipendenza sintattica formale:</p>
-                <div class="guide-formula">Frequenza di Co-Modifica: \( C(A, B) = \frac{\text{Commit}(A \cap B)}{\text{Commit}(A \cup B)} \)</div>
+                <div class="guide-formula">Frequenza di Co-Modifica: C(A, B) = Commit(A ∩ B) / Commit(A ∪ B)</div>
                 <p>Un valore elevato rivela accoppiamenti logici nascosti o duplicazioni di regole di business tra componenti non collegati.</p>
               </div>
             </div>
