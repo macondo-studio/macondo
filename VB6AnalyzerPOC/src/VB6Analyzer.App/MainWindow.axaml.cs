@@ -573,6 +573,33 @@ public partial class MainWindow : Window
 
         InitializeAnalyticsPlaceholders();
 
+        // Inizializza le dimensioni persistite dei pannelli laterali (Explorer e Inspector)
+        if (settings.ExplorerWidth >= 160)
+            _savedExplorerWidth = settings.ExplorerWidth;
+
+        if (settings.InspectorWidth >= 200)
+            _savedInspectorWidth = settings.InspectorWidth;
+
+        // Traccia in tempo reale il ridimensionamento manuale del pannello destro tramite GridSplitter
+        RightPanelContainer.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == BoundsProperty && _isInspectorVisible && RightPanelContainer.Bounds.Width >= 200)
+            {
+                _savedInspectorWidth = RightPanelContainer.Bounds.Width;
+                SettingsService.Instance.Settings.InspectorWidth = _savedInspectorWidth;
+            }
+        };
+
+        // Traccia in tempo reale il ridimensionamento manuale del pannello sinistro tramite GridSplitter
+        ProjectExplorerControl.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == BoundsProperty && _isExplorerVisible && ProjectExplorerControl.Bounds.Width >= 160)
+            {
+                _savedExplorerWidth = ProjectExplorerControl.Bounds.Width;
+                SettingsService.Instance.Settings.ExplorerWidth = _savedExplorerWidth;
+            }
+        };
+
         // Applica i valori salvati prima del rendering iniziale
         ThemeService.Instance.ApplyTheme(settings.Theme);
         LocalizationService.Instance.SetLanguage(settings.Language);
@@ -4805,18 +4832,21 @@ else
                 RightTabControl.SelectedItem = firstVisibleRight;
         }
 
-        // Se entrambe le schede del pannello destro sono nascoste, chiudi e comprimi l'intero pannello
+        // Se entrambe le schede del pannello destro sono nascoste, chiudi e comprimi il pannello solo se attualmente visibile
         if (!s.ShowTabInspector && !s.ShowTabSourceCode)
         {
-            SetInspectorVisibility(false, updateSettings: false);
+            if (_isInspectorVisible)
+                SetInspectorVisibility(false, updateSettings: false);
         }
         else if (s.IsInspectorVisible)
         {
-            SetInspectorVisibility(true, updateSettings: false);
+            if (!_isInspectorVisible)
+                SetInspectorVisibility(true, updateSettings: false);
         }
         else
         {
-            SetInspectorVisibility(false, updateSettings: false);
+            if (_isInspectorVisible)
+                SetInspectorVisibility(false, updateSettings: false);
         }
     }
 
@@ -5255,51 +5285,118 @@ else
         {
             var posInPanel = e.GetPosition(CentralTabPanel);
 
-            // 1. Sposta la scheda ghost fluttuante in tempo reale mantenendo l'offset di presa iniziale
+            // 1. Sposta la scheda ghost fluttuante in tempo reale seguendo liberamente il puntatore (X e Y)
             var ghostX = posInPanel.X - _tabDragOffsetWithinTab.X;
-            var ghostY = Math.Max(2, Math.Min(posInPanel.Y - 14, 80));
+            var ghostY = posInPanel.Y - _tabDragOffsetWithinTab.Y;
             _tabGhostTransform.X = ghostX;
             _tabGhostTransform.Y = ghostY;
 
-            // 2. Itera sulle schede visibili per individuare lo slot di drop in base al punto medio (midpoint)
-            var visibleTabs = CentralTabControl.Items.OfType<TabItem>().Where(t => t.IsVisible).ToList();
-            if (visibleTabs.Count > 0)
+            // 2. Rileva tutte le schede visibili con relative coordinate per supportare il layout multi-riga
+            var tabBoundsList = new List<(TabItem Tab, Rect Bounds, int Index)>();
+            foreach (var tab in CentralTabControl.Items.OfType<TabItem>())
             {
-                _targetDropIndex = -1;
-                double indicatorX = 0;
-                double indicatorY = 0;
-                double indicatorHeight = 28;
+                if (!tab.IsVisible)
+                    continue;
 
-                for (int i = 0; i < visibleTabs.Count; i++)
+                var origin = tab.TranslatePoint(new Point(0, 0), CentralTabPanel);
+                if (!origin.HasValue)
+                    continue;
+
+                var bounds = new Rect(origin.Value, tab.Bounds.Size);
+                tabBoundsList.Add((tab, bounds, CentralTabControl.Items.IndexOf(tab)));
+            }
+
+            if (tabBoundsList.Count > 0)
+            {
+                // Raggruppa i tab in righe visive basandosi sulla vicinanza verticale del Top (tolleranza 8px)
+                var rows = new List<List<(TabItem Tab, Rect Bounds, int Index)>>();
+                foreach (var item in tabBoundsList.OrderBy(t => t.Bounds.Top).ThenBy(t => t.Bounds.Left))
                 {
-                    var tab = visibleTabs[i];
-                    var tabOrigin = tab.TranslatePoint(new Point(0, 0), CentralTabPanel);
-                    if (!tabOrigin.HasValue)
-                        continue;
-
-                    var tabBounds = new Rect(tabOrigin.Value, tab.Bounds.Size);
-                    var tabMidX = tabBounds.Left + (tabBounds.Width / 2.0);
-
-                    // Se il cursore si trova a sinistra del centro del tab, lo slot è PRIMA di questo tab
-                    if (posInPanel.X < tabMidX)
+                    var existingRow = rows.FirstOrDefault(r => Math.Abs(r[0].Bounds.Top - item.Bounds.Top) < 8);
+                    if (existingRow != null)
                     {
-                        _targetDropIndex = CentralTabControl.Items.IndexOf(tab);
-                        indicatorX = tabBounds.Left - 1;
-                        indicatorY = tabBounds.Top + 2;
-                        indicatorHeight = Math.Max(20, tabBounds.Height - 4);
-                        break;
+                        existingRow.Add(item);
                     }
-                    // Se siamo sull'ultimo tab e il cursore è a destra del centro, lo slot è DOPO l'ultimo tab
-                    else if (i == visibleTabs.Count - 1)
+                    else
                     {
-                        _targetDropIndex = CentralTabControl.Items.IndexOf(tab) + 1;
-                        indicatorX = tabBounds.Right + 1;
-                        indicatorY = tabBounds.Top + 2;
-                        indicatorHeight = Math.Max(20, tabBounds.Height - 4);
+                        rows.Add(new List<(TabItem Tab, Rect Bounds, int Index)> { item });
                     }
                 }
 
-                // Posiziona e rende visibile la barra verticale di drop
+                // Ordina i tab di ciascuna riga da sinistra a destra e le righe dall'alto verso il basso
+                foreach (var row in rows)
+                {
+                    row.Sort((a, b) => a.Bounds.Left.CompareTo(b.Bounds.Left));
+                }
+                rows.Sort((a, b) => a[0].Bounds.Top.CompareTo(b[0].Bounds.Top));
+
+                // Individua la riga visiva bersaglio su cui si trova il puntatore del mouse (coordinate Y)
+                List<(TabItem Tab, Rect Bounds, int Index)> targetRow;
+                if (posInPanel.Y <= rows[0].Min(t => t.Bounds.Bottom))
+                {
+                    targetRow = rows[0];
+                }
+                else if (posInPanel.Y >= rows[^1].Max(t => t.Bounds.Top))
+                {
+                    targetRow = rows[^1];
+                }
+                else
+                {
+                    // Trova la riga con la distanza verticale minima dal cursore o che contiene posInPanel.Y
+                    targetRow = rows.OrderBy(r =>
+                    {
+                        var top = r.Min(t => t.Bounds.Top);
+                        var bottom = r.Max(t => t.Bounds.Bottom);
+                        if (posInPanel.Y >= top && posInPanel.Y <= bottom)
+                            return 0.0;
+                        return Math.Min(Math.Abs(posInPanel.Y - top), Math.Abs(posInPanel.Y - bottom));
+                    }).First();
+                }
+
+                // All'interno della riga individuata, calcola lo slot di drop orizzontale in base al punto medio (midpoint)
+                _targetDropIndex = -1;
+                double indicatorX = 0;
+                double indicatorY = targetRow[0].Bounds.Top + 2;
+                double indicatorHeight = Math.Max(20, targetRow[0].Bounds.Height - 4);
+
+                var firstTab = targetRow[0];
+                var lastTab = targetRow[^1];
+
+                if (posInPanel.X < (firstTab.Bounds.Left + (firstTab.Bounds.Width / 2.0)))
+                {
+                    // Prima del primo elemento della riga
+                    _targetDropIndex = firstTab.Index;
+                    indicatorX = firstTab.Bounds.Left - 1;
+                    indicatorY = firstTab.Bounds.Top + 2;
+                    indicatorHeight = Math.Max(20, firstTab.Bounds.Height - 4);
+                }
+                else if (posInPanel.X >= (lastTab.Bounds.Left + (lastTab.Bounds.Width / 2.0)))
+                {
+                    // Dopo l'ultimo elemento della riga
+                    _targetDropIndex = lastTab.Index + 1;
+                    indicatorX = lastTab.Bounds.Right + 1;
+                    indicatorY = lastTab.Bounds.Top + 2;
+                    indicatorHeight = Math.Max(20, lastTab.Bounds.Height - 4);
+                }
+                else
+                {
+                    // Tra due schede all'interno della riga
+                    for (int i = 0; i < targetRow.Count; i++)
+                    {
+                        var item = targetRow[i];
+                        var midX = item.Bounds.Left + (item.Bounds.Width / 2.0);
+                        if (posInPanel.X < midX)
+                        {
+                            _targetDropIndex = item.Index;
+                            indicatorX = item.Bounds.Left - 1;
+                            indicatorY = item.Bounds.Top + 2;
+                            indicatorHeight = Math.Max(20, item.Bounds.Height - 4);
+                            break;
+                        }
+                    }
+                }
+
+                // Posiziona e rende visibile la barra verticale di drop sulla riga e colonna corrette
                 if (_targetDropIndex >= 0 && TabDropIndicator != null)
                 {
                     _tabDropIndicatorTransform.X = indicatorX;
@@ -5405,6 +5502,7 @@ else
 
     /// <summary>
     /// Salva la sequenza corrente dei nomi dei TabItem del pannello centrale nelle impostazioni dell'utente.
+    /// Verifica preventivamente se l'ordinamento è effettivamente cambiato per evitare scritture ridondanti.
     /// </summary>
     private void SaveCurrentTabOrder()
     {
@@ -5417,6 +5515,10 @@ else
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Cast<string>()
             .ToList();
+
+        var currentOrder = SettingsService.Instance.Settings.AnalyticsTabOrder;
+        if (currentOrder != null && currentOrder.SequenceEqual(order))
+            return;
 
         SettingsService.Instance.Update(s => s.AnalyticsTabOrder = order);
     }
@@ -5848,6 +5950,7 @@ else
 
     /// <summary>
     /// Imposta la visibilità e le dimensioni della colonna di layout del Project Explorer nella griglia centrale, salvando lo stato se richiesto.
+    /// Preserva accuratamente la larghezza personalizzata impostata dall'utente tramite GridSplitter.
     /// </summary>
     /// <param name="isVisible">Indica se il pannello Project Explorer deve essere visibile.</param>
     /// <param name="updateSettings">Indica se persistere la preferenza nelle impostazioni utente.</param>
@@ -5856,19 +5959,32 @@ else
         _isExplorerVisible = isVisible;
         if (isVisible)
         {
-            var w = _savedExplorerWidth >= 160 ? _savedExplorerWidth : 280;
-            CentralGrid.ColumnDefinitions[0].MinWidth = 180;
-            CentralGrid.ColumnDefinitions[0].MaxWidth = 600;
-            CentralGrid.ColumnDefinitions[0].Width = new GridLength(w, GridUnitType.Pixel);
-            CentralGrid.ColumnDefinitions[1].Width = new GridLength(4, GridUnitType.Pixel);
-            ProjectExplorerControl.IsVisible = true;
-            LeftGridSplitter.IsVisible = true;
+            // Se il pannello è già visibile, aggiorna solo la larghezza memorizzata senza sovrascrivere il layout
+            if (ProjectExplorerControl.IsVisible && CentralGrid.ColumnDefinitions[0].ActualWidth >= 160)
+            {
+                _savedExplorerWidth = CentralGrid.ColumnDefinitions[0].ActualWidth;
+            }
+            else
+            {
+                // Determina la larghezza ottimale dalle preferenze salvate o dal valore di default (280px)
+                var w = _savedExplorerWidth >= 160
+                    ? _savedExplorerWidth
+                    : (SettingsService.Instance.Settings.ExplorerWidth >= 160 ? SettingsService.Instance.Settings.ExplorerWidth : 280);
+                _savedExplorerWidth = w;
+                CentralGrid.ColumnDefinitions[0].MinWidth = 180;
+                CentralGrid.ColumnDefinitions[0].MaxWidth = 600;
+                CentralGrid.ColumnDefinitions[0].Width = new GridLength(w, GridUnitType.Pixel);
+                CentralGrid.ColumnDefinitions[1].Width = new GridLength(4, GridUnitType.Pixel);
+                ProjectExplorerControl.IsVisible = true;
+                LeftGridSplitter.IsVisible = true;
+            }
         }
         else
         {
+            // Prima di nascondere, salva la larghezza effettiva corrente del pannello per il successivo ripristino
             if (ProjectExplorerControl.Bounds.Width >= 160)
-
                 _savedExplorerWidth = ProjectExplorerControl.Bounds.Width;
+
             CentralGrid.ColumnDefinitions[0].MinWidth = 0;
             CentralGrid.ColumnDefinitions[0].MaxWidth = 0;
             CentralGrid.ColumnDefinitions[0].Width = new GridLength(0, GridUnitType.Pixel);
@@ -5878,12 +5994,13 @@ else
         }
 
         if (updateSettings)
-
+        {
             SettingsService.Instance.Update(s =>
             {
                 s.IsExplorerVisible = _isExplorerVisible;
                 if (_isExplorerVisible) s.ExplorerWidth = _savedExplorerWidth;
             });
+        }
 
         UpdatePanelToggleVisuals();
     }
@@ -5899,6 +6016,7 @@ else
 
     /// <summary>
     /// Imposta la visibilità e le dimensioni della colonna di layout del Symbol Inspector nella griglia centrale, salvando lo stato se richiesto.
+    /// Preserva accuratamente la larghezza personalizzata impostata dall'utente tramite GridSplitter senza ripristinare valori di default.
     /// </summary>
     /// <param name="isVisible">Indica se il pannello Symbol Inspector deve essere visibile.</param>
     /// <param name="updateSettings">Indica se persistere la preferenza nelle impostazioni utente.</param>
@@ -5907,6 +6025,7 @@ else
         _isInspectorVisible = isVisible;
         if (isVisible)
         {
+            // Riattiva automaticamente le schede se entrambe erano state disattivate
             if (!SettingsService.Instance.Settings.ShowTabInspector && !SettingsService.Instance.Settings.ShowTabSourceCode)
             {
                 SettingsService.Instance.Update(s =>
@@ -5916,23 +6035,34 @@ else
                 });
             }
 
-            var w = _savedInspectorWidth >= 200 ? _savedInspectorWidth : 360;
-            CentralGrid.ColumnDefinitions[4].MinWidth = 240;
-            CentralGrid.ColumnDefinitions[4].MaxWidth = 800;
-            CentralGrid.ColumnDefinitions[4].Width = new GridLength(w, GridUnitType.Pixel);
-            CentralGrid.ColumnDefinitions[3].Width = new GridLength(4, GridUnitType.Pixel);
-            RightPanelContainer.IsVisible = true;
-            RightGridSplitter.IsVisible = true;
+            // Se il pannello è già visibile, memorizza la larghezza attuale senza forzare un reset delle colonne
+            if (RightPanelContainer.IsVisible && CentralGrid.ColumnDefinitions[4].ActualWidth >= 200)
+            {
+                _savedInspectorWidth = CentralGrid.ColumnDefinitions[4].ActualWidth;
+            }
+            else
+            {
+                // Determina la larghezza ottimale dalle preferenze salvate o dal valore di default (360px)
+                var w = _savedInspectorWidth >= 200
+                    ? _savedInspectorWidth
+                    : (SettingsService.Instance.Settings.InspectorWidth >= 200 ? SettingsService.Instance.Settings.InspectorWidth : 360);
+                _savedInspectorWidth = w;
+                CentralGrid.ColumnDefinitions[4].MinWidth = 240;
+                CentralGrid.ColumnDefinitions[4].MaxWidth = 800;
+                CentralGrid.ColumnDefinitions[4].Width = new GridLength(w, GridUnitType.Pixel);
+                CentralGrid.ColumnDefinitions[3].Width = new GridLength(4, GridUnitType.Pixel);
+                RightPanelContainer.IsVisible = true;
+                RightGridSplitter.IsVisible = true;
+            }
         }
         else
         {
+            // Prima di nascondere, salva la larghezza effettiva corrente del pannello per il successivo ripristino
             if (RightPanelContainer.Bounds.Width >= 200)
-
                 _savedInspectorWidth = RightPanelContainer.Bounds.Width;
-
             else if (SymbolInspectorControl.Bounds.Width >= 200)
+                _savedInspectorWidth = SymbolInspectorControl.Bounds.Width;
 
-    _savedInspectorWidth = SymbolInspectorControl.Bounds.Width;
             CentralGrid.ColumnDefinitions[4].MinWidth = 0;
             CentralGrid.ColumnDefinitions[4].MaxWidth = 0;
             CentralGrid.ColumnDefinitions[4].Width = new GridLength(0, GridUnitType.Pixel);
@@ -5942,12 +6072,13 @@ else
         }
 
         if (updateSettings)
-
+        {
             SettingsService.Instance.Update(s =>
             {
                 s.IsInspectorVisible = _isInspectorVisible;
                 if (_isInspectorVisible) s.InspectorWidth = _savedInspectorWidth;
             });
+        }
 
         UpdatePanelToggleVisuals();
     }
