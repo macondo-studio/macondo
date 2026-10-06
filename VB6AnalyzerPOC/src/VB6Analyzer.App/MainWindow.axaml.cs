@@ -123,7 +123,8 @@ public partial class MainWindow : Window
         CentralTabControl.AddHandler(Control.ContextRequestedEvent, OnCentralTabControlContextRequested, RoutingStrategies.Tunnel);
         RightTabControl.AddHandler(Control.ContextRequestedEvent, OnRightTabControlContextRequested, RoutingStrategies.Tunnel);
 
-        // Drag & Drop per riordinare le schede di analisi con il mouse
+        // Click sui pulsanti di chiusura schede e Drag & Drop per riordinare le schede di analisi con il mouse
+        RightTabControl.AddHandler(InputElement.PointerPressedEvent, OnRightTabPointerPressed, RoutingStrategies.Tunnel);
         CentralTabControl.AddHandler(InputElement.PointerPressedEvent, OnCentralTabPointerPressed, RoutingStrategies.Tunnel);
         CentralTabControl.AddHandler(InputElement.PointerMovedEvent, OnCentralTabPointerMoved, RoutingStrategies.Tunnel);
         CentralTabControl.AddHandler(InputElement.PointerReleasedEvent, OnCentralTabPointerReleased, RoutingStrategies.Tunnel);
@@ -5166,6 +5167,85 @@ else
             SettingsService.Instance.Update(s => s.ShowTabBlastRadiusGrid = false);
     }
 
+    /// <summary>
+    /// Gestisce il click o pointer pressed sul pulsante di chiusura (X) presente in ciascuna intestazione di scheda.
+    /// Nasconde la scheda corrispondente salvando la preferenza nelle impostazioni utente.
+    /// </summary>
+    private void OnTabCloseButtonClicked(object? sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is Button btn)
+            CloseTabFromButton(btn);
+        else if (sender is Visual visual)
+        {
+            var button = visual as Button ?? visual.FindAncestorOfType<Button>();
+            if (button != null)
+                CloseTabFromButton(button);
+        }
+    }
+
+    /// <summary>
+    /// Individua il TabItem proprietario del pulsante di chiusura (X) e ne richiede la disattivazione.
+    /// </summary>
+    private void CloseTabFromButton(Button closeBtn)
+    {
+        // 1. Verifica se il Tag contiene un riferimento diretto al TabItem
+        if (closeBtn.Tag is TabItem tabItemTag)
+        {
+            HideTab(tabItemTag);
+            return;
+        }
+
+        // 2. Ricerca nel TabControl centrale
+        if (CentralTabControl != null)
+        {
+            foreach (var tab in CentralTabControl.Items.OfType<TabItem>())
+            {
+                if (tab.Header is StackPanel sp && (sp == closeBtn.Parent || sp.Children.Contains(closeBtn) || closeBtn.FindAncestorOfType<TabItem>() == tab))
+                {
+                    HideTab(tab);
+                    return;
+                }
+            }
+        }
+
+        // 3. Ricerca nel TabControl destro
+        if (RightTabControl != null)
+        {
+            foreach (var tab in RightTabControl.Items.OfType<TabItem>())
+            {
+                if (tab.Header is StackPanel sp && (sp == closeBtn.Parent || sp.Children.Contains(closeBtn) || closeBtn.FindAncestorOfType<TabItem>() == tab))
+                {
+                    HideTab(tab);
+                    return;
+                }
+            }
+        }
+
+        // 4. Fallback tramite risalita dell'albero visuale
+        var ancestorTab = closeBtn.FindAncestorOfType<TabItem>();
+        if (ancestorTab != null)
+            HideTab(ancestorTab);
+    }
+
+    /// <summary>
+    /// Intercetta gli eventi PointerPressed sul pannello destro per gestire la chiusura immediata delle schede (X).
+    /// </summary>
+    private void OnRightTabPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        var currentPoint = e.GetCurrentPoint(this);
+        if (!currentPoint.Properties.IsLeftButtonPressed)
+            return;
+
+        var visual = e.Source as Visual;
+        var closeBtn = visual as Button ?? visual?.FindAncestorOfType<Button>();
+        if (closeBtn != null && (closeBtn.Classes.Contains("tab-close-btn") || closeBtn.Name?.Contains("Close") == true))
+        {
+            e.Handled = true;
+            CloseTabFromButton(closeBtn);
+        }
+    }
+
     private static TabItem? GetTabItemFromSender(object? sender)
     {
         if (sender is MenuItem menuItem)
@@ -5188,6 +5268,7 @@ else
     /// Gestisce l'evento di pressione del puntatore (mouse down) sulle schede di analisi.
     /// Inizializza le coordinate di partenza e rileva il TabItem di origine senza avviare
     /// immediatamente il trascinamento, consentendo il normale cambio di selezione al clic singolo.
+    /// Intercetta con priorità assoluta il click sul pulsante di chiusura (X) per chiudere la scheda all'istante.
     /// </summary>
     /// <param name="sender">Sorgente dell'evento (CentralTabControl).</param>
     /// <param name="e">Argomenti del puntatore contenenti coordinate e stato dei tasti.</param>
@@ -5198,8 +5279,17 @@ else
         if (!currentPoint.Properties.IsLeftButtonPressed)
             return;
 
-        // Risale l'albero visuale per individuare l'eventuale TabItem di appartenenza
+        // Se il clic è avvenuto sul pulsante di chiusura della scheda (X), esegui la chiusura immediata
         var visual = e.Source as Visual;
+        var closeBtn = visual as Button ?? visual?.FindAncestorOfType<Button>();
+        if (closeBtn != null && (closeBtn.Classes.Contains("tab-close-btn") || closeBtn.Name?.Contains("Close") == true))
+        {
+            e.Handled = true;
+            CloseTabFromButton(closeBtn);
+            return;
+        }
+
+        // Risale l'albero visuale per individuare l'eventuale TabItem di appartenenza
         var tabItem = visual as TabItem ?? visual?.FindAncestorOfType<TabItem>();
 
         // Ignora clic al di fuori delle intestazioni delle schede del TabControl centrale
@@ -6359,6 +6449,23 @@ else
         ToolTip.SetTip(ApiDiffTabItem, localizationService["Tab_ApiDiff_Tip"]);
         ToolTip.SetTip(CrudMatrixTabItem, localizationService["Tab_CrudMatrix_Tip"]);
         ToolTip.SetTip(GridTabItem, localizationService["Tab_BlastRadiusGrid_Tip"]);
+
+        // Tooltip pulsanti di chiusura schede (X)
+        void UpdateTabCloseButtonsTips(TabControl? tc)
+        {
+            if (tc == null) return;
+            foreach (var tab in tc.Items.OfType<TabItem>())
+            {
+                if (tab.Header is StackPanel sp)
+                {
+                    var closeBtn = sp.Children.OfType<Button>().FirstOrDefault(b => b.Classes.Contains("tab-close-btn"));
+                    if (closeBtn != null)
+                        ToolTip.SetTip(closeBtn, localizationService["Tab_CloseTip"]);
+                }
+            }
+        }
+        UpdateTabCloseButtonsTips(CentralTabControl);
+        UpdateTabCloseButtonsTips(RightTabControl);
 
         Dsm.InvalidateVisual();
         Treemap.InvalidateVisual();

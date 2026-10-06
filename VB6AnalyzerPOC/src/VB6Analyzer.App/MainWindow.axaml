@@ -688,7 +688,7 @@
                     <Style Selector="TabItem">
                         <Setter Property="FontSize" Value="12" />
                         <Setter Property="FontWeight" Value="Normal" />
-                        <Setter Property="Padding" Value="14,6" />
+                        <Setter Property="Padding" Value="10,5" />
                         <Setter Property="Margin" Value="2,2" />
                         <Setter Property="CornerRadius" Value="4" />
                         <Setter Property="Background" Value="Transparent" />
@@ -744,14 +744,56 @@
                         <Setter Property="Background" Value="Transparent" />
                         <Setter Property="Opacity" Value="0" />
                     </Style>
+
+                    <!-- Stile Pulsante Chiusura Scheda (X) -->
+                    <Style Selector="Button.tab-close-btn">
+                        <Setter Property="Width" Value="16" />
+                        <Setter Property="Height" Value="16" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="4,0,-2,0" />
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="CornerRadius" Value="3" />
+                        <Setter Property="HorizontalContentAlignment" Value="Center" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="Cursor" Value="Hand" />
+                        <Setter Property="Opacity" Value="0.45" />
+                    </Style>
+                    <Style Selector="Button.tab-close-btn PathIcon">
+                        <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+                    </Style>
+                    <Style Selector="Button.tab-close-btn:pointerover">
+                        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                        <Setter Property="Opacity" Value="1.0" />
+                    </Style>
+                    <Style Selector="Button.tab-close-btn:pointerover PathIcon">
+                        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+                    </Style>
+                    <Style Selector="TabItem:pointerover Button.tab-close-btn">
+                        <Setter Property="Opacity" Value="0.75" />
+                    </Style>
+                    <Style Selector="TabItem:selected Button.tab-close-btn">
+                        <Setter Property="Opacity" Value="0.75" />
+                    </Style>
+                    <Style Selector="TabItem:selected Button.tab-close-btn:pointerover">
+                        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                        <Setter Property="Opacity" Value="1.0" />
+                    </Style>
+                    <Style Selector="TabItem:selected Button.tab-close-btn:pointerover PathIcon">
+                        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+                    </Style>
                 </TabControl.Styles>
 
                 <!-- TAB 1: Canvas Interattivo del Grafo con Floating HUD -->
                 <TabItem x:Name="GraphTabItem" ToolTip.Tip="Vista Grafo Semantico">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconGraph}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="GraphTabHeader" Text="Vista Grafo" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid x:Name="GraphContainerGrid">
@@ -1090,9 +1132,12 @@
                 <!-- TAB 2: Matrice di Dipendenza (DSM) -->
                 <TabItem x:Name="DsmTabItem" ToolTip.Tip="Matrice DSM (Dependency Structure Matrix)">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconMatrix}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="DsmTabHeader" Text="Matrice DSM" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1104,9 +1149,12 @@
                 <!-- TAB 3: Treemap Gerarchica delle Metriche -->
                 <TabItem x:Name="TreemapTabItem" ToolTip.Tip="Treemap Metriche di Codice">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconTreemap}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="TreemapTabHeader" Text="Treemap Metriche" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1118,9 +1166,12 @@
                 <!-- TAB 4: Matrice Hotspot di Rischio (Complexity vs Churn) -->
                 <TabItem x:Name="HotspotTabItem" ToolTip.Tip="Matrice Hotspot di Rischio">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconHotspot}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="HotspotTabHeader" Text="Hotspot di Rischio" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1132,9 +1183,12 @@
                 <!-- TAB 5: Flusso Navigazione Form & UI -->
                 <TabItem x:Name="ScreenFlowTabItem" ToolTip.Tip="Flusso Schermate e Navigazione Form">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconScreenFlow}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="ScreenFlowTabHeader" Text="Flusso Schermate" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1146,9 +1200,12 @@
                 <!-- TAB 6: Control Flow Graph (CFG) a livello di Routine -->
                 <TabItem x:Name="ControlFlowTabItem" ToolTip.Tip="Control Flow Graph (CFG) a blocchi">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconControlFlow}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="ControlFlowTabHeader" Text="Control Flow (CFG)" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1159,9 +1216,12 @@
                 <!-- TAB 7: Diagramma di Martin (Main Sequence: A vs I) -->
                 <TabItem x:Name="MartinTabItem" ToolTip.Tip="Diagramma di Martin (Abstractness vs Instability)">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconMartin}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="MartinTabHeader" Text="Metriche Martin" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1173,9 +1233,12 @@
                 <!-- TAB 8: Dead Code & Raggiungibilità Entry Point -->
                 <TabItem x:Name="DeadCodeTabItem" ToolTip.Tip="Analisi Dead Code e Componenti Orfani">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconDeadCode}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="DeadCodeTabHeader" Text="Dead Code &amp; Orfani" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1187,9 +1250,12 @@
                 <!-- TAB 9: Matrice di Stato Condiviso (Global & Shared State Matrix) -->
                 <TabItem x:Name="SharedStateTabItem" ToolTip.Tip="Matrice di Stato Globale Condiviso e Mutazioni">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconSharedState}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="SharedStateTabHeader" Text="Stato Condiviso" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1201,9 +1267,12 @@
                 <!-- TAB 10: Temporal Coupling & Co-Change Matrix -->
                 <TabItem x:Name="TemporalCouplingTabItem" ToolTip.Tip="Temporal Coupling e Co-Modifiche VCS">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconTemporalCoupling}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="TemporalCouplingTabHeader" Text="Temporal Coupling" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1215,9 +1284,12 @@
                 <!-- TAB 11: Flussi Architetturali (Chord Diagram / Layered Flow) -->
                 <TabItem x:Name="ArchitecturalFlowTabItem" ToolTip.Tip="Flussi Architetturali e Diagramma Chord">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconFlow}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="ArchitecturalFlowTabHeader" Text="Flussi Architetturali" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1229,9 +1301,12 @@
                 <!-- TAB 12: Mappa Urbana 3D / Isometrica (CodeCity) -->
                 <TabItem x:Name="CodeCityTabItem" ToolTip.Tip="Mappa CodeCity 3D / Isometrica Polimetrica">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconCity}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="CodeCityTabHeader" Text="CodeCity 3D" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1243,9 +1318,12 @@
                 <!-- TAB 13: Coesione & LCOM -->
                 <TabItem x:Name="CohesionTabItem" ToolTip.Tip="Analisi Coesione LCOM4 e C&amp;K">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconCohesion}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="CohesionTabHeader" Text="Coesione &amp; LCOM" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1257,9 +1335,12 @@
                 <!-- TAB 14: Indice di Manutenibilità -->
                 <TabItem x:Name="MaintainabilityTabItem" ToolTip.Tip="Maintainability Index (MI) e Halstead">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconMaintainability}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="MaintainabilityTabHeader" Text="Manutenibilità" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1271,9 +1352,12 @@
                 <!-- TAB 15: Regole Architetturali -->
                 <TabItem x:Name="ArchitecturalRulesTabItem" ToolTip.Tip="Linter Regole Architetturali">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconArchitecturalRules}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="ArchitecturalRulesTabHeader" Text="Regole Architettura" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1285,9 +1369,12 @@
                 <!-- TAB 16: Duplicazioni e Cloni (CPD) -->
                 <TabItem x:Name="CodeCloneTabItem" ToolTip.Tip="Rilevamento Duplicazioni e Cloni (CPD)">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconCodeClone}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="CodeCloneTabHeader" Text="Duplicazioni (CPD)" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1299,9 +1386,12 @@
                 <!-- TAB 17: Social Code & Bus Factor -->
                 <TabItem x:Name="SocialCodeTabItem" ToolTip.Tip="Social Code Analysis e Bus Factor (Conway)">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconSocialCode}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="SocialCodeTabHeader" Text="Social &amp; Bus Factor" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1313,9 +1403,12 @@
                 <!-- TAB 18: Data Flow & Taint Tracking -->
                 <TabItem x:Name="DataFlowTabItem" ToolTip.Tip="Data Flow e Taint Tracking Source-Sink">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconDataFlow}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="DataFlowTabHeader" Text="Data Flow &amp; Taint" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1327,9 +1420,12 @@
                 <!-- TAB 19: API Diff & SemVer -->
                 <TabItem x:Name="ApiDiffTabItem" ToolTip.Tip="Confronto Superficie API e Breaking Changes">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconApiDiff}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="ApiDiffTabHeader" Text="API Diff &amp; SemVer" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1341,9 +1437,12 @@
                 <!-- TAB 20: Matrice CRUD -->
                 <TabItem x:Name="CrudMatrixTabItem" ToolTip.Tip="Matrice Operazioni CRUD su Dati">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconCrudMatrix}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="CrudMatrixTabHeader" Text="Matrice CRUD" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <Grid>
@@ -1355,9 +1454,12 @@
                 <!-- TAB 21: Griglia Risultati Blast Radius & Matrice di Rischio -->
                 <TabItem x:Name="GridTabItem" ToolTip.Tip="Griglia e Matrice Blast Radius">
                     <TabItem.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconTable}" Width="13" Height="13" VerticalAlignment="Center" />
                             <TextBlock x:Name="GridTabHeader" Text="Griglia Blast Radius" VerticalAlignment="Center" />
+                            <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                            </Button>
                         </StackPanel>
                     </TabItem.Header>
                     <views:BlastRadiusGridView x:Name="BlastRadiusGridControl"
@@ -1438,7 +1540,7 @@
                         <Style Selector="TabItem">
                             <Setter Property="FontSize" Value="11" />
                             <Setter Property="FontWeight" Value="SemiBold" />
-                            <Setter Property="Padding" Value="12,6" />
+                            <Setter Property="Padding" Value="10,5" />
                             <Setter Property="Margin" Value="2,2" />
                             <Setter Property="CornerRadius" Value="4" />
                             <Setter Property="Background" Value="Transparent" />
@@ -1465,6 +1567,45 @@
                             <Setter Property="Height" Value="0" />
                             <Setter Property="Opacity" Value="0" />
                         </Style>
+
+                        <!-- Stile Pulsante Chiusura Scheda (X) -->
+                        <Style Selector="Button.tab-close-btn">
+                            <Setter Property="Width" Value="16" />
+                            <Setter Property="Height" Value="16" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="4,0,-2,0" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="CornerRadius" Value="3" />
+                            <Setter Property="HorizontalContentAlignment" Value="Center" />
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="Cursor" Value="Hand" />
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Style>
+                        <Style Selector="Button.tab-close-btn PathIcon">
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+                        </Style>
+                        <Style Selector="Button.tab-close-btn:pointerover">
+                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                            <Setter Property="Opacity" Value="1.0" />
+                        </Style>
+                        <Style Selector="Button.tab-close-btn:pointerover PathIcon">
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+                        </Style>
+                        <Style Selector="TabItem:pointerover Button.tab-close-btn">
+                            <Setter Property="Opacity" Value="0.75" />
+                        </Style>
+                        <Style Selector="TabItem:selected Button.tab-close-btn">
+                            <Setter Property="Opacity" Value="0.75" />
+                        </Style>
+                        <Style Selector="TabItem:selected Button.tab-close-btn:pointerover">
+                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+                            <Setter Property="Opacity" Value="1.0" />
+                        </Style>
+                        <Style Selector="TabItem:selected Button.tab-close-btn:pointerover PathIcon">
+                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+                        </Style>
                     </TabControl.Styles>
 
                     <!-- Scheda 1: Symbol Inspector -->
@@ -1473,6 +1614,9 @@
                             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                 <PathIcon Data="{StaticResource IconInspect}" Width="12" Height="12" VerticalAlignment="Center" />
                                 <TextBlock x:Name="TabHeaderInspectorText" Text="Inspector" VerticalAlignment="Center" />
+                                <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                    <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                                </Button>
                             </StackPanel>
                         </TabItem.Header>
                         <views:SymbolInspectorView x:Name="SymbolInspectorControl"
@@ -1488,6 +1632,9 @@
                             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                 <PathIcon Data="{StaticResource IconFile}" Width="12" Height="12" VerticalAlignment="Center" />
                                 <TextBlock x:Name="TabHeaderSourceCodeText" Text="Codice Sorgente" VerticalAlignment="Center" />
+                                <Button Classes="tab-close-btn" Click="OnTabCloseButtonClicked" ToolTip.Tip="Chiudi scheda">
+                                    <PathIcon Data="{StaticResource IconClearFilter}" Width="7" Height="7" />
+                                </Button>
                             </StackPanel>
                         </TabItem.Header>
                         <views:SourceCodePreviewView x:Name="SourceCodePreviewControl"
