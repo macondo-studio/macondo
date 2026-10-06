@@ -1,4 +1,4 @@
-﻿{
+{
     "version":  "1.5.0",
     "title":  {
                   "it":  "Macondo v1.5.0",
@@ -8,7 +8,7 @@
                          "it":  "Interfaccia a riga di comando (CLI) ed esportatori multi-formato (Markdown e JSON) per CI/CD e report batch.\nPannello di anteprima codice sorgente integrato in Symbol Inspector con metriche LOC e limiti righe configurabili.\nEsecuzione on-demand delle analisi con pulsante di stop, stima real-time del tempo rimanente e placeholder interattivi.\nCancellazione immediata dell\u0027analisi iniziale del progetto tramite token di cancellazione.\nMenu contestuale con tasto destro sulle schede per gestire e personalizzare la visibilità delle viste.\nFinestra impostazioni ridimensionabile con controlli di ingrandimento e ripristino.",
                          "en":  "Comprehensive Command-Line Interface (CLI) and multi-format exporters (Markdown and JSON) for CI/CD automation.\nEmbedded source code preview panel in Symbol Inspector with LOC metrics and configurable line limits.\nOn-demand background analytics execution with stop controls, real-time remaining time estimation, and progress placeholders.\nInstant project analysis cancellation with deep cancellation token propagation.\nRight-click context menu on all tab headers to customize and toggle view visibility.\nResizable settings dialog with maximize and restore window controls."
                      },
-    "downloadUrl":  "https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe",
+    "downloadUrl":  "https://github.com/macondo-studio/macondo/releases/latest/download/Macondo-Setup.exe",
     "publishedAt":  "2026-10-04T08:26:41Z",
     "isMandatory":  false
 }
