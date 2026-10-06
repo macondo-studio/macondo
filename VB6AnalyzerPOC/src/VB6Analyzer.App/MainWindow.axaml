@@ -359,28 +359,6 @@
 
                 <!-- Destra: Pulsanti di Controllo Finestra e Impostazioni -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch">
-                    <StackPanel.Styles>
-                        <Style Selector="Button.caption-btn">
-                            <Setter Property="Width" Value="46" />
-                            <Setter Property="VerticalAlignment" Value="Stretch" />
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="BorderThickness" Value="0" />
-                            <Setter Property="CornerRadius" Value="0" />
-                            <Setter Property="Padding" Value="0" />
-                            <Setter Property="HorizontalContentAlignment" Value="Center" />
-                            <Setter Property="VerticalContentAlignment" Value="Center" />
-                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
-                        </Style>
-                        <Style Selector="Button.caption-btn:pointerover">
-                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                        </Style>
-                        <Style Selector="Button.caption-close:pointerover">
-                            <Setter Property="Background" Value="#E81123" />
-                            <Setter Property="Foreground" Value="#FFFFFF" />
-                        </Style>
-                    </StackPanel.Styles>
-
                     <Button x:Name="SettingsButton" Classes="caption-btn" ToolTip.Tip="Impostazioni (Ctrl+,)">
                         <PathIcon Data="{StaticResource IconSettings}" Width="12" Height="12" />
                     </Button>
@@ -402,34 +380,6 @@
                 Background="{DynamicResource ThemeBackgroundSecondaryBrush}"
                 BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
                 BorderThickness="0,0,0,1" Height="36" Padding="8,0">
-            <Border.Styles>
-                <Style Selector="Button.toggle-panel-btn">
-                    <Setter Property="Width" Value="30" />
-                    <Setter Property="Height" Value="26" />
-                    <Setter Property="Background" Value="Transparent" />
-                    <Setter Property="BorderThickness" Value="0" />
-                    <Setter Property="CornerRadius" Value="4" />
-                    <Setter Property="Padding" Value="0" />
-                    <Setter Property="HorizontalContentAlignment" Value="Center" />
-                    <Setter Property="VerticalContentAlignment" Value="Center" />
-                    <Setter Property="VerticalAlignment" Value="Center" />
-                </Style>
-                <Style Selector="Button.toggle-panel-btn PathIcon">
-                    <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
-                </Style>
-                <Style Selector="Button.toggle-panel-btn:pointerover">
-                    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                </Style>
-                <Style Selector="Button.toggle-panel-btn:pointerover PathIcon">
-                    <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                </Style>
-                <Style Selector="Button.toggle-panel-btn.active">
-                    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
-                </Style>
-                <Style Selector="Button.toggle-panel-btn.active PathIcon">
-                    <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                </Style>
-            </Border.Styles>
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <!-- Sinistra: Pulsante Mostra/Nascondi Project Explorer & Selettore VCS (Git / SVN) -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
@@ -508,24 +458,6 @@
 
                 <!-- Centro: Casella di Ricerca Dedicata Centrata -->
                 <Panel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Panel.Styles>
-                        <Style Selector="TextBox#SearchBox">
-                            <Setter Property="BorderThickness" Value="0" />
-                            <Setter Property="BorderBrush" Value="Transparent" />
-                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
-                            <Setter Property="CornerRadius" Value="4" />
-                        </Style>
-                        <Style Selector="TextBox#SearchBox:pointerover /template/ Border#PART_BorderElement">
-                            <Setter Property="BorderThickness" Value="0" />
-                            <Setter Property="BorderBrush" Value="Transparent" />
-                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                        </Style>
-                        <Style Selector="TextBox#SearchBox:focus /template/ Border#PART_BorderElement">
-                            <Setter Property="BorderThickness" Value="0" />
-                            <Setter Property="BorderBrush" Value="Transparent" />
-                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                        </Style>
-                    </Panel.Styles>
                     <TextBox x:Name="SearchBox"
                              Width="460"
                              Height="26"
@@ -684,109 +616,9 @@
                             </MenuItem>
                         </ContextMenu>
                     </TabControl.Resources>
-                    <TabControl.Styles>
-                    <Style Selector="TabItem">
-                        <Setter Property="FontSize" Value="12" />
-                        <Setter Property="FontWeight" Value="Normal" />
-                        <Setter Property="Padding" Value="10,5" />
-                        <Setter Property="Margin" Value="2,2" />
-                        <Setter Property="CornerRadius" Value="4" />
-                        <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
-                        <Setter Property="MinHeight" Value="28" />
-                        <Setter Property="Cursor" Value="Hand" />
-                    </Style>
-                    <Style Selector="TabItem PathIcon">
-                        <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
-                    </Style>
-                    <Style Selector="TabItem:pointerover">
-                        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                    </Style>
-                    <Style Selector="TabItem:pointerover /template/ Border#PART_LayoutRoot">
-                        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                    </Style>
-                    <Style Selector="TabItem:pointerover PathIcon">
-                        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                    </Style>
-                    <Style Selector="TabItem:selected">
-                        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
-                        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                        <Setter Property="FontWeight" Value="SemiBold" />
-                    </Style>
-                    <Style Selector="TabItem:selected /template/ Border#PART_LayoutRoot">
-                        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
-                    </Style>
-                    <Style Selector="TabItem:selected PathIcon">
-                        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                    </Style>
-                    <Style Selector="TabItem /template/ Border#PART_SelectedPipe">
-                        <Setter Property="IsVisible" Value="False" />
-                        <Setter Property="Height" Value="0" />
-                        <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="Opacity" Value="0" />
-                    </Style>
-                    <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
-                        <Setter Property="IsVisible" Value="False" />
-                        <Setter Property="Height" Value="0" />
-                        <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="Opacity" Value="0" />
-                    </Style>
-                    <Style Selector="TabItem:pointerover /template/ Border#PART_SelectedPipe">
-                        <Setter Property="IsVisible" Value="False" />
-                        <Setter Property="Height" Value="0" />
-                        <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="Opacity" Value="0" />
-                    </Style>
-                    <Style Selector="TabItem:selected:pointerover /template/ Border#PART_SelectedPipe">
-                        <Setter Property="IsVisible" Value="False" />
-                        <Setter Property="Height" Value="0" />
-                        <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="Opacity" Value="0" />
-                    </Style>
 
-                    <!-- Stile Pulsante Chiusura Scheda (X) -->
-                    <Style Selector="Button.tab-close-btn">
-                        <Setter Property="Width" Value="16" />
-                        <Setter Property="Height" Value="16" />
-                        <Setter Property="Padding" Value="0" />
-                        <Setter Property="Margin" Value="4,0,-2,0" />
-                        <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="BorderThickness" Value="0" />
-                        <Setter Property="CornerRadius" Value="3" />
-                        <Setter Property="HorizontalContentAlignment" Value="Center" />
-                        <Setter Property="VerticalContentAlignment" Value="Center" />
-                        <Setter Property="VerticalAlignment" Value="Center" />
-                        <Setter Property="Cursor" Value="Hand" />
-                        <Setter Property="Opacity" Value="0.45" />
-                    </Style>
-                    <Style Selector="Button.tab-close-btn PathIcon">
-                        <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
-                    </Style>
-                    <Style Selector="Button.tab-close-btn:pointerover">
-                        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                        <Setter Property="Opacity" Value="1.0" />
-                    </Style>
-                    <Style Selector="Button.tab-close-btn:pointerover PathIcon">
-                        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                    </Style>
-                    <Style Selector="TabItem:pointerover Button.tab-close-btn">
-                        <Setter Property="Opacity" Value="0.75" />
-                    </Style>
-                    <Style Selector="TabItem:selected Button.tab-close-btn">
-                        <Setter Property="Opacity" Value="0.75" />
-                    </Style>
-                    <Style Selector="TabItem:selected Button.tab-close-btn:pointerover">
-                        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                        <Setter Property="Opacity" Value="1.0" />
-                    </Style>
-                    <Style Selector="TabItem:selected Button.tab-close-btn:pointerover PathIcon">
-                        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                    </Style>
-                </TabControl.Styles>
-
-                <!-- TAB 1: Canvas Interattivo del Grafo con Floating HUD -->
-                <TabItem x:Name="GraphTabItem" ToolTip.Tip="Vista Grafo Semantico">
+                    <!-- TAB 1: Canvas Interattivo del Grafo con Floating HUD -->
+                    <TabItem x:Name="GraphTabItem" ToolTip.Tip="Vista Grafo Semantico">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <PathIcon Data="{StaticResource IconGraph}" Width="13" Height="13" VerticalAlignment="Center" />
@@ -842,40 +674,6 @@
                                 CornerRadius="6"
                                 BoxShadow="0 4 16 0 #40000000"
                                 Padding="4">
-                            <Border.Styles>
-                                <Style Selector="Button">
-                                    <Setter Property="HorizontalAlignment" Value="Stretch" />
-                                    <Setter Property="HorizontalContentAlignment" Value="Left" />
-                                    <Setter Property="Padding" Value="8,5" />
-                                    <Setter Property="Margin" Value="0,1" />
-                                    <Setter Property="FontSize" Value="11" />
-                                    <Setter Property="Background" Value="Transparent" />
-                                    <Setter Property="BorderBrush" Value="Transparent" />
-                                    <Setter Property="BorderThickness" Value="0" />
-                                    <Setter Property="CornerRadius" Value="4" />
-                                    <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
-                                </Style>
-                                <Style Selector="Button:pointerover">
-                                    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
-                                    <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                                </Style>
-                                <Style Selector="Button PathIcon">
-                                    <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
-                                </Style>
-                                <Style Selector="Button:pointerover PathIcon">
-                                    <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                                </Style>
-                                <Style Selector="ComboBox">
-                                    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
-                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderSubtleBrush}" />
-                                    <Setter Property="BorderThickness" Value="1" />
-                                    <Setter Property="CornerRadius" Value="4" />
-                                </Style>
-                                <Style Selector="ComboBox:pointerover">
-                                    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
-                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDefaultBrush}" />
-                                </Style>
-                            </Border.Styles>
                             <StackPanel Width="130">
                                 <!-- Selettore Modalità Layout -->
                                 <StackPanel Spacing="3" Margin="0,2,0,4">
@@ -1536,77 +1334,6 @@
                             </MenuItem>
                         </ContextMenu>
                     </TabControl.Resources>
-                    <TabControl.Styles>
-                        <Style Selector="TabItem">
-                            <Setter Property="FontSize" Value="11" />
-                            <Setter Property="FontWeight" Value="SemiBold" />
-                            <Setter Property="Padding" Value="10,5" />
-                            <Setter Property="Margin" Value="2,2" />
-                            <Setter Property="CornerRadius" Value="4" />
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
-                            <Setter Property="MinHeight" Value="28" />
-                        </Style>
-                        <Style Selector="TabItem PathIcon">
-                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
-                        </Style>
-                        <Style Selector="TabItem:pointerover">
-                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                        </Style>
-                        <Style Selector="TabItem:selected">
-                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
-                            <Setter Property="FontWeight" Value="Bold" />
-                        </Style>
-                        <Style Selector="TabItem:selected PathIcon">
-                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
-                        </Style>
-                        <Style Selector="TabItem /template/ Border#PART_SelectedPipe">
-                            <Setter Property="IsVisible" Value="False" />
-                            <Setter Property="Height" Value="0" />
-                            <Setter Property="Opacity" Value="0" />
-                        </Style>
-
-                        <!-- Stile Pulsante Chiusura Scheda (X) -->
-                        <Style Selector="Button.tab-close-btn">
-                            <Setter Property="Width" Value="16" />
-                            <Setter Property="Height" Value="16" />
-                            <Setter Property="Padding" Value="0" />
-                            <Setter Property="Margin" Value="4,0,-2,0" />
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="BorderThickness" Value="0" />
-                            <Setter Property="CornerRadius" Value="3" />
-                            <Setter Property="HorizontalContentAlignment" Value="Center" />
-                            <Setter Property="VerticalContentAlignment" Value="Center" />
-                            <Setter Property="VerticalAlignment" Value="Center" />
-                            <Setter Property="Cursor" Value="Hand" />
-                            <Setter Property="Opacity" Value="0.45" />
-                        </Style>
-                        <Style Selector="Button.tab-close-btn PathIcon">
-                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
-                        </Style>
-                        <Style Selector="Button.tab-close-btn:pointerover">
-                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                            <Setter Property="Opacity" Value="1.0" />
-                        </Style>
-                        <Style Selector="Button.tab-close-btn:pointerover PathIcon">
-                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                        </Style>
-                        <Style Selector="TabItem:pointerover Button.tab-close-btn">
-                            <Setter Property="Opacity" Value="0.75" />
-                        </Style>
-                        <Style Selector="TabItem:selected Button.tab-close-btn">
-                            <Setter Property="Opacity" Value="0.75" />
-                        </Style>
-                        <Style Selector="TabItem:selected Button.tab-close-btn:pointerover">
-                            <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
-                            <Setter Property="Opacity" Value="1.0" />
-                        </Style>
-                        <Style Selector="TabItem:selected Button.tab-close-btn:pointerover PathIcon">
-                            <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-                        </Style>
-                    </TabControl.Styles>
 
                     <!-- Scheda 1: Symbol Inspector -->
                     <TabItem x:Name="TabItemInspector">

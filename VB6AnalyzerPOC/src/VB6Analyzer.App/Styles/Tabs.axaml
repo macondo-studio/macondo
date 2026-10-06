@@ -1,0 +1,131 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ========================================================================= -->
+    <!-- STILI PER SCHEDE DI ANALISI (TABCONTROL & TABITEM) E PULSANTI DI CHIUSURA -->
+    <!-- ========================================================================= -->
+
+    <!-- Stile Base TabItem -->
+    <Style Selector="TabItem">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Padding" Value="10,5" />
+        <Setter Property="Margin" Value="2,2" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="TabItem PathIcon">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+    </Style>
+
+    <!-- TabItem Hover State -->
+    <Style Selector="TabItem:pointerover">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="TabItem:pointerover /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+    </Style>
+
+    <Style Selector="TabItem:pointerover PathIcon">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+
+    <!-- TabItem Selected State -->
+    <Style Selector="TabItem:selected">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TabItem:selected /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundSurfaceBrush}" />
+    </Style>
+
+    <Style Selector="TabItem:selected PathIcon">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+
+    <!-- Nasconde la linea predefinita di selezione Avalonia PART_SelectedPipe -->
+    <Style Selector="TabItem /template/ Border#PART_SelectedPipe">
+        <Setter Property="IsVisible" Value="False" />
+        <Setter Property="Height" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+        <Setter Property="IsVisible" Value="False" />
+        <Setter Property="Height" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <Style Selector="TabItem:pointerover /template/ Border#PART_SelectedPipe">
+        <Setter Property="IsVisible" Value="False" />
+        <Setter Property="Height" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <Style Selector="TabItem:selected:pointerover /template/ Border#PART_SelectedPipe">
+        <Setter Property="IsVisible" Value="False" />
+        <Setter Property="Height" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <!-- ========================================== -->
+    <!-- Stile Pulsante di Chiusura Scheda (X)       -->
+    <!-- ========================================== -->
+    <Style Selector="Button.tab-close-btn">
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="4,0,-2,0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Opacity" Value="0.45" />
+    </Style>
+
+    <Style Selector="Button.tab-close-btn PathIcon">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="Button.tab-close-btn:pointerover">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+        <Setter Property="Opacity" Value="1.0" />
+    </Style>
+
+    <Style Selector="Button.tab-close-btn:pointerover PathIcon">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="TabItem:pointerover Button.tab-close-btn">
+        <Setter Property="Opacity" Value="0.75" />
+    </Style>
+
+    <Style Selector="TabItem:selected Button.tab-close-btn">
+        <Setter Property="Opacity" Value="0.75" />
+    </Style>
+
+    <Style Selector="TabItem:selected Button.tab-close-btn:pointerover">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundElevatedBrush}" />
+        <Setter Property="Opacity" Value="1.0" />
+    </Style>
+
+    <Style Selector="TabItem:selected Button.tab-close-btn:pointerover PathIcon">
+        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+
+</Styles>

@@ -80,6 +80,8 @@
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
         <StyleInclude Source="avares://Macondo/Styles/Menu.axaml"/>
+        <StyleInclude Source="avares://Macondo/Styles/Tabs.axaml"/>
+        <StyleInclude Source="avares://Macondo/Styles/WindowControls.axaml"/>
     </Application.Styles>
 
 </Application>
