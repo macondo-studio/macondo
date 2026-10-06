@@ -152,6 +152,13 @@ public sealed class AppSettings
 
     /// <summary>Elenco delle schede analitiche avviate o abilitate più di recente (mantenute tra progetti).</summary>
     public List<string> LastEnabledAnalyticsTabs { get; set; } = new();
+
+    /// <summary>
+    /// Sequenza ordinata dei nomi (x:Name) delle schede analitiche del pannello centrale (CentralTabControl).
+    /// Memorizza l'ordinamento personalizzato configurato dall'utente tramite drag &amp; drop con il mouse.
+    /// In assenza di valori o al ripristino delle impostazioni predefinite, viene utilizzato l'ordine nativo di fabbrica.
+    /// </summary>
+    public List<string> AnalyticsTabOrder { get; set; } = new();
 }
 
 /// <summary>

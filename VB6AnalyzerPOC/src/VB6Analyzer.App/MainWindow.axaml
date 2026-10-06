@@ -651,7 +651,7 @@
                           Cursor="SizeWestEast" />
 
             <!-- Contenitore Centrale: TabControl di Analisi oppure Schermata di Benvenuto -->
-            <Panel Grid.Column="2">
+            <Panel x:Name="CentralTabPanel" Grid.Column="2">
                 <!-- SCHERMATA DI BENVENUTO / EMPTY STATE -->
                 <views:WelcomeView x:Name="WelcomeControl"
                                    IsVisible="True"
@@ -694,6 +694,7 @@
                         <Setter Property="Background" Value="Transparent" />
                         <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
                         <Setter Property="MinHeight" Value="28" />
+                        <Setter Property="Cursor" Value="Hand" />
                     </Style>
                     <Style Selector="TabItem PathIcon">
                         <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
@@ -1365,6 +1366,37 @@
                                                RecalculateAuditRequested="OnGridControlRecalculateAuditRequested" />
                 </TabItem>
             </TabControl>
+                <!-- Indicatore di Inserimento Tab (Barra Verticale di Drop stile Visual Studio) -->
+                <Border x:Name="TabDropIndicator"
+                        IsHitTestVisible="False"
+                        IsVisible="False"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Width="3"
+                        Height="28"
+                        Background="{DynamicResource ThemeAccentBrush}"
+                        CornerRadius="1.5"
+                        ZIndex="998" />
+
+                <!-- Scheda Fluttuante in Trascinamento (Ghost Preview Tab stile Visual Studio) -->
+                <Border x:Name="TabDragGhostBorder"
+                        IsHitTestVisible="False"
+                        IsVisible="False"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Background="{DynamicResource ThemeBackgroundSurfaceBrush}"
+                        BorderBrush="{DynamicResource ThemeAccentBrush}"
+                        BorderThickness="1.5"
+                        CornerRadius="4"
+                        BoxShadow="0 4 14 0 #60000000"
+                        Padding="12,6"
+                        Opacity="0.95"
+                        ZIndex="999">
+                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                        <PathIcon x:Name="TabDragGhostIcon" Width="13" Height="13" Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                        <TextBlock x:Name="TabDragGhostText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTextPrimaryBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
             </Panel>
 
             <!-- Splitter Ridimensionamento Pannello Destro -->

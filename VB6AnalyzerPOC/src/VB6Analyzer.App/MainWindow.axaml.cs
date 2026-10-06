@@ -67,6 +67,30 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _loadingCts;
     private CodeGraph? _apiDiffBaselineGraph;
     private string? _apiDiffBaselineName;
+    // --- Gestione Drag & Drop e Ordinamento Schede di Analisi (CentralTabControl) ---
+    /// <summary>Elenco ordinato immutabile dei TabItem nell'ordine predefinito originario definito nel file XAML.</summary>
+    private readonly List<TabItem> _defaultCentralTabOrder = new();
+
+    /// <summary>Riferimento al TabItem attualmente afferrato e trascinato dall'utente.</summary>
+    private TabItem? _draggedTabItem;
+
+    /// <summary>Coordinate relative alla finestra al momento del PointerPressed iniziale.</summary>
+    private Point _tabDragStartPos;
+
+    /// <summary>Offset relativo tra il punto di clic del mouse e l'angolo superiore sinistro dell'intestazione del tab trascinato.</summary>
+    private Point _tabDragOffsetWithinTab;
+
+    /// <summary>Flag booleano che indica se è attualmente in corso un'operazione di trascinamento attivo (superata la deadzone).</summary>
+    private bool _isTabDragging;
+
+    /// <summary>Indice di destinazione calcolato nel CentralTabControl dove inserire la scheda al rilascio del mouse.</summary>
+    private int _targetDropIndex = -1;
+
+    /// <summary>Trasformazione di traslazione applicata alla scheda fluttuante ghost per seguirne il movimento sotto al cursore.</summary>
+    private readonly TranslateTransform _tabGhostTransform = new();
+
+    /// <summary>Trasformazione di traslazione applicata all'indicatore verticale di drop per posizionarlo dinamicamente tra i tab.</summary>
+    private readonly TranslateTransform _tabDropIndicatorTransform = new();
 
     #endregion
 
@@ -75,6 +99,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        TabDragGhostBorder.RenderTransform = _tabGhostTransform;
+        TabDropIndicator.RenderTransform = _tabDropIndicatorTransform;
 
         ToggleExplorerTopButton.Click += (_, _) => ToggleExplorer();
         ToggleInspectorTopButton.Click += (_, _) => ToggleInspector();
@@ -95,6 +122,16 @@ public partial class MainWindow : Window
         // Schede di Analisi e Pannello Destro: menu contestuale su clic destro per nascondere o gestire i tab
         CentralTabControl.AddHandler(Control.ContextRequestedEvent, OnCentralTabControlContextRequested, RoutingStrategies.Tunnel);
         RightTabControl.AddHandler(Control.ContextRequestedEvent, OnRightTabControlContextRequested, RoutingStrategies.Tunnel);
+
+        // Drag & Drop per riordinare le schede di analisi con il mouse
+        CentralTabControl.AddHandler(InputElement.PointerPressedEvent, OnCentralTabPointerPressed, RoutingStrategies.Tunnel);
+        CentralTabControl.AddHandler(InputElement.PointerMovedEvent, OnCentralTabPointerMoved, RoutingStrategies.Tunnel);
+        CentralTabControl.AddHandler(InputElement.PointerReleasedEvent, OnCentralTabPointerReleased, RoutingStrategies.Tunnel);
+        CentralTabControl.AddHandler(InputElement.PointerCaptureLostEvent, OnCentralTabPointerCaptureLost, RoutingStrategies.Tunnel);
+
+        // Memorizza l'ordine predefinito originale e applica l'ordinamento personalizzato
+        _defaultCentralTabOrder.AddRange(CentralTabControl.Items.OfType<TabItem>());
+        ApplySavedTabOrder();
 
         // Menu Bar Superiore - File (Command + Click per massima affidabilità)
         OpenProjectFilesMenuItem.Command = new ActionCommand(async () => await OpenProjectFilesAsync());
@@ -530,6 +567,7 @@ public partial class MainWindow : Window
             Graph.EnableHoverSelection = s.EnableHoverSelection;
             HoverSelectionCheckIcon.IsVisible = s.EnableHoverSelection;
             ApplyTabLabelsVisibility(s.ShowTabLabels);
+            ApplySavedTabOrder();
             ApplyTabsVisibility(s);
         };
 
@@ -541,6 +579,7 @@ public partial class MainWindow : Window
         Graph.EnableHoverSelection = settings.EnableHoverSelection;
         HoverSelectionCheckIcon.IsVisible = settings.EnableHoverSelection;
         ApplyTabLabelsVisibility(settings.ShowTabLabels);
+        ApplySavedTabOrder();
         ApplyTabsVisibility(settings);
         UpdateLocalizedUI();
 
@@ -3315,7 +3354,7 @@ else
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "grafo", "graph", "dipendenze", "relazioni", "chiamate", "nodi", "dependencies" },
-                () => CentralTabControl.SelectedIndex = 0),
+                () => CentralTabControl.SelectedItem = GraphTabItem),
 
             new AppSearchTarget(
                 isEn ? "View: DSM Matrix" : "Vista: Matrice DSM",
@@ -3323,7 +3362,7 @@ else
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "dsm", "matrice", "matrix", "cicli", "accoppiamento", "struttura" },
-                () => CentralTabControl.SelectedIndex = 1),
+                () => CentralTabControl.SelectedItem = DsmTabItem),
 
             new AppSearchTarget(
                 isEn ? "View: Treemap" : "Vista: Treemap Gerarchica",
@@ -3331,7 +3370,7 @@ else
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "treemap", "albero", "loc", "complessita", "dimensioni", "metriche", "size" },
-                () => CentralTabControl.SelectedIndex = 2),
+                () => CentralTabControl.SelectedItem = TreemapTabItem),
 
             new AppSearchTarget(
                 isEn ? "View: Hotspot Risk Matrix" : "Vista: Matrice Hotspot",
@@ -3339,7 +3378,7 @@ else
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "hotspot", "rischio", "fan-in", "churn", "criticita", "risk" },
-                () => CentralTabControl.SelectedIndex = 3),
+                () => CentralTabControl.SelectedItem = HotspotTabItem),
 
             new AppSearchTarget(
                 isEn ? "View: Screen Flow" : "Vista: Flusso Schermate",
@@ -3347,7 +3386,7 @@ else
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "flusso schermate", "screenflow", "schermate", "form", "finestre", "dialoghi", "ui", "screens", "flow" },
-                () => CentralTabControl.SelectedIndex = 4),
+                () => CentralTabControl.SelectedItem = ScreenFlowTabItem),
 
             new AppSearchTarget(
                 isEn ? "View: Control Flow Graph (CFG)" : "Vista: Control Flow Graph (CFG)",
@@ -3355,7 +3394,7 @@ else
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "control flow", "cfg", "flusso controllo", "blocchi", "rami", "routine" },
-                () => CentralTabControl.SelectedIndex = 5),
+                () => CentralTabControl.SelectedItem = ControlFlowTabItem),
 
             new AppSearchTarget(
                 isEn ? "View: Martin Metrics" : "Vista: Metriche Martin",
@@ -3363,7 +3402,7 @@ else
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "martin", "metriche martin", "abstractness", "instability", "astrattezza", "instabilita", "main sequence", "sofferenza", "pain" },
-                () => CentralTabControl.SelectedIndex = 6),
+                () => CentralTabControl.SelectedItem = MartinTabItem),
 
             new AppSearchTarget(
                 isEn ? "View: Dead Code & Orphans" : "Vista: Dead Code & Orfani",
@@ -3371,7 +3410,7 @@ else
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "dead code", "orfani", "orphans", "codice morto", "unreachable", "non raggiungibile", "inutilizzato" },
-                () => CentralTabControl.SelectedIndex = 7),
+                () => CentralTabControl.SelectedItem = DeadCodeTabItem),
 
             new AppSearchTarget(
                 isEn ? "View: Shared State" : "Vista: Stato Condiviso",
@@ -3379,7 +3418,7 @@ else
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "shared state", "stato condiviso", "variabili globali", "static", "mutazioni", "global", "side effects" },
-                () => CentralTabControl.SelectedIndex = 8),
+                () => CentralTabControl.SelectedItem = SharedStateTabItem),
 
             new AppSearchTarget(
                 isEn ? "View: Temporal Coupling" : "Vista: Temporal Coupling",
@@ -3387,7 +3426,7 @@ else
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "temporal coupling", "co-change", "git", "commit", "jaccard", "hidden coupling", "accoppiamento temporale" },
-                () => CentralTabControl.SelectedIndex = 9),
+                () => CentralTabControl.SelectedItem = TemporalCouplingTabItem),
 
             new AppSearchTarget(
                 isEn ? "View: Architectural Flow" : "Vista: Flussi Architetturali",
@@ -3395,7 +3434,7 @@ else
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "flussi", "flow", "chord", "sankey", "layer", "architettura", "volumi", "chiamate", "architectural flow" },
-                () => CentralTabControl.SelectedIndex = 10),
+                () => CentralTabControl.SelectedItem = ArchitecturalFlowTabItem),
 
             new AppSearchTarget(
                 isEn ? "View: CodeCity 3D" : "Vista: CodeCity 3D",
@@ -3403,7 +3442,71 @@ else
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "codecity", "city", "citta", "3d", "isometric", "isometria", "edifici", "polimetrica", "urban" },
-                () => CentralTabControl.SelectedIndex = 11),
+                () => CentralTabControl.SelectedItem = CodeCityTabItem),
+
+            new AppSearchTarget(
+                isEn ? "View: Cohesion (LCOM4)" : "Vista: Coesione (LCOM4)",
+                isEn ? "Class cohesion and separation of responsibilities analysis" : "Analisi di coesione interna dei moduli e classi (LCOM4, Chidamber & Kemerer)",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "coesione", "cohesion", "lcom", "lcom4", "responsabilita", "classi" },
+                () => CentralTabControl.SelectedItem = CohesionTabItem),
+
+            new AppSearchTarget(
+                isEn ? "View: Maintainability Index" : "Vista: Indice di Manutenibilità",
+                isEn ? "Maintainability Index (MI) and Halstead volume distribution" : "Indice di manutenibilità (MI), metriche Halstead e complessità",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "manutenibilita", "maintainability", "mi", "halstead", "qualita", "volume" },
+                () => CentralTabControl.SelectedItem = MaintainabilityTabItem),
+
+            new AppSearchTarget(
+                isEn ? "View: Architectural Rules" : "Vista: Regole Architetturali",
+                isEn ? "Architectural linting, layer enforcement and structural rule checks" : "Linter di conformità architetturale, regole di dipendenza tra layer e violazioni",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "regole", "rules", "architettura", "linter", "layer", "vincoli", "conformita" },
+                () => CentralTabControl.SelectedItem = ArchitecturalRulesTabItem),
+
+            new AppSearchTarget(
+                isEn ? "View: Code Clones (CPD)" : "Vista: Cloni di Codice (CPD)",
+                isEn ? "Duplicate code detection, copy-paste clone pairs and token similarities" : "Rilevamento duplicazioni di codice, token identici e refactoring di cloni",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "cloni", "duplicati", "clones", "cpd", "duplicazioni", "copia incolla", "duplication" },
+                () => CentralTabControl.SelectedItem = CodeCloneTabItem),
+
+            new AppSearchTarget(
+                isEn ? "View: Social Code Analysis" : "Vista: Social Code Analysis",
+                isEn ? "Developer bus factor, knowledge distribution and Conway's law analysis" : "Analisi bus factor sviluppatori, distribuzione della conoscenza e legge di Conway",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "social", "bus factor", "autori", "conoscenza", "conway", "team", "ownership" },
+                () => CentralTabControl.SelectedItem = SocialCodeTabItem),
+
+            new AppSearchTarget(
+                isEn ? "View: Data Flow Tracking" : "Vista: Flusso Dati & Taint",
+                isEn ? "Source-to-sink data flow propagation and taint analysis" : "Tracciamento flusso dei dati, sorgenti e punti di destinazione (Source-Sink)",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "data flow", "flusso dati", "taint", "source sink", "tracciamento", "dati" },
+                () => CentralTabControl.SelectedItem = DataFlowTabItem),
+
+            new AppSearchTarget(
+                isEn ? "View: API Diff & SemVer" : "Vista: API Diff & SemVer",
+                isEn ? "Public API surface comparison and breaking change detection" : "Confronto superficie pubblica API e rilevamento breaking change",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "api diff", "semver", "breaking changes", "baseline", "confronto api", "firme" },
+                () => CentralTabControl.SelectedItem = ApiDiffTabItem),
+
+            new AppSearchTarget(
+                isEn ? "View: CRUD Matrix" : "Vista: Matrice CRUD",
+                isEn ? "Data access matrix (Create, Read, Update, Delete) per entity" : "Matrice delle operazioni su dati ed entità database (Create, Read, Update, Delete)",
+                isEn ? "View" : "Vista",
+                SearchResultCategory.View,
+                new[] { "crud", "matrice crud", "database", "tabelle", "entita", "sql", "dati" },
+                () => CentralTabControl.SelectedItem = CrudMatrixTabItem),
 
             new AppSearchTarget(
                 isEn ? "View: Blast Radius Grid" : "Vista: Griglia Blast Radius",
@@ -3411,7 +3514,7 @@ else
                 isEn ? "View" : "Vista",
                 SearchResultCategory.View,
                 new[] { "blast radius", "impatto", "griglia", "tabella", "modifiche", "impact" },
-                () => CentralTabControl.SelectedIndex = 12),
+                () => CentralTabControl.SelectedItem = GridTabItem),
 
             // --- GUIDA & INFORMAZIONI ---
             new AppSearchTarget(
@@ -3887,7 +3990,7 @@ else
         if (node == null) return;
 
         // 1. Passa alla scheda Vista Grafo
-        CentralTabControl.SelectedIndex = 0;
+        CentralTabControl.SelectedItem = GraphTabItem;
 
         // 2. Seleziona, espande il container genitore se necessario e centra la visuale sul nodo
         SelectAndFocusGraphNode(node);
@@ -5049,6 +5152,349 @@ else
 
     #endregion
 
+    #region Ordinamento Schede di Analisi con Drag & Drop (CentralTabControl)
+
+    /// <summary>
+    /// Gestisce l'evento di pressione del puntatore (mouse down) sulle schede di analisi.
+    /// Inizializza le coordinate di partenza e rileva il TabItem di origine senza avviare
+    /// immediatamente il trascinamento, consentendo il normale cambio di selezione al clic singolo.
+    /// </summary>
+    /// <param name="sender">Sorgente dell'evento (CentralTabControl).</param>
+    /// <param name="e">Argomenti del puntatore contenenti coordinate e stato dei tasti.</param>
+    private void OnCentralTabPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        // Considera esclusivamente il tasto sinistro del mouse
+        var currentPoint = e.GetCurrentPoint(this);
+        if (!currentPoint.Properties.IsLeftButtonPressed)
+            return;
+
+        // Risale l'albero visuale per individuare l'eventuale TabItem di appartenenza
+        var visual = e.Source as Visual;
+        var tabItem = visual as TabItem ?? visual?.FindAncestorOfType<TabItem>();
+
+        // Ignora clic al di fuori delle intestazioni delle schede del TabControl centrale
+        if (tabItem == null || CentralTabControl == null || !CentralTabControl.Items.OfType<TabItem>().Contains(tabItem))
+            return;
+
+        // Memorizza i dati iniziali per il calcolo della soglia di movimento (deadzone)
+        _draggedTabItem = tabItem;
+        _tabDragStartPos = e.GetPosition(this);
+        _tabDragOffsetWithinTab = e.GetPosition(tabItem);
+        _isTabDragging = false;
+        _targetDropIndex = -1;
+    }
+
+    /// <summary>
+    /// Gestisce il movimento del cursore durante la pressione del tasto sinistro.
+    /// Superata la deadzone di 4px, attiva la modalità di trascinamento stile Visual Studio:
+    /// 1. Visualizza la scheda ghost fluttuante sotto al puntatore del mouse.
+    /// 2. Attenua la trasparenza della scheda originale (35% opacity).
+    /// 3. Calcola in tempo reale lo slot di inserimento e vi posiziona la barra verticale di drop.
+    /// </summary>
+    /// <param name="sender">Sorgente dell'evento (CentralTabControl).</param>
+    /// <param name="e">Argomenti del puntatore contenenti la posizione corrente.</param>
+    private void OnCentralTabPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_draggedTabItem == null || CentralTabControl == null || CentralTabPanel == null)
+            return;
+
+        // Se il tasto sinistro non è più premuto (es. rilascio fuori finestra), termina il drag
+        var currentPoint = e.GetCurrentPoint(this);
+        if (!currentPoint.Properties.IsLeftButtonPressed)
+        {
+            EndCentralTabDrag(null);
+            return;
+        }
+
+        var currentPos = e.GetPosition(this);
+
+        // Fase 1: Verifica del superamento della soglia di movimento minima (deadzone 4px)
+        if (!_isTabDragging)
+        {
+            var diffX = Math.Abs(currentPos.X - _tabDragStartPos.X);
+            var diffY = Math.Abs(currentPos.Y - _tabDragStartPos.Y);
+            if (diffX > 4 || diffY > 4)
+            {
+                _isTabDragging = true;
+                e.Pointer.Capture(CentralTabControl);
+                CentralTabControl.SelectedItem = _draggedTabItem;
+                _draggedTabItem.Opacity = 0.35;
+
+                // Configura e visualizza la scheda ghost fluttuante clonando icona e testo del tab
+                if (TabDragGhostBorder != null && TabDragGhostText != null)
+                {
+                    if (_draggedTabItem.Header is StackPanel sp)
+                    {
+                        var pathIcon = sp.Children.OfType<PathIcon>().FirstOrDefault();
+                        if (pathIcon != null && TabDragGhostIcon != null)
+                        {
+                            TabDragGhostIcon.Data = pathIcon.Data;
+                            TabDragGhostIcon.IsVisible = true;
+                        }
+                        else if (TabDragGhostIcon != null)
+                        {
+                            TabDragGhostIcon.IsVisible = false;
+                        }
+                        var tb = sp.Children.OfType<TextBlock>().FirstOrDefault();
+                        TabDragGhostText.Text = tb?.Text ?? GetTabTitle(_draggedTabItem);
+                    }
+                    else
+                    {
+                        if (TabDragGhostIcon != null)
+                            TabDragGhostIcon.IsVisible = false;
+                        TabDragGhostText.Text = GetTabTitle(_draggedTabItem);
+                    }
+
+                    TabDragGhostBorder.IsVisible = true;
+                }
+            }
+        }
+
+        // Fase 2: Aggiornamento continuo della posizione ghost e calcolo dell'indicatore di inserimento
+        if (_isTabDragging)
+        {
+            var posInPanel = e.GetPosition(CentralTabPanel);
+
+            // 1. Sposta la scheda ghost fluttuante in tempo reale mantenendo l'offset di presa iniziale
+            var ghostX = posInPanel.X - _tabDragOffsetWithinTab.X;
+            var ghostY = Math.Max(2, Math.Min(posInPanel.Y - 14, 80));
+            _tabGhostTransform.X = ghostX;
+            _tabGhostTransform.Y = ghostY;
+
+            // 2. Itera sulle schede visibili per individuare lo slot di drop in base al punto medio (midpoint)
+            var visibleTabs = CentralTabControl.Items.OfType<TabItem>().Where(t => t.IsVisible).ToList();
+            if (visibleTabs.Count > 0)
+            {
+                _targetDropIndex = -1;
+                double indicatorX = 0;
+                double indicatorY = 0;
+                double indicatorHeight = 28;
+
+                for (int i = 0; i < visibleTabs.Count; i++)
+                {
+                    var tab = visibleTabs[i];
+                    var tabOrigin = tab.TranslatePoint(new Point(0, 0), CentralTabPanel);
+                    if (!tabOrigin.HasValue)
+                        continue;
+
+                    var tabBounds = new Rect(tabOrigin.Value, tab.Bounds.Size);
+                    var tabMidX = tabBounds.Left + (tabBounds.Width / 2.0);
+
+                    // Se il cursore si trova a sinistra del centro del tab, lo slot è PRIMA di questo tab
+                    if (posInPanel.X < tabMidX)
+                    {
+                        _targetDropIndex = CentralTabControl.Items.IndexOf(tab);
+                        indicatorX = tabBounds.Left - 1;
+                        indicatorY = tabBounds.Top + 2;
+                        indicatorHeight = Math.Max(20, tabBounds.Height - 4);
+                        break;
+                    }
+                    // Se siamo sull'ultimo tab e il cursore è a destra del centro, lo slot è DOPO l'ultimo tab
+                    else if (i == visibleTabs.Count - 1)
+                    {
+                        _targetDropIndex = CentralTabControl.Items.IndexOf(tab) + 1;
+                        indicatorX = tabBounds.Right + 1;
+                        indicatorY = tabBounds.Top + 2;
+                        indicatorHeight = Math.Max(20, tabBounds.Height - 4);
+                    }
+                }
+
+                // Posiziona e rende visibile la barra verticale di drop
+                if (_targetDropIndex >= 0 && TabDropIndicator != null)
+                {
+                    _tabDropIndicatorTransform.X = indicatorX;
+                    _tabDropIndicatorTransform.Y = indicatorY;
+                    TabDropIndicator.Height = indicatorHeight;
+                    TabDropIndicator.IsVisible = true;
+                }
+            }
+
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>
+    /// Conclude l'operazione di trascinamento al rilascio del tasto del mouse:
+    /// sposta la scheda nella destinazione calcolata, ne ripristina la visualizzazione normale
+    /// e salva il nuovo ordinamento nelle preferenze persistenti.
+    /// </summary>
+    /// <param name="sender">Sorgente dell'evento.</param>
+    /// <param name="e">Argomenti del rilascio del puntatore.</param>
+    private void OnCentralTabPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_isTabDragging && _draggedTabItem != null && CentralTabControl != null)
+        {
+            var fromIndex = CentralTabControl.Items.IndexOf(_draggedTabItem);
+            var toIndex = _targetDropIndex;
+
+            if (fromIndex >= 0 && toIndex >= 0)
+            {
+                // Se la destinazione è successiva all'indice di partenza, compensa la rimozione dell'elemento
+                if (toIndex > fromIndex)
+                    toIndex--;
+
+                // Esegue lo spostamento atomico nella collezione e seleziona il tab
+                if (toIndex >= 0 && toIndex < CentralTabControl.Items.Count && toIndex != fromIndex)
+                {
+                    CentralTabControl.Items.RemoveAt(fromIndex);
+                    CentralTabControl.Items.Insert(toIndex, _draggedTabItem);
+                    CentralTabControl.SelectedItem = _draggedTabItem;
+                    SaveCurrentTabOrder();
+                }
+            }
+
+            e.Handled = true;
+        }
+
+        EndCentralTabDrag(e.Pointer);
+    }
+
+    /// <summary>
+    /// Gestisce la perdita improvvisa di cattura del puntatore (es. cambio finestra o popup modale)
+    /// salvando lo stato se applicabile e ripulendo gli elementi visuali del drag.
+    /// </summary>
+    /// <param name="sender">Sorgente dell'evento.</param>
+    /// <param name="e">Argomenti di perdita cattura.</param>
+    private void OnCentralTabPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        if (_isTabDragging && _draggedTabItem != null && CentralTabControl != null)
+        {
+            var fromIndex = CentralTabControl.Items.IndexOf(_draggedTabItem);
+            var toIndex = _targetDropIndex;
+
+            if (fromIndex >= 0 && toIndex >= 0)
+            {
+                if (toIndex > fromIndex)
+                    toIndex--;
+
+                if (toIndex >= 0 && toIndex < CentralTabControl.Items.Count && toIndex != fromIndex)
+                {
+                    CentralTabControl.Items.RemoveAt(fromIndex);
+                    CentralTabControl.Items.Insert(toIndex, _draggedTabItem);
+                    CentralTabControl.SelectedItem = _draggedTabItem;
+                    SaveCurrentTabOrder();
+                }
+            }
+        }
+
+        EndCentralTabDrag(null);
+    }
+
+    /// <summary>
+    /// Rilascia la cattura del puntatore, nasconde la scheda ghost e la barra di drop,
+    /// e ripristina la piena opacità della scheda di origine.
+    /// </summary>
+    /// <param name="pointer">Puntatore da rilasciare se disponibile.</param>
+    private void EndCentralTabDrag(IPointer? pointer)
+    {
+        pointer?.Capture(null);
+
+        if (_draggedTabItem != null)
+            _draggedTabItem.Opacity = 1.0;
+
+        _draggedTabItem = null;
+        _isTabDragging = false;
+        _targetDropIndex = -1;
+
+        if (TabDragGhostBorder != null)
+            TabDragGhostBorder.IsVisible = false;
+
+        if (TabDropIndicator != null)
+            TabDropIndicator.IsVisible = false;
+    }
+
+    /// <summary>
+    /// Salva la sequenza corrente dei nomi dei TabItem del pannello centrale nelle impostazioni dell'utente.
+    /// </summary>
+    private void SaveCurrentTabOrder()
+    {
+        if (CentralTabControl == null)
+            return;
+
+        var order = CentralTabControl.Items
+            .OfType<TabItem>()
+            .Select(t => t.Name)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Cast<string>()
+            .ToList();
+
+        SettingsService.Instance.Update(s => s.AnalyticsTabOrder = order);
+    }
+
+    /// <summary>
+    /// Applica l'ordinamento personalizzato salvato alle schede del TabControl centrale.
+    /// Gestisce in modo sicuro l'eventuale presenza di nuove schede introdotte in versioni successive
+    /// dell'applicazione, aggiungendole in coda all'ordinamento memorizzato.
+    /// </summary>
+    private void ApplySavedTabOrder()
+    {
+        if (CentralTabControl == null)
+            return;
+
+        var savedOrder = SettingsService.Instance.Settings.AnalyticsTabOrder;
+        if (savedOrder == null || savedOrder.Count == 0)
+            return;
+
+        var allTabs = CentralTabControl.Items.OfType<TabItem>().ToList();
+        if (allTabs.Count == 0)
+            return;
+
+        var tabMap = allTabs
+            .Where(t => !string.IsNullOrEmpty(t.Name))
+            .ToDictionary(t => t.Name!, t => t);
+
+        var newOrder = new List<TabItem>();
+        foreach (var name in savedOrder)
+        {
+            if (tabMap.TryGetValue(name, out var tab))
+            {
+                newOrder.Add(tab);
+                tabMap.Remove(name);
+            }
+        }
+
+        // Aggiungi in coda eventuali tab non presenti nella sequenza salvata (es. nuove feature)
+        foreach (var tab in allTabs)
+        {
+            if (tab.Name != null && tabMap.ContainsKey(tab.Name))
+                newOrder.Add(tab);
+        }
+
+        // Se l'ordinamento coincide già perfettamente, non alterare la collezione
+        if (newOrder.Count != allTabs.Count || newOrder.SequenceEqual(allTabs))
+            return;
+
+        var selected = CentralTabControl.SelectedItem;
+        CentralTabControl.Items.Clear();
+        foreach (var tab in newOrder)
+            CentralTabControl.Items.Add(tab);
+
+        if (selected != null && CentralTabControl.Items.Contains(selected))
+            CentralTabControl.SelectedItem = selected;
+    }
+
+    /// <summary>
+    /// Ripristina l'ordinamento originale di fabbrica delle schede di analisi definito nel file XAML,
+    /// azzerando la sequenza memorizzata nelle impostazioni utente.
+    /// </summary>
+    private void RestoreDefaultTabOrder()
+    {
+        if (CentralTabControl == null || _defaultCentralTabOrder.Count == 0)
+            return;
+
+        var selected = CentralTabControl.SelectedItem;
+        CentralTabControl.Items.Clear();
+        foreach (var tab in _defaultCentralTabOrder)
+            CentralTabControl.Items.Add(tab);
+
+        if (selected != null && CentralTabControl.Items.Contains(selected))
+            CentralTabControl.SelectedItem = selected;
+
+        SettingsService.Instance.Update(s => s.AnalyticsTabOrder = new List<string>());
+    }
+
+    #endregion
+
     #region Gestione Baseline API Diff & SemVer
 
     /// <summary>
@@ -5369,6 +5815,13 @@ else
     /// <param name="e">Argomenti dell'evento contenenti i modificatori e il tasto premuto.</param>
     private void OnMainWindowKeyDown(object? sender, KeyEventArgs e)
     {
+        if (e.Key == Key.Escape && _isTabDragging)
+        {
+            EndCentralTabDrag(null);
+            e.Handled = true;
+            return;
+        }
+
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
             if (e.Key == Key.B)
@@ -5517,6 +5970,7 @@ else
         ThemeService.Instance.ApplyTheme(defaultSettings.Theme);
         LocalizationService.Instance.SetLanguage(defaultSettings.Language);
         SetLayoutMode(defaultSettings.PreferredLayout);
+        RestoreDefaultTabOrder();
         SetExplorerVisibility(true);
         SetInspectorVisibility(true);
         UpdateRecentProjectsMenu();
