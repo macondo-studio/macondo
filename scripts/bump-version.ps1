@@ -96,21 +96,15 @@ if (Test-Path $versionJsonPath) {
     Write-Host "      -> version.json impostato a v$NewVersion con timestamp UTC" -ForegroundColor Green
 }
 
-# 4. Aggiornamento file HTML del sito web (Repo Privata)
-$htmlFiles = @(
-    Join-Path $siteRoot "it.html",
-    Join-Path $siteRoot "index.html",
-    Join-Path $siteRoot "releases.html",
-    Join-Path $siteRoot "releases-it.html"
-)
-foreach ($htmlPath in $htmlFiles) {
-    if (Test-Path $htmlPath) {
-        $html = Get-Content $htmlPath -Raw -Encoding UTF8
-        $html = [regex]::Replace($html, '"softwareVersion":\s*"[^"]+"', "`"softwareVersion`": `"$NewVersion`"")
-        $html = [regex]::Replace($html, 'Macondo v\d+\.\d+\.\d+', "Macondo v$NewVersion")
-        $html = [regex]::Replace($html, '<span class="nav-version-tag">v\d+\.\d+\.\d+</span>', "<span class=`"nav-version-tag`">v$NewVersion</span>")
-        Set-Content $htmlPath -Value $html -Encoding UTF8 -NoNewline
-    }
+# 4. Aggiornamento file HTML e script del sito web (Repo Privata)
+$htmlFiles = Get-ChildItem -Path $siteRoot -Filter "*.html"
+foreach ($htmlItem in $htmlFiles) {
+    $html = Get-Content $htmlItem.FullName -Raw -Encoding UTF8
+    $html = [regex]::Replace($html, '"softwareVersion":\s*"[^"]+"', "`"softwareVersion`": `"$NewVersion`"")
+    $html = [regex]::Replace($html, 'Macondo v\d+\.\d+\.\d+', "Macondo v$NewVersion")
+    $html = [regex]::Replace($html, '<span class="nav-version-tag">v\d+\.\d+\.\d+</span>', "<span class=`"nav-version-tag`">v$NewVersion</span>")
+    $html = [regex]::Replace($html, '(\?v=)\d+\.\d+\.\d+', "`${1}$NewVersion")
+    Set-Content $htmlItem.FullName -Value $html -Encoding UTF8 -NoNewline
 }
 Write-Host "      -> Pagine del sito web in $siteRoot allineate a v$NewVersion" -ForegroundColor Green
 
