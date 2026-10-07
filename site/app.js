@@ -245,17 +245,46 @@ function renderReleases(container, releases, isIt) {
     const formattedDate = formatReleaseDate(rel.published_at, isIt);
     const bodyHtml = renderMarkdown(rel.body || (isIt ? 'Nessuna descrizione fornita per questa release.' : 'No description provided for this release.'));
     
-    let downloadUrl = rel.html_url;
-    let assetSize = '';
+    let setupAsset = null;
+    let portableAsset = null;
+
     if (rel.assets && rel.assets.length > 0) {
-      const exeAsset = rel.assets.find(a => a.name && a.name.endsWith('.exe')) || rel.assets[0];
-      if (exeAsset) {
-        downloadUrl = exeAsset.browser_download_url || rel.html_url;
-        if (exeAsset.size) {
-          assetSize = ` (${(exeAsset.size / (1024 * 1024)).toFixed(1)} MB)`;
-        }
+      setupAsset = rel.assets.find(a => a.name && /setup/i.test(a.name) && a.name.endsWith('.exe'));
+      portableAsset = rel.assets.find(a => a.name && !/setup/i.test(a.name) && a.name.endsWith('.exe'));
+      if (!setupAsset && !portableAsset) {
+        portableAsset = rel.assets.find(a => a.name && a.name.endsWith('.exe')) || rel.assets[0];
       }
     }
+
+    let actionsHtml = '';
+    if (setupAsset) {
+      const sizeStr = setupAsset.size ? ` (${(setupAsset.size / (1024 * 1024)).toFixed(1)} MB)` : '';
+      actionsHtml += `
+        <a href="${escapeHtml(setupAsset.browser_download_url || rel.html_url)}" class="btn btn-sm btn-primary">
+          ${isIt ? 'Scarica Installer' : 'Download Installer'}${escapeHtml(sizeStr)}
+        </a>
+      `;
+    }
+    if (portableAsset) {
+      const sizeStr = portableAsset.size ? ` (${(portableAsset.size / (1024 * 1024)).toFixed(1)} MB)` : '';
+      actionsHtml += `
+        <a href="${escapeHtml(portableAsset.browser_download_url || rel.html_url)}" class="btn btn-sm ${setupAsset ? 'btn-secondary' : 'btn-primary'}">
+          ${isIt ? 'Versione Portable' : 'Portable Edition'}${escapeHtml(sizeStr)}
+        </a>
+      `;
+    }
+    if (!setupAsset && !portableAsset) {
+      actionsHtml += `
+        <a href="${escapeHtml(rel.html_url)}" class="btn btn-sm btn-primary">
+          ${isIt ? 'Scarica Release' : 'Download Release'}
+        </a>
+      `;
+    }
+    actionsHtml += `
+      <a href="${escapeHtml(rel.html_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-secondary">
+        GitHub &rarr;
+      </a>
+    `;
 
     const card = document.createElement('div');
     card.className = 'release-card';
@@ -268,12 +297,7 @@ function renderReleases(container, releases, isIt) {
           ${formattedDate ? `<span class="release-date">${escapeHtml(formattedDate)}</span>` : ''}
         </div>
         <div class="release-actions">
-          <a href="${escapeHtml(downloadUrl)}" class="btn btn-sm btn-primary">
-            ${isIt ? 'Scarica Macondo.exe' : 'Download Macondo.exe'}${escapeHtml(assetSize)}
-          </a>
-          <a href="${escapeHtml(rel.html_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-secondary">
-            GitHub &rarr;
-          </a>
+          ${actionsHtml}
         </div>
       </div>
       <div class="release-body">
@@ -291,10 +315,10 @@ async function renderReleasesFallback(container, isIt) {
     if (res.ok) vData = await res.json();
   } catch (_) {}
 
-  const version = vData?.version || '1.2.0';
+  const version = vData?.version || '1.5.0';
   const dateStr = vData?.publishedAt ? formatReleaseDate(vData.publishedAt, isIt) : '';
   const note = vData?.releaseNotes ? (isIt ? vData.releaseNotes.it : vData.releaseNotes.en) : '';
-  const dlUrl = vData?.downloadUrl || 'https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe';
+  const dlUrl = vData?.downloadUrl || 'https://github.com/macondo-studio/macondo/releases/latest/download/Macondo-Setup.exe';
 
   container.innerHTML = `
     <div class="release-card">
@@ -306,7 +330,10 @@ async function renderReleasesFallback(container, isIt) {
         </div>
         <div class="release-actions">
           <a href="${escapeHtml(dlUrl)}" class="btn btn-sm btn-primary">
-            ${isIt ? 'Scarica Macondo.exe' : 'Download Macondo.exe'}
+            ${isIt ? 'Scarica Installer' : 'Download Installer'}
+          </a>
+          <a href="https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe" class="btn btn-sm btn-secondary">
+            ${isIt ? 'Portable' : 'Portable'}
           </a>
           <a href="https://github.com/macondo-studio/macondo/releases" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-secondary">
             GitHub &rarr;
