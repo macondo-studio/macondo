@@ -96,4 +96,40 @@ public static class TestGraphFactory
 
         return (graph, results);
     }
+
+    public static (CodeGraph Graph, JavaExtractionResult Result) CreateAndAnalyzeJavaSource(string fileName, string sourceText)
+    {
+        var graph = new CodeGraph();
+        var result = JavaExtractor.ExtractJavaFile(graph, fileName, sourceText);
+
+        var typeResolver = new TypeResolver(graph);
+        typeResolver.ResolveAllTypes();
+        var symbolResolver = new SymbolResolver(graph, typeResolver);
+
+        var builder = new CallGraphBuilder(graph, symbolResolver);
+        builder.BuildGraph(Array.Empty<ModuleExtractionResult>(), null, new[] { result });
+
+        return (graph, result);
+    }
+
+    public static (CodeGraph Graph, List<JavaExtractionResult> Results) CreateAndAnalyzeJavaSources(params (string FileName, string SourceText)[] sources)
+    {
+        var graph = new CodeGraph();
+        var results = new List<JavaExtractionResult>();
+
+        foreach (var (fileName, sourceText) in sources)
+        {
+            var res = JavaExtractor.ExtractJavaFile(graph, fileName, sourceText);
+            results.Add(res);
+        }
+
+        var typeResolver = new TypeResolver(graph);
+        typeResolver.ResolveAllTypes();
+        var symbolResolver = new SymbolResolver(graph, typeResolver);
+
+        var builder = new CallGraphBuilder(graph, symbolResolver);
+        builder.BuildGraph(Array.Empty<ModuleExtractionResult>(), null, results);
+
+        return (graph, results);
+    }
 }
