@@ -36,6 +36,13 @@ OutputBaseFilename=Macondo-Setup
 SetupIconFile=..\icons\icon1_star_knot.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 
+; Metadati del file eseguibile Setup (Windows PE VersionInfo)
+VersionInfoVersion={#MyAppVersion}.0
+VersionInfoProductVersion={#MyAppVersion}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription={#MyAppName} Setup
+VersionInfoCopyright=Copyright 2026 {#MyAppPublisher}
+
 ; Compressione e architettura a 64 bit
 Compression=lzma2/max
 SolidCompression=yes
