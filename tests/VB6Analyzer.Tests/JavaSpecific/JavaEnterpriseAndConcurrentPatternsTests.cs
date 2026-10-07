@@ -245,7 +245,7 @@ public class JavaEnterpriseAndConcurrentPatternsTests
         var enumSymbol = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Enum && s.Name == "ArithmeticOperation");
         enumSymbol.Should().NotBeNull();
 
-        var enumConstants = graph.GetChildren(enumSymbol!.Id).ToList();
+        var enumConstants = graph.GetChildren(enumSymbol!.Id).Where(s => s.Kind == SymbolKind.Constant).ToList();
         enumConstants.Should().HaveCount(4);
         enumConstants.Select(c => c.Name).Should().Contain(new[] { "PLUS", "MINUS", "MULTIPLY", "DIVIDE" });
     }

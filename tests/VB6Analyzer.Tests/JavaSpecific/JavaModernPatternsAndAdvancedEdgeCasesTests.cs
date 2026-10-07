@@ -230,7 +230,7 @@ public class JavaModernPatternsAndAdvancedEdgeCasesTests
         result.Success.Should().BeTrue();
         result.ParseErrors.Should().BeEmpty();
 
-        var recordSymbol = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Class && s.Name == "DateRange");
+        var recordSymbol = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Record && s.Name == "DateRange");
         var containsMethod = graph.Symbols.FirstOrDefault(s => s.Name == "contains");
 
         recordSymbol.Should().NotBeNull();

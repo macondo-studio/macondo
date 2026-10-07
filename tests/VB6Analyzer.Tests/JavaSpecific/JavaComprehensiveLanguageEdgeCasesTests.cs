@@ -134,7 +134,9 @@ public class JavaComprehensiveLanguageEdgeCasesTests
         getSymbolMethod.Should().NotBeNull();
 
         // Enum constants
-        graph.Symbols.Should().Contain(s => s.Kind == SymbolKind.Enum && (s.Name == "PLUS" || s.Name == "Operation.PLUS"));
+        var enumConstants = graph.GetChildren(enumSymbol!.Id).Where(s => s.Kind == SymbolKind.Constant).ToList();
+        enumConstants.Should().HaveCount(4);
+        enumConstants.Select(c => c.Name).Should().Contain(new[] { "PLUS", "MINUS", "TIMES", "DIVIDE" });
     }
 
     #endregion

@@ -446,12 +446,12 @@ public static class JavaExtractor
                 }
 
                 // 7. Identificatori e Parole Chiave
-                if (char.IsLetter(ch) || ch == '_' || ch == '$')
+                if (IsJavaIdentifierStart(ch))
                 {
                     var startLine = line;
                     var startCol = col;
                     var startIdx = i;
-                    while (i < len && (char.IsLetterOrDigit(_sourceText[i]) || _sourceText[i] == '_' || _sourceText[i] == '$'))
+                    while (i < len && IsJavaIdentifierPart(_sourceText[i]))
                     {
                         i++;
                         col++;
@@ -489,9 +489,28 @@ public static class JavaExtractor
                     continue;
                 }
 
-                // 9. Operatori a due caratteri (::, ->, ==, !=, <=, >=, &&, ||, ++, --, +=, -=, *=, /=)
+                // 9. Operatori a tre caratteri (varargs ...)
                 var startOpLine = line;
                 var startOpCol = col;
+                if (i + 2 < len)
+                {
+                    var triple = _sourceText.Substring(i, 3);
+                    if (triple is "...")
+                    {
+                        _tokens.Add(new JavaToken
+                        {
+                            Type = JavaTokenType.Symbol,
+                            Value = triple,
+                            Line = startOpLine,
+                            Column = startOpCol
+                        });
+                        i += 3;
+                        col += 3;
+                        continue;
+                    }
+                }
+
+                // 10. Operatori a due caratteri (::, ->, ==, !=, <=, >=, &&, ||, ++, --, +=, -=, *=, /=)
                 if (i + 1 < len)
                 {
                     var pair = _sourceText.Substring(i, 2);
@@ -510,7 +529,7 @@ public static class JavaExtractor
                     }
                 }
 
-                // 10. Simboli e Punteggiatura a singolo carattere
+                // 11. Simboli e Punteggiatura a singolo carattere
                 _tokens.Add(new JavaToken
                 {
                     Type = JavaTokenType.Symbol,
@@ -530,6 +549,42 @@ public static class JavaExtractor
                 Line = line,
                 Column = col
             });
+        }
+
+        private static bool IsJavaIdentifierStart(char ch)
+        {
+            if (ch is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or '_' or '$')
+                return true;
+
+            var cat = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(ch);
+            return cat is System.Globalization.UnicodeCategory.UppercaseLetter
+                       or System.Globalization.UnicodeCategory.LowercaseLetter
+                       or System.Globalization.UnicodeCategory.TitlecaseLetter
+                       or System.Globalization.UnicodeCategory.ModifierLetter
+                       or System.Globalization.UnicodeCategory.OtherLetter
+                       or System.Globalization.UnicodeCategory.LetterNumber
+                       or System.Globalization.UnicodeCategory.CurrencySymbol
+                       or System.Globalization.UnicodeCategory.ConnectorPunctuation;
+        }
+
+        private static bool IsJavaIdentifierPart(char ch)
+        {
+            if (ch is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '_' or '$')
+                return true;
+
+            var cat = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(ch);
+            return cat is System.Globalization.UnicodeCategory.UppercaseLetter
+                       or System.Globalization.UnicodeCategory.LowercaseLetter
+                       or System.Globalization.UnicodeCategory.TitlecaseLetter
+                       or System.Globalization.UnicodeCategory.ModifierLetter
+                       or System.Globalization.UnicodeCategory.OtherLetter
+                       or System.Globalization.UnicodeCategory.LetterNumber
+                       or System.Globalization.UnicodeCategory.CurrencySymbol
+                       or System.Globalization.UnicodeCategory.ConnectorPunctuation
+                       or System.Globalization.UnicodeCategory.DecimalDigitNumber
+                       or System.Globalization.UnicodeCategory.NonSpacingMark
+                       or System.Globalization.UnicodeCategory.SpacingCombiningMark
+                       or System.Globalization.UnicodeCategory.Format;
         }
 
         // =========================================================================
@@ -605,10 +660,9 @@ public static class JavaExtractor
         /// </summary>
         private void SkipAnnotations()
         {
-            while (Check("@"))
+            while (Check("@") && Peek(1).Value != "interface")
             {
                 Next(); // consuma '@'
-                Match("interface"); // se è una dichiarazione '@interface', il parser dei modificatori la intercetterà
                 ParseQualifiedIdentifier();
                 if (Check("("))
                 {
@@ -721,6 +775,9 @@ public static class JavaExtractor
             {
                 if (Check("@"))
                 {
+                    if (Peek(1).Value == "interface")
+                        break;
+
                     SkipAnnotations();
                     continue;
                 }
@@ -913,6 +970,8 @@ public static class JavaExtractor
                     SkipAnnotations();
                     var paramModifiers = ParseModifiers();
                     var ptype = ParseTypeName();
+                    if (Match("..."))
+                        ptype += "[]";
                     if (Check(JavaTokenType.Identifier))
                     {
                         var pnameToken = Next();
@@ -1128,8 +1187,8 @@ public static class JavaExtractor
                 // Generics a livello di metodo: <T, R>
                 SkipTypeParameters();
 
-                // Rilevamento Costruttore: NomeTipo(parametri)
-                if (Check(JavaTokenType.Identifier) && Peek().Value == enclosingType.Name && Peek(1).Value == "(")
+                // Rilevamento Costruttore: NomeTipo(parametri) oppure compact constructor NomeTipo { ... } nei Record
+                if (Check(JavaTokenType.Identifier) && Peek().Value == enclosingType.Name && (Peek(1).Value == "(" || (enclosingType.Kind == SymbolKind.Record && Peek(1).Value == "{")))
                 {
                     ParseConstructorDeclaration(enclosingType, modifiers);
                     continue;
@@ -1238,11 +1297,18 @@ public static class JavaExtractor
             // Salta clausola throws
             SkipThrows();
 
-            // Valore predefinito in annotazioni @interface (es. default "test";)
+            // Valore predefinito in annotazioni @interface (es. default "test"; o default {};)
             if (Match("default"))
             {
-                while (!Check(";") && !Check("{") && !Check(JavaTokenType.EndOfFile))
-                    Next();
+                while (!Check(";") && !Check(JavaTokenType.EndOfFile))
+                {
+                    if (Check("{"))
+                        ConsumeBracedGroup();
+                    else if (Check("("))
+                        ConsumeParenthesizedGroup();
+                    else
+                        Next();
+                }
             }
 
             if (Check("{"))
