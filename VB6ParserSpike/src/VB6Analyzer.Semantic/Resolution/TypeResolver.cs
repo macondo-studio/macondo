@@ -38,14 +38,15 @@ public sealed class TypeInfo
 /// </summary>
 public sealed class TypeResolver
 {
-    /// <summary>Insieme dei tipi primitivi VB6 e C# predefiniti (case-insensitive).</summary>
+    /// <summary>Insieme dei tipi primitivi VB6, C# e Java predefiniti (case-insensitive).</summary>
     private static readonly HashSet<string> PrimitiveTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         "Boolean", "Byte", "Integer", "Long", "Single", "Double",
         "Currency", "Date", "String", "Collection",
         "bool", "byte", "sbyte", "char", "decimal", "double", "float",
         "int", "uint", "nint", "nuint", "long", "ulong", "short", "ushort",
-        "string", "object", "dynamic", "void", "Task", "ValueTask"
+        "string", "object", "dynamic", "void", "Task", "ValueTask",
+        "boolean", "Character", "Float", "Short", "List", "Map", "Set", "Optional"
     };
 
     /// <summary>Tipi a binding dinamico / late binding in VB6.</summary>

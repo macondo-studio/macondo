@@ -70,6 +70,7 @@ public static class GraphVisualAdapter
                     .Where(p => !string.IsNullOrEmpty(p))
                     .Select(p => Path.GetExtension(p).ToLowerInvariant() switch
                     {
+                        ".java" => SourceLanguage.Java,
                         ".cs" or ".csproj" or ".sln" => SourceLanguage.CSharp,
                         _ => SourceLanguage.VisualBasic6
                     })

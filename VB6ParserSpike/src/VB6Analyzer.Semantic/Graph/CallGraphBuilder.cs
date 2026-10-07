@@ -42,8 +42,13 @@ public sealed class CallGraphBuilder
     /// </summary>
     /// <param name="extractionResults">Elenco dei risultati di estrazione dei moduli VB6 contenenti gli AST (<see cref="ModuleExtractionResult"/>).</param>
     /// <param name="csharpResults">Elenco opzionale dei risultati di estrazione dei file sorgente C# (<see cref="CSharpExtractionResult"/>).</param>
+    /// <param name="javaResults">Elenco opzionale dei risultati di estrazione dei file sorgente Java (<see cref="JavaExtractionResult"/>).</param>
     /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere l'elaborazione del Call Graph.</param>
-    public void BuildGraph(IEnumerable<ModuleExtractionResult> extractionResults, IEnumerable<CSharpExtractionResult>? csharpResults = null, CancellationToken cancellationToken = default)
+    public void BuildGraph(
+        IEnumerable<ModuleExtractionResult> extractionResults,
+        IEnumerable<CSharpExtractionResult>? csharpResults = null,
+        IEnumerable<JavaExtractionResult>? javaResults = null,
+        CancellationToken cancellationToken = default)
     {
         // =========================================================================
         // FASE 1: GENERAZIONE RELAZIONI DA AST DI MODULI VB6 (CALLS & INSTANTIATES)
@@ -173,6 +178,91 @@ public sealed class CallGraphBuilder
                         // Se il tipo derivato è un'interfaccia o il bersaglio è una classe -> INHERITS;
                         // Se una classe/struct implementa un'interfaccia -> IMPLEMENTS
                         if (inh.DerivedTypeSymbol.Kind == SymbolKind.Interface || baseType.Kind != SymbolKind.Interface)
+                            _graph.AddInherits(inh.DerivedTypeSymbol, baseType, inh.Line);
+                        else
+                        {
+                            _graph.AddImplements(inh.DerivedTypeSymbol, baseType, inh.Line);
+                        }
+                    }
+                }
+            }
+        }
+
+        // =========================================================================
+        // FASE 1c: GENERAZIONE RELAZIONI SEMANTICHE PER FILE JAVA
+        // =========================================================================
+        // Se sono presenti file sorgente Java analizzati (.java in progetti standard, Maven o Gradle),
+        // risolviamo le relazioni semantiche orientate:
+        // 1. Invocazioni di metodi (CALLS):
+        //    - Passo A: Se è presente un ricevitore esplicito (es. 'customerService.saveOrder()'), tentiamo
+        //      la risoluzione del tipo del ricevitore tramite il TypeResolver e cerchiamo il metodo nei figli del tipo.
+        //    - Passo B: Se il metodo è invocato senza ricevitore (chiamata interna/ereditata) o il ricevitore non è risolto,
+        //      usiamo l'indice globale O(1) dei metodi.
+        // 2. Creazioni di oggetti (INSTANTIATES da 'new ClassName()').
+        // 3. Ereditarietà di classi base ('extends') e implementazione di interfacce ('implements') (INHERITS / IMPLEMENTS).
+        if (javaResults != null)
+        {
+            // Indice dei metodi e proprietà per nome (costruito lazy) per garantire lookup O(1) rapido
+            Dictionary<string, Symbol>? routineIndexByName = null;
+
+            foreach (var javaResult in javaResults)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // 1. Risoluzione Invocazioni di Metodi Java (CALLS)
+                foreach (var callSite in javaResult.CallSites)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    Symbol? targetMethod = null;
+
+                    // Passo A: Risoluzione contestuale tramite tipo del ricevitore (es. "orderService.process()")
+                    if (!string.IsNullOrEmpty(callSite.ReceiverExpressionText))
+                    {
+                        var receiverType = _symbolResolver.TypeResolver.ResolveType(callSite.ReceiverExpressionText).UserTypeSymbol;
+                        if (receiverType != null)
+                            targetMethod = _graph.GetChildren(receiverType.Id)
+                                .FirstOrDefault(s => s.Kind is SymbolKind.Method or SymbolKind.Property &&
+                                                    string.Equals(s.Name, callSite.InvokedMethodName, StringComparison.OrdinalIgnoreCase));
+                    }
+
+                    // Passo B: Fallback su indice globale O(1) per chiamate non qualificate o receiver implicito
+                    if (targetMethod == null)
+                    {
+                        if (routineIndexByName == null)
+                        {
+                            routineIndexByName = new Dictionary<string, Symbol>(StringComparer.OrdinalIgnoreCase);
+                            foreach (var s in _graph.Symbols)
+                            {
+                                if (s.Kind is SymbolKind.Method or SymbolKind.Property && !routineIndexByName.ContainsKey(s.Name))
+                                    routineIndexByName[s.Name] = s;
+                            }
+                        }
+
+                        routineIndexByName.TryGetValue(callSite.InvokedMethodName, out targetMethod);
+                    }
+
+                    // Passo C: Inserimento dell'arco CALLS nel CodeGraph
+                    if (targetMethod != null)
+                        _graph.AddCalls(callSite.CallerSymbol, targetMethod, callSite.Line, ResolutionConfidence.Exact);
+                }
+
+                // 2. Risoluzione Istanziazioni Java (INSTANTIATES da 'new ClassName()')
+                foreach (var inst in javaResult.Instantiations)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var targetType = _symbolResolver.TypeResolver.ResolveType(inst.TargetTypeName).UserTypeSymbol;
+                    if (targetType != null)
+                        _graph.AddInstantiates(inst.SourceSymbol, targetType, inst.Line, ResolutionConfidence.Exact);
+                }
+
+                // 3. Risoluzione Ereditarietà e Interfacce Java (INHERITS / IMPLEMENTS da 'extends' o 'implements')
+                foreach (var inh in javaResult.Inheritances)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var baseType = _symbolResolver.TypeResolver.ResolveType(inh.BaseOrInterfaceTypeName).UserTypeSymbol;
+                    if (baseType != null)
+                    {
+                        if (inh.DerivedTypeSymbol.Kind == SymbolKind.Interface || (!inh.IsInterface && baseType.Kind != SymbolKind.Interface))
                             _graph.AddInherits(inh.DerivedTypeSymbol, baseType, inh.Line);
                         else
                         {

@@ -1,7 +1,7 @@
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Descrittore di un progetto VB6 all'interno di un Workspace (singolo o multi-progetto).
+/// Descrittore di un progetto (VB6, C# o Java) all'interno di un Workspace (singolo o multi-progetto).
 /// </summary>
 public sealed class ProjectDescriptor
 {
@@ -10,11 +10,13 @@ public sealed class ProjectDescriptor
     public required string FolderPath { get; init; }
     public string? VbpPath { get; init; }
     public string? CsprojPath { get; init; }
-    public string? ProjectFilePath => VbpPath ?? CsprojPath;
+    public string? PomXmlPath { get; init; }
+    public string? GradlePath { get; init; }
+    public string? ProjectFilePath => VbpPath ?? CsprojPath ?? PomXmlPath ?? GradlePath;
     public List<string> SourceFiles { get; init; } = new();
 
     /// <summary>
-    /// Ispeziona un insieme di percorsi (cartelle, file .vbp, .vbg, .csproj, .sln o file sorgente)
+    /// Ispeziona un insieme di percorsi (cartelle, file .vbp, .vbg, .csproj, .sln, pom.xml, build.gradle o file sorgente)
     /// e restituisce i descrittori di tutti i progetti individuati.
     /// </summary>
     /// <param name="paths">Percorsi di cartelle o file di progetto.</param>
@@ -33,7 +35,9 @@ public sealed class ProjectDescriptor
 
             if (File.Exists(fullPath))
             {
+                var fileName = Path.GetFileName(fullPath).ToLowerInvariant();
                 var ext = Path.GetExtension(fullPath).ToLowerInvariant();
+
                 if (ext == ".vbg")
                 {
                     // Visual Basic Group file
@@ -73,18 +77,36 @@ public sealed class ProjectDescriptor
                         descriptors.Add(proj);
                     }
                 }
-                else if (ext is ".cs" or ".cls" or ".bas" or ".frm" or ".ctl")
+                else if (fileName == "pom.xml")
+                {
+                    if (seenProjectFiles.Add(fullPath))
+                    {
+                        var proj = ParsePomXmlFile(fullPath, cancellationToken);
+                        descriptors.Add(proj);
+                    }
+                }
+                else if (fileName is "build.gradle" or "build.gradle.kts")
+                {
+                    if (seenProjectFiles.Add(fullPath))
+                    {
+                        var proj = ParseGradleFile(fullPath, cancellationToken);
+                        descriptors.Add(proj);
+                    }
+                }
+                else if (ext is ".java" or ".cs" or ".cls" or ".bas" or ".frm" or ".ctl")
                 {
                     // File singolo
                     var folder = Path.GetDirectoryName(fullPath) ?? "";
-                    var fileName = Path.GetFileNameWithoutExtension(fullPath);
+                    var baseName = Path.GetFileNameWithoutExtension(fullPath);
                     descriptors.Add(new ProjectDescriptor
                     {
                         Id = Guid.NewGuid(),
-                        Name = fileName,
+                        Name = baseName,
                         FolderPath = folder,
-                        VbpPath = ext != ".cs" ? null : null,
+                        VbpPath = null,
                         CsprojPath = null,
+                        PomXmlPath = null,
+                        GradlePath = null,
                         SourceFiles = new List<string> { fullPath }
                     });
                 }
@@ -129,7 +151,7 @@ public sealed class ProjectDescriptor
                     if (descriptors.Count > 0) continue;
                 }
 
-                // 2. Cerca file .csproj o .vbp nella cartella o sottocartelle
+                // 2. Cerca file .csproj, .vbp, pom.xml o build.gradle nella cartella o sottocartelle
                 cancellationToken.ThrowIfCancellationRequested();
                 var csprojFiles = Directory.GetFiles(fullPath, "*.csproj", SearchOption.AllDirectories)
                     .Where(f => !IsInIgnoredFolder(f))
@@ -138,7 +160,17 @@ public sealed class ProjectDescriptor
                 cancellationToken.ThrowIfCancellationRequested();
                 var vbpFiles = Directory.GetFiles(fullPath, "*.vbp", SearchOption.AllDirectories);
 
-                if (csprojFiles.Length > 0 || vbpFiles.Length > 0)
+                cancellationToken.ThrowIfCancellationRequested();
+                var pomFiles = Directory.GetFiles(fullPath, "pom.xml", SearchOption.AllDirectories)
+                    .Where(f => !IsInIgnoredFolder(f))
+                    .ToArray();
+
+                cancellationToken.ThrowIfCancellationRequested();
+                var gradleFiles = Directory.GetFiles(fullPath, "build.gradle*", SearchOption.AllDirectories)
+                    .Where(f => !IsInIgnoredFolder(f) && (f.EndsWith("build.gradle", StringComparison.OrdinalIgnoreCase) || f.EndsWith("build.gradle.kts", StringComparison.OrdinalIgnoreCase)))
+                    .ToArray();
+
+                if (csprojFiles.Length > 0 || vbpFiles.Length > 0 || pomFiles.Length > 0 || gradleFiles.Length > 0)
                 {
                     foreach (var csprojFile in csprojFiles)
                     {
@@ -153,10 +185,24 @@ public sealed class ProjectDescriptor
                         if (seenProjectFiles.Add(vbpFile))
                             descriptors.Add(ParseVbpFile(vbpFile, cancellationToken));
                     }
+
+                    foreach (var pomFile in pomFiles)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        if (seenProjectFiles.Add(pomFile))
+                            descriptors.Add(ParsePomXmlFile(pomFile, cancellationToken));
+                    }
+
+                    foreach (var gradleFile in gradleFiles)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        if (seenProjectFiles.Add(gradleFile))
+                            descriptors.Add(ParseGradleFile(gradleFile, cancellationToken));
+                    }
                 }
                 else
                 {
-                    // 3. Nessun file di progetto (.csproj/.vbp/.sln/.vbg): scansione dei file sorgente
+                    // 3. Nessun file di progetto: scansione dei file sorgente (VB6, C#, Java)
                     cancellationToken.ThrowIfCancellationRequested();
                     var subDirs = Directory.GetDirectories(fullPath).Where(d => !IsInIgnoredFolder(d)).ToArray();
                     var foundInSubDirs = false;
@@ -178,6 +224,8 @@ public sealed class ProjectDescriptor
                                     FolderPath = subDir,
                                     VbpPath = null,
                                     CsprojPath = null,
+                                    PomXmlPath = null,
+                                    GradlePath = null,
                                     SourceFiles = subFiles
                                 });
                             }
@@ -197,6 +245,8 @@ public sealed class ProjectDescriptor
                                 FolderPath = fullPath,
                                 VbpPath = null,
                                 CsprojPath = null,
+                                PomXmlPath = null,
+                                GradlePath = null,
                                 SourceFiles = files
                             });
                     }
@@ -214,7 +264,8 @@ public sealed class ProjectDescriptor
         cancellationToken.ThrowIfCancellationRequested();
         return Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories)
             .Where(f => !IsInIgnoredFolder(f) &&
-                        (f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
+                        (f.EndsWith(".java", StringComparison.OrdinalIgnoreCase) ||
+                         f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
                          f.EndsWith(".cls", StringComparison.OrdinalIgnoreCase) ||
                          f.EndsWith(".bas", StringComparison.OrdinalIgnoreCase) ||
                          f.EndsWith(".frm", StringComparison.OrdinalIgnoreCase) ||
@@ -228,10 +279,85 @@ public sealed class ProjectDescriptor
         var parts = path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         return parts.Any(p => p.Equals("bin", StringComparison.OrdinalIgnoreCase) ||
                               p.Equals("obj", StringComparison.OrdinalIgnoreCase) ||
+                              p.Equals("target", StringComparison.OrdinalIgnoreCase) ||
+                              p.Equals(".gradle", StringComparison.OrdinalIgnoreCase) ||
+                              p.Equals(".mvn", StringComparison.OrdinalIgnoreCase) ||
                               p.Equals(".git", StringComparison.OrdinalIgnoreCase) ||
                               p.Equals(".vs", StringComparison.OrdinalIgnoreCase) ||
                               p.Equals(".idea", StringComparison.OrdinalIgnoreCase) ||
                               p.Equals("node_modules", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Esegue il parsing di un file di configurazione Maven ('pom.xml') e individua tutti i file sorgente Java (.java) associati.
+    /// Estrae il nome del progetto da &lt;artifactId&gt; o &lt;name&gt;, oppure ricorre al nome della cartella genitrice come fallback.
+    /// </summary>
+    /// <param name="pomXmlPath">Percorso assoluto del file pom.xml.</param>
+    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere la scansione.</param>
+    /// <returns>Il descrittore del progetto Maven popolato con l'elenco dei file sorgente Java.</returns>
+    public static ProjectDescriptor ParsePomXmlFile(string pomXmlPath, CancellationToken cancellationToken = default)
+    {
+        var folder = Path.GetDirectoryName(pomXmlPath) ?? "";
+        var projName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+        // Prova a leggere <artifactId> o <name> dal file pom.xml
+        try
+        {
+            if (File.Exists(pomXmlPath))
+            {
+                var content = File.ReadAllText(pomXmlPath);
+                var artMatch = System.Text.RegularExpressions.Regex.Match(content, @"<artifactId>\s*([^<\r\n]+)\s*</artifactId>");
+                if (artMatch.Success && !string.IsNullOrWhiteSpace(artMatch.Groups[1].Value))
+                    projName = artMatch.Groups[1].Value.Trim();
+            }
+        }
+        catch
+        {
+            // Ignora errori di parsing del pom.xml ed usa il nome della cartella come fallback resiliente
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var sourceFiles = Directory.GetFiles(folder, "*.java", SearchOption.AllDirectories)
+            .Where(f => !IsInIgnoredFolder(f))
+            .OrderBy(f => Path.GetFileName(f))
+            .ToList();
+
+        return new ProjectDescriptor
+        {
+            Id = Guid.NewGuid(),
+            Name = string.IsNullOrEmpty(projName) ? "Java Maven Project" : projName,
+            FolderPath = folder,
+            PomXmlPath = pomXmlPath,
+            SourceFiles = sourceFiles
+        };
+    }
+
+    /// <summary>
+    /// Esegue il parsing di uno script di build Gradle ('build.gradle' o 'build.gradle.kts') e raccoglie tutti i file .java.
+    /// Utilizza il nome della directory del modulo come nome del progetto.
+    /// </summary>
+    /// <param name="gradlePath">Percorso assoluto del file build.gradle o build.gradle.kts.</param>
+    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
+    /// <returns>Il descrittore del progetto Gradle con l'elenco completo dei file sorgente Java trovati.</returns>
+    public static ProjectDescriptor ParseGradleFile(string gradlePath, CancellationToken cancellationToken = default)
+    {
+        var folder = Path.GetDirectoryName(gradlePath) ?? "";
+        var projName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var sourceFiles = Directory.GetFiles(folder, "*.java", SearchOption.AllDirectories)
+            .Where(f => !IsInIgnoredFolder(f))
+            .OrderBy(f => Path.GetFileName(f))
+            .ToList();
+
+        return new ProjectDescriptor
+        {
+            Id = Guid.NewGuid(),
+            Name = string.IsNullOrEmpty(projName) ? "Java Gradle Project" : projName,
+            FolderPath = folder,
+            GradlePath = gradlePath,
+            SourceFiles = sourceFiles
+        };
     }
 
     public static ProjectDescriptor ParseCsprojFile(string csprojPath, CancellationToken cancellationToken = default)
