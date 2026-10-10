@@ -47,6 +47,7 @@ $ErrorActionPreference = "Stop"
 $workspaceRoot = Split-Path -Parent $PSScriptRoot
 $bumpScript = Join-Path $PSScriptRoot "bump-version.ps1"
 $publishScript = Join-Path $PSScriptRoot "publish-single-file.ps1"
+$installerScript = Join-Path $PSScriptRoot "build-installer.ps1"
 $testsScript = Join-Path $PSScriptRoot "run-tests.ps1"
 
 Write-Host "==========================================================" -ForegroundColor Cyan
@@ -56,7 +57,7 @@ Write-Host "==========================================================" -Foregro
 
 # 0. (Opzionale) Esecuzione preliminare test suite
 if ($RunTests) {
-    Write-Host "`n>>> [STEP 0/2] Esecuzione suite di test automatizzati..." -ForegroundColor Magenta
+    Write-Host "`n>>> [STEP 0/3] Esecuzione suite di test automatizzati..." -ForegroundColor Magenta
     if (Test-Path $testsScript) {
         & $testsScript
         if ($LASTEXITCODE -ne 0) {
@@ -69,7 +70,7 @@ if ($RunTests) {
 }
 
 # 1. Bump Versione
-Write-Host "`n>>> [STEP 1/2] Sincronizzazione della versione v$NewVersion..." -ForegroundColor Magenta
+Write-Host "`n>>> [STEP 1/3] Sincronizzazione della versione v$NewVersion..." -ForegroundColor Magenta
 if (-not (Test-Path $bumpScript)) {
     Write-Host "Errore: Script bump-version.ps1 non trovato in $bumpScript" -ForegroundColor Red
     exit 1
@@ -82,8 +83,8 @@ if (-not $? -or $global:LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# 2. Pubblicazione Singolo Eseguibile
-Write-Host "`n>>> [STEP 2/2] Pubblicazione dell'eseguibile unico (Single-File Windows x64)..." -ForegroundColor Magenta
+# 2. Pubblicazione Singolo Eseguibile Portable
+Write-Host "`n>>> [STEP 2/3] Pubblicazione dell'eseguibile unico (Single-File Windows x64)..." -ForegroundColor Magenta
 if (-not (Test-Path $publishScript)) {
     Write-Host "Errore: Script publish-single-file.ps1 non trovato in $publishScript" -ForegroundColor Red
     exit 1
@@ -92,11 +93,25 @@ if (-not (Test-Path $publishScript)) {
 $global:LASTEXITCODE = 0
 & $publishScript
 if (-not $? -or $global:LASTEXITCODE -ne 0) {
-    Write-Host "`n[BLOCCO PIPELINE] Errore durante la pubblicazione del pacchetto." -ForegroundColor Red
+    Write-Host "`n[BLOCCO PIPELINE] Errore durante la pubblicazione del pacchetto portable." -ForegroundColor Red
     exit 1
 }
 
+# 3. Creazione Pacchetto Installer (Inno Setup)
+Write-Host "`n>>> [STEP 3/3] Compilazione pacchetto di installazione (Macondo-Setup.exe)..." -ForegroundColor Magenta
+if (Test-Path $installerScript) {
+    $global:LASTEXITCODE = 0
+    & $installerScript -Version $NewVersion
+    if (-not $? -or $global:LASTEXITCODE -ne 0) {
+        Write-Host "`n[BLOCCO PIPELINE] Errore durante la compilazione dell'installer." -ForegroundColor Red
+        exit 1
+    }
+} else {
+    Write-Host "Attenzione: Script build-installer.ps1 non trovato in $installerScript" -ForegroundColor Yellow
+}
+
 $outputExe = Join-Path $workspaceRoot "publish\win-x64\Macondo.exe"
+$setupExe = Join-Path $workspaceRoot "publish\win-x64\Macondo-Setup.exe"
 
 Write-Host "`n==========================================================" -ForegroundColor Green
 Write-Host "  RELEASE COMPLETATA CON SUCCESSO!                        " -ForegroundColor Green
@@ -104,7 +119,12 @@ Write-Host "  Versione: v$NewVersion                                  " -Foregro
 if (Test-Path $outputExe) {
     $exeItem = Get-Item $outputExe
     $sizeMb = [math]::Round($exeItem.Length / 1MB, 2)
-    Write-Host "  Eseguibile: $outputExe ($sizeMb MB)                    " -ForegroundColor Green
+    Write-Host "  Eseguibile Portable: $outputExe ($sizeMb MB)" -ForegroundColor Green
+}
+if (Test-Path $setupExe) {
+    $setupItem = Get-Item $setupExe
+    $setupSizeMb = [math]::Round($setupItem.Length / 1MB, 2)
+    Write-Host "  Windows Installer:   $setupExe ($setupSizeMb MB)" -ForegroundColor Green
 }
 Write-Host "==========================================================" -ForegroundColor Green
 
@@ -117,7 +137,8 @@ Write-Host @"
 $(if (-not [string]::IsNullOrWhiteSpace($NotesEn)) { "- " + $NotesEn } else { "- Release v$NewVersion" })
 
 ### Key Features & Improvements
-- Updated build and standalone portable single-file binary for Windows x64 (`Macondo.exe`).
+- Windows Installer package (`Macondo-Setup.exe`) for automated in-place updates and Start Menu / Desktop integration.
+- Standalone portable single-file binary for Windows x64 (`Macondo.exe`) for portable and CI/CD use.
 - Synchronized manifests, semantic versioning, and documentation.
 
 ### Italian Notes / Note in Italiano

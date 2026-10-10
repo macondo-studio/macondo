@@ -1,14 +1,14 @@
-﻿{
-    "version":  "1.5.0",
+{
+    "version":  "1.6.0",
     "title":  {
-                  "it":  "Macondo v1.5.0",
-                  "en":  "Macondo v1.5.0"
+                  "it":  "Macondo v1.6.0",
+                  "en":  "Macondo v1.6.0"
               },
     "releaseNotes":  {
-                         "it":  "Interfaccia a riga di comando (CLI) ed esportatori multi-formato (Markdown e JSON) per CI/CD e report batch.\nPannello di anteprima codice sorgente integrato in Symbol Inspector con metriche LOC e limiti righe configurabili.\nEsecuzione on-demand delle analisi con pulsante di stop, stima real-time del tempo rimanente e placeholder interattivi.\nCancellazione immediata dell\u0027analisi iniziale del progetto tramite token di cancellazione.\nMenu contestuale con tasto destro sulle schede per gestire e personalizzare la visibilità delle viste.\nFinestra impostazioni ridimensionabile con controlli di ingrandimento e ripristino.",
-                         "en":  "Comprehensive Command-Line Interface (CLI) and multi-format exporters (Markdown and JSON) for CI/CD automation.\nEmbedded source code preview panel in Symbol Inspector with LOC metrics and configurable line limits.\nOn-demand background analytics execution with stop controls, real-time remaining time estimation, and progress placeholders.\nInstant project analysis cancellation with deep cancellation token propagation.\nRight-click context menu on all tab headers to customize and toggle view visibility.\nResizable settings dialog with maximize and restore window controls."
+                         "it":  "Riordino interattivo delle schede di analisi centrali tramite drag-and-drop del mouse con persistenza dell\u0027ordine personalizzato utente tra le sessioni.\nIntegrazione di tutte le schede di analisi nell\u0027indice di ricerca globale con navigazione diretta indipendente dall\u0027ordine delle viste.\nPulsanti di chiusura dedicati su tutte le intestazioni delle schede di analisi e inspector con effetti hover e sincronizzazione con le impostazioni.\nPacchetto di installazione ufficiale per Windows (Macondo-Setup.exe) con rilevamento delle istanze attive, aggiornamenti in-place automatici e integrazione nel Menu Start e Desktop.\nModello di distribuzione ibrido con supporto continuativo per eseguibili standalone portabili per CI/CD e automazione CLI.",
+                         "en":  "Interactive drag-and-drop mouse reordering for central analysis tabs with persistent user custom order support.\nIntegrated all central analysis tabs into the global search index with direct tab item selection to ensure reliable navigation regardless of custom tab order.\nDedicated close buttons on all analytics and inspector tab headers with responsive hover effects and seamless settings synchronization.\nOfficial Windows Setup installer (Macondo-Setup.exe) featuring active instance detection, automated in-place updates, and Start Menu/Desktop integration.\nHybrid distribution model offering both guided installer and standalone portable binaries for CI/CD and CLI automation."
                      },
-    "downloadUrl":  "https://github.com/macondo-studio/macondo/releases/latest/download/Macondo.exe",
-    "publishedAt":  "2026-10-04T08:26:41Z",
+    "downloadUrl":  "https://github.com/macondo-studio/macondo/releases/latest/download/Macondo-Setup.exe",
+    "publishedAt":  "2026-10-07T20:56:11Z",
     "isMandatory":  false
 }
