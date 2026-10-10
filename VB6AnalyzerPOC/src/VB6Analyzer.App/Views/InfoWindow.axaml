@@ -312,7 +312,7 @@
                                         </Border>
                                         <TextBlock Classes="card-title" Text="Analizzatore Semantico Indipendente" />
                                     </DockPanel>
-                                    <TextBlock Classes="card-body" Text="Macondo analizza progetti direttamente dai file sorgente (.vbp, .frm, .bas, .cls, .ctl, .csproj, .cs) senza richiedere l'ambiente di sviluppo originale VB6 o runtime COM registrati nel registro di sistema. Effettua il parsing completo dell'AST (Abstract Syntax Tree) per comprendere tipi, dichiarazioni, visibilità, costrutti di controllo e relazioni di invocazione." />
+                                    <TextBlock Classes="card-body" Text="Macondo analizza progetti direttamente dai file sorgente (.vbp, .frm, .bas, .cls, .ctl, .csproj, .cs, .java, pom.xml, build.gradle) senza richiedere l'ambiente di sviluppo originale o runtime esterni registrati nel registro di sistema. Effettua il parsing completo dell'AST (Abstract Syntax Tree) per comprendere tipi, dichiarazioni, visibilità, costrutti di controllo e relazioni di invocazione." />
                                 </StackPanel>
                             </Border>
 
@@ -347,7 +347,7 @@
                                         </Border>
                                         <TextBlock Classes="card-title" Text="Independent Semantic Analyzer" />
                                     </DockPanel>
-                                    <TextBlock Classes="card-body" Text="Macondo analyzes projects directly from raw source code (.vbp, .frm, .bas, .cls, .ctl, .csproj, .cs) without requiring legacy IDE installations, COM runtime registrations, or external dependencies. It parses full AST trees to resolve types, declarations, scoping, control structures, and call relationships." />
+                                    <TextBlock Classes="card-body" Text="Macondo analyzes projects directly from raw source code (.vbp, .frm, .bas, .cls, .ctl, .csproj, .cs, .java, pom.xml, build.gradle) without requiring legacy IDE installations, runtime registrations, or external dependencies. It parses full AST trees to resolve types, declarations, scoping, control structures, and call relationships." />
                                 </StackPanel>
                             </Border>
 
