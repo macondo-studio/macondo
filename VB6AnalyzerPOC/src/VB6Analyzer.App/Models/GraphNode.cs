@@ -70,14 +70,20 @@ public sealed class GraphNode
             if (_language.HasValue && _language.Value != SourceLanguage.Unknown)
                 return _language.Value;
 
-            if (SemanticSymbol != null && SemanticSymbol.Language != SourceLanguage.Unknown)
-                return SemanticSymbol.Language;
-
+            // 1. Rilevamento primario dal percorso del file sorgente
             var detected = DetectLanguageFromPath();
             if (detected != SourceLanguage.Unknown)
                 return detected;
 
-            return SourceLanguage.VisualBasic6;
+            // 2. Rilevamento secondario dal simbolo semantico effettivo
+            if (SemanticSymbol != null)
+            {
+                var symLang = SemanticSymbol.GetEffectiveLanguage();
+                if (symLang != SourceLanguage.Unknown)
+                    return symLang;
+            }
+
+            return SourceLanguage.Unknown;
         }
         set => _language = value;
     }

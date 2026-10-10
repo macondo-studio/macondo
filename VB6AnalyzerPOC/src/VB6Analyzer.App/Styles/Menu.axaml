@@ -183,17 +183,9 @@
         <Setter Property="Fill" Value="{DynamicResource ThemeTextSecondaryBrush}" />
     </Style>
 
-    <Style Selector="MenuItem:pointerover /template/ Path#PART_ChevronPath">
-        <Setter Property="Fill" Value="{DynamicResource ThemeTextPrimaryBrush}" />
-    </Style>
-
     <!-- Icone delle voci di menu -->
     <Style Selector="MenuItem PathIcon">
         <Setter Property="Foreground" Value="{DynamicResource ThemeTextSecondaryBrush}" />
-    </Style>
-
-    <Style Selector="MenuItem:pointerover PathIcon">
-        <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
     </Style>
 
     <!-- ========================================== -->

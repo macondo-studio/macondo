@@ -268,8 +268,8 @@ public sealed class ImpactAnalyzer
         // ---------------------------------------------------------------------
         // PILASTRO 2: Individua i componenti che istanziano esplicitamente questo tipo (INSTANTIATES)
         // ---------------------------------------------------------------------
-        var instantiators = _graph.Relationships
-            .Where(r => r.Kind == RelationshipKind.Instantiates && r.TargetId == typeSymbol.Id)
+        var instantiators = _graph.GetIncomingRelationships(typeSymbol.Id)
+            .Where(r => r.Kind == RelationshipKind.Instantiates)
             .Select(r => _graph.FindSymbolById(r.SourceId))
             .Where(s => s != null)
             .Select(s => s!)
@@ -279,8 +279,8 @@ public sealed class ImpactAnalyzer
         // ---------------------------------------------------------------------
         // PILASTRO 3: Individua i simboli che usano questo tipo (USES_TYPE, IMPLEMENTS, INHERITS)
         // ---------------------------------------------------------------------
-        var typeDependents = _graph.Relationships
-            .Where(r => (r.Kind is RelationshipKind.UsesType or RelationshipKind.Implements or RelationshipKind.Inherits) && r.TargetId == typeSymbol.Id)
+        var typeDependents = _graph.GetIncomingRelationships(typeSymbol.Id)
+            .Where(r => r.Kind is RelationshipKind.UsesType or RelationshipKind.Implements or RelationshipKind.Inherits)
             .Select(r => _graph.FindSymbolById(r.SourceId))
             .Where(s => s != null)
             .Select(s => s!)
@@ -349,12 +349,11 @@ public sealed class ImpactAnalyzer
         if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module
                         or SymbolKind.UserControl or SymbolKind.Project
                         or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
-
             return symbol;
 
         // Cerca la relazione genitore CONTAINS (Source CONTAINS Target)
-        var parentRel = _graph.Relationships
-            .FirstOrDefault(r => r.Kind == RelationshipKind.Contains && r.TargetId == symbol.Id);
+        var parentRel = _graph.GetIncomingRelationships(symbol.Id)
+            .FirstOrDefault(r => r.Kind == RelationshipKind.Contains);
 
         if (parentRel != null)
         {
@@ -374,8 +373,8 @@ public sealed class ImpactAnalyzer
     /// <returns>La lista dei simboli dipendenti dal tipo.</returns>
     private IReadOnlyList<Symbol> GetTypeDependentsForSymbol(Symbol symbol)
     {
-        return _graph.Relationships
-            .Where(r => r.Kind == RelationshipKind.UsesType && r.TargetId == symbol.Id)
+        return _graph.GetIncomingRelationships(symbol.Id)
+            .Where(r => r.Kind == RelationshipKind.UsesType)
             .Select(r => _graph.FindSymbolById(r.SourceId))
             .Where(s => s != null)
             .Select(s => s!)

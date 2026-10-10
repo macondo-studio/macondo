@@ -40,6 +40,26 @@ public sealed class GraphControl : Control
     /// <summary>Sollevato quando cambiano i filtri di visibilità dei simboli.</summary>
     public event EventHandler? FilterChanged;
 
+    // =========================================================================
+    // OTTIMIZZAZIONI DI PERFORMANCE & CACHING DEI NODI VISIBILI
+    // =========================================================================
+    // L'insieme dei nodi visibili viene memorizzato nella cache per evitare di rieseguire
+    // la scansione O(N) e le allocazioni di HashSet<Guid> ad ogni frame di rendering o
+    // movimento del mouse (HitTest). La cache viene invalidata in modo mirato solo quando
+    // cambiano i filtri, la modalità di evidenziazione, il grafo o lo stato di espansione dei nodi.
+    private HashSet<Guid>? _cachedVisibleNodeIds;
+    private bool _isVisibilityCacheDirty = true;
+
+    /// <summary>
+    /// Invalida la cache dei nodi visibili, forzandone il ricalcolo al frame successivo
+    /// e richiedendo un ridisegno immediato del controllo.
+    /// </summary>
+    public void InvalidateVisibilityCache()
+    {
+        _isVisibilityCacheDirty = true;
+        InvalidateVisual();
+    }
+
     private bool _showMethods = true;
     public bool ShowMethods
     {
@@ -49,7 +69,7 @@ public sealed class GraphControl : Control
             if (_showMethods != value)
             {
                 _showMethods = value;
-                InvalidateVisual();
+                InvalidateVisibilityCache();
                 FilterChanged?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -64,7 +84,7 @@ public sealed class GraphControl : Control
             if (_showProperties != value)
             {
                 _showProperties = value;
-                InvalidateVisual();
+                InvalidateVisibilityCache();
                 FilterChanged?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -79,7 +99,7 @@ public sealed class GraphControl : Control
             if (_showFields != value)
             {
                 _showFields = value;
-                InvalidateVisual();
+                InvalidateVisibilityCache();
                 FilterChanged?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -94,7 +114,7 @@ public sealed class GraphControl : Control
             if (_showConstants != value)
             {
                 _showConstants = value;
-                InvalidateVisual();
+                InvalidateVisibilityCache();
                 FilterChanged?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -109,7 +129,7 @@ public sealed class GraphControl : Control
             if (_showTypesAndEnums != value)
             {
                 _showTypesAndEnums = value;
-                InvalidateVisual();
+                InvalidateVisibilityCache();
                 FilterChanged?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -121,6 +141,13 @@ public sealed class GraphControl : Control
     {
         get => _enableHoverSelection;
         set => _enableHoverSelection = value;
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == GraphProperty)
+            InvalidateVisibilityCache();
     }
 
     /// <summary>
@@ -138,7 +165,7 @@ public sealed class GraphControl : Control
         _showFields = fields;
         _showConstants = constants;
         _showTypesAndEnums = typesAndEnums;
-        InvalidateVisual();
+        InvalidateVisibilityCache();
         FilterChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -184,12 +211,11 @@ public sealed class GraphControl : Control
                 var isSelectedInProject = (_selectedNode.Kind == SymbolKind.Project && _selectedNode.Id == projectId) ||
                                           (_selectedNode.ProjectId == projectId);
                 if (isSelectedInProject)
-
                     SelectNode(null);
             }
         }
 
-        InvalidateVisual();
+        InvalidateVisibilityCache();
         ProjectVisibilityChanged?.Invoke(this, projectId);
     }
 
@@ -198,7 +224,7 @@ public sealed class GraphControl : Control
     {
         if (_hiddenProjectIds.Count == 0) return;
         _hiddenProjectIds.Clear();
-        InvalidateVisual();
+        InvalidateVisibilityCache();
         ProjectVisibilityChanged?.Invoke(this, Guid.Empty);
     }
 
@@ -338,17 +364,42 @@ public sealed class GraphControl : Control
             return;
         }
 
-        var visibleIds = ComputeVisibleNodeIds(graph);
+        // Verifica e aggiorna la cache dei nodi visibili solo se contrassegnata come dirty.
+        // Evita di rieseguire ComputeVisibleNodeIds (scansione lineare di tutti i simboli con allocazione di un nuovo HashSet)
+        // a ogni singolo frame di rendering (es. durante pan o zoom continui).
+        if (_isVisibilityCacheDirty || _cachedVisibleNodeIds == null)
+        {
+            _cachedVisibleNodeIds = ComputeVisibleNodeIds(graph);
+            _isVisibilityCacheDirty = false;
+        }
 
-        // 1. Disegna gli ARCHI (sotto ai nodi)
+        var visibleIds = _cachedVisibleNodeIds;
+        var viewWidth = Bounds.Width;
+        var viewHeight = Bounds.Height;
+
+        // 1. Disegna gli ARCHI (sotto ai nodi) con Viewport Culling bidimensionale
         foreach (var edge in graph.Edges)
         {
+            // Salta gli archi i cui nodi estremi non sono entrambi visibili nella gerarchia attiva
             if (!visibleIds.Contains(edge.SourceId) || !visibleIds.Contains(edge.TargetId))
                 continue;
 
             var source = graph.GetNode(edge.SourceId);
             var target = graph.GetNode(edge.TargetId);
             if (source is null || target is null) continue;
+
+            var p1 = GraphToScreen(source.X, source.Y);
+            var p2 = GraphToScreen(target.X, target.Y);
+
+            // Viewport edge culling: scarta l'arco se entrambi i nodi estremi ricadono interamente all'esterno
+            // dello stesso lato dell'area visibile del canvas (con margine di tolleranza di 50px per evitare glitch sui bordi).
+            var minX = Math.Min(p1.X, p2.X);
+            var maxX = Math.Max(p1.X, p2.X);
+            var minY = Math.Min(p1.Y, p2.Y);
+            var maxY = Math.Max(p1.Y, p2.Y);
+
+            if (maxX < -50 || minX > viewWidth + 50 || maxY < -50 || minY > viewHeight + 50)
+                continue;
 
             var isCalleeEdge = _currentHighlightMode == HighlightMode.Callees && _calleeEdgeIds.Contains((edge.SourceId, edge.TargetId));
             var isCallerEdge = _currentHighlightMode == HighlightMode.Callers && _callerEdgeIds.Contains((edge.SourceId, edge.TargetId));
@@ -359,42 +410,24 @@ public sealed class GraphControl : Control
 
             IPen pen;
             if (isCalleeEdge)
-
                 pen = EdgeCalleePen;
-
             else if (isCallerEdge)
-
-    pen = EdgeCallerPen;
-
-else if (isBlastRadiusEdge)
-
-    pen = EdgeBlastRadiusPen;
-
-else if (isHighlighted)
-
-    pen = EdgeHighlightPen;
-
-else if (_currentHighlightMode is HighlightMode.Callees or HighlightMode.Callers or HighlightMode.BlastRadius)
-
-    pen = _edgeDimmedPen;
-
-else if (edge.IsCrossProject)
-
-    pen = EdgeCrossProjectPen;
-
-else
-            {
+                pen = EdgeCallerPen;
+            else if (isBlastRadiusEdge)
+                pen = EdgeBlastRadiusPen;
+            else if (isHighlighted)
+                pen = EdgeHighlightPen;
+            else if (_currentHighlightMode is HighlightMode.Callees or HighlightMode.Callers or HighlightMode.BlastRadius)
+                pen = _edgeDimmedPen;
+            else if (edge.IsCrossProject)
+                pen = EdgeCrossProjectPen;
+            else
                 pen = GetPenForEdgeKind(edge.Kind);
-            }
-
-            var p1 = GraphToScreen(source.X, source.Y);
-            var p2 = GraphToScreen(target.X, target.Y);
 
             context.DrawLine(pen, p1, p2);
 
             // Disegna freccia direzionale su chiamate, eventi, istanziazioni o archi attivi/cross-project
             if ((isCalleeEdge || isCallerEdge || edge.IsCrossProject || edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.HandlesEvent) && _scale > 0.25)
-
                 DrawArrowHead(context, pen.Brush, p1, p2, target.Radius * Math.Clamp(_scale, 0.2, 2.5));
         }
 
@@ -925,7 +958,7 @@ else
         if (hit is { IsContainer: true })
         {
             hit.IsExpanded = !hit.IsExpanded;
-            InvalidateVisual();
+            InvalidateVisibilityCache();
         }
 
         e.Handled = true;
@@ -953,6 +986,7 @@ else
     /// Esegue il rilevamento del nodo sotto il cursore (Hit Testing) nello spazio coordinate del grafo.
     /// Considera solo i nodi attualmente visibili, calcola la distanza euclidea al quadrato e adatta
     /// la tolleranza di selezione (hit radius) in funzione del fattore di zoom corrente.
+    /// Utilizza la cache dei nodi visibili per garantire risposta istantanea a 0 allocazioni durante il puntamento del mouse.
     /// </summary>
     /// <param name="graphPoint">Coordinate del puntatore convertite nello spazio cartesiano del grafo.</param>
     /// <returns>Il <see cref="GraphNode"/> più vicino entro il raggio di tolleranza, oppure null.</returns>
@@ -961,10 +995,19 @@ else
         var graph = Graph;
         if (graph is null) return null;
 
-        var visibleIds = ComputeVisibleNodeIds(graph);
+        // Riutilizza l'insieme dei nodi visibili in cache: fondamentale per non allocare
+        // un nuovo HashSet<Guid> ad ogni micro-movimento del cursore del mouse (OnPointerMoved).
+        if (_isVisibilityCacheDirty || _cachedVisibleNodeIds == null)
+        {
+            _cachedVisibleNodeIds = ComputeVisibleNodeIds(graph);
+            _isVisibilityCacheDirty = false;
+        }
+
+        var visibleIds = _cachedVisibleNodeIds;
         GraphNode? best = null;
         var bestDistSq = double.MaxValue;
 
+        // Scansiona solo i nodi appartenenti alla gerarchia visibile corrente
         foreach (var node in graph.Nodes)
         {
             if (!visibleIds.Contains(node.Id)) continue;
@@ -972,6 +1015,8 @@ else
             var dx = node.X - graphPoint.X;
             var dy = node.Y - graphPoint.Y;
             var distSq = dx * dx + dy * dy;
+
+            // Raggio di selezione adattivo scalato con il fattore di zoom (minimo 6px di tolleranza)
             var hitRadius = node.Radius / Math.Max(_scale, 0.002) + 6.0;
 
             if (distSq <= hitRadius * hitRadius && distSq < bestDistSq)
@@ -1026,14 +1071,11 @@ else
             _highlightedNodeIds.Add(node.Id);
 
             if (node.IsContainer)
-
                 node.IsExpanded = true;
-
             else if (node.ParentId.HasValue)
             {
                 var parent = graph.GetNode(node.ParentId.Value);
                 if (parent is not null)
-
                     parent.IsExpanded = true;
             }
 
@@ -1052,7 +1094,7 @@ else
             }
         }
 
-        InvalidateVisual();
+        InvalidateVisibilityCache();
         SelectionChanged?.Invoke(this, node);
     }
 
@@ -1076,13 +1118,11 @@ else
             foreach (var childNode in Graph.GetChildren(_selectedNode.Id))
             {
                 if (childNode.SemanticSymbol is not null && childNode.Kind is SymbolKind.Method or SymbolKind.Property)
-
                     symbolsToQuery.Add(childNode.SemanticSymbol);
             }
         }
         else if (_selectedNode.SemanticSymbol is not null)
-
-    symbolsToQuery.Add(_selectedNode.SemanticSymbol);
+            symbolsToQuery.Add(_selectedNode.SemanticSymbol);
 
         if (symbolsToQuery.Count == 0)
             return Array.Empty<Symbol>();
@@ -1108,7 +1148,6 @@ else
                     {
                         _callerContainerIds.Add(callerNode.ParentId.Value);
                         if (Graph.GetNode(callerNode.ParentId.Value) is { } parentNode)
-
                             parentNode.IsExpanded = true;
                     }
                 }
@@ -1117,11 +1156,10 @@ else
 
         // Espandi il container padre del nodo selezionato se presente
         if (_selectedNode.ParentId.HasValue && Graph.GetNode(_selectedNode.ParentId.Value) is { } selParent)
-
             selParent.IsExpanded = true;
 
         _currentHighlightMode = HighlightMode.Callers;
-        InvalidateVisual();
+        InvalidateVisibilityCache();
         return resultList;
     }
 
@@ -1145,13 +1183,11 @@ else
             foreach (var childNode in Graph.GetChildren(_selectedNode.Id))
             {
                 if (childNode.SemanticSymbol is not null && childNode.Kind is SymbolKind.Method or SymbolKind.Property)
-
                     symbolsToQuery.Add(childNode.SemanticSymbol);
             }
         }
         else if (_selectedNode.SemanticSymbol is not null)
-
-    symbolsToQuery.Add(_selectedNode.SemanticSymbol);
+            symbolsToQuery.Add(_selectedNode.SemanticSymbol);
 
         if (symbolsToQuery.Count == 0)
             return Array.Empty<Symbol>();
@@ -1177,7 +1213,6 @@ else
                     {
                         _calleeContainerIds.Add(calleeNode.ParentId.Value);
                         if (Graph.GetNode(calleeNode.ParentId.Value) is { } parentNode)
-
                             parentNode.IsExpanded = true;
                     }
                 }
@@ -1186,11 +1221,10 @@ else
 
         // Espandi il container padre del nodo selezionato se presente
         if (_selectedNode.ParentId.HasValue && Graph.GetNode(_selectedNode.ParentId.Value) is { } selParent)
-
             selParent.IsExpanded = true;
 
         _currentHighlightMode = HighlightMode.Callees;
-        InvalidateVisual();
+        InvalidateVisibilityCache();
         return resultList;
     }
 
@@ -1225,7 +1259,7 @@ else
         foreach (var m in report.AffectedModules) _affectedContainerIds.Add(m.Id);
 
         _currentHighlightMode = HighlightMode.BlastRadius;
-        InvalidateVisual();
+        InvalidateVisibilityCache();
     }
 
     /// <summary>
@@ -1236,7 +1270,7 @@ else
         ClearInternalHighlightState();
         _activeBlastRadiusReport = null;
         _currentHighlightMode = HighlightMode.Normal;
-        InvalidateVisual();
+        InvalidateVisibilityCache();
     }
 
     /// <summary>

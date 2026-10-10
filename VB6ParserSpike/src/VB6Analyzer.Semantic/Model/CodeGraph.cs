@@ -47,6 +47,16 @@ public sealed class CodeGraph
     private Dictionary<Guid, List<Symbol>> _childrenByParentId = new();
 
     /// <summary>
+    /// Mappa indicizzata ID Sorgente -> Lista delle relazioni uscenti per query O(1).
+    /// </summary>
+    private Dictionary<Guid, List<Relationship>> _outgoingBySourceId = new();
+
+    /// <summary>
+    /// Mappa indicizzata ID Destinazione -> Lista delle relazioni entranti per query O(1).
+    /// </summary>
+    private Dictionary<Guid, List<Relationship>> _incomingByTargetId = new();
+
+    /// <summary>
     /// Conteggio dei simboli all'ultima sincronizzazione dell'indice (marcato volatile per visibilità cross-thread).
     /// </summary>
     private volatile int _lastIndexedSymbolCount = -1;
@@ -92,11 +102,11 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Sincronizza l'indice gerarchico di contenimento (relazioni CONTAINS) e le chiavi di deduplicazione.
+    /// Sincronizza l'indice gerarchico di contenimento (relazioni CONTAINS), le liste di adiacenza uscenti/entranti e le chiavi di deduplicazione.
     /// 
     /// STRATEGIA THREAD-SAFE:
-    /// Costruisce una nuova mappa di adiacenza e un nuovo set di deduplicazione in isolamento locale,
-    /// scambiando i riferimenti <see cref="_childrenByParentId"/> e <see cref="_relationshipKeys"/> atomicamente.
+    /// Costruisce le nuove mappe di adiacenza e il nuovo set di deduplicazione in isolamento locale,
+    /// scambiando i riferimenti atomicamente.
     /// </summary>
     private void EnsureContainsIndexed()
     {
@@ -112,11 +122,29 @@ public sealed class CodeGraph
 
             var newKeys = new HashSet<(Guid SourceId, Guid TargetId, RelationshipKind Kind)>(Relationships.Count);
             var newChildren = new Dictionary<Guid, List<Symbol>>();
+            var newOutgoing = new Dictionary<Guid, List<Relationship>>();
+            var newIncoming = new Dictionary<Guid, List<Relationship>>();
             var currentSymbols = _symbolsById;
 
             foreach (var rel in Relationships)
             {
                 newKeys.Add((rel.SourceId, rel.TargetId, rel.Kind));
+
+                // Adiacenza Uscente (Source -> Relationships)
+                if (!newOutgoing.TryGetValue(rel.SourceId, out var outList))
+                {
+                    outList = new List<Relationship>();
+                    newOutgoing[rel.SourceId] = outList;
+                }
+                outList.Add(rel);
+
+                // Adiacenza Entrante (Target -> Relationships)
+                if (!newIncoming.TryGetValue(rel.TargetId, out var inList))
+                {
+                    inList = new List<Relationship>();
+                    newIncoming[rel.TargetId] = inList;
+                }
+                inList.Add(rel);
 
                 if (rel.Kind == RelationshipKind.Contains)
                 {
@@ -127,13 +155,14 @@ public sealed class CodeGraph
                     }
 
                     if (currentSymbols.TryGetValue(rel.TargetId, out var childSym))
-
                         list.Add(childSym);
                 }
             }
 
             _relationshipKeys = newKeys;
             _childrenByParentId = newChildren;
+            _outgoingBySourceId = newOutgoing;
+            _incomingByTargetId = newIncoming;
             _lastIndexedRelCount = Relationships.Count;
             _lastIndexedContainsSymbolCount = Symbols.Count;
         }
@@ -382,5 +411,27 @@ public sealed class CodeGraph
         EnsureSymbolsIndexed();
         var map = _symbolsById;
         return map.TryGetValue(id, out var symbol) ? symbol : null;
+    }
+
+    /// <summary>
+    /// Restituisce tutte le relazioni uscenti con origine nel simbolo specificato (SourceId).
+    /// Esecuzione istantanea O(1) tramite lista di adiacenza indicizzata. Thread-safe.
+    /// </summary>
+    public IReadOnlyList<Relationship> GetOutgoingRelationships(Guid sourceId)
+    {
+        EnsureContainsIndexed();
+        var map = _outgoingBySourceId;
+        return map.TryGetValue(sourceId, out var rels) ? rels : Array.Empty<Relationship>();
+    }
+
+    /// <summary>
+    /// Restituisce tutte le relazioni entranti con destinazione nel simbolo specificato (TargetId).
+    /// Esecuzione istantanea O(1) tramite lista di adiacenza indicizzata. Thread-safe.
+    /// </summary>
+    public IReadOnlyList<Relationship> GetIncomingRelationships(Guid targetId)
+    {
+        EnsureContainsIndexed();
+        var map = _incomingByTargetId;
+        return map.TryGetValue(targetId, out var rels) ? rels : Array.Empty<Relationship>();
     }
 }

@@ -136,6 +136,7 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
                     QualifiedName = $"{_moduleSymbol.Name}.{controlName}",
                     DeclaredTypeName = controlType,
                     Accessibility = Accessibility.Private,
+                    Language = SourceLanguage.VisualBasic6,
                     FilePath = _filePath,
                     LineStart = context.Start.Line,
                     LineEnd = context.Stop?.Line ?? context.Start.Line
@@ -614,6 +615,7 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             Kind = kind,
             Name = name,
             QualifiedName = $"{CurrentContainer.QualifiedName}.{name}",
+            Language = SourceLanguage.VisualBasic6,
             FilePath = _filePath,
             LineStart = context.Start.Line,
             LineEnd = context.Stop?.Line ?? context.Start.Line
@@ -640,6 +642,7 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
             Kind = SymbolKind.Property,
             Name = name,
             QualifiedName = $"{_moduleSymbol.QualifiedName}.{name}",
+            Language = SourceLanguage.VisualBasic6,
             FilePath = _filePath,
             LineStart = context.Start.Line,
             LineEnd = context.Stop?.Line ?? context.Start.Line

@@ -258,15 +258,13 @@ public sealed class ProjectCacheService
 
             List<string> tabsToSave;
             if (enabledAnalyticsTabs != null)
-
                 tabsToSave = enabledAnalyticsTabs.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-
             else if (File.Exists(cacheFile))
             {
                 try
                 {
-                    var existingJson = File.ReadAllText(cacheFile);
-                    var existingSnapshot = JsonSerializer.Deserialize<ProjectCacheSnapshot>(existingJson, _jsonOptions);
+                    using var readFs = File.OpenRead(cacheFile);
+                    var existingSnapshot = JsonSerializer.Deserialize<ProjectCacheSnapshot>(readFs, _jsonOptions);
                     tabsToSave = existingSnapshot?.EnabledAnalyticsTabs ?? new List<string>();
                 }
                 catch
@@ -283,8 +281,10 @@ public sealed class ProjectCacheService
 
             var tempFile = cacheFile + ".tmp";
 
-            var json = JsonSerializer.Serialize(snapshot, _jsonOptions);
-            File.WriteAllText(tempFile, json);
+            using (var writeFs = File.Create(tempFile))
+            {
+                JsonSerializer.Serialize(writeFs, snapshot, _jsonOptions);
+            }
             File.Move(tempFile, cacheFile, overwrite: true);
         }
         catch
@@ -322,8 +322,11 @@ public sealed class ProjectCacheService
             if (!File.Exists(cacheFile))
                 return;
 
-            var json = File.ReadAllText(cacheFile);
-            var snapshot = JsonSerializer.Deserialize<ProjectCacheSnapshot>(json, _jsonOptions);
+            ProjectCacheSnapshot? snapshot;
+            using (var readFs = File.OpenRead(cacheFile))
+            {
+                snapshot = JsonSerializer.Deserialize<ProjectCacheSnapshot>(readFs, _jsonOptions);
+            }
             if (snapshot is null) return;
 
             snapshot.HasCustomUserLayout = hasCustomUserLayout;
@@ -336,8 +339,10 @@ public sealed class ProjectCacheService
             }).ToList();
 
             var tempFile = cacheFile + ".tmp";
-            var updatedJson = JsonSerializer.Serialize(snapshot, _jsonOptions);
-            File.WriteAllText(tempFile, updatedJson);
+            using (var writeFs = File.Create(tempFile))
+            {
+                JsonSerializer.Serialize(writeFs, snapshot, _jsonOptions);
+            }
             File.Move(tempFile, cacheFile, overwrite: true);
         }
         catch
@@ -370,15 +375,20 @@ public sealed class ProjectCacheService
             if (!File.Exists(cacheFile))
                 return;
 
-            var json = File.ReadAllText(cacheFile);
-            var snapshot = JsonSerializer.Deserialize<ProjectCacheSnapshot>(json, _jsonOptions);
+            ProjectCacheSnapshot? snapshot;
+            using (var readFs = File.OpenRead(cacheFile))
+            {
+                snapshot = JsonSerializer.Deserialize<ProjectCacheSnapshot>(readFs, _jsonOptions);
+            }
             if (snapshot is null) return;
 
             snapshot.EnabledAnalyticsTabs = enabledTabs.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
             var tempFile = cacheFile + ".tmp";
-            var updatedJson = JsonSerializer.Serialize(snapshot, _jsonOptions);
-            File.WriteAllText(tempFile, updatedJson);
+            using (var writeFs = File.Create(tempFile))
+            {
+                JsonSerializer.Serialize(writeFs, snapshot, _jsonOptions);
+            }
             File.Move(tempFile, cacheFile, overwrite: true);
         }
         catch
@@ -444,7 +454,7 @@ public sealed class ProjectCacheService
     }
 
     /// <summary>
-    /// Ispeziona i file sorgente VB6 e C# (.cls, .bas, .frm, .ctl, .cs, .csproj, .sln, .vbp, .vbg, .vb) nella directory specificata per calcolare
+    /// Ispeziona i file sorgente VB6, C# e Java (.cls, .bas, .frm, .ctl, .cs, .csproj, .sln, .vbp, .vbg, .vb, .java, pom.xml, gradle) nella directory specificata per calcolare
     /// il numero totale di file e l'ultimo timestamp di modifica UTC, utile a verificare lo stato di staleness della cache.
     /// </summary>
     private static (int FileCount, DateTime LatestWriteUtc) GetFolderSourceStats(string folderPath)
@@ -459,7 +469,11 @@ public sealed class ProjectCacheService
                         f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
                         f.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) ||
                         f.EndsWith(".sln", StringComparison.OrdinalIgnoreCase) ||
-                        f.EndsWith(".vb", StringComparison.OrdinalIgnoreCase))
+                        f.EndsWith(".vb", StringComparison.OrdinalIgnoreCase) ||
+                        f.EndsWith(".java", StringComparison.OrdinalIgnoreCase) ||
+                        f.EndsWith(".kt", StringComparison.OrdinalIgnoreCase) ||
+                        f.EndsWith("pom.xml", StringComparison.OrdinalIgnoreCase) ||
+                        f.EndsWith(".gradle", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         var maxTime = DateTime.MinValue;

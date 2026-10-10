@@ -55,9 +55,9 @@ public sealed class CallGraphQueries
     public IReadOnlyList<Symbol> GetDirectCallers(Symbol callee)
     {
         return _directCallersCache.GetOrAdd(callee.Id, _ =>
-            // Interroga tutte le relazioni di tipo Calls o HandlesEvent in cui il Target coincide con la routine callee
-            _graph.Relationships
-                .Where(r => (r.Kind == RelationshipKind.Calls || r.Kind == RelationshipKind.HandlesEvent) && r.TargetId == callee.Id)
+            // Interroga le relazioni entranti indicizzate O(1) di tipo Calls o HandlesEvent
+            _graph.GetIncomingRelationships(callee.Id)
+                .Where(r => r.Kind == RelationshipKind.Calls || r.Kind == RelationshipKind.HandlesEvent)
                 .Select(r => _graph.FindSymbolById(r.SourceId))
                 .Where(s => s != null)
                 .Select(s => s!)
@@ -73,9 +73,9 @@ public sealed class CallGraphQueries
     public IReadOnlyList<Symbol> GetDirectCallees(Symbol caller)
     {
         return _directCalleesCache.GetOrAdd(caller.Id, _ =>
-            // Interroga tutte le relazioni di tipo Calls o HandlesEvent in cui la Source coincide con la routine caller
-            _graph.Relationships
-                .Where(r => (r.Kind == RelationshipKind.Calls || r.Kind == RelationshipKind.HandlesEvent) && r.SourceId == caller.Id)
+            // Interroga le relazioni uscenti indicizzate O(1) di tipo Calls o HandlesEvent
+            _graph.GetOutgoingRelationships(caller.Id)
+                .Where(r => r.Kind == RelationshipKind.Calls || r.Kind == RelationshipKind.HandlesEvent)
                 .Select(r => _graph.FindSymbolById(r.TargetId))
                 .Where(s => s != null)
                 .Select(s => s!)
@@ -268,8 +268,8 @@ public sealed class CallGraphQueries
     /// </summary>
     public IReadOnlyList<Symbol> GetInstantiatedClasses(Symbol source) =>
         _instantiatedClassesCache.GetOrAdd(source.Id, _ =>
-            _graph.Relationships
-                .Where(r => r.Kind == RelationshipKind.Instantiates && r.SourceId == source.Id)
+            _graph.GetOutgoingRelationships(source.Id)
+                .Where(r => r.Kind == RelationshipKind.Instantiates)
                 .Select(r => _graph.FindSymbolById(r.TargetId))
                 .Where(s => s != null)
                 .Select(s => s!)

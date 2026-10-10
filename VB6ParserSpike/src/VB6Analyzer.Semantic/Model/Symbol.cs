@@ -69,7 +69,34 @@ public sealed class Symbol
     public bool IsNewInstance { get; set; }
 
     /// <summary>Linguaggio di programmazione sorgente del simbolo (es. VB6, C#, C++, ecc.).</summary>
-    public SourceLanguage Language { get; set; } = SourceLanguage.VisualBasic6;
+    public SourceLanguage Language { get; set; } = SourceLanguage.Unknown;
+
+    /// <summary>
+    /// Restituisce il linguaggio effettivo del simbolo, rilevandolo dall'estensione del FilePath se non impostato esplicitamente.
+    /// </summary>
+    public SourceLanguage GetEffectiveLanguage()
+    {
+        if (Language != SourceLanguage.Unknown)
+            return Language;
+
+        if (!string.IsNullOrEmpty(FilePath))
+        {
+            var ext = System.IO.Path.GetExtension(FilePath).ToLowerInvariant();
+            return ext switch
+            {
+                ".vbp" or ".vbg" or ".frm" or ".bas" or ".cls" or ".ctl" or ".pag" or ".dsx" or ".dob" => SourceLanguage.VisualBasic6,
+                ".csproj" or ".sln" or ".cs" => SourceLanguage.CSharp,
+                ".cpp" or ".c" or ".h" or ".hpp" or ".vcxproj" => SourceLanguage.CPlusPlus,
+                ".java" => SourceLanguage.Java,
+                ".py" => SourceLanguage.Python,
+                ".ts" => SourceLanguage.TypeScript,
+                ".js" => SourceLanguage.JavaScript,
+                _ => SourceLanguage.Unknown
+            };
+        }
+
+        return SourceLanguage.Unknown;
+    }
 
     public override string ToString() => $"{Accessibility} {Kind} {QualifiedName}{(DeclaredTypeName != null ? $" As {DeclaredTypeName}" : "")}";
 }

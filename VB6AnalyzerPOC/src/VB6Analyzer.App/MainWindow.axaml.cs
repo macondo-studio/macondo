@@ -1358,7 +1358,9 @@ public partial class MainWindow : Window
         {
             BlastRadiusGridControl.Clear();
             BlastRadiusGridControl.SetHiddenProjects(Graph.HiddenProjectIds);
-            _ = BlastRadiusGridControl.PopulateBlastRadiusGridAsync(_graph, _currentFolderPath, _hasUserMovedNodes);
+            // Calcolo Lazy: la griglia completa del Blast Radius verrà calcolata all'apertura del relativo tab o su richiesta
+            if (CentralTabControl?.SelectedItem == GridTabItem)
+                _ = BlastRadiusGridControl.PopulateBlastRadiusGridAsync(_graph, _currentFolderPath, _hasUserMovedNodes);
         }
     }
 
@@ -3956,9 +3958,14 @@ else
         // Calcola e carica i dati del tab solo quando l'utente vi accede per la prima volta (Lazy Analytics)
         EnsureActiveTabAnalyticsLoaded();
 
-        if (CentralTabControl.SelectedItem == GridTabItem && _selectedNode != null)
+        if (CentralTabControl.SelectedItem == GridTabItem)
+        {
+            if (BlastRadiusGridControl.AllRows.Count == 0 && _graph != null)
+                _ = PopulateBlastRadiusGridAsync();
 
-            BlastRadiusGridControl.SelectNode(_selectedNode.Id);
+            if (_selectedNode != null)
+                BlastRadiusGridControl.SelectNode(_selectedNode.Id);
+        }
     }
 
     /// <summary>
@@ -4098,7 +4105,10 @@ else
         // Altrimenti mostra i linguaggi del grafo/workspace complessivo
         if (_graph?.Nodes != null && _graph.Nodes.Count > 0)
         {
-            var distinctLangs = _graph.Nodes
+            var realNodes = _graph.Nodes.Where(n => n.Kind != SymbolKind.Project).ToList();
+            var nodesToInspect = realNodes.Count > 0 ? realNodes : _graph.Nodes;
+
+            var distinctLangs = nodesToInspect
                 .Select(n => n.Language)
                 .Where(l => l != SourceLanguage.Unknown)
                 .Distinct()
