@@ -50,6 +50,21 @@ public sealed class GraphControl : Control
     private HashSet<Guid>? _cachedVisibleNodeIds;
     private bool _isVisibilityCacheDirty = true;
 
+    // Spatial Hash Grid per Hit Testing O(1) e culling
+    private const double SpatialCellSize = 250.0;
+    private readonly Dictionary<long, List<GraphNode>> _spatialGrid = new();
+    private bool _isSpatialGridDirty = true;
+
+    private static long GetSpatialCellKey(int cx, int cy) => ((long)cx << 32) | (uint)cy;
+
+    /// <summary>
+    /// Invalida l'indice spaziale del grafo forzandone la ricostruzione.
+    /// </summary>
+    public void InvalidateSpatialIndex()
+    {
+        _isSpatialGridDirty = true;
+    }
+
     /// <summary>
     /// Invalida la cache dei nodi visibili, forzandone il ricalcolo al frame successivo
     /// e richiedendo un ridisegno immediato del controllo.
@@ -147,7 +162,10 @@ public sealed class GraphControl : Control
     {
         base.OnPropertyChanged(change);
         if (change.Property == GraphProperty)
+        {
             InvalidateVisibilityCache();
+            _isSpatialGridDirty = true;
+        }
     }
 
     /// <summary>
@@ -785,6 +803,7 @@ else
     {
         if (Graph is null || (deltaX == 0 && deltaY == 0)) return;
 
+        _isSpatialGridDirty = true;
         rootNode.X += deltaX;
         rootNode.Y += deltaY;
 
@@ -983,10 +1002,31 @@ else
     }
 
     /// <summary>
+    /// Ricostruisce la griglia spaziale (Spatial Hash Grid) raggruppando i nodi in celle di 250x250 coordinate grafo.
+    /// Consente ricerche e collision test O(1) con zero allocazioni a regime.
+    /// </summary>
+    private void RebuildSpatialGrid(VisualCodeGraph graph)
+    {
+        _spatialGrid.Clear();
+        foreach (var node in graph.Nodes)
+        {
+            var cx = (int)Math.Floor(node.X / SpatialCellSize);
+            var cy = (int)Math.Floor(node.Y / SpatialCellSize);
+            var key = GetSpatialCellKey(cx, cy);
+            if (!_spatialGrid.TryGetValue(key, out var cellList))
+            {
+                cellList = new List<GraphNode>();
+                _spatialGrid[key] = cellList;
+            }
+            cellList.Add(node);
+        }
+        _isSpatialGridDirty = false;
+    }
+
+    /// <summary>
     /// Esegue il rilevamento del nodo sotto il cursore (Hit Testing) nello spazio coordinate del grafo.
-    /// Considera solo i nodi attualmente visibili, calcola la distanza euclidea al quadrato e adatta
-    /// la tolleranza di selezione (hit radius) in funzione del fattore di zoom corrente.
-    /// Utilizza la cache dei nodi visibili per garantire risposta istantanea a 0 allocazioni durante il puntamento del mouse.
+    /// Utilizza la griglia spaziale (Spatial Hash Grid) O(1) per ispezionare solo i nodi delle celle limitrofe
+    /// al cursore, garantendo risposta istantanea a 0 ritardi anche con decine di migliaia di nodi.
     /// </summary>
     /// <param name="graphPoint">Coordinate del puntatore convertite nello spazio cartesiano del grafo.</param>
     /// <returns>Il <see cref="GraphNode"/> più vicino entro il raggio di tolleranza, oppure null.</returns>
@@ -1003,26 +1043,45 @@ else
             _isVisibilityCacheDirty = false;
         }
 
+        if (_isSpatialGridDirty)
+            RebuildSpatialGrid(graph);
+
         var visibleIds = _cachedVisibleNodeIds;
         GraphNode? best = null;
         var bestDistSq = double.MaxValue;
 
-        // Scansiona solo i nodi appartenenti alla gerarchia visibile corrente
-        foreach (var node in graph.Nodes)
+        var centerCx = (int)Math.Floor(graphPoint.X / SpatialCellSize);
+        var centerCy = (int)Math.Floor(graphPoint.Y / SpatialCellSize);
+
+        // Raggio di ricerca celle limitato in base alla scala di zoom per non scandire troppe celle su zoom estremi
+        var maxTolerance = 50.0 / Math.Max(_scale, 0.05) + 6.0;
+        var cellRadius = Math.Clamp((int)Math.Ceiling(maxTolerance / SpatialCellSize), 1, 3);
+
+        for (var cx = centerCx - cellRadius; cx <= centerCx + cellRadius; cx++)
         {
-            if (!visibleIds.Contains(node.Id)) continue;
-
-            var dx = node.X - graphPoint.X;
-            var dy = node.Y - graphPoint.Y;
-            var distSq = dx * dx + dy * dy;
-
-            // Raggio di selezione adattivo scalato con il fattore di zoom (minimo 6px di tolleranza)
-            var hitRadius = node.Radius / Math.Max(_scale, 0.002) + 6.0;
-
-            if (distSq <= hitRadius * hitRadius && distSq < bestDistSq)
+            for (var cy = centerCy - cellRadius; cy <= centerCy + cellRadius; cy++)
             {
-                best = node;
-                bestDistSq = distSq;
+                var key = GetSpatialCellKey(cx, cy);
+                if (!_spatialGrid.TryGetValue(key, out var cellNodes))
+                    continue;
+
+                foreach (var node in cellNodes)
+                {
+                    if (!visibleIds.Contains(node.Id))
+                        continue;
+
+                    var dx = node.X - graphPoint.X;
+                    var dy = node.Y - graphPoint.Y;
+                    var distSq = dx * dx + dy * dy;
+
+                    // Raggio di selezione adattivo scalato con il fattore di zoom (minimo 6px di tolleranza)
+                    var hitRadius = node.Radius / Math.Max(_scale, 0.002) + 6.0;
+                    if (distSq <= hitRadius * hitRadius && distSq < bestDistSq)
+                    {
+                        best = node;
+                        bestDistSq = distSq;
+                    }
+                }
             }
         }
 
@@ -1061,6 +1120,9 @@ else
     /// <param name="node">Il nodo da selezionare, oppure null per deselezionare.</param>
     public void SelectNode(GraphNode? node)
     {
+        if (_selectedNode == node && _currentHighlightMode == HighlightMode.Normal)
+            return;
+
         _selectedNode = node;
         _highlightedNodeIds.Clear();
         ClearInternalHighlightState();
@@ -1079,7 +1141,7 @@ else
                     parent.IsExpanded = true;
             }
 
-            foreach (var edge in graph.Edges)
+            foreach (var edge in graph.GetIncidentEdges(node.Id))
             {
                 if (edge.SourceId == node.Id)
                 {
