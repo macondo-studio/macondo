@@ -383,6 +383,46 @@ public sealed class GraphControl : Control
 
     private static readonly Typeface LabelTypeface = new("Inter", FontStyle.Normal, FontWeight.Medium);
 
+    // =========================================================================
+    // STRUTTURE PER IL BATCHING DEGLI ARCHI (Draw Call Reduction da 16k a < 10)
+    // =========================================================================
+    private readonly struct LineSegment
+    {
+        public readonly Point P1;
+        public readonly Point P2;
+
+        public LineSegment(Point p1, Point p2)
+        {
+            P1 = p1;
+            P2 = p2;
+        }
+    }
+
+    private sealed class EdgeBatch
+    {
+        public IPen Pen { get; set; }
+        public readonly List<LineSegment> Segments = new(2048);
+
+        public EdgeBatch(IPen pen) => Pen = pen;
+
+        public void AddLine(Point p1, Point p2) => Segments.Add(new LineSegment(p1, p2));
+
+        public void Clear() => Segments.Clear();
+    }
+
+    private readonly EdgeBatch _batchContains;
+    private readonly EdgeBatch _batchCalls;
+    private readonly EdgeBatch _batchHandlesEvent;
+    private readonly EdgeBatch _batchInstantiates;
+    private readonly EdgeBatch _batchUsesType;
+    private readonly EdgeBatch _batchCrossProject;
+    private readonly EdgeBatch _batchCallee;
+    private readonly EdgeBatch _batchCaller;
+    private readonly EdgeBatch _batchBlastRadius;
+    private readonly EdgeBatch _batchHighlight;
+    private readonly EdgeBatch _batchDimmed;
+    private readonly EdgeBatch[] _allEdgeBatches;
+
     static GraphControl()
     {
         AffectsRender<GraphControl>(GraphProperty);
@@ -393,6 +433,33 @@ public sealed class GraphControl : Control
     {
         ClipToBounds = true;
         DoubleTapped += OnDoubleTapped;
+
+        _batchContains = new EdgeBatch(_edgeContainsPen);
+        _batchCalls = new EdgeBatch(EdgeCallsPen);
+        _batchHandlesEvent = new EdgeBatch(EdgeHandlesEventPen);
+        _batchInstantiates = new EdgeBatch(EdgeInstantiatesPen);
+        _batchUsesType = new EdgeBatch(EdgeUsesTypePen);
+        _batchCrossProject = new EdgeBatch(EdgeCrossProjectPen);
+        _batchCallee = new EdgeBatch(EdgeCalleePen);
+        _batchCaller = new EdgeBatch(EdgeCallerPen);
+        _batchBlastRadius = new EdgeBatch(EdgeBlastRadiusPen);
+        _batchHighlight = new EdgeBatch(EdgeHighlightPen);
+        _batchDimmed = new EdgeBatch(_edgeDimmedPen);
+
+        _allEdgeBatches = new[]
+        {
+            _batchContains,
+            _batchCalls,
+            _batchHandlesEvent,
+            _batchInstantiates,
+            _batchUsesType,
+            _batchCrossProject,
+            _batchDimmed,
+            _batchCallee,
+            _batchCaller,
+            _batchBlastRadius,
+            _batchHighlight
+        };
     }
 
     // =========================================================================
@@ -430,7 +497,10 @@ public sealed class GraphControl : Control
         var viewWidth = Bounds.Width;
         var viewHeight = Bounds.Height;
 
-        // 1. Disegna gli ARCHI (sotto ai nodi) con Viewport Culling bidimensionale
+        // 1. Disegna gli ARCHI (sotto ai nodi) tramite Batching per Penna (da 16.000 draw calls a meno di 10)
+        for (var i = 0; i < _allEdgeBatches.Length; i++)
+            _allEdgeBatches[i].Clear();
+
         foreach (var edge in graph.Edges)
         {
             // Salta gli archi i cui nodi estremi non sono entrambi visibili nella gerarchia attiva
@@ -461,30 +531,68 @@ public sealed class GraphControl : Control
                                     (_blastRadiusDepths.ContainsKey(edge.TargetId) || _selectedNode?.Id == edge.TargetId);
             var isHighlighted = _highlightedEdges.Contains((edge.SourceId, edge.TargetId));
 
-            IPen pen;
+            EdgeBatch targetBatch;
             if (isCalleeEdge)
-                pen = EdgeCalleePen;
+                targetBatch = _batchCallee;
             else if (isCallerEdge)
-                pen = EdgeCallerPen;
+                targetBatch = _batchCaller;
             else if (isBlastRadiusEdge)
-                pen = EdgeBlastRadiusPen;
+                targetBatch = _batchBlastRadius;
             else if (isHighlighted)
-                pen = EdgeHighlightPen;
+                targetBatch = _batchHighlight;
             else if (_currentHighlightMode is HighlightMode.Callees or HighlightMode.Callers or HighlightMode.BlastRadius)
-                pen = _edgeDimmedPen;
+                targetBatch = _batchDimmed;
             else if (edge.IsCrossProject)
-                pen = EdgeCrossProjectPen;
+                targetBatch = _batchCrossProject;
             else
-                pen = GetPenForEdgeKind(edge.Kind);
+                targetBatch = GetBatchForEdgeKind(edge.Kind);
 
-            context.DrawLine(pen, p1, p2);
+            targetBatch.AddLine(p1, p2);
 
             // Disegna freccia direzionale: LOD per non saturare la GPU su zoom out e zero allocazioni GC
             var shouldDrawArrow = (isCalleeEdge || isCallerEdge || isBlastRadiusEdge || isHighlighted) ||
                 (_scale >= 0.45 && (edge.IsCrossProject || edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.HandlesEvent));
 
             if (shouldDrawArrow)
-                DrawArrowHead(context, pen, p1, p2, target.Radius * Math.Clamp(_scale, 0.2, 2.5));
+            {
+                var targetRadius = target.Radius * Math.Clamp(_scale, 0.2, 2.5);
+                var dx = p2.X - p1.X;
+                var dy = p2.Y - p1.Y;
+                var len = Math.Sqrt(dx * dx + dy * dy);
+                if (len >= 1)
+                {
+                    var ux = dx / len;
+                    var uy = dy / len;
+                    var tip = new Point(p2.X - ux * (targetRadius + 2), p2.Y - uy * (targetRadius + 2));
+                    var arrowSize = 6.0;
+                    var a1 = new Point(tip.X - ux * arrowSize + uy * (arrowSize * 0.6), tip.Y - uy * arrowSize - ux * (arrowSize * 0.6));
+                    var a2 = new Point(tip.X - ux * arrowSize - uy * (arrowSize * 0.6), tip.Y - uy * arrowSize + ux * (arrowSize * 0.6));
+
+                    targetBatch.AddLine(tip, a1);
+                    targetBatch.AddLine(tip, a2);
+                }
+            }
+        }
+
+        // Emette le geometrie batched degli archi (massimo 11 draw calls per l'intero grafo)
+        for (var i = 0; i < _allEdgeBatches.Length; i++)
+        {
+            var batch = _allEdgeBatches[i];
+            if (batch.Segments.Count == 0) continue;
+
+            var geometry = new StreamGeometry();
+            using (var ctx = geometry.Open())
+            {
+                for (var s = 0; s < batch.Segments.Count; s++)
+                {
+                    var seg = batch.Segments[s];
+                    ctx.BeginFigure(seg.P1, false);
+                    ctx.LineTo(seg.P2);
+                    ctx.EndFigure(false);
+                }
+            }
+
+            context.DrawGeometry(null, batch.Pen, geometry);
         }
 
         // 2. Disegna i NODI
@@ -555,47 +663,18 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Restituisce la penna di rendering per il tipo di relazione specificato.
+    /// Restituisce il batch di disegno per il tipo di relazione specificato.
     /// Distingue visivamente archi di chiamata (linea continua blu), gestione eventi (tratteggiata arancione),
     /// istanziazione (tratteggiata ambra), uso tipo (puntinata verde smeraldo) o contenimento (grigio scuro/chiaro).
     /// </summary>
-    private IPen GetPenForEdgeKind(RelationshipKind kind) => kind switch
+    private EdgeBatch GetBatchForEdgeKind(RelationshipKind kind) => kind switch
     {
-        RelationshipKind.Calls => EdgeCallsPen,
-        RelationshipKind.HandlesEvent => EdgeHandlesEventPen,
-        RelationshipKind.Instantiates => EdgeInstantiatesPen,
-        RelationshipKind.UsesType => EdgeUsesTypePen,
-        _ => _edgeContainsPen
+        RelationshipKind.Calls => _batchCalls,
+        RelationshipKind.HandlesEvent => _batchHandlesEvent,
+        RelationshipKind.Instantiates => _batchInstantiates,
+        RelationshipKind.UsesType => _batchUsesType,
+        _ => _batchContains
     };
-
-    /// <summary>
-    /// Disegna la cuspide di una freccia direzionale orientata dal punto di origine al punto di destinazione.
-    /// Utilizza linee senza allocazioni heap/GC anziché StreamGeometry per preservare un framerate elevato.
-    /// </summary>
-    private static void DrawArrowHead(
-        DrawingContext context,
-        IPen pen,
-        Point from,
-        Point to,
-        double targetRadius)
-    {
-        var dx = to.X - from.X;
-        var dy = to.Y - from.Y;
-        var len = Math.Sqrt(dx * dx + dy * dy);
-        if (len < 1) return;
-
-        var ux = dx / len;
-        var uy = dy / len;
-
-        var tip = new Point(to.X - ux * (targetRadius + 2), to.Y - uy * (targetRadius + 2));
-        var arrowSize = 6.0;
-
-        var p1 = new Point(tip.X - ux * arrowSize + uy * (arrowSize * 0.6), tip.Y - uy * arrowSize - ux * (arrowSize * 0.6));
-        var p2 = new Point(tip.X - ux * arrowSize - uy * (arrowSize * 0.6), tip.Y - uy * arrowSize + ux * (arrowSize * 0.6));
-
-        context.DrawLine(pen, tip, p1);
-        context.DrawLine(pen, tip, p2);
-    }
 
     /// <summary>
     /// Determina il pennello di riempimento del nodo in base allo stato di interazione corrente:
@@ -1368,6 +1447,9 @@ public sealed class GraphControl : Control
             _edgeContainsPen = new Pen(new SolidColorBrush(Color.Parse("#D0D0DC")), 1);
             _edgeDimmedPen = new Pen(new SolidColorBrush(Color.Parse("#E4E4EE")), 0.8);
         }
+
+        _batchContains.Pen = _edgeContainsPen;
+        _batchDimmed.Pen = _edgeDimmedPen;
 
         _formattedTextCache.Clear();
         InvalidateVisual();
