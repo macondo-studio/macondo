@@ -665,9 +665,11 @@
                         <controls:GraphControl x:Name="Graph" SelectionChanged="OnGraphSelectionChanged" />
 
                         <!-- Pannello Flottante Verticale Comandi Grafo (In alto a destra, Stile Solido Monocromatico) -->
+                        <!-- NOTA: ZIndex="10" è fondamentale per garantire che l'HUD e i suoi pulsanti ricevano l'HitTest sopra al canvas del grafo -->
                         <Border x:Name="FloatingHudBorder"
                                 HorizontalAlignment="Right" VerticalAlignment="Top"
                                 Margin="14"
+                                ZIndex="10"
                                 Background="{DynamicResource ThemeBackgroundElevatedBrush}"
                                 BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
                                 BorderThickness="1"
@@ -816,6 +818,7 @@
                         <Border x:Name="GraphLegendBorder"
                                 HorizontalAlignment="Left" VerticalAlignment="Bottom"
                                 Margin="14"
+                                ZIndex="10"
                                 Background="{DynamicResource ThemeBackgroundElevatedBrush}"
                                 BorderBrush="{DynamicResource ThemeBorderDefaultBrush}"
                                 BorderThickness="1"

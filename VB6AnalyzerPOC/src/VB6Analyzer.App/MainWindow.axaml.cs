@@ -123,7 +123,12 @@ public partial class MainWindow : Window
         CentralTabControl.AddHandler(Control.ContextRequestedEvent, OnCentralTabControlContextRequested, RoutingStrategies.Tunnel);
         RightTabControl.AddHandler(Control.ContextRequestedEvent, OnRightTabControlContextRequested, RoutingStrategies.Tunnel);
 
-        // Click sui pulsanti di chiusura schede e Drag & Drop per riordinare le schede di analisi con il mouse
+        // Click sui pulsanti di chiusura schede e Drag & Drop per riordinare le schede di analisi con il mouse.
+        // NOTA CRITICA: Gli handler registrati con RoutingStrategies.Tunnel su CentralTabControl intercettano TUTTI
+        // gli eventi puntatore dell'intera area centrale (inclusi i canvas di analisi, i pulsanti dell'HUD, controlli e form).
+        // Per evitare regressioni in cui i pulsanti interni (es. Blast Radius, Esporta MD) perdono il click,
+        // gli handler sottostanti (OnCentralTabPointerPressed/Released) NON devono mai azzerare la cattura del puntatore
+        // né gestire gli eventi se il clic non proviene specificamente dall'header di un TabItem o se non è in corso un drag.
         RightTabControl.AddHandler(InputElement.PointerPressedEvent, OnRightTabPointerPressed, RoutingStrategies.Tunnel);
         CentralTabControl.AddHandler(InputElement.PointerPressedEvent, OnCentralTabPointerPressed, RoutingStrategies.Tunnel);
         CentralTabControl.AddHandler(InputElement.PointerMovedEvent, OnCentralTabPointerMoved, RoutingStrategies.Tunnel);
@@ -5004,11 +5009,10 @@ else
     private void OnCentralTabControlContextRequested(object? sender, ContextRequestedEventArgs e)
     {
         var visual = e.Source as Visual;
-        var tabItem = visual as TabItem ?? visual?.FindAncestorOfType<TabItem>();
+        var tabItem = FindTabItemFromHeaderVisual(visual, CentralTabControl);
 
         // Se il clic non è avvenuto su un'intestazione TabItem appartenente al TabControl principale, ignora
-        if (tabItem == null || CentralTabControl == null || !CentralTabControl.Items.OfType<TabItem>().Contains(tabItem))
-
+        if (tabItem == null || CentralTabControl == null)
             return;
 
         if (CentralTabControl.Resources.TryGetResource("AnalyticsTabContextMenu", null, out var res) && res is ContextMenu menu)
@@ -5019,7 +5023,6 @@ else
 
             var tabTitle = GetTabTitle(tabItem);
             if (CtxTabHide != null)
-
                 CtxTabHide.Header = !string.IsNullOrWhiteSpace(tabTitle)
                     ? LocalizationService.Instance.Get("TabContext_HideTabNamed", tabTitle)
                     : LocalizationService.Instance["TabContext_HideTab"];
@@ -5036,11 +5039,10 @@ else
     private void OnRightTabControlContextRequested(object? sender, ContextRequestedEventArgs e)
     {
         var visual = e.Source as Visual;
-        var tabItem = visual as TabItem ?? visual?.FindAncestorOfType<TabItem>();
+        var tabItem = FindTabItemFromHeaderVisual(visual, RightTabControl);
 
         // Se il clic non è avvenuto su un'intestazione TabItem appartenente al TabControl destro, ignora
-        if (tabItem == null || RightTabControl == null || !RightTabControl.Items.OfType<TabItem>().Contains(tabItem))
-
+        if (tabItem == null || RightTabControl == null)
             return;
 
         if (RightTabControl.Resources.TryGetResource("RightTabContextMenu", null, out var res) && res is ContextMenu menu)
@@ -5051,7 +5053,6 @@ else
 
             var tabTitle = GetTabTitle(tabItem);
             if (CtxRightTabHide != null)
-
                 CtxRightTabHide.Header = !string.IsNullOrWhiteSpace(tabTitle)
                     ? LocalizationService.Instance.Get("TabContext_HideTabNamed", tabTitle)
                     : LocalizationService.Instance["TabContext_HideTab"];
@@ -5278,6 +5279,56 @@ else
         return null;
     }
 
+    /// <summary>
+    /// Individua il TabItem appartenente a un TabControl risalendo l'albero visuale esclusivamente
+    /// a partire dall'intestazione della scheda (TabStrip / TabItem header), ignorando il contenuto interno del tab.
+    /// 
+    /// REGOLA ARCHITETTURALE CRITICA:
+    /// CentralTabControl ospita sia gli header delle schede sia il corpo dell'intera vista attiva (Canvas del Grafo,
+    /// HUD comandi flottante, Matrici, ecc.). Questa funzione DEVE restituire un TabItem SOLO SE il punto di click
+    /// si trova fisicamente all'interno dell'header visuale (titolo, icona o pulsante di chiusura).
+    /// Se il clic avviene all'interno del contenuto/canvas del tab (es. pulsanti dell'HUD come Blast Radius o Esporta MD),
+    /// DEVE restituire null per non intercettare o bloccare gli eventi utente destinati ai controlli della vista.
+    /// </summary>
+    private static TabItem? FindTabItemFromHeaderVisual(Visual? visual, TabControl? tabControl)
+    {
+        if (visual == null || tabControl == null)
+            return null;
+
+        var current = visual;
+        while (current != null && current != tabControl)
+        {
+            if (current is TabItem tabItem && tabControl.Items.OfType<TabItem>().Contains(tabItem))
+            {
+                // Verifica che il punto di click sia all'interno dell'header visuale e non nel corpo del tab
+                if (tabItem.Header is Visual headerVisual && (visual == headerVisual || IsVisualDescendantOf(visual, headerVisual)))
+                    return tabItem;
+
+                // Fallback: se l'header non è un Visual (es. stringa) o è avvolto nel ContentPresenter di template del TabItem
+                var headerPresenter = tabItem.FindDescendantOfType<Avalonia.Controls.Presenters.ContentPresenter>();
+                if (headerPresenter != null && (visual == headerPresenter || IsVisualDescendantOf(visual, headerPresenter)))
+                    return tabItem;
+
+                return null;
+            }
+            current = current.GetVisualParent();
+        }
+
+        return null;
+    }
+
+    private static bool IsVisualDescendantOf(Visual child, Visual parent)
+    {
+        var current = child.GetVisualParent();
+        while (current != null)
+        {
+            if (current == parent)
+                return true;
+            current = current.GetVisualParent();
+        }
+        return false;
+    }
+
     #endregion
 
     #region Ordinamento Schede di Analisi con Drag & Drop (CentralTabControl)
@@ -5287,6 +5338,9 @@ else
     /// Inizializza le coordinate di partenza e rileva il TabItem di origine senza avviare
     /// immediatamente il trascinamento, consentendo il normale cambio di selezione al clic singolo.
     /// Intercetta con priorità assoluta il click sul pulsante di chiusura (X) per chiudere la scheda all'istante.
+    /// 
+    /// NOTA: Ignora tassativamente qualsiasi clic originato all'interno del corpo del tab (canvas del grafo,
+    /// pulsanti dell'HUD, controlli delle matrici), lasciando fluire l'evento verso i rispettivi gestori.
     /// </summary>
     /// <param name="sender">Sorgente dell'evento (CentralTabControl).</param>
     /// <param name="e">Argomenti del puntatore contenenti coordinate e stato dei tasti.</param>
@@ -5307,11 +5361,11 @@ else
             return;
         }
 
-        // Risale l'albero visuale per individuare l'eventuale TabItem di appartenenza
-        var tabItem = visual as TabItem ?? visual?.FindAncestorOfType<TabItem>();
+        // Risale l'albero visuale esclusivamente all'interno dell'intestazione della scheda (ignora il corpo/canvas del tab)
+        var tabItem = FindTabItemFromHeaderVisual(visual, CentralTabControl);
 
         // Ignora clic al di fuori delle intestazioni delle schede del TabControl centrale
-        if (tabItem == null || CentralTabControl == null || !CentralTabControl.Items.OfType<TabItem>().Contains(tabItem))
+        if (tabItem == null || CentralTabControl == null)
             return;
 
         // Memorizza i dati iniziali per il calcolo della soglia di movimento (deadzone)
@@ -5522,11 +5576,26 @@ else
     /// Conclude l'operazione di trascinamento al rilascio del tasto del mouse:
     /// sposta la scheda nella destinazione calcolata, ne ripristina la visualizzazione normale
     /// e salva il nuovo ordinamento nelle preferenze persistenti.
+    /// 
+    /// ATTENZIONE CRITICA (REGRESSIONE CLICK & POINTER CAPTURE IN AVALONIA):
+    /// Questo metodo è registrato come Tunnel Handler su CentralTabControl. Poiché CentralTabControl
+    /// fa da radice a tutti i contenuti visualizzati (tra cui FloatingHudBorder, GraphControl, Button, ecc.),
+    /// QUALSIASI rilascio del puntatore all'interno dell'area centrale scatena questo handler PRIMA dei controlli figli.
+    /// In Avalonia, quando un pulsante viene premuto, assume la cattura del puntatore (pointer.Capture).
+    /// Se questo handler invocasse incondizionatamente EndCentralTabDrag() e pointer.Capture(null) ad ogni PointerReleased,
+    /// sottrarrebbe la cattura del mouse al pulsante mentre questo attende il rilascio, generando l'evento
+    /// PointerCaptureLost sul pulsante e ANNULLANDO completamente il suo evento Click!
+    /// Pertanto la guard clause (_draggedTabItem == null && !_isTabDragging) è INDISPENSABILE e non deve MAI essere rimossa.
     /// </summary>
     /// <param name="sender">Sorgente dell'evento.</param>
     /// <param name="e">Argomenti del rilascio del puntatore.</param>
     private void OnCentralTabPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
+        // Se non è in corso alcuna operazione o preparazione di trascinamento tab, ignora tassativamente
+        // per non interferire con il ciclo di vita degli eventi di click dei controlli figli (es. pulsanti HUD)
+        if (_draggedTabItem == null && !_isTabDragging)
+            return;
+
         if (_isTabDragging && _draggedTabItem != null && CentralTabControl != null)
         {
             var fromIndex = CentralTabControl.Items.IndexOf(_draggedTabItem);
@@ -5557,11 +5626,16 @@ else
     /// <summary>
     /// Gestisce la perdita improvvisa di cattura del puntatore (es. cambio finestra o popup modale)
     /// salvando lo stato se applicabile e ripulendo gli elementi visuali del drag.
+    /// Come per PointerReleased, ignora l'evento se non riguarda una scheda trascinata.
     /// </summary>
     /// <param name="sender">Sorgente dell'evento.</param>
     /// <param name="e">Argomenti di perdita cattura.</param>
     private void OnCentralTabPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
     {
+        // Ignora se non è in corso alcuna operazione di trascinamento tab
+        if (_draggedTabItem == null && !_isTabDragging)
+            return;
+
         if (_isTabDragging && _draggedTabItem != null && CentralTabControl != null)
         {
             var fromIndex = CentralTabControl.Items.IndexOf(_draggedTabItem);
@@ -5588,11 +5662,17 @@ else
     /// <summary>
     /// Rilascia la cattura del puntatore, nasconde la scheda ghost e la barra di drop,
     /// e ripristina la piena opacità della scheda di origine.
+    /// 
+    /// NOTA DI SICUREZZA: Rilascia la cattura del puntatore (pointer.Capture(null)) ESCLUSIVAMENTE
+    /// se _isTabDragging era true (ovvero se la cattura era stata acquisita da CentralTabControl durante il drag).
+    /// Non rilasciare mai la cattura se _isTabDragging è false per non azzerare la cattura di controlli terzi.
     /// </summary>
     /// <param name="pointer">Puntatore da rilasciare se disponibile.</param>
     private void EndCentralTabDrag(IPointer? pointer)
     {
-        pointer?.Capture(null);
+        // Rilascia la cattura solo se era stata effettivamente acquisita da CentralTabControl
+        if (_isTabDragging)
+            pointer?.Capture(null);
 
         if (_draggedTabItem != null)
             _draggedTabItem.Opacity = 1.0;
