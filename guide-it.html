@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Specifiche Analisi &amp; Guida Architetturale • Macondo</title>
   <meta name="description" content="Guida tecnica esaustiva, formulazioni matematiche e riferimenti algoritmici per tutte le oltre 20 analisi statiche, metriche e motori deterministici in Macondo.">
-  <meta name="keywords" content="Guida Macondo, specifiche analisi statica, complessità ciclomatica McCabe, volume Halstead, formula indice manutenibilità, LCOM4, metriche Martin, algoritmo Blast Radius, CodeCity 3D, matrice DSM, reverse engineering VB6, parser AST C#">
+  <meta name="keywords" content="Guida Macondo, specifiche analisi statica, complessità ciclomatica McCabe, volume Halstead, formula indice manutenibilità, LCOM4, metriche Martin, algoritmo Blast Radius, CodeCity 3D, matrice DSM, reverse engineering VB6, parser AST C#, parser Java, analisi Maven, script Gradle">
   <meta name="author" content="Macondo Studio">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 
@@ -73,6 +73,7 @@
           { "@type": "Thing", "name": "Architettura Software" },
           { "@type": "Thing", "name": "Visual Basic 6.0" },
           { "@type": "Thing", "name": "C# .NET" },
+          { "@type": "Thing", "name": "Java" },
           { "@type": "Thing", "name": "Complessità Ciclomatica" },
           { "@type": "Thing", "name": "Indice di Manutenibilità" },
           { "@type": "Thing", "name": "Matrice DSM" },
@@ -223,7 +224,7 @@
                 <h2 class="guide-card-title">Panoramica &amp; Filosofia Architetturale</h2>
               </div>
               <div class="guide-body">
-                <p>Macondo è una suite ingegneristica di reverse engineering e analisi statica offline e deterministica per soluzioni software Visual Basic 6.0 e C# / .NET. Elabora i file sorgente direttamente senza richiedere runtime storici, registrazioni COM o dipendenze da IDE legacy.</p>
+                <p>Macondo è una suite ingegneristica di reverse engineering e analisi statica offline e deterministica per soluzioni software Visual Basic 6.0, C# / .NET e Java (inclusi progetti multi-modulo Maven e Gradle). Elabora i file sorgente direttamente senza richiedere runtime storici, registrazioni COM o dipendenze da IDE legacy.</p>
                 <p><strong>Modello Formale del Grafo di Codice:</strong></p>
                 <div class="guide-formula">G = (V, E)
 V = { Contenitori: Form, Moduli, Classi, Control } ∪ { Membri: Sub, Function, Property, Campi, Costanti, UDT }

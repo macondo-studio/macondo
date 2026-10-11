@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Analysis Specifications &amp; Architecture Guide • Macondo</title>
   <meta name="description" content="Comprehensive engineering guide, mathematical formulations, and algorithmic reference for all 20+ static analysis tools, metrics, and engines in Macondo.">
-  <meta name="keywords" content="Macondo guide, static analysis specifications, McCabe cyclomatic complexity, Halstead volume, maintainability index formula, LCOM4, Martin package metrics, Blast Radius algorithm, CodeCity 3D, Design Structure Matrix, VB6 reverse engineering, C# AST parser">
+  <meta name="keywords" content="Macondo guide, static analysis specifications, McCabe cyclomatic complexity, Halstead volume, maintainability index formula, LCOM4, Martin package metrics, Blast Radius algorithm, CodeCity 3D, Design Structure Matrix, VB6 reverse engineering, C# AST parser, Java parser, Maven pom.xml, Gradle analysis">
   <meta name="author" content="Macondo Studio">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 
@@ -86,6 +86,7 @@
           { "@type": "Thing", "name": "Software Architecture" },
           { "@type": "Thing", "name": "Visual Basic 6.0" },
           { "@type": "Thing", "name": "C# .NET" },
+          { "@type": "Thing", "name": "Java" },
           { "@type": "Thing", "name": "Cyclomatic Complexity" },
           { "@type": "Thing", "name": "Maintainability Index" },
           { "@type": "Thing", "name": "Design Structure Matrix" },
@@ -236,7 +237,7 @@
                 <h2 class="guide-card-title">Engine Architecture &amp; Overview</h2>
               </div>
               <div class="guide-body">
-                <p>Macondo is an offline, deterministic static reverse engineering platform built for Visual Basic 6.0 and C# / .NET codebases. It processes source code files directly without requiring runtime installations, COM registrations, or legacy IDE dependencies.</p>
+                <p>Macondo is an offline, deterministic static reverse engineering platform built for Visual Basic 6.0, C# / .NET, and Java codebases (including Maven and Gradle multi-module projects). It processes source code files directly without requiring runtime installations, COM registrations, or legacy IDE dependencies.</p>
                 <p><strong>Formal Directed CodeGraph Model:</strong></p>
                 <div class="guide-formula">G = (V, E)
 V = { Containers: Forms, Modules, Classes, Controls } ∪ { Members: Sub, Function, Property, Fields, Const, UDTs }
