@@ -165,6 +165,7 @@ public sealed class GraphControl : Control
         {
             InvalidateVisibilityCache();
             _isSpatialGridDirty = true;
+            _formattedTextCache.Clear();
         }
     }
 
@@ -346,6 +347,40 @@ public sealed class GraphControl : Control
     private static readonly IBrush BrushRoutineInnerCall = new SolidColorBrush(Color.Parse("#FFE57F"));
     private static readonly IBrush BrushDimmedAltDark = new SolidColorBrush(Color.Parse("#22222E"));
 
+    // Palette statica etichette per evitare allocazioni in Render
+    private static readonly IBrush BrushLabelSelectedDark = Brushes.Gold;
+    private static readonly IBrush BrushLabelSelectedLight = new SolidColorBrush(Color.Parse("#B36200"));
+    private static readonly IBrush BrushLabelCalleeDark = new SolidColorBrush(Color.Parse("#00D0FF"));
+    private static readonly IBrush BrushLabelCalleeLight = new SolidColorBrush(Color.Parse("#0088CC"));
+    private static readonly IBrush BrushLabelCallerDark = new SolidColorBrush(Color.Parse("#FF9933"));
+    private static readonly IBrush BrushLabelCallerLight = new SolidColorBrush(Color.Parse("#E65C00"));
+    private static readonly IBrush BrushLabelBlastDark = Brushes.Gold;
+    private static readonly IBrush BrushLabelBlastLight = new SolidColorBrush(Color.Parse("#C06000"));
+
+    private readonly Dictionary<(string text, int fontSize, IBrush brush), FormattedText> _formattedTextCache = new();
+
+    private FormattedText GetOrCreateFormattedText(string text, int fontSize, IBrush brush)
+    {
+        var key = (text, fontSize, brush);
+        if (!_formattedTextCache.TryGetValue(key, out var ft))
+        {
+            ft = new FormattedText(
+                text,
+                CultureInfo.InvariantCulture,
+                FlowDirection.LeftToRight,
+                LabelTypeface,
+                fontSize,
+                brush);
+
+            if (_formattedTextCache.Count > 4000)
+                _formattedTextCache.Clear();
+
+            _formattedTextCache[key] = ft;
+        }
+
+        return ft;
+    }
+
     private static readonly Typeface LabelTypeface = new("Inter", FontStyle.Normal, FontWeight.Medium);
 
     static GraphControl()
@@ -444,9 +479,12 @@ public sealed class GraphControl : Control
 
             context.DrawLine(pen, p1, p2);
 
-            // Disegna freccia direzionale su chiamate, eventi, istanziazioni o archi attivi/cross-project
-            if ((isCalleeEdge || isCallerEdge || edge.IsCrossProject || edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.HandlesEvent) && _scale > 0.25)
-                DrawArrowHead(context, pen.Brush, p1, p2, target.Radius * Math.Clamp(_scale, 0.2, 2.5));
+            // Disegna freccia direzionale: LOD per non saturare la GPU su zoom out e zero allocazioni GC
+            var shouldDrawArrow = (isCalleeEdge || isCallerEdge || isBlastRadiusEdge || isHighlighted) ||
+                (_scale >= 0.45 && (edge.IsCrossProject || edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.HandlesEvent));
+
+            if (shouldDrawArrow)
+                DrawArrowHead(context, pen, p1, p2, target.Radius * Math.Clamp(_scale, 0.2, 2.5));
         }
 
         // 2. Disegna i NODI
@@ -488,43 +526,29 @@ public sealed class GraphControl : Control
                 context.DrawEllipse(markerColor, null, screenPos, markerRadius, markerRadius);
             }
 
-            // Etichetta del nodo (mostrata quando la dimensione a schermo è sufficiente)
-            if (radius > 7)
+            // Etichetta del nodo: Level of Detail (LOD) e FormattedText da cache a zero allocazioni
+            var isProminent = isSelected || isHighlighted || isCaller || isCallee || (isInBlastRadius && blastDepth.HasValue);
+            var showLabel = isProminent ? radius >= 4.0 : (node.IsContainer ? radius >= 7.0 : radius >= 11.0);
+
+            if (showLabel)
             {
                 var fontSize = node.Kind is SymbolKind.Method or SymbolKind.Property ? 10 : 12;
                 IBrush labelBrush;
                 if (isSelected)
-
-                    labelBrush = _isDarkTheme ? Brushes.Gold : new SolidColorBrush(Color.Parse("#B36200"));
-
+                    labelBrush = _isDarkTheme ? BrushLabelSelectedDark : BrushLabelSelectedLight;
                 else if (_currentHighlightMode == HighlightMode.Callees)
-
-    labelBrush = isCallee ? (_isDarkTheme ? new SolidColorBrush(Color.Parse("#00D0FF")) : new SolidColorBrush(Color.Parse("#0088CC"))) :
+                    labelBrush = isCallee ? (_isDarkTheme ? BrushLabelCalleeDark : BrushLabelCalleeLight) :
                                  (_calleeContainerIds.Contains(node.Id) ? _defaultLabelBrush : _dimmedLabelBrush);
-
-else if (_currentHighlightMode == HighlightMode.Callers)
-
-    labelBrush = isCaller ? (_isDarkTheme ? new SolidColorBrush(Color.Parse("#FF9933")) : new SolidColorBrush(Color.Parse("#E65C00"))) :
+                else if (_currentHighlightMode == HighlightMode.Callers)
+                    labelBrush = isCaller ? (_isDarkTheme ? BrushLabelCallerDark : BrushLabelCallerLight) :
                                  (_callerContainerIds.Contains(node.Id) ? _defaultLabelBrush : _dimmedLabelBrush);
-
-else if (_currentHighlightMode == HighlightMode.BlastRadius)
-
-    labelBrush = blastDepth.HasValue ? (_isDarkTheme ? Brushes.Gold : new SolidColorBrush(Color.Parse("#C06000"))) :
+                else if (_currentHighlightMode == HighlightMode.BlastRadius)
+                    labelBrush = blastDepth.HasValue ? (_isDarkTheme ? BrushLabelBlastDark : BrushLabelBlastLight) :
                                  (isAffectedContainer ? _defaultLabelBrush : _dimmedLabelBrush);
-
-else
-                {
+                else
                     labelBrush = _defaultLabelBrush;
-                }
 
-                var label = new FormattedText(
-                    node.Name,
-                    CultureInfo.InvariantCulture,
-                    FlowDirection.LeftToRight,
-                    LabelTypeface,
-                    fontSize,
-                    labelBrush);
-
+                var label = GetOrCreateFormattedText(node.Name, fontSize, labelBrush);
                 context.DrawText(label, screenPos + new Point(radius + 4, -label.Height / 2));
             }
         }
@@ -545,23 +569,16 @@ else
     };
 
     /// <summary>
-    /// Disegna la cuspide triangolare di una freccia direzionale orientata dal punto di origine al punto di destinazione.
-    /// Calcola il versore direzionale (ux, uy) e arresta la punta sul perimetro del nodo target tenendo conto del suo raggio.
+    /// Disegna la cuspide di una freccia direzionale orientata dal punto di origine al punto di destinazione.
+    /// Utilizza linee senza allocazioni heap/GC anziché StreamGeometry per preservare un framerate elevato.
     /// </summary>
-    /// <param name="context">Il contesto di disegno di Avalonia.</param>
-    /// <param name="brush">Il pennello di riempimento della freccia.</param>
-    /// <param name="from">Coordinate a schermo del punto di partenza dell'arco.</param>
-    /// <param name="to">Coordinate a schermo del punto di arrivo (centro del nodo target).</param>
-    /// <param name="targetRadius">Raggio del nodo target a schermo, per evitare sovrapposizioni grafiche con il corpo del nodo.</param>
     private static void DrawArrowHead(
         DrawingContext context,
-        IBrush? brush,
+        IPen pen,
         Point from,
         Point to,
         double targetRadius)
     {
-        if (brush == null) return;
-
         var dx = to.X - from.X;
         var dy = to.Y - from.Y;
         var len = Math.Sqrt(dx * dx + dy * dy);
@@ -576,16 +593,8 @@ else
         var p1 = new Point(tip.X - ux * arrowSize + uy * (arrowSize * 0.6), tip.Y - uy * arrowSize - ux * (arrowSize * 0.6));
         var p2 = new Point(tip.X - ux * arrowSize - uy * (arrowSize * 0.6), tip.Y - uy * arrowSize + ux * (arrowSize * 0.6));
 
-        var geometry = new StreamGeometry();
-        using (var ctx = geometry.Open())
-        {
-            ctx.BeginFigure(tip, true);
-            ctx.LineTo(p1);
-            ctx.LineTo(p2);
-            ctx.EndFigure(true);
-        }
-
-        context.DrawGeometry(brush, null, geometry);
+        context.DrawLine(pen, tip, p1);
+        context.DrawLine(pen, tip, p2);
     }
 
     /// <summary>
@@ -1360,6 +1369,7 @@ else
             _edgeDimmedPen = new Pen(new SolidColorBrush(Color.Parse("#E4E4EE")), 0.8);
         }
 
+        _formattedTextCache.Clear();
         InvalidateVisual();
     }
 }
