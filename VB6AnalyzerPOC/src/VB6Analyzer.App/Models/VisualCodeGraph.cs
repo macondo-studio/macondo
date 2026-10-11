@@ -32,14 +32,20 @@ public sealed class VisualCodeGraph
 
     /// <summary>
     /// Restituisce gli archi incidenti (in entrata e in uscita) connessi al nodo specificato in tempo O(1).
+    /// Costruisce e mantiene una cache di adiacenza (Incidence List) alla prima richiesta per evitare
+    /// la scansione lineare O(M) dell'intera lista di archi del grafo durante la selezione dei nodi.
     /// </summary>
+    /// <param name="nodeId">Identificatore univoco del nodo di cui recuperare le relazioni connesse.</param>
+    /// <returns>La lista in sola lettura di tutti gli archi in cui il nodo figura come sorgente o destinazione.</returns>
     public IReadOnlyList<GraphEdge> GetIncidentEdges(Guid nodeId)
     {
+        // Se la cache non è ancora stata costruita, indicizza tutti gli archi per ID dei nodi estremi
         if (_incidentEdgesByNodeId == null)
         {
             _incidentEdgesByNodeId = new Dictionary<Guid, List<GraphEdge>>(Nodes.Count);
             foreach (var edge in Edges)
             {
+                // Registra l'arco per il nodo sorgente
                 if (!_incidentEdgesByNodeId.TryGetValue(edge.SourceId, out var srcList))
                 {
                     srcList = new List<GraphEdge>();
@@ -47,6 +53,7 @@ public sealed class VisualCodeGraph
                 }
                 srcList.Add(edge);
 
+                // Registra l'arco per il nodo destinazione
                 if (!_incidentEdgesByNodeId.TryGetValue(edge.TargetId, out var tgtList))
                 {
                     tgtList = new List<GraphEdge>();

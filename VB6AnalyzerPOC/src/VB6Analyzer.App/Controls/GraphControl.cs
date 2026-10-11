@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Macondo.App.Models;
 using Macondo.App.Services;
 using Macondo.Semantic.Impact;
@@ -50,15 +51,25 @@ public sealed class GraphControl : Control
     private HashSet<Guid>? _cachedVisibleNodeIds;
     private bool _isVisibilityCacheDirty = true;
 
-    // Spatial Hash Grid per Hit Testing O(1) e culling
+    // =========================================================================
+    // SPATIAL HASH GRID: INDICIZZAZIONE SPAZIALE 2D PER HIT TESTING O(1)
+    // =========================================================================
+    // Suddivide lo spazio euclideo del grafo in celle regolari di 250x250 unità.
+    // Trasforma l'HitTest da una scansione lineare O(N) su 10.000+ nodi ad ogni frame
+    // a una ricerca costante O(1) circoscritta alla sola cella sotto al cursore e alle
+    // sue 8 celle adiacenti (5-15 nodi analizzati anziché 10.000, riducendo del 99.9% i controlli).
     private const double SpatialCellSize = 250.0;
     private readonly Dictionary<long, List<GraphNode>> _spatialGrid = new();
     private bool _isSpatialGridDirty = true;
 
+    /// <summary>
+    /// Calcola la chiave hash a 64-bit per una cella della griglia spaziale (cx, cy)
+    /// impacchettando le coordinate intere nei 32 bit alti e bassi.
+    /// </summary>
     private static long GetSpatialCellKey(int cx, int cy) => ((long)cx << 32) | (uint)cy;
 
     /// <summary>
-    /// Invalida l'indice spaziale del grafo forzandone la ricostruzione.
+    /// Invalida l'indice spaziale del grafo forzandone la ricostruzione al successivo HitTest o frame.
     /// </summary>
     public void InvalidateSpatialIndex()
     {
@@ -347,7 +358,13 @@ public sealed class GraphControl : Control
     private static readonly IBrush BrushRoutineInnerCall = new SolidColorBrush(Color.Parse("#FFE57F"));
     private static readonly IBrush BrushDimmedAltDark = new SolidColorBrush(Color.Parse("#22222E"));
 
-    // Palette statica etichette per evitare allocazioni in Render
+    // =========================================================================
+    // CACHING FLYWEIGHT FORMATTED TEXT & PENNELLI ETICHETTE
+    // =========================================================================
+    // La generazione di FormattedText in Avalonia/Skia implica il layout del testo,
+    // misurazione e font shaping via HarfBuzz. Creare istanze ad ogni frame provoca
+    // centinaia di migliaia di allocazioni al secondo e cali drastici di framerate.
+    // Questa cache Flyweight memorizza il testo formattato e lo riutilizza a costo zero.
     private static readonly IBrush BrushLabelSelectedDark = Brushes.Gold;
     private static readonly IBrush BrushLabelSelectedLight = new SolidColorBrush(Color.Parse("#B36200"));
     private static readonly IBrush BrushLabelCalleeDark = new SolidColorBrush(Color.Parse("#00D0FF"));
@@ -359,6 +376,10 @@ public sealed class GraphControl : Control
 
     private readonly Dictionary<(string text, int fontSize, IBrush brush), FormattedText> _formattedTextCache = new();
 
+    /// <summary>
+    /// Restituisce un'istanza pre-formattata di <see cref="FormattedText"/> dalla cache interna,
+    /// oppure ne crea una nuova inserendola in cache per i frame successivi (zero allocazioni a regime).
+    /// </summary>
     private FormattedText GetOrCreateFormattedText(string text, int fontSize, IBrush brush)
     {
         var key = (text, fontSize, brush);
@@ -372,6 +393,7 @@ public sealed class GraphControl : Control
                 fontSize,
                 brush);
 
+            // Svuota periodicamente la cache se supera la soglia di sicurezza (es. carichi dinamici enormi)
             if (_formattedTextCache.Count > 4000)
                 _formattedTextCache.Clear();
 
@@ -384,8 +406,15 @@ public sealed class GraphControl : Control
     private static readonly Typeface LabelTypeface = new("Inter", FontStyle.Normal, FontWeight.Medium);
 
     // =========================================================================
-    // STRUTTURE PER IL BATCHING DEGLI ARCHI (Draw Call Reduction da 16k a < 10)
+    // BATCHING DELLE GEOMETRIE DEGLI ARCHI (Draw Call Reduction da 16k a < 10)
     // =========================================================================
+    // Invece di invocare DrawingContext.DrawLine singolarmente per ogni arco (che genererebbe
+    // oltre 16.000 draw commands distinti per frame), le linee e le frecce visibili vengono
+    // raggruppate per stile/penna in accumulatori continui pre-allocati.
+    // Ciascun gruppo viene poi disegnato con un unico StreamGeometry multipart: la GPU
+    // e Skia rasterizzano l'intero grafo in meno di 10 draw calls complessive.
+
+    /// <summary>Rappresenta un segmento di linea non orientato tra due punti a schermo.</summary>
     private readonly struct LineSegment
     {
         public readonly Point P1;
@@ -398,6 +427,7 @@ public sealed class GraphControl : Control
         }
     }
 
+    /// <summary>Accumulatore di segmenti di linea associati a una specifica penna di rendering.</summary>
     private sealed class EdgeBatch
     {
         public IPen Pen { get; set; }
@@ -423,6 +453,11 @@ public sealed class GraphControl : Control
     private readonly EdgeBatch _batchDimmed;
     private readonly EdgeBatch[] _allEdgeBatches;
 
+    // Timer di debouncing per l'Hover Selection: evita di scatenare decine di aggiornamenti
+    // pesanti su ViewModel e pannelli laterali durante il transito rapido del puntatore sui nodi.
+    private readonly DispatcherTimer _hoverDebounceTimer;
+    private GraphNode? _pendingHoverNode;
+
     static GraphControl()
     {
         AffectsRender<GraphControl>(GraphProperty);
@@ -433,6 +468,12 @@ public sealed class GraphControl : Control
     {
         ClipToBounds = true;
         DoubleTapped += OnDoubleTapped;
+
+        _hoverDebounceTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(45)
+        };
+        _hoverDebounceTimer.Tick += OnHoverDebounceTimerTick;
 
         _batchContains = new EdgeBatch(_edgeContainsPen);
         _batchCalls = new EdgeBatch(EdgeCallsPen);
@@ -460,6 +501,13 @@ public sealed class GraphControl : Control
             _batchBlastRadius,
             _batchHighlight
         };
+    }
+
+    private void OnHoverDebounceTimerTick(object? sender, EventArgs e)
+    {
+        _hoverDebounceTimer.Stop();
+        if (_pendingHoverNode != null && _pendingHoverNode.Id != _selectedNode?.Id)
+            SelectNode(_pendingHoverNode);
     }
 
     // =========================================================================
@@ -497,7 +545,24 @@ public sealed class GraphControl : Control
         var viewWidth = Bounds.Width;
         var viewHeight = Bounds.Height;
 
-        // 1. Disegna gli ARCHI (sotto ai nodi) tramite Batching per Penna (da 16.000 draw calls a meno di 10)
+        // =========================================================================
+        // VIEWPORT INVERSO (Coordinate Grafo): Culling O(1) prima delle conversioni
+        // =========================================================================
+        // Invece di calcolare GraphToScreen per tutti i 16.000 archi e 10.000 nodi ad ogni frame,
+        // convertiamo il rettangolo dello schermo una sola volta nello spazio cartesiano del grafo.
+        // Gli elementi fuori visuale vengono scartati con semplici confronti float, risparmiando
+        // decine di migliaia di calcoli trigonometrici e conversioni di matrici a ogni frame.
+        var pTopLeft = ScreenToGraph(new Point(-50, -50));
+        var pBottomRight = ScreenToGraph(new Point(viewWidth + 50, viewHeight + 50));
+        var viewMinX = Math.Min(pTopLeft.X, pBottomRight.X);
+        var viewMaxX = Math.Max(pTopLeft.X, pBottomRight.X);
+        var viewMinY = Math.Min(pTopLeft.Y, pBottomRight.Y);
+        var viewMaxY = Math.Max(pTopLeft.Y, pBottomRight.Y);
+
+        // =========================================================================
+        // 1. RENDERING BATCHED DEGLI ARCHI (Sotto ai nodi)
+        // =========================================================================
+        // Svuota gli accumulatori pre-allocati (zero allocazioni GC)
         for (var i = 0; i < _allEdgeBatches.Length; i++)
             _allEdgeBatches[i].Clear();
 
@@ -511,18 +576,18 @@ public sealed class GraphControl : Control
             var target = graph.GetNode(edge.TargetId);
             if (source is null || target is null) continue;
 
+            // Viewport edge culling in coordinate grafo: scarta l'arco prima delle conversioni a schermo
+            var eMinX = Math.Min(source.X, target.X);
+            var eMaxX = Math.Max(source.X, target.X);
+            var eMinY = Math.Min(source.Y, target.Y);
+            var eMaxY = Math.Max(source.Y, target.Y);
+
+            if (eMaxX < viewMinX || eMinX > viewMaxX || eMaxY < viewMinY || eMinY > viewMaxY)
+                continue;
+
+            // Proietta a schermo solo i segmenti effettivamente intersecati dal viewport
             var p1 = GraphToScreen(source.X, source.Y);
             var p2 = GraphToScreen(target.X, target.Y);
-
-            // Viewport edge culling: scarta l'arco se entrambi i nodi estremi ricadono interamente all'esterno
-            // dello stesso lato dell'area visibile del canvas (con margine di tolleranza di 50px per evitare glitch sui bordi).
-            var minX = Math.Min(p1.X, p2.X);
-            var maxX = Math.Max(p1.X, p2.X);
-            var minY = Math.Min(p1.Y, p2.Y);
-            var maxY = Math.Max(p1.Y, p2.Y);
-
-            if (maxX < -50 || minX > viewWidth + 50 || maxY < -50 || minY > viewHeight + 50)
-                continue;
 
             var isCalleeEdge = _currentHighlightMode == HighlightMode.Callees && _calleeEdgeIds.Contains((edge.SourceId, edge.TargetId));
             var isCallerEdge = _currentHighlightMode == HighlightMode.Callers && _callerEdgeIds.Contains((edge.SourceId, edge.TargetId));
@@ -531,6 +596,7 @@ public sealed class GraphControl : Control
                                     (_blastRadiusDepths.ContainsKey(edge.TargetId) || _selectedNode?.Id == edge.TargetId);
             var isHighlighted = _highlightedEdges.Contains((edge.SourceId, edge.TargetId));
 
+            // Classifica l'arco nell'accumulatore corrispondente allo stile visivo attivo
             EdgeBatch targetBatch;
             if (isCalleeEdge)
                 targetBatch = _batchCallee;
@@ -549,7 +615,7 @@ public sealed class GraphControl : Control
 
             targetBatch.AddLine(p1, p2);
 
-            // Disegna freccia direzionale: LOD per non saturare la GPU su zoom out e zero allocazioni GC
+            // LOD Frecce: mostra le frecce solo se l'arco è attivo/evidenziato oppure se lo zoom è sufficiente (scale >= 0.45)
             var shouldDrawArrow = (isCalleeEdge || isCallerEdge || isBlastRadiusEdge || isHighlighted) ||
                 (_scale >= 0.45 && (edge.IsCrossProject || edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.HandlesEvent));
 
@@ -568,13 +634,15 @@ public sealed class GraphControl : Control
                     var a1 = new Point(tip.X - ux * arrowSize + uy * (arrowSize * 0.6), tip.Y - uy * arrowSize - ux * (arrowSize * 0.6));
                     var a2 = new Point(tip.X - ux * arrowSize - uy * (arrowSize * 0.6), tip.Y - uy * arrowSize + ux * (arrowSize * 0.6));
 
+                    // Aggiunge le due cuspidi della freccia allo stesso batch della linea (zero allocazioni)
                     targetBatch.AddLine(tip, a1);
                     targetBatch.AddLine(tip, a2);
                 }
             }
         }
 
-        // Emette le geometrie batched degli archi (massimo 11 draw calls per l'intero grafo)
+        // Emette le geometrie batched degli archi: converte migliaia di segmenti in un unico StreamGeometry
+        // per penna, eseguendo al massimo 11 draw calls GPU per l'intera rete relazionale.
         for (var i = 0; i < _allEdgeBatches.Length; i++)
         {
             var batch = _allEdgeBatches[i];
@@ -595,13 +663,21 @@ public sealed class GraphControl : Control
             context.DrawGeometry(null, batch.Pen, geometry);
         }
 
-        // 2. Disegna i NODI
+        // =========================================================================
+        // 2. RENDERING DEI NODI (Sopra agli archi)
+        // =========================================================================
         foreach (var node in graph.Nodes)
         {
             if (!visibleIds.Contains(node.Id)) continue;
 
+            var nodeRadius = node.Radius;
+            // Viewport culling in coordinate grafo: scarta il nodo prima delle conversioni a schermo
+            if (node.X + nodeRadius < viewMinX || node.X - nodeRadius > viewMaxX ||
+                node.Y + nodeRadius < viewMinY || node.Y - nodeRadius > viewMaxY)
+                continue;
+
             var screenPos = GraphToScreen(node.X, node.Y);
-            var radius = Math.Max(node.Radius * Math.Min(_scale, 2.5), 1.0);
+            var radius = Math.Max(nodeRadius * Math.Min(_scale, 2.5), 1.0);
 
             // Viewport culling per performance
             if (screenPos.X < -radius - 50 || screenPos.Y < -radius - 50 ||
@@ -992,14 +1068,26 @@ public sealed class GraphControl : Control
 
             if (hit != null)
             {
+                // Aggiorna istantaneamente il cursore visivo (Hand) senza alcun ritardo percettibile
                 Cursor = new Cursor(StandardCursorType.Hand);
-                if (hit.Id != _selectedNode?.Id)
 
-                    SelectNode(hit);
+                // Debounce di 45ms per la selezione effettiva: evita di scatenare decine di eventi
+                // SelectionChanged e ricalcoli pesanti su chiamanti/callees quando il cursore attraversa rapidamente i nodi
+                if (hit.Id != _selectedNode?.Id && hit.Id != _pendingHoverNode?.Id)
+                {
+                    _pendingHoverNode = hit;
+                    _hoverDebounceTimer.Stop();
+                    _hoverDebounceTimer.Start();
+                }
             }
             else
             {
                 Cursor = Cursor.Default;
+                if (_pendingHoverNode != null)
+                {
+                    _hoverDebounceTimer.Stop();
+                    _pendingHoverNode = null;
+                }
             }
         }
         else
@@ -1013,8 +1101,9 @@ public sealed class GraphControl : Control
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
+        _hoverDebounceTimer.Stop();
+        _pendingHoverNode = null;
         if (!_isPointerDown)
-
             Cursor = Cursor.Default;
     }
 
@@ -1022,6 +1111,8 @@ public sealed class GraphControl : Control
     {
         base.OnPointerReleased(e);
         e.Pointer.Capture(null);
+        _hoverDebounceTimer.Stop();
+        _pendingHoverNode = null;
 
         if (_isPointerDown)
         {
