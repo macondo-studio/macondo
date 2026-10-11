@@ -169,6 +169,32 @@ public sealed class CodeGraph
     }
 
     /// <summary>
+    /// Sincronizza esplicitamente e completamente gli indici interni del grafo in un unico passaggio atomico.
+    /// Utile al termine di caricamenti o merge massivi per garantire che tutte le future query O(1) siano calcolate.
+    /// </summary>
+    public void BuildIndices()
+    {
+        EnsureContainsIndexed();
+    }
+
+    /// <summary>
+    /// Unisce in blocco i simboli e le relazioni di un grafo secondario (es. grafo locale generato da un worker thread)
+    /// all'interno del grafo corrente, senza innescare ricalcoli ripetuti O(N^2) degli indici di contenimento.
+    /// </summary>
+    /// <param name="other">Il grafo locale da unire nel grafo primario.</param>
+    public void MergeFrom(CodeGraph other)
+    {
+        if (other == null || (other.Symbols.Count == 0 && other.Relationships.Count == 0))
+            return;
+
+        lock (_syncLock)
+        {
+            Symbols.AddRange(other.Symbols);
+            Relationships.AddRange(other.Relationships);
+        }
+    }
+
+    /// <summary>
     /// Registra internamente una relazione mantenendo sincronizzato l'indice O(1) delle chiavi e del contenimento.
     /// Thread-safe: serializza l'aggiunta e l'aggiornamento incrementale delle strutture.
     /// </summary>
@@ -176,12 +202,12 @@ public sealed class CodeGraph
     {
         lock (_syncLock)
         {
+            // Se le liste sottostanti sono state popolate o alterate esternamente (es. AddRange),
+            // rinfresca gli indici completi prima di procedere con l'aggiornamento incrementale.
             if (_lastIndexedRelCount != Relationships.Count || _lastIndexedContainsSymbolCount != Symbols.Count)
-
                 EnsureContainsIndexed();
 
             if (!_relationshipKeys.Add((rel.SourceId, rel.TargetId, rel.Kind)))
-
                 return;
 
             Relationships.Add(rel);
@@ -212,7 +238,6 @@ public sealed class CodeGraph
                 }
 
                 if (_symbolsById.TryGetValue(rel.TargetId, out var childSym))
-
                     list.Add(childSym);
             }
         }

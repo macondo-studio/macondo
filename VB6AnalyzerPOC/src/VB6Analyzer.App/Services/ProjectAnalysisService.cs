@@ -228,15 +228,25 @@ public static class ProjectAnalysisService
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 2b. Unione deterministica e atomica dei grafi locali nel CodeGraph globale del Workspace
+        // 2b. Unione batch ad altissime prestazioni dei grafi locali nel CodeGraph globale del Workspace
+        // Per evitare ricalcoli O(N^2) degli indici di contenimento (che causavano spike di 8GB di RAM e minuti di blocco GC),
+        // aggreghiamo prima tutti i simboli e le relazioni senza toccare RegisterRelationship,
+        // aggiungiamo le relazioni di contenimento progetto-modulo in blocco nella lista delle relazioni,
+        // ed eseguiamo una sola sincronizzazione atomica degli indici al termine del merge.
         foreach (var (vbResult, localGraph, proj, projSymbol) in concurrentVbResults)
         {
             extractionResults.Add(vbResult);
             semanticGraph.Symbols.AddRange(localGraph.Symbols);
             semanticGraph.Relationships.AddRange(localGraph.Relationships);
 
-            // Collega il modulo al proprio progetto tramite relazione CONTAINS
-            semanticGraph.AddContains(projSymbol, vbResult.ModuleSymbol);
+            // Relazione di contenimento tra il simbolo Progetto e il modulo di primo livello
+            semanticGraph.Relationships.Add(new Relationship
+            {
+                SourceId = projSymbol.Id,
+                TargetId = vbResult.ModuleSymbol.Id,
+                Kind = RelationshipKind.Contains,
+                Confidence = ResolutionConfidence.Exact
+            });
 
             // Imposta il QualifiedName con il prefisso del progetto se workspace multi-progetto
             if (projects.Count > 1)
@@ -251,13 +261,20 @@ public static class ProjectAnalysisService
 
             foreach (var topSym in csResult.TopLevelSymbols)
             {
-                semanticGraph.AddContains(projSymbol, topSym);
+                semanticGraph.Relationships.Add(new Relationship
+                {
+                    SourceId = projSymbol.Id,
+                    TargetId = topSym.Id,
+                    Kind = RelationshipKind.Contains,
+                    Confidence = ResolutionConfidence.Exact
+                });
+
                 if (projects.Count > 1 && !topSym.QualifiedName.StartsWith(proj.Name + ".", StringComparison.OrdinalIgnoreCase))
                     topSym.QualifiedName = $"{proj.Name}.{topSym.QualifiedName}";
             }
         }
 
-        var javaResults = new List<JavaExtractionResult>(totalFiles);
+        var javaResults = new List<JavaExtractionResult>(concurrentJavaResults.Count);
         foreach (var (javaResult, localGraph, proj, projSymbol) in concurrentJavaResults)
         {
             javaResults.Add(javaResult);
@@ -266,11 +283,31 @@ public static class ProjectAnalysisService
 
             foreach (var topSym in javaResult.TopLevelSymbols)
             {
-                semanticGraph.AddContains(projSymbol, topSym);
+                semanticGraph.Relationships.Add(new Relationship
+                {
+                    SourceId = projSymbol.Id,
+                    TargetId = topSym.Id,
+                    Kind = RelationshipKind.Contains,
+                    Confidence = ResolutionConfidence.Exact
+                });
+
                 if (projects.Count > 1 && !topSym.QualifiedName.StartsWith(proj.Name + ".", StringComparison.OrdinalIgnoreCase))
                     topSym.QualifiedName = $"{proj.Name}.{topSym.QualifiedName}";
             }
         }
+
+        // Dereferenzia e svuota le collezioni temporanee del parsing per liberare immediatamente la RAM
+        concurrentVbResults.Clear();
+        concurrentCsResults.Clear();
+        concurrentJavaResults.Clear();
+
+        // Ricostruisce gli indici del CodeGraph una sola volta in modo globale e atomico
+        semanticGraph.BuildIndices();
+
+        // Invoca una raccolta garbage collection esplicita di Generazione 2 per liberare immediatamente
+        // decine di migliaia di oggetti effimeri creati durante la fase di parsing parallelo
+        GC.Collect(2, GCCollectionMode.Aggressive, blocking: true);
+        GC.WaitForPendingFinalizers();
 
         // 3. Risoluzione globale dei tipi (TypeResolver) su tutto il Workspace
         cancellationToken.ThrowIfCancellationRequested();
@@ -305,6 +342,12 @@ public static class ProjectAnalysisService
         var callGraphBuilder = new CallGraphBuilder(semanticGraph, symbolResolver);
         callGraphBuilder.BuildGraph(extractionResults, csharpResults, javaResults, cancellationToken);
 
+        // Dereferenzia e svuota le collezioni di estrazione non appena il Call Graph è generato
+        // per liberare memoria prima di procedere con il grafo visuale e il relativo layout
+        extractionResults.Clear();
+        csharpResults.Clear();
+        javaResults.Clear();
+
         // 5. Adattamento al modello visuale per Avalonia
         cancellationToken.ThrowIfCancellationRequested();
         progress?.Report(new ProjectAnalysisProgress
@@ -317,6 +360,10 @@ public static class ProjectAnalysisService
             EstimatedRemainingSeconds = 0.1,
             PhaseMessage = LocalizationService.Instance["Loading_GeneratingVisualGraph"]
         });
+
+        // Raccolta garbage collection prima del rendering/layout visuale
+        GC.Collect(2, GCCollectionMode.Aggressive, blocking: true);
+        GC.WaitForPendingFinalizers();
 
         var workspaceTitle = projects.Count == 1 ? projects[0].Name : $"Workspace ({projects.Count} Projects)";
         var preferredLayout = SettingsService.Instance.Settings.PreferredLayout;

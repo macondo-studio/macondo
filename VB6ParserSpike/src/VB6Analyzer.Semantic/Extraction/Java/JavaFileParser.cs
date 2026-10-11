@@ -80,6 +80,13 @@ internal sealed class JavaFileParser
         {
             _parseErrors.Add($"Java parser warning on {_filePath}: {ex.Message}");
         }
+        finally
+        {
+            // Rilascia immediatamente il buffer dei token per liberare la memoria managed heap
+            // non appena il parsing della compilation unit è completato.
+            _tokens.Clear();
+            _tokens.TrimExcess();
+        }
 
         return new JavaExtractionResult
         {
