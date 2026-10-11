@@ -187,6 +187,21 @@ public sealed class CodeGraph
             Relationships.Add(rel);
             _lastIndexedRelCount = Relationships.Count;
 
+            // Mantiene l'adiacenza uscente ed entrante O(1) in tempo reale
+            if (!_outgoingBySourceId.TryGetValue(rel.SourceId, out var outList))
+            {
+                outList = new List<Relationship>();
+                _outgoingBySourceId[rel.SourceId] = outList;
+            }
+            outList.Add(rel);
+
+            if (!_incomingByTargetId.TryGetValue(rel.TargetId, out var inList))
+            {
+                inList = new List<Relationship>();
+                _incomingByTargetId[rel.TargetId] = inList;
+            }
+            inList.Add(rel);
+
             if (rel.Kind == RelationshipKind.Contains)
             {
                 EnsureSymbolsIndexed();
