@@ -89,14 +89,15 @@ public static class GraphVisualAdapter
             defaultProjectNode = projectNodes[0];
         }
 
-        // 2. Collega la gerarchia CONTAINS: assegna i ParentId
+        // 2. Collega la gerarchia CONTAINS: assegna i ParentId.
+        // Scarta esplicitamente le auto-relazioni errate (rel.SourceId == rel.TargetId) per evitare self-loop.
         var containsRels = semanticGraph.Relationships
             .Where(r => r.Kind == RelationshipKind.Contains)
             .ToList();
 
         foreach (var rel in containsRels)
         {
-            if (nodesBySymbolId.TryGetValue(rel.TargetId, out var childNode))
+            if (rel.SourceId != rel.TargetId && nodesBySymbolId.TryGetValue(rel.TargetId, out var childNode))
 
                 childNode.ParentId = rel.SourceId;
         }
@@ -122,23 +123,46 @@ public static class GraphVisualAdapter
             }
         }
 
-        // 4. Propaga ProjectId e ProjectName su tutti i nodi risalendo la gerarchia
+        // 4. Propaga ProjectId e ProjectName su tutti i nodi risalendo la gerarchia:
+        // - Non viene applicato alcun limite arbitrario di profondità per consentire l'analisi esaustiva di basi di codice complesse.
+        // - Viene utilizzato un insieme 'visited' per rilevare e spezzare tempestivamente riferimenti circolari (cicli chiusi A -> B -> A),
+        //   prevenendo blocchi infiniti al 100% di CPU su basi di codice con decine di migliaia di simboli.
+        // - Viene applicata la memoization immediata in O(1): se un antenato ha già determinato il proprio ProjectId,
+        //   il nodo corrente eredita istantaneamente tale appartenenza riducendo drasticamente il costo computazionale.
         foreach (var node in visualGraph.Nodes)
         {
             if (node.Kind == SymbolKind.Project) continue;
 
             var curr = node;
+            HashSet<Guid>? visited = null;
             while (curr.ParentId.HasValue && nodesBySymbolId.TryGetValue(curr.ParentId.Value, out var parentNode))
             {
+                // Antenato radice di tipo Progetto raggiunto
                 if (parentNode.Kind == SymbolKind.Project)
                 {
                     node.ProjectId = parentNode.Id;
                     node.ProjectName = parentNode.Name;
                     break;
                 }
+
+                // Scorciatoia di memoization: se il nodo genitore ha già risolto il proprio ProjectId,
+                // possiamo riutilizzarlo all'istante senza risalire ulteriormente l'albero.
+                if (parentNode.ProjectId.HasValue)
+                {
+                    node.ProjectId = parentNode.ProjectId;
+                    node.ProjectName = parentNode.ProjectName;
+                    break;
+                }
+
+                // Tracciamento dei nodi visitati lungo questo ramo per interrompere loop circolari
+                visited ??= new HashSet<Guid>();
+                if (!visited.Add(curr.Id) || visited.Contains(parentNode.Id))
+                    break;
+
                 curr = parentNode;
             }
 
+            // Fallback: se nessun progetto è stato individuato nella catena, assegna al progetto predefinito del workspace
             if (node.ProjectId == null)
             {
                 node.ProjectId = defaultProjectNode.Id;

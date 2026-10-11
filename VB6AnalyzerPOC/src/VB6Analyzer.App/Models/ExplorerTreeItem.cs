@@ -186,8 +186,20 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
         return projectItem;
     }
 
-    private static ExplorerTreeItem Build(VisualCodeGraph graph, GraphNode node, string? projectFolderPath = null)
+    /// <summary>
+    /// Costruisce ricorsivamente il sotto-albero per un nodo del grafo.
+    /// Utilizza un insieme 'visited' per tracciare i nodi già elaborati lungo il percorso corrente,
+    /// prevenendo eccezioni di StackOverflow in caso di relazioni gerarchiche circolari errate.
+    /// </summary>
+    /// <param name="graph">Il grafo visuale di riferimento.</param>
+    /// <param name="node">Il nodo sorgente corrente da trasformare in elemento del TreeView.</param>
+    /// <param name="projectFolderPath">Cartella radice del progetto per la risoluzione dei percorsi relativi.</param>
+    /// <param name="visited">Insieme opzionale dei nodi già visitati nella catena ricorsiva attiva.</param>
+    private static ExplorerTreeItem Build(VisualCodeGraph graph, GraphNode node, string? projectFolderPath = null, HashSet<Guid>? visited = null)
     {
+        visited ??= new HashSet<Guid>();
+        visited.Add(node.Id);
+
         var (badge, bg, fg) = GetBadgeInfo(node.Kind);
         var (accText, accBg, accFg, accTip) = GetAccessibilityInfo(node.SemanticSymbol?.Accessibility, node.Kind);
         var nodeFilePath = ResolvePath(node.SemanticSymbol?.FilePath, projectFolderPath);
@@ -210,9 +222,12 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
             LineEnd = node.SemanticSymbol?.LineEnd ?? 0
         };
 
+        // Itera sui figli ordinandoli per categoria e nome alfabetico
         foreach (var child in graph.GetChildren(node.Id).OrderBy(c => c.Kind).ThenBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
         {
-            var childItem = Build(graph, child, projectFolderPath);
+            // Salta i nodi già visitati nella risalita per evitare cicli infiniti di ricorsione
+            if (visited.Contains(child.Id)) continue;
+            var childItem = Build(graph, child, projectFolderPath, visited);
             if (string.IsNullOrEmpty(childItem.FilePath) && !string.IsNullOrEmpty(item.FilePath))
 
                 childItem = new ExplorerTreeItem

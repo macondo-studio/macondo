@@ -186,19 +186,72 @@ public sealed class ProjectDescriptor
                             descriptors.Add(ParseVbpFile(vbpFile, cancellationToken));
                     }
 
-                    foreach (var pomFile in pomFiles)
+                    // 2a. Gestione avanzata Maven Multi-Modulo:
+                    // Raccoglie preventivamente l'elenco di tutte le cartelle contenenti un file pom.xml
+                    // per evitare che un modulo root (o padre) includa ricorsivamente i file dei sottomoduli figli.
+                    if (pomFiles.Length > 0)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        if (seenProjectFiles.Add(pomFile))
-                            descriptors.Add(ParsePomXmlFile(pomFile, cancellationToken));
+                        var pomFolders = pomFiles
+                            .Select(Path.GetDirectoryName)
+                            .Where(d => !string.IsNullOrEmpty(d))
+                            .Cast<string>()
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .ToList();
+
+                        foreach (var pomFile in pomFiles)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            if (seenProjectFiles.Add(pomFile))
+                            {
+                                var folder = Path.GetDirectoryName(pomFile) ?? "";
+                                var normalizedFolder = folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+
+                                // Isola le cartelle dei sottomoduli che risiedono fisicamente all'interno della cartella di questo pom.xml
+                                var childFolders = pomFolders
+                                    .Where(d => !string.Equals(d, folder, StringComparison.OrdinalIgnoreCase) && d.StartsWith(normalizedFolder, StringComparison.OrdinalIgnoreCase))
+                                    .ToList();
+
+                                descriptors.Add(ParsePomXmlFile(pomFile, childFolders, cancellationToken));
+                            }
+                        }
                     }
 
-                    foreach (var gradleFile in gradleFiles)
+                    // 2b. Gestione avanzata Gradle Multi-Project (es. Android / Robolectric / Spring Multi-Module):
+                    // Identifica tutte le directory contenenti build.gradle o build.gradle.kts per circoscrivere
+                    // l'assegnazione dei file Java al solo modulo proprietario diretto, prevenendo la duplicazione a catena.
+                    if (gradleFiles.Length > 0)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        if (seenProjectFiles.Add(gradleFile))
-                            descriptors.Add(ParseGradleFile(gradleFile, cancellationToken));
+                        var gradleFolders = gradleFiles
+                            .Select(Path.GetDirectoryName)
+                            .Where(d => !string.IsNullOrEmpty(d))
+                            .Cast<string>()
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .ToList();
+
+                        foreach (var gradleFile in gradleFiles)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            if (seenProjectFiles.Add(gradleFile))
+                            {
+                                var folder = Path.GetDirectoryName(gradleFile) ?? "";
+                                var normalizedFolder = folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+
+                                // Individua tutte le sottocartelle interne che ospitano un sottomodulo Gradle figlio
+                                var childFolders = gradleFolders
+                                    .Where(d => !string.Equals(d, folder, StringComparison.OrdinalIgnoreCase) && d.StartsWith(normalizedFolder, StringComparison.OrdinalIgnoreCase))
+                                    .ToList();
+
+                                descriptors.Add(ParseGradleFile(gradleFile, childFolders, cancellationToken));
+                            }
+                        }
                     }
+
+                    // 2c. Pulizia moduli aggregatori privi di sorgenti:
+                    // Se sono stati scoperti più progetti nel workspace e almeno uno contiene file sorgente effettivi,
+                    // scarta i progetti radice puramente configurativi/aggregatori (es. root build.gradle senza codice Java proprio)
+                    // evitando di generare progetti vuoti o nodi orfani nel grafo visuale.
+                    if (descriptors.Count > 1 && descriptors.Any(d => d.SourceFiles.Count > 0))
+                        descriptors.RemoveAll(d => d.SourceFiles.Count == 0);
                 }
                 else
                 {
@@ -289,13 +342,49 @@ public sealed class ProjectDescriptor
     }
 
     /// <summary>
+    /// Verifica se il file sorgente specificato appartiene a uno dei sottomoduli annidati censiti.
+    /// In tal caso, il file deve essere escluso dal modulo genitore per garantire che ogni sorgente
+    /// venga attribuito esclusivamente e univocamente al proprio sottomodulo proprietario.
+    /// </summary>
+    /// <param name="filePath">Percorso assoluto del file sorgente da verificare.</param>
+    /// <param name="childProjectFolders">Insieme delle cartelle assolute dei sottomoduli annidati.</param>
+    /// <returns><c>true</c> se il file risiede all'interno di una cartella di un sottomodulo; altrimenti <c>false</c>.</returns>
+    private static bool IsInChildProjectFolder(string filePath, IEnumerable<string>? childProjectFolders)
+    {
+        if (childProjectFolders == null)
+            return false;
+
+        foreach (var childFolder in childProjectFolders)
+        {
+            if (string.IsNullOrEmpty(childFolder)) continue;
+            var normalizedChild = childFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            if (filePath.StartsWith(normalizedChild, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Esegue il parsing di un file di configurazione Maven ('pom.xml') e individua tutti i file sorgente Java (.java) associati.
+    /// Rileva automaticamente eventuali sottomoduli Maven annidati per escluderne i file sorgente ed evitare duplicazioni.
+    /// </summary>
+    public static ProjectDescriptor ParsePomXmlFile(string pomXmlPath, CancellationToken cancellationToken = default)
+        => ParsePomXmlFile(pomXmlPath, childProjectFolders: null, cancellationToken);
+
+    /// <summary>
     /// Esegue il parsing di un file di configurazione Maven ('pom.xml') e individua tutti i file sorgente Java (.java) associati.
     /// Estrae il nome del progetto da &lt;artifactId&gt; o &lt;name&gt;, oppure ricorre al nome della cartella genitrice come fallback.
+    /// Se specificato l'elenco dei sottomoduli, esclude ricorsivamente i file di questi ultimi.
     /// </summary>
     /// <param name="pomXmlPath">Percorso assoluto del file pom.xml.</param>
+    /// <param name="childProjectFolders">Cartelle opzionali di sottomoduli annidati i cui file sorgente non devono essere inclusi nel modulo corrente.</param>
     /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere la scansione.</param>
     /// <returns>Il descrittore del progetto Maven popolato con l'elenco dei file sorgente Java.</returns>
-    public static ProjectDescriptor ParsePomXmlFile(string pomXmlPath, CancellationToken cancellationToken = default)
+    public static ProjectDescriptor ParsePomXmlFile(
+        string pomXmlPath,
+        IReadOnlyCollection<string>? childProjectFolders,
+        CancellationToken cancellationToken = default)
     {
         var folder = Path.GetDirectoryName(pomXmlPath) ?? "";
         var projName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
@@ -317,8 +406,22 @@ public sealed class ProjectDescriptor
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+
+        // Se non specificato esplicitamente, individua in autonomia eventuali sottomoduli Maven annidati nella cartella
+        if (childProjectFolders == null && Directory.Exists(folder))
+        {
+            childProjectFolders = Directory.GetFiles(folder, "pom.xml", SearchOption.AllDirectories)
+                .Where(f => !IsInIgnoredFolder(f) && !string.Equals(f, pomXmlPath, StringComparison.OrdinalIgnoreCase))
+                .Select(Path.GetDirectoryName)
+                .Where(d => !string.IsNullOrEmpty(d))
+                .Cast<string>()
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        // Recupera solo i file .java appartenenti al modulo corrente, escludendo cartelle ignorate e sottomoduli
         var sourceFiles = Directory.GetFiles(folder, "*.java", SearchOption.AllDirectories)
-            .Where(f => !IsInIgnoredFolder(f))
+            .Where(f => !IsInIgnoredFolder(f) && !IsInChildProjectFolder(f, childProjectFolders))
             .OrderBy(f => Path.GetFileName(f))
             .ToList();
 
@@ -334,19 +437,47 @@ public sealed class ProjectDescriptor
 
     /// <summary>
     /// Esegue il parsing di uno script di build Gradle ('build.gradle' o 'build.gradle.kts') e raccoglie tutti i file .java.
+    /// Rileva automaticamente eventuali sottomoduli Gradle annidati per escluderne i file sorgente ed evitare duplicazioni.
+    /// </summary>
+    public static ProjectDescriptor ParseGradleFile(string gradlePath, CancellationToken cancellationToken = default)
+        => ParseGradleFile(gradlePath, childProjectFolders: null, cancellationToken);
+
+    /// <summary>
+    /// Esegue il parsing di uno script di build Gradle ('build.gradle' o 'build.gradle.kts') e raccoglie tutti i file .java.
     /// Utilizza il nome della directory del modulo come nome del progetto.
+    /// Se specificato l'elenco dei sottomoduli, esclude ricorsivamente i file di questi ultimi.
     /// </summary>
     /// <param name="gradlePath">Percorso assoluto del file build.gradle o build.gradle.kts.</param>
+    /// <param name="childProjectFolders">Cartelle opzionali di sottomoduli annidati i cui file sorgente non devono essere inclusi nel modulo corrente.</param>
     /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
     /// <returns>Il descrittore del progetto Gradle con l'elenco completo dei file sorgente Java trovati.</returns>
-    public static ProjectDescriptor ParseGradleFile(string gradlePath, CancellationToken cancellationToken = default)
+    public static ProjectDescriptor ParseGradleFile(
+        string gradlePath,
+        IReadOnlyCollection<string>? childProjectFolders,
+        CancellationToken cancellationToken = default)
     {
         var folder = Path.GetDirectoryName(gradlePath) ?? "";
         var projName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
         cancellationToken.ThrowIfCancellationRequested();
+
+        // Se non specificato esplicitamente, individua in autonomia eventuali sottomoduli Gradle annidati nella cartella
+        if (childProjectFolders == null && Directory.Exists(folder))
+        {
+            childProjectFolders = Directory.GetFiles(folder, "build.gradle*", SearchOption.AllDirectories)
+                .Where(f => !IsInIgnoredFolder(f) &&
+                            !string.Equals(f, gradlePath, StringComparison.OrdinalIgnoreCase) &&
+                            (f.EndsWith("build.gradle", StringComparison.OrdinalIgnoreCase) || f.EndsWith("build.gradle.kts", StringComparison.OrdinalIgnoreCase)))
+                .Select(Path.GetDirectoryName)
+                .Where(d => !string.IsNullOrEmpty(d))
+                .Cast<string>()
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        // Recupera solo i file .java appartenenti al modulo corrente, escludendo cartelle ignorate e sottomoduli
         var sourceFiles = Directory.GetFiles(folder, "*.java", SearchOption.AllDirectories)
-            .Where(f => !IsInIgnoredFolder(f))
+            .Where(f => !IsInIgnoredFolder(f) && !IsInChildProjectFolder(f, childProjectFolders))
             .OrderBy(f => Path.GetFileName(f))
             .ToList();
 
