@@ -18,17 +18,8 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
     /// Calcola e applica le coordinate (X, Y) a tutti i nodi del grafo visuale mediante simulazione fisica di tipo Force-Directed (Fruchterman-Reingold).
     /// </summary>
     /// <param name="graph">Il grafo visuale da posizionare.</param>
-    /// <remarks>
-    /// Il processo di simulazione:
-    /// <list type="number">
-    ///   <item><description>Inizializza i nodi container su un cerchio preliminare per garantire stabilità.</description></item>
-    ///   <item><description>Ad ogni iterazione calcola forze repulsive elettrostatiche <c>k^2 / d</c> tra tutti i nodi per prevenire sovrapposizioni.</description></item>
-    ///   <item><description>Calcola forze attrattive elastiche <c>(d^2 / k) * peso</c> lungo gli archi di chiamata, istanziazione e dipendenza di tipo.</description></item>
-    ///   <item><description>Applica una forza di gravità centripeta verso l'origine <c>(0, 0)</c> per mantenere il grafo compatto.</description></item>
-    ///   <item><description>Sposta i nodi limitando l'escursione massima in base a un fattore di temperatura con raffreddamento esponenziale progressivo (simulated annealing).</description></item>
-    /// </list>
-    /// </remarks>
-    public static void Apply(VisualCodeGraph graph)
+    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere la simulazione fisica.</param>
+    public static void Apply(VisualCodeGraph graph, CancellationToken cancellationToken = default)
     {
         // 1. Recupero di tutti i nodi container (classi, moduli, form, ecc.)
         var containers = graph.Nodes.Where(n => n.IsContainer).ToList();
@@ -67,7 +58,7 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
         // =========================================================================
         // PASSO 3: Inizializzazione dei parametri del modello fisico (Fruchterman-Reingold)
         // - k: distanza ideale di equilibrio tra due nodi (scala con l'area virtuale del canvas)
-        // - iterations: numero di iterazioni di simulazione dinamica
+        // - iterations: numero di iterazioni adattivo (ridotto per grafi massivi per garantire convergenza rapida)
         // - temp: temperatura iniziale (escursione massima consentita per passo)
         // - coolingFactor: tasso geometrico di raffreddamento (Simulated Annealing)
         // =========================================================================
@@ -75,7 +66,9 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
         var k = optimalDistance;
         var kSquared = k * k;
 
-        var iterations = Math.Min(100, Math.Max(40, n * 2));
+        // Sui grafi molto estesi (>800 nodi) la convergenza termica avviene nelle prime 30-45 iterazioni;
+        // ridurre il tetto massimo evita calcoli ridondanti a bassa temperatura garantendo tempi inferiori a pochi secondi.
+        var iterations = n > 2000 ? 30 : (n > 800 ? 45 : Math.Min(80, Math.Max(35, n * 2)));
         var initialTemp = initialRadius * 0.4;
         var temp = initialTemp;
         var coolingFactor = 0.95;
@@ -113,22 +106,35 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
             }
         }
 
+        var parallelOptions = new ParallelOptions
+        {
+            CancellationToken = cancellationToken,
+            MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount)
+        };
+
         // =========================================================================
         // PASSO 5: Ciclo principale di simulazione dinamica (Physics Loop)
         // =========================================================================
         for (var iter = 0; iter < iterations; iter++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Reset dei vettori di spostamento accumulati
             Array.Clear(dispX, 0, n);
             Array.Clear(dispY, 0, n);
 
-            // 5a. Forze repulsive elettrostatiche tra tutte le coppie di nodi (O(N^2))
+            // 5a. Forze repulsive elettrostatiche tra tutte le coppie di nodi (O(N^2) parallelizzato su multi-core)
+            // Ciascun worker thread calcola in modo indipendente e thread-safe la risultante netta per l'indice 'i'
             // Formula di Coulomb: F_rep = k^2 / dist
-            for (var i = 0; i < n; i++)
+            Parallel.For(0, n, parallelOptions, i =>
             {
                 var c1 = containers[i];
-                for (var j = i + 1; j < n; j++)
+                double netFx = 0.0;
+                double netFy = 0.0;
+
+                for (var j = 0; j < n; j++)
                 {
+                    if (i == j) continue;
                     var c2 = containers[j];
                     var dx = c1.X - c2.X;
                     var dy = c1.Y - c2.Y;
@@ -143,16 +149,13 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
                     }
 
                     var repForce = kSquared / dist;
-                    var fx = (dx / dist) * repForce;
-                    var fy = (dy / dist) * repForce;
-
-                    // I nodi si respingono a vicenda lungo la congiungente
-                    dispX[i] += fx;
-                    dispY[i] += fy;
-                    dispX[j] -= fx;
-                    dispY[j] -= fy;
+                    netFx += (dx / dist) * repForce;
+                    netFy += (dy / dist) * repForce;
                 }
-            }
+
+                dispX[i] = netFx;
+                dispY[i] = netFy;
+            });
 
             // 5b. Forze attrattive elastiche lungo gli archi semantici attivi (Legge di Hooke)
             // Formula di Hooke: F_att = (dist^2 / k) * peso

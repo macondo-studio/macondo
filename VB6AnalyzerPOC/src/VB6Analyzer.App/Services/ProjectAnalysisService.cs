@@ -319,7 +319,8 @@ public static class ProjectAnalysisService
         });
 
         var workspaceTitle = projects.Count == 1 ? projects[0].Name : $"Workspace ({projects.Count} Projects)";
-        return GraphVisualAdapter.FromSemanticGraph(semanticGraph, workspaceTitle);
+        var preferredLayout = SettingsService.Instance.Settings.PreferredLayout;
+        return GraphVisualAdapter.FromSemanticGraph(semanticGraph, workspaceTitle, preferredLayout, cancellationToken);
     }
 
     /// <summary>

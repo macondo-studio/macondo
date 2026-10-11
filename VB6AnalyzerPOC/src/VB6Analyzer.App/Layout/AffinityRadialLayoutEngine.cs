@@ -20,15 +20,8 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
     /// ordinata per affinità di interazione reciproca (minimizzazione degli incroci centrali).
     /// </summary>
     /// <param name="graph">Il grafo visuale da posizionare.</param>
-    /// <remarks>
-    /// L'algoritmo:
-    /// <list type="number">
-    ///   <item><description>Calcola la matrice di affinità pesata tra coppie di container basandosi su chiamate (<c>3.0</c>), istanziazioni (<c>2.5</c>) e tipi usati (<c>1.5</c>).</description></item>
-    ///   <item><description>Determina l'ordine angolare ottimale risolvendo un cammino greedy (Nearest Neighbor / TSP euristico) per posizionare moduli fortemente accoppiati in posizioni angolari contigue.</description></item>
-    ///   <item><description>Posiziona i container lungo la circonferenza principale e distribuisce i membri interni su orbite satellitari attorno a ciascun modulo.</description></item>
-    /// </list>
-    /// </remarks>
-    public static void Apply(VisualCodeGraph graph)
+    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
+    public static void Apply(VisualCodeGraph graph, CancellationToken cancellationToken = default)
     {
         // 1. Recupero dei progetti presenti nel grafo visuale
         var projects = graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
@@ -40,6 +33,7 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
         // 2. Elaborazione di ciascun progetto in modo indipendente
         for (var pIdx = 0; pIdx < projects.Count; pIdx++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var project = projects[pIdx];
             if (isMultiProject)
             {
@@ -105,12 +99,26 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
                 }
             }
 
-            // Calcola il punteggio di affinità totale per ciascun container
-            // sommando i pesi di tutte le sue connessioni con altri moduli
-            var totalAffinityByContainer = containers.ToDictionary(
-                c => c.Id,
-                c => affinity.Where(kv => kv.Key.Item1 == c.Id || kv.Key.Item2 == c.Id).Sum(kv => kv.Value)
-            );
+            // Calcola il punteggio di affinità totale per ciascun container e prepara le liste di adiacenza in O(M)
+            var totalAffinityByContainer = containers.ToDictionary(c => c.Id, _ => 0.0);
+            var adjacency = containers.ToDictionary(c => c.Id, _ => new List<(Guid NeighborId, double Weight)>());
+
+            foreach (var (key, weight) in affinity)
+            {
+                if (totalAffinityByContainer.ContainsKey(key.Item1))
+                    totalAffinityByContainer[key.Item1] += weight;
+                if (totalAffinityByContainer.ContainsKey(key.Item2))
+                    totalAffinityByContainer[key.Item2] += weight;
+
+                if (adjacency.TryGetValue(key.Item1, out var list1))
+                    list1.Add((key.Item2, weight));
+                if (adjacency.TryGetValue(key.Item2, out var list2))
+                    list2.Add((key.Item1, weight));
+            }
+
+            // Pre-ordina le liste di adiacenza una sola volta per peso decrescente per lookup istantaneo O(1)
+            foreach (var list in adjacency.Values)
+                list.Sort((a, b) => b.Weight.CompareTo(a.Weight));
 
             // =========================================================================
             // PASSO 3: Ordinamento greedy per contiguità di affinità (Nearest Neighbor / TSP euristico)
@@ -123,30 +131,32 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
 
             while (unvisited.Count > 0)
             {
-                // Inizia un nuovo cluster o catena dal container non visitato con la massima affinità complessiva
+                cancellationToken.ThrowIfCancellationRequested();
                 var currentId = unvisited.OrderByDescending(id => totalAffinityByContainer.GetValueOrDefault(id)).First();
                 unvisited.Remove(currentId);
                 orderedContainers.Add(containerById[currentId]);
 
-                // Percorre la catena collegando di volta in volta il vicino non visitato con la massima affinità
+                // Percorre la catena collegando di volta in volta il vicino non visitato con la massima affinità tramite lista di adiacenza
                 while (unvisited.Count > 0)
                 {
-                    var nextNeighbor = unvisited
-                        .Select(candId =>
+                    Guid? bestNeighbor = null;
+                    if (adjacency.TryGetValue(currentId, out var neighbors))
+                    {
+                        foreach (var (nbrId, _) in neighbors)
                         {
-                            var key = currentId.CompareTo(candId) < 0 ? (currentId, candId) : (candId, currentId);
-                            var aff = affinity.GetValueOrDefault(key, 0.0);
-                            return new { Id = candId, Affinity = aff };
-                        })
-                        .Where(x => x.Affinity > 0)
-                        .OrderByDescending(x => x.Affinity)
-                        .FirstOrDefault();
+                            if (unvisited.Contains(nbrId))
+                            {
+                                bestNeighbor = nbrId;
+                                break;
+                            }
+                        }
+                    }
 
                     // Se nessun nodo rimasto ha affinità diretta con il nodo corrente, interrompe il sotto-cammino
-                    if (nextNeighbor == null)
+                    if (bestNeighbor == null)
                         break;
 
-                    currentId = nextNeighbor.Id;
+                    currentId = bestNeighbor.Value;
                     unvisited.Remove(currentId);
                     orderedContainers.Add(containerById[currentId]);
                 }

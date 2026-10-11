@@ -16,11 +16,17 @@ public static class GraphVisualAdapter
 
     /// <summary>
     /// Converte il grafo semantico in grafo visuale, collegando la gerarchia strutturale
-    /// e calcolando il layout radiale dei nodi.
+    /// e calcolando il layout iniziale dei nodi direttamente in background.
     /// </summary>
     /// <param name="semanticGraph">Il CodeGraph semantico contenente simboli e relazioni reali.</param>
     /// <param name="projectName">Nome descrittivo del progetto visualizzato.</param>
-    public static VisualCodeGraph FromSemanticGraph(Macondo.Semantic.Model.CodeGraph semanticGraph, string projectName = "Project")
+    /// <param name="preferredLayout">Modalità di layout preferita dall'utente da calcolare in background.</param>
+    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
+    public static VisualCodeGraph FromSemanticGraph(
+        Macondo.Semantic.Model.CodeGraph semanticGraph,
+        string projectName = "Project",
+        GraphLayoutMode? preferredLayout = null,
+        CancellationToken cancellationToken = default)
     {
         var visualGraph = new VisualCodeGraph
         {
@@ -195,8 +201,10 @@ public static class GraphVisualAdapter
             });
         }
 
-        // 6. Calcola il layout iniziale
-        RadialLayoutEngine.Apply(visualGraph);
+        // 6. Calcola il layout iniziale preferito direttamente in background
+        cancellationToken.ThrowIfCancellationRequested();
+        var layoutMode = preferredLayout ?? GraphLayoutMode.StandardRadial;
+        GraphLayoutManager.ApplyLayout(visualGraph, layoutMode, cancellationToken);
         visualGraph.Invalidate();
 
         return visualGraph;

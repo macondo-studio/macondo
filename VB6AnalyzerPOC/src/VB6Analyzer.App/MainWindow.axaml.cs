@@ -1141,11 +1141,24 @@ public partial class MainWindow : Window
             }
             SettingsService.Instance.Update(s => s.LastEnabledAnalyticsTabs = _enabledAnalyticsTabs.ToList());
 
-            ApplyGraphToUI(); // Avvierà PopulateBlastRadiusGridAsync che poi aggiornerà la cache con i calcoli
+            // Costruzione dell'albero dell'esploratore su thread in background per evitare blocchi dell'UI Dispatcher su grafi estesi (40k+ nodi)
+            ExplorerTreeItem? precalculatedExplorerTree = null;
+            if (_graph != null)
+            {
+                precalculatedExplorerTree = await Task.Run(
+                    () => ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds),
+                    token);
+            }
+
+            // Chiude il modal di caricamento prima di applicare gli elementi alla UI
+            HideLoading();
+            await Task.Yield();
+
+            // Il layout è già stato calcolato in background durante FromSemanticGraph in ProjectAnalysisService
+            ApplyGraphToUI(precalculatedTree: precalculatedExplorerTree, applyAutomaticLayout: false); // Avvierà PopulateBlastRadiusGridAsync che poi aggiornerà la cache con i calcoli
 
             // Salva immediatamente lo snapshot iniziale del grafo su cache su thread in background
             if (!string.IsNullOrEmpty(_currentFolderPath) && _graph != null)
-
                 _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _graph, BlastRadiusGridControl.AllRows, _hasUserMovedNodes, _enabledAnalyticsTabs);
 
             var projectCount = _graph?.Nodes.Count(n => n.Kind == SymbolKind.Project) ?? 0;
@@ -1316,8 +1329,9 @@ public partial class MainWindow : Window
     /// Aggiorna tutti i componenti della UI (Grafo, Explorer, Status) con il nuovo CodeGraph.
     /// Se precalculatedRows è fornito (es. da cache), la griglia Blast Radius viene popolata istantaneamente
     /// e le coordinate personalizzate salvate non vengono sovrascritte se applyAutomaticLayout è false.
+    /// Se precalculatedTree è fornito, evita di ricostruire l'albero dell'esploratore sul thread UI.
     /// </summary>
-    private void ApplyGraphToUI(List<BlastRadiusGridRow>? precalculatedRows = null, bool applyAutomaticLayout = true)
+    private void ApplyGraphToUI(List<BlastRadiusGridRow>? precalculatedRows = null, bool applyAutomaticLayout = true, ExplorerTreeItem? precalculatedTree = null)
     {
         if (_graph is null) return;
 
@@ -1326,7 +1340,6 @@ public partial class MainWindow : Window
         CentralTabControl.IsVisible = true;
 
         if (applyAutomaticLayout)
-
             Layout.GraphLayoutManager.ApplyLayout(_graph, _currentLayoutMode);
         _hasUserMovedNodes = false;
         Graph.ClearHiddenProjects();
@@ -1345,7 +1358,8 @@ public partial class MainWindow : Window
         ResetGraphView();
         Graph.SelectNode(null);
 
-        ProjectExplorerControl.ItemsSource = new[] { ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds) };
+        var tree = precalculatedTree ?? ExplorerTreeItem.BuildTree(_graph, _currentFolderPath, Graph.HiddenProjectIds);
+        ProjectExplorerControl.ItemsSource = new[] { tree };
 
         ShowEmptyInspector();
         UpdateProjectsFilterUI();

@@ -194,15 +194,21 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
     /// <param name="graph">Il grafo visuale di riferimento.</param>
     /// <param name="node">Il nodo sorgente corrente da trasformare in elemento del TreeView.</param>
     /// <param name="projectFolderPath">Cartella radice del progetto per la risoluzione dei percorsi relativi.</param>
+    /// <param name="parentFilePath">Percorso del file del nodo contenitore padre ereditato dai nodi figli.</param>
     /// <param name="visited">Insieme opzionale dei nodi già visitati nella catena ricorsiva attiva.</param>
-    private static ExplorerTreeItem Build(VisualCodeGraph graph, GraphNode node, string? projectFolderPath = null, HashSet<Guid>? visited = null)
+    private static ExplorerTreeItem Build(
+        VisualCodeGraph graph,
+        GraphNode node,
+        string? projectFolderPath = null,
+        string? parentFilePath = null,
+        HashSet<Guid>? visited = null)
     {
         visited ??= new HashSet<Guid>();
         visited.Add(node.Id);
 
         var (badge, bg, fg) = GetBadgeInfo(node.Kind);
         var (accText, accBg, accFg, accTip) = GetAccessibilityInfo(node.SemanticSymbol?.Accessibility, node.Kind);
-        var nodeFilePath = ResolvePath(node.SemanticSymbol?.FilePath, projectFolderPath);
+        var nodeFilePath = ResolvePath(node.SemanticSymbol?.FilePath, projectFolderPath) ?? parentFilePath;
 
         var item = new ExplorerTreeItem
         {
@@ -227,26 +233,7 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
         {
             // Salta i nodi già visitati nella risalita per evitare cicli infiniti di ricorsione
             if (visited.Contains(child.Id)) continue;
-            var childItem = Build(graph, child, projectFolderPath, visited);
-            if (string.IsNullOrEmpty(childItem.FilePath) && !string.IsNullOrEmpty(item.FilePath))
-
-                childItem = new ExplorerTreeItem
-                {
-                    Name = childItem.Name,
-                    DisplayText = childItem.DisplayText,
-                    Kind = childItem.Kind,
-                    NodeId = childItem.NodeId,
-                    KindBadge = childItem.KindBadge,
-                    BadgeBackground = childItem.BadgeBackground,
-                    BadgeForeground = childItem.BadgeForeground,
-                    AccessibilityText = childItem.AccessibilityText,
-                    AccessibilityBackground = childItem.AccessibilityBackground,
-                    AccessibilityForeground = childItem.AccessibilityForeground,
-                    AccessibilityTooltip = childItem.AccessibilityTooltip,
-                    FilePath = item.FilePath,
-                    LineStart = childItem.LineStart,
-                    LineEnd = childItem.LineEnd
-                };
+            var childItem = Build(graph, child, projectFolderPath, item.FilePath, visited);
             item.Children.Add(childItem);
         }
 

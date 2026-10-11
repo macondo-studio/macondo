@@ -18,16 +18,10 @@ public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
     /// Calcola e applica le coordinate (X, Y) a tutti i nodi del grafo visuale raggruppando i moduli in isole funzionali autonome.
     /// </summary>
     /// <param name="graph">Il grafo visuale da posizionare.</param>
-    /// <remarks>
-    /// L'algoritmo:
-    /// <list type="number">
-    ///   <item><description>Esegue l'algoritmo Disjoint Set (Union-Find con path compression) per isolare le componenti connesse tra i diversi container.</description></item>
-    ///   <item><description>Distribuisce i centroidi delle diverse isole sul macro-piano 2D lungo una circonferenza di raggio proporzionale al numero di cluster.</description></item>
-    ///   <item><description>All'interno di ciascuna isola, dispone i container su un anello locale e i rispettivi membri interni su satelliti attorno al container.</description></item>
-    /// </list>
-    /// </remarks>
-    public static void Apply(VisualCodeGraph graph)
+    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
+    public static void Apply(VisualCodeGraph graph, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         // 1. Recupero di tutti i nodi container (classi, moduli, form, ecc.)
         var containers = graph.Nodes.Where(n => n.IsContainer).ToList();
         if (containers.Count == 0) return;
