@@ -1263,10 +1263,13 @@
                             </Button>
                         </StackPanel>
                     </TabItem.Header>
-                    <views:BlastRadiusGridView x:Name="BlastRadiusGridControl"
-                                               RowSelected="OnGridControlRowSelected"
-                                               NavigateToNodeRequested="OnGridControlNavigateToNodeRequested"
-                                               RecalculateAuditRequested="OnGridControlRecalculateAuditRequested" />
+                    <Grid>
+                        <views:BlastRadiusGridView x:Name="BlastRadiusGridControl"
+                                                   RowSelected="OnGridControlRowSelected"
+                                                   NavigateToNodeRequested="OnGridControlNavigateToNodeRequested"
+                                                   RecalculateAuditRequested="OnGridControlRecalculateAuditRequested" />
+                        <controls:AnalyticsPlaceholderControl x:Name="BlastRadiusGridPlaceholder" />
+                    </Grid>
                 </TabItem>
             </TabControl>
                 <!-- Indicatore di Inserimento Tab (Barra Verticale di Drop stile Visual Studio) -->

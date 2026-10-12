@@ -1366,8 +1366,6 @@ public partial class MainWindow : Window
         UpdateStatsBar();
         SyncFilterUiState();
 
-        InvalidateAnalyticsViews();
-
         if (precalculatedRows != null && precalculatedRows.Count > 0)
         {
             BlastRadiusGridControl.AllRows = precalculatedRows;
@@ -1377,10 +1375,9 @@ public partial class MainWindow : Window
         {
             BlastRadiusGridControl.Clear();
             BlastRadiusGridControl.SetHiddenProjects(Graph.HiddenProjectIds);
-            // Calcolo Lazy: la griglia completa del Blast Radius verrà calcolata all'apertura del relativo tab o su richiesta
-            if (CentralTabControl?.SelectedItem == GridTabItem)
-                _ = BlastRadiusGridControl.PopulateBlastRadiusGridAsync(_graph, _currentFolderPath, _hasUserMovedNodes);
         }
+
+        InvalidateAnalyticsViews();
     }
 
     /// <summary>
@@ -1622,6 +1619,7 @@ else
         if (tabItem == DataFlowTabItem) return "DataFlow";
         if (tabItem == ApiDiffTabItem) return "ApiDiff";
         if (tabItem == CrudMatrixTabItem) return "CrudMatrix";
+        if (tabItem == GridTabItem) return "BlastRadiusGrid";
         return null;
     }
 
@@ -1640,7 +1638,7 @@ else
     }
 
     /// <summary>
-    /// Marca tutte le 18 schede di analisi come abilitate per il progetto corrente e aggiorna la cache su disco e le preferenze globali.
+    /// Marca tutte le 19 schede di analisi come abilitate per il progetto corrente e aggiorna la cache su disco e le preferenze globali.
     /// </summary>
     private void MarkAllAnalyticsTabsEnabled()
     {
@@ -1649,7 +1647,7 @@ else
             "Dsm", "Treemap", "Hotspots", "ScreenFlow", "Martin", "DeadCode",
             "SharedState", "TemporalCoupling", "ArchitecturalFlow", "CodeCity",
             "Cohesion", "Maintainability", "ArchitecturalRules", "CodeClone",
-            "SocialCode", "DataFlow", "ApiDiff", "CrudMatrix"
+            "SocialCode", "DataFlow", "ApiDiff", "CrudMatrix", "BlastRadiusGrid"
         };
         bool changed = false;
         foreach (var key in allKeys)
@@ -1730,6 +1728,7 @@ else
         if (DataFlowTabItem != null) _dirtyAnalyticsTabs.Add(DataFlowTabItem);
         if (ApiDiffTabItem != null) _dirtyAnalyticsTabs.Add(ApiDiffTabItem);
         if (CrudMatrixTabItem != null) _dirtyAnalyticsTabs.Add(CrudMatrixTabItem);
+        if (GridTabItem != null && BlastRadiusGridControl.AllRows.Count == 0) _dirtyAnalyticsTabs.Add(GridTabItem);
 
         SetAllAnalyticsPlaceholdersPending();
 
@@ -1783,6 +1782,10 @@ else
         UpdateState(DataFlowPlaceholder, "DataFlow");
         UpdateState(ApiDiffPlaceholder, "ApiDiff");
         UpdateState(CrudMatrixPlaceholder, "CrudMatrix");
+        if (BlastRadiusGridControl.AllRows.Count == 0)
+            UpdateState(BlastRadiusGridPlaceholder, "BlastRadiusGrid");
+        else
+            BlastRadiusGridPlaceholder?.SetState(isPending: false, isComputing: false);
     }
 
     /// <summary>
@@ -1840,6 +1843,7 @@ else
         CheckAndQueue(DataFlowTabItem, s.ShowTabDataFlow, "DataFlow");
         CheckAndQueue(ApiDiffTabItem, s.ShowTabApiDiff, "ApiDiff");
         CheckAndQueue(CrudMatrixTabItem, s.ShowTabCrudMatrix, "CrudMatrix");
+        CheckAndQueue(GridTabItem, s.ShowTabBlastRadiusGrid, "BlastRadiusGrid");
 
         int totalAnalyticsSteps = pendingTabs.Count;
         if (totalAnalyticsSteps == 0)
@@ -2209,6 +2213,23 @@ else
                     });
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(CrudMatrixTabItem, nodeCount));
             }
+
+            // 19. Griglia Risultati Blast Radius
+            if (!token.IsCancellationRequested && ShouldPrecompute(GridTabItem, s.ShowTabBlastRadiusGrid, "BlastRadiusGrid"))
+            {
+                if (!token.IsCancellationRequested)
+                {
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+                    {
+                        if (!token.IsCancellationRequested && _dirtyAnalyticsTabs.Contains(GridTabItem))
+                        {
+                            BlastRadiusGridPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(GridTabItem, nodeCount), GetComputingTabTitle(GridTabItem));
+                            await PopulateBlastRadiusGridAsync();
+                        }
+                    });
+                }
+                ReportStepCompletion(GetEstimatedAnalysisSeconds(GridTabItem, nodeCount));
+            }
         }, token);
     }
 
@@ -2235,6 +2256,7 @@ else
         if (DataFlowPlaceholder != null && DataFlowTabItem != null) WirePlaceholder(DataFlowTabItem, DataFlowPlaceholder);
         if (ApiDiffPlaceholder != null && ApiDiffTabItem != null) WirePlaceholder(ApiDiffTabItem, ApiDiffPlaceholder);
         if (CrudMatrixPlaceholder != null && CrudMatrixTabItem != null) WirePlaceholder(CrudMatrixTabItem, CrudMatrixPlaceholder);
+        if (BlastRadiusGridPlaceholder != null && GridTabItem != null) WirePlaceholder(GridTabItem, BlastRadiusGridPlaceholder);
     }
 
     private void WirePlaceholder(TabItem tabItem, AnalyticsPlaceholderControl placeholder)
@@ -2307,6 +2329,7 @@ else
         ResetIfDirty(DataFlowPlaceholder, DataFlowTabItem);
         ResetIfDirty(ApiDiffPlaceholder, ApiDiffTabItem);
         ResetIfDirty(CrudMatrixPlaceholder, CrudMatrixTabItem);
+        ResetIfDirty(BlastRadiusGridPlaceholder, GridTabItem);
 
         StatusText.Text = LocalizationService.Instance["Status_BackgroundAnalyticsStopped"];
     }
@@ -2605,6 +2628,17 @@ else
                 });
             });
         }
+        else if (selectedItem == GridTabItem)
+        {
+            BlastRadiusGridPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(GridTabItem, nodeCount), GetComputingTabTitle(GridTabItem));
+            _ = Task.Run(async () =>
+            {
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+                {
+                    await PopulateBlastRadiusGridAsync();
+                });
+            });
+        }
     }
 
     /// <summary>
@@ -2620,7 +2654,7 @@ else
         if (tabItem.Name is "DeadCodeTabItem" or "SharedStateTabItem" or "ArchitecturalFlowTabItem" or "CohesionTabItem" or "MaintainabilityTabItem")
             return Math.Round(0.6 + 0.5 * nodeFactor, 1);
 
-        if (tabItem.Name is "CodeCityTabItem" or "CrudMatrixTabItem" or "DataFlowTabItem")
+        if (tabItem.Name is "CodeCityTabItem" or "CrudMatrixTabItem" or "DataFlowTabItem" or "GridTabItem")
             return Math.Round(0.8 + 0.7 * nodeFactor, 1);
 
         // Algoritmi più complessi (CPD cloni, analisi VCS git history, linter regole)
@@ -3979,9 +4013,6 @@ else
 
         if (CentralTabControl.SelectedItem == GridTabItem)
         {
-            if (BlastRadiusGridControl.AllRows.Count == 0 && _graph != null)
-                _ = PopulateBlastRadiusGridAsync();
-
             if (_selectedNode != null)
                 BlastRadiusGridControl.SelectNode(_selectedNode.Id);
         }
@@ -3993,6 +4024,8 @@ else
     private async Task PopulateBlastRadiusGridAsync()
     {
         await BlastRadiusGridControl.PopulateBlastRadiusGridAsync(_graph, _currentFolderPath, _hasUserMovedNodes);
+        _dirtyAnalyticsTabs.Remove(GridTabItem);
+        BlastRadiusGridPlaceholder?.SetState(isPending: false, isComputing: false);
     }
 
     /// <summary>
@@ -4038,6 +4071,8 @@ else
     /// </summary>
     private async void OnGridControlRecalculateAuditRequested(object? sender, EventArgs e)
     {
+        _dirtyAnalyticsTabs.Add(GridTabItem);
+        BlastRadiusGridPlaceholder?.SetState(isPending: false, isComputing: true, GetEstimatedAnalysisSeconds(GridTabItem, _graph?.Nodes.Count ?? 0), GetComputingTabTitle(GridTabItem));
         await PopulateBlastRadiusGridAsync();
     }
 
@@ -6679,6 +6714,7 @@ else
         DataFlowPlaceholder?.UpdateLocalizedUI();
         ApiDiffPlaceholder?.UpdateLocalizedUI();
         CrudMatrixPlaceholder?.UpdateLocalizedUI();
+        BlastRadiusGridPlaceholder?.UpdateLocalizedUI();
 
         // Refresh dynamic strings in Grid and Status
         UpdateStatsBar();

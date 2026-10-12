@@ -26,6 +26,7 @@ public partial class BlastRadiusGridView : UserControl
     private VisualCodeGraph? _currentGraph;
     private string? _currentFolderPath;
     private bool _hasUserMovedNodes;
+    private Task? _ongoingPopulateTask;
 
     /// <summary>
     /// Evento scatenato quando una riga della griglia viene selezionata.
@@ -123,6 +124,38 @@ public partial class BlastRadiusGridView : UserControl
     /// popolando la griglia tabellare con conteggi chiamanti, profondità, form coinvolte e livello di rischio.
     /// </summary>
     public async Task PopulateBlastRadiusGridAsync(VisualCodeGraph? graph, string? currentFolderPath, bool hasUserMovedNodes)
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => PopulateBlastRadiusGridAsync(graph, currentFolderPath, hasUserMovedNodes));
+            return;
+        }
+
+        if (_ongoingPopulateTask != null && !_ongoingPopulateTask.IsCompleted)
+        {
+            await _ongoingPopulateTask;
+            return;
+        }
+
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _ongoingPopulateTask = tcs.Task;
+        try
+        {
+            await PopulateBlastRadiusGridInternalAsync(graph, currentFolderPath, hasUserMovedNodes);
+            tcs.TrySetResult();
+        }
+        catch (Exception ex)
+        {
+            tcs.TrySetException(ex);
+            throw;
+        }
+        finally
+        {
+            _ongoingPopulateTask = null;
+        }
+    }
+
+    private async Task PopulateBlastRadiusGridInternalAsync(VisualCodeGraph? graph, string? currentFolderPath, bool hasUserMovedNodes)
     {
         _currentGraph = graph;
         _currentFolderPath = currentFolderPath;
