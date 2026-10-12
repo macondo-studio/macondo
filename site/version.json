@@ -1,14 +1,14 @@
-﻿{
-    "version":  "1.7.0",
+{
+    "version":  "1.7.1",
     "title":  {
-                  "it":  "Macondo v1.7.0",
-                  "en":  "Macondo v1.7.0"
+                  "it":  "Macondo v1.7.1",
+                  "en":  "Macondo v1.7.1"
               },
     "releaseNotes":  {
-                         "it":  "Supporto completo all\u0027analisi di progetti Java, file Maven pom.xml, script Gradle e sorgenti .java con risoluzione semantica del grafo.\nAggiornamento dell\u0027interfaccia utente e localizzazione per progetti e soluzioni multi-linguaggio (VB6, C#, Java).\nOttimizzazioni prestazionali del motore di analisi: grafi con layout force-directed e radiale parallelizzati su tutti i core CPU, mappe di adiacenza indicizzate O(1) e culling del viewport.\nMiglioramenti di stabilità per alberi di progetto Gradle multi-modulo, risoluzione cicli e gestione memoria token buffer del parser.",
-                         "en":  "Full support for Java project analysis, Maven pom.xml files, Gradle scripts, and standalone .java sources with semantic dependency graph resolution.\nUpdated UI labels and localization services to support multi-language projects and solutions (VB6, C#, Java).\nCore analysis engine performance optimizations: multithreaded force-directed and radial graph layout across all CPU cores, O(1) indexed adjacency lookups, and viewport culling.\nStability and memory improvements for multi-module Gradle hierarchies, cycle-safe dependency propagation, and parser token buffer recycling."
+                         "it":  "Rendering del grafo potenziato per grandi codebase: pipeline StreamGeometry con batching GPU degli archi (<10 draw call), griglia spaziale hash 2D per hit testing e selezione nodi O(1), culling del viewport e soglie LOD adattive delle etichette.\nIntegrazione completa del calcolo della Griglia Blast Radius nella pipeline di analisi automatica in background all'apertura del workspace.\nStabilità e ottimizzazioni del thread UI con protezione da esecuzioni concorrenti e allocazioni zero.",
+                         "en":  "High-density dependency graph rendering engine: GPU-batched StreamGeometry pipelines reducing draw calls from tens of thousands to fewer than ten, 2D spatial hash grid for O(1) hit testing and node selection, inverse graph-space viewport culling, and adaptive LOD label thresholds.\nBlast Radius grid risk matrix fully integrated into the automated background analytics precomputation pipeline on project load.\nUI thread performance optimizations, zero-allocation rendering routines, and concurrency guard against duplicate computations."
                      },
     "downloadUrl":  "https://github.com/macondo-studio/macondo/releases/latest/download/Macondo-Setup.exe",
-    "publishedAt":  "2026-10-11T15:37:48Z",
+    "publishedAt":  "2026-10-12T20:46:19Z",
     "isMandatory":  false
 }
