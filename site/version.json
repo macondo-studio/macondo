@@ -1,14 +1,14 @@
-{
-    "version":  "1.7.1",
+﻿{
+    "version":  "1.7.2",
     "title":  {
-                  "it":  "Macondo v1.7.1",
-                  "en":  "Macondo v1.7.1"
+                  "it":  "Macondo v1.7.2",
+                  "en":  "Macondo v1.7.2"
               },
     "releaseNotes":  {
-                         "it":  "Rendering del grafo potenziato per grandi codebase: pipeline StreamGeometry con batching GPU degli archi (<10 draw call), griglia spaziale hash 2D per hit testing e selezione nodi O(1), culling del viewport e soglie LOD adattive delle etichette.\nIntegrazione completa del calcolo della Griglia Blast Radius nella pipeline di analisi automatica in background all'apertura del workspace.\nStabilità e ottimizzazioni del thread UI con protezione da esecuzioni concorrenti e allocazioni zero.",
-                         "en":  "High-density dependency graph rendering engine: GPU-batched StreamGeometry pipelines reducing draw calls from tens of thousands to fewer than ten, 2D spatial hash grid for O(1) hit testing and node selection, inverse graph-space viewport culling, and adaptive LOD label thresholds.\nBlast Radius grid risk matrix fully integrated into the automated background analytics precomputation pipeline on project load.\nUI thread performance optimizations, zero-allocation rendering routines, and concurrency guard against duplicate computations."
+                         "it":  "Risoluzione di problemi critici emersi dall\u0027analisi di codebase VB6 su larga scala: supporto per salti con due punti finali (GoTo), identificatori tra quadre con spazi/punti, isolamento errori per singolo modulo con flag diagnostico --verbose, risoluzione chiamate su oggetti restituiti da proprietà globali, matching event handler WithEvents con underscore multipli, correzione LOC controlli designer e tracciamento costanti/campi, calcolo InDegree/OutDegree nella DSM, inclusione chiamate Win32 Declare nelle metriche di Martin e output CLI UTF-8 senza BOM.",
+                         "en":  "Comprehensive stability and accuracy release resolving critical issues identified in large-scale legacy VB6 codebases: support for jump labels with trailing colons, bracketed identifiers with spaces and dots, per-module error isolation with --verbose diagnostic CLI flag, semantic resolution of chained calls on objects returned by global properties, multi-underscore WithEvents event handler discovery, proper line extent for designer controls and shared constant/field tracking, accurate InDegree/OutDegree in DSM matrices, Win32 Declare inclusion in Martin metrics, and non-BOM UTF-8 CLI output."
                      },
     "downloadUrl":  "https://github.com/macondo-studio/macondo/releases/latest/download/Macondo-Setup.exe",
-    "publishedAt":  "2026-10-12T20:46:19Z",
+    "publishedAt":  "2026-10-14T20:48:26Z",
     "isMandatory":  false
 }

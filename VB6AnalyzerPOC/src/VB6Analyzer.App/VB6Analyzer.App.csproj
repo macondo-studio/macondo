@@ -9,9 +9,9 @@
     <RootNamespace>Macondo.App</RootNamespace>
     <AssemblyName>Macondo</AssemblyName>
     <ApplicationIcon>Assets\Icons\icon1_star_knot.ico</ApplicationIcon>
-    <Version>1.7.1</Version>
-    <AssemblyVersion>1.7.1.0</AssemblyVersion>
-    <FileVersion>1.7.1.0</FileVersion>
+    <Version>1.7.2</Version>
+    <AssemblyVersion>1.7.2.0</AssemblyVersion>
+    <FileVersion>1.7.2.0</FileVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 
     <!--
