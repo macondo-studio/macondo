@@ -75,6 +75,7 @@ public static class DeadCodeAnalyzer
             var currentId = queue.Dequeue();
 
             // 2a. Se il nodo raggiunto è un contenitore, espandi i membri del ciclo di vita invocati automaticamente dal runtime
+            // e le variabili/controlli WithEvents che gestiscono eventi
             foreach (var child in graph.GetChildren(currentId))
             {
                 if (IsAutoInvokedMember(child.Name))
@@ -83,12 +84,20 @@ public static class DeadCodeAnalyzer
 
                         queue.Enqueue(child.Id);
                 }
+
+                // Se il child è un controllo o variabile WithEvents con handler registrati, lo rendiamo raggiungibile
+                if (graph.Relationships.Any(r => r.Kind == RelationshipKind.HandlesEvent && r.SourceId == child.Id))
+                {
+                    if (reachableIds.Add(child.Id))
+
+                        queue.Enqueue(child.Id);
+                }
             }
 
-            // 2b. Espandi lungo le relazioni semantiche uscenti (chiamate a metodi, istanziazioni, usi di tipo, ereditarietà)
+            // 2b. Espandi lungo le relazioni semantiche uscenti (chiamate a metodi, istanziazioni, usi di tipo, ereditarietà, eventi, letture/scritture)
             foreach (var rel in graph.Relationships.Where(r => r.SourceId == currentId))
             {
-                if (rel.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.UsesType or RelationshipKind.Inherits or RelationshipKind.Implements)
+                if (rel.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.UsesType or RelationshipKind.Inherits or RelationshipKind.Implements or RelationshipKind.HandlesEvent or RelationshipKind.Reads or RelationshipKind.Writes)
                 {
                     if (reachableIds.Add(rel.TargetId))
 
@@ -211,6 +220,16 @@ public static class DeadCodeAnalyzer
             foreach (var prefix in StandardEventPrefixes)
             {
                 if (name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            // Gestori di eventi registrati tramite relazione HandlesEvent (es. variabili WithEvents o controlli form)
+            var incomingEvent = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.HandlesEvent && r.TargetId == sym.Id);
+            if (incomingEvent != null)
+            {
+                var parentRel = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.Contains && r.TargetId == incomingEvent.SourceId);
+                var container = parentRel != null ? graph.FindSymbolById(parentRel.SourceId) : null;
+                if (container == null || container.Kind is SymbolKind.Form or SymbolKind.UserControl)
                     return true;
             }
         }

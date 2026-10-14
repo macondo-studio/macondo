@@ -425,6 +425,9 @@ RPAREN: ')';
 
 SEMICOLON: ';';
 
+// Identificatore tra parentesi quadre: ammette spazi, punti e caratteri speciali (es. [Data ora], [Cod.Art.Forn.])
+BRACKETED_IDENTIFIER: '[' (~ [\]\r\n] | ']]')+ ']';
+
 L_SQUARE_BRACKET: '[';
 
 R_SQUARE_BRACKET: ']';

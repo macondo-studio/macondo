@@ -139,7 +139,9 @@ public sealed class SymbolExtractor : VisualBasic6ParserBaseVisitor<object?>
                     Language = SourceLanguage.VisualBasic6,
                     FilePath = _filePath,
                     LineStart = context.Start.Line,
-                    LineEnd = context.Stop?.Line ?? context.Start.Line
+                    // I controlli del designer sono dichiarati sulla singola riga 'Begin ... Nome';
+                    // non devono estendersi all'intero blocco di proprietà per evitare di sovrastimare il LOC (Issue 6)
+                    LineEnd = context.Start.Line
                 };
 
                 _graph.Symbols.Add(controlSymbol);

@@ -108,7 +108,10 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     public override object? VisitSubStmt(VisualBasic6Parser.SubStmtContext context)
     {
         // 1. Estrae il nome dell'identificatore della Sub
-        var name = context.ambiguousIdentifier().GetText();
+        var name = context.ambiguousIdentifier()?.GetText();
+        if (string.IsNullOrEmpty(name))
+            return null;
+
         var routineSymbol = FindChildSymbol(name, SymbolKind.Method);
 
         if (routineSymbol != null)
@@ -135,7 +138,10 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     public override object? VisitFunctionStmt(VisualBasic6Parser.FunctionStmtContext context)
     {
         // 1. Estrae il nome dell'identificatore della Function
-        var name = context.ambiguousIdentifier().GetText();
+        var name = context.ambiguousIdentifier()?.GetText();
+        if (string.IsNullOrEmpty(name))
+            return null;
+
         var routineSymbol = FindChildSymbol(name, SymbolKind.Method);
 
         if (routineSymbol != null)
@@ -161,7 +167,10 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     /// </summary>
     public override object? VisitPropertyGetStmt(VisualBasic6Parser.PropertyGetStmtContext context)
     {
-        var name = context.ambiguousIdentifier().GetText();
+        var name = context.ambiguousIdentifier()?.GetText();
+        if (string.IsNullOrEmpty(name))
+            return null;
+
         var propSymbol = FindChildSymbol(name, SymbolKind.Property);
 
         if (propSymbol != null)
@@ -184,7 +193,10 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     /// </summary>
     public override object? VisitPropertyLetStmt(VisualBasic6Parser.PropertyLetStmtContext context)
     {
-        var name = context.ambiguousIdentifier().GetText();
+        var name = context.ambiguousIdentifier()?.GetText();
+        if (string.IsNullOrEmpty(name))
+            return null;
+
         var propSymbol = FindChildSymbol(name, SymbolKind.Property);
 
         if (propSymbol != null)
@@ -207,7 +219,10 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     /// </summary>
     public override object? VisitPropertySetStmt(VisualBasic6Parser.PropertySetStmtContext context)
     {
-        var name = context.ambiguousIdentifier().GetText();
+        var name = context.ambiguousIdentifier()?.GetText();
+        if (string.IsNullOrEmpty(name))
+            return null;
+
         var propSymbol = FindChildSymbol(name, SymbolKind.Property);
 
         if (propSymbol != null)
@@ -238,6 +253,9 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     /// </summary>
     public override object? VisitWithStmt(VisualBasic6Parser.WithStmtContext context)
     {
+        if (context.implicitCallStmt_InStmt() == null)
+            return null;
+
         // 1. Risolve l'oggetto o record bersaglio su cui opera il With
         var targetText = context.implicitCallStmt_InStmt().GetText();
         var targetResult = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
@@ -294,9 +312,11 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     /// </summary>
     public override object? VisitECS_ProcedureCall(VisualBasic6Parser.ECS_ProcedureCallContext context)
     {
-        var name = context.ambiguousIdentifier().GetText();
-        var result = CurrentScope.Resolve(name);
+        var name = context.ambiguousIdentifier()?.GetText();
+        if (string.IsNullOrEmpty(name))
+            return base.VisitECS_ProcedureCall(context);
 
+        var result = CurrentScope.Resolve(name);
         RecordCallSite(context.GetText(), context.Start.Line, result);
         return base.VisitECS_ProcedureCall(context);
     }
@@ -307,7 +327,10 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     /// </summary>
     public override object? VisitECS_MemberProcedureCall(VisualBasic6Parser.ECS_MemberProcedureCallContext context)
     {
-        var memberName = context.ambiguousIdentifier().GetText();
+        var memberName = context.ambiguousIdentifier()?.GetText();
+        if (string.IsNullOrEmpty(memberName))
+            return base.VisitECS_MemberProcedureCall(context);
+
         ResolutionResult result;
 
         if (context.implicitCallStmt_InStmt() != null)
@@ -335,9 +358,11 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     /// </summary>
     public override object? VisitICS_B_ProcedureCall(VisualBasic6Parser.ICS_B_ProcedureCallContext context)
     {
-        var name = context.certainIdentifier().GetText();
-        var result = CurrentScope.Resolve(name);
+        var name = context.certainIdentifier()?.GetText();
+        if (string.IsNullOrEmpty(name))
+            return base.VisitICS_B_ProcedureCall(context);
 
+        var result = CurrentScope.Resolve(name);
         RecordCallSite(name, context.Start.Line, result);
         return base.VisitICS_B_ProcedureCall(context);
     }
@@ -347,7 +372,10 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     /// </summary>
     public override object? VisitICS_B_MemberProcedureCall(VisualBasic6Parser.ICS_B_MemberProcedureCallContext context)
     {
-        var memberName = context.ambiguousIdentifier().GetText();
+        var memberName = context.ambiguousIdentifier()?.GetText();
+        if (string.IsNullOrEmpty(memberName))
+            return base.VisitICS_B_MemberProcedureCall(context);
+
         ResolutionResult result;
 
         if (context.implicitCallStmt_InStmt() != null)
@@ -378,9 +406,13 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
         if (context.implicitCallStmt_InStmt() != null && _currentRoutineName != null)
         {
             var result = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
-            if (result.TargetSymbol != null && result.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
+            if (result.TargetSymbol != null)
+            {
+                // Registra sia chiamate a routine (Method, Property) sia letture di costanti, campi ed enum
+                if (result.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Constant or SymbolKind.Field or SymbolKind.Enum)
 
-                RecordCallSite(context.GetText().Trim(), context.Start.Line, result);
+                    RecordCallSite(context.GetText().Trim(), context.Start.Line, result);
+            }
         }
         return base.VisitVsICS(context);
     }
@@ -422,7 +454,10 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     /// </summary>
     public override object? VisitRaiseEventStmt(VisualBasic6Parser.RaiseEventStmtContext context)
     {
-        var eventName = context.ambiguousIdentifier().GetText();
+        var eventName = context.ambiguousIdentifier()?.GetText();
+        if (string.IsNullOrEmpty(eventName))
+            return base.VisitRaiseEventStmt(context);
+
         var result = CurrentScope.Resolve(eventName);
         RecordCallSite(context.GetText().Trim(), context.Start.Line, result);
         return base.VisitRaiseEventStmt(context);
@@ -443,7 +478,10 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
         // ---------------------------------------------------------------------
         if (context.iCS_S_VariableOrProcedureCall() != null)
         {
-            var name = context.iCS_S_VariableOrProcedureCall().ambiguousIdentifier().GetText();
+            var name = context.iCS_S_VariableOrProcedureCall().ambiguousIdentifier()?.GetText();
+            if (string.IsNullOrEmpty(name))
+                return new ResolutionResult { Confidence = ResolutionConfidence.Unknown, Details = "Identificatore vuoto o non valido" };
+
             return CurrentScope.Resolve(name);
         }
 
@@ -454,6 +492,9 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
         {
             var call = context.iCS_S_ProcedureOrArrayCall();
             var name = call.ambiguousIdentifier()?.GetText() ?? call.baseType()?.GetText() ?? call.iCS_S_NestedProcedureCall()?.GetText() ?? "";
+            if (string.IsNullOrEmpty(name))
+                return new ResolutionResult { Confidence = ResolutionConfidence.Unknown, Details = "Nome procedura vuoto o non valido" };
+
             return CurrentScope.Resolve(name);
         }
 
@@ -468,14 +509,18 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
             // 3a. Risoluzione della radice della catena
             if (membersCall.iCS_S_VariableOrProcedureCall() != null)
             {
-                var baseName = membersCall.iCS_S_VariableOrProcedureCall().ambiguousIdentifier().GetText();
-                currentResult = CurrentScope.Resolve(baseName);
+                var baseName = membersCall.iCS_S_VariableOrProcedureCall().ambiguousIdentifier()?.GetText() ?? "";
+                currentResult = !string.IsNullOrEmpty(baseName)
+                    ? CurrentScope.Resolve(baseName)
+                    : new ResolutionResult { Confidence = ResolutionConfidence.Unknown, Details = "Radice della chiamata non valida" };
             }
             else if (membersCall.iCS_S_ProcedureOrArrayCall() != null)
             {
                 var call = membersCall.iCS_S_ProcedureOrArrayCall();
                 var baseName = call.ambiguousIdentifier()?.GetText() ?? call.baseType()?.GetText() ?? "";
-                currentResult = CurrentScope.Resolve(baseName);
+                currentResult = !string.IsNullOrEmpty(baseName)
+                    ? CurrentScope.Resolve(baseName)
+                    : new ResolutionResult { Confidence = ResolutionConfidence.Unknown, Details = "Radice della chiamata non valida" };
             }
             else
             {
@@ -485,13 +530,12 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
 
             // Se la radice stessa è una chiamata a routine, registra il relativo call-site
             if (currentResult.TargetSymbol != null && currentResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
-
                 RecordCallSite(currentResult.TargetSymbol.Name, context.Start.Line, currentResult);
 
             // 3b. Risoluzione progressiva di ciascun membro successivo della catena (.Member1.Member2...)
             foreach (var memberCall in membersCall.iCS_S_MemberCall())
             {
-                var memberName = memberCall.iCS_S_VariableOrProcedureCall()?.ambiguousIdentifier().GetText()
+                var memberName = memberCall.iCS_S_VariableOrProcedureCall()?.ambiguousIdentifier()?.GetText()
                                  ?? memberCall.iCS_S_ProcedureOrArrayCall()?.ambiguousIdentifier()?.GetText()
                                  ?? "";
 
@@ -500,7 +544,6 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
                     // Risolve il membro 'memberName' sul tipo semantico ricavato dal risultato precedente
                     currentResult = _symbolResolver.ResolveMemberOnTarget(currentResult, memberName);
                     if (currentResult.TargetSymbol != null && currentResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
-
                         RecordCallSite(memberName, context.Start.Line, currentResult);
                 }
             }

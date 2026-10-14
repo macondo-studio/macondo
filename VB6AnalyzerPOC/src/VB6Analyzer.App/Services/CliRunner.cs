@@ -56,7 +56,7 @@ public static class CliRunner
             or "--dead-code" or "--maintainability" or "--rules" or "--clones" or "--cohesion"
             or "--martin" or "--shared-state" or "--crud" or "--data-flow" or "--screen-flow"
             or "--dsm" or "--impact" or "--fail-on-violations" or "--fail-on-rules"
-            or "--fail-on-mi" or "--fail-on-dead-code" or "--help" or "-h" or "help" or "/?");
+            or "--fail-on-mi" or "--fail-on-dead-code" or "--verbose" or "-v" or "--help" or "-h" or "help" or "/?");
     }
 
     /// <summary>
@@ -120,6 +120,7 @@ public static class CliRunner
         bool failOnViolations = false;
         double? failOnMiThreshold = null;
         double? failOnDeadCodeThreshold = null;
+        bool verbose = false;
 
         // 2. Parsing degli argomenti da riga di comando
         for (int i = 0; i < args.Length; i++)
@@ -322,6 +323,8 @@ public static class CliRunner
                     return ExitCodeError;
                 }
             }
+            else if (arg.Equals("--verbose", StringComparison.OrdinalIgnoreCase) || arg.Equals("-v", StringComparison.OrdinalIgnoreCase))
+                verbose = true;
             else if (!arg.StartsWith("-"))
                 inputPaths.Add(arg);
         }
@@ -612,15 +615,20 @@ public static class CliRunner
         catch (Exception ex)
         {
             errorWriter.WriteLine($"[Fatal Error] Analysis failed: {ex.Message}");
+            if (verbose)
+                errorWriter.WriteLine($"\n[Exception Details & Stack Trace]\n{ex}");
+            else
+                errorWriter.WriteLine($"[Tip] Run with --verbose to display the complete stack trace and diagnostics.");
             return ExitCodeError;
         }
     }
 
     /// <summary>
     /// Salva il contenuto specificato nel percorso indicato, creando le cartelle padre se non esistono.
+    /// Il file viene scritto in codifica UTF-8 senza BOM per massima compatibilità con tool standard e script.
     /// </summary>
     /// <param name="path">Percorso del file di destinazione.</param>
-    /// <param name="content">Contenuto testuale da scrivere in codifica UTF-8.</param>
+    /// <param name="content">Contenuto testuale da scrivere in codifica UTF-8 senza BOM.</param>
     public static void SaveFile(string path, string content)
     {
         var fullPath = Path.GetFullPath(path);
@@ -628,7 +636,7 @@ public static class CliRunner
         if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
             Directory.CreateDirectory(dir);
 
-        File.WriteAllText(fullPath, content, Encoding.UTF8);
+        File.WriteAllText(fullPath, content, new UTF8Encoding(false));
     }
 
     /// <summary>
@@ -680,6 +688,7 @@ CI/CD Quality Gates (Returns Exit Code 2 on failure):
   --fail-on-dead-code <percentage>           Fail if dead code ratio exceeds percentage (e.g. 20)
 
 General:
+  --verbose, -v                              Enable detailed/verbose logging with full exception stack traces
   --help, -h                                 Show this help message
 
 Examples:

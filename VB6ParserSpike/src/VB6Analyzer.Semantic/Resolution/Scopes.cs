@@ -88,8 +88,8 @@ public sealed class ProjectScope : IScope
                 {
                     TargetSymbol = target,
                     Confidence = ResolutionConfidence.Exact,
-                    TargetTypeName = target.DeclaredTypeName,
-                    ResolvedTypeSymbolId = target.ResolvedTypeSymbolId
+                    TargetTypeName = target.ReturnType ?? target.DeclaredTypeName,
+                    ResolvedTypeSymbolId = target.ResolvedReturnTypeSymbolId ?? target.ResolvedTypeSymbolId
                 };
             }
             if (basMemberList.Count > 1)
@@ -197,8 +197,9 @@ public sealed class ModuleScope : IScope
             {
                 TargetSymbol = member,
                 Confidence = ResolutionConfidence.Exact,
-                TargetTypeName = member.DeclaredTypeName,
-                ResolvedTypeSymbolId = member.ResolvedTypeSymbolId
+                // Se il simbolo target è una funzione/proprietà con tipo di ritorno, propaghiamo il ReturnType
+                TargetTypeName = member.ReturnType ?? member.DeclaredTypeName,
+                ResolvedTypeSymbolId = member.ResolvedReturnTypeSymbolId ?? member.ResolvedTypeSymbolId
             };
 
         // 3. Deferisce allo scope di progetto per membri globali .bas o tipi

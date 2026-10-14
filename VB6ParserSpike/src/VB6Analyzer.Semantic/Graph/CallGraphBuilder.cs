@@ -61,45 +61,60 @@ public sealed class CallGraphBuilder
             if (extraction.ParseTree == null)
                 continue;
 
-            // Inizializza l'analizzatore AST contestualizzato allo scope del modulo corrente
-            var analyzer = new RoutineInvocationAnalyzer(_symbolResolver, extraction.ModuleSymbol);
-            analyzer.Visit(extraction.ParseTree);
-
-            // 1a. Generazione delle relazioni CALLS tra routine chiamante e routine chiamata
-            foreach (var callSite in analyzer.CallSites)
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                // Verifica che il bersaglio risolto sia effettivamente una routine (Metodo o Proprietà)
-                if (callSite.Result.TargetSymbol != null &&
-                    callSite.Result.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
+                // Inizializza l'analizzatore AST contestualizzato allo scope del modulo corrente
+                var analyzer = new RoutineInvocationAnalyzer(_symbolResolver, extraction.ModuleSymbol);
+                analyzer.Visit(extraction.ParseTree);
+
+                // 1a. Generazione delle relazioni CALLS e READS tra routine chiamante e simboli referenziati
+                foreach (var callSite in analyzer.CallSites)
                 {
-                    // Individua la routine contenitore che effettua la chiamata all'interno del modulo
-                    var callerRoutine = FindEnclosingRoutine(extraction.ModuleSymbol, callSite.EnclosingRoutineName);
-                    if (callerRoutine != null)
-                        _graph.AddCalls(callerRoutine, callSite.Result.TargetSymbol, callSite.Line, callSite.Result.Confidence);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (callSite.Result.TargetSymbol != null)
+                    {
+                        // Individua la routine contenitore che effettua la chiamata all'interno del modulo
+                        var callerRoutine = FindEnclosingRoutine(extraction.ModuleSymbol, callSite.EnclosingRoutineName);
+                        if (callerRoutine != null)
+                        {
+                            if (callSite.Result.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
+                                _graph.AddCalls(callerRoutine, callSite.Result.TargetSymbol, callSite.Line, callSite.Result.Confidence);
+                            else if (callSite.Result.TargetSymbol.Kind is SymbolKind.Field or SymbolKind.Constant or SymbolKind.Enum)
+                                _graph.AddReads(callerRoutine, callSite.Result.TargetSymbol, callSite.Line);
+                        }
+                    }
+                }
+
+                // 1b. Generazione delle relazioni INSTANTIATES da espressioni esplicite 'New Type' (es. "Set x = New Customer")
+                foreach (var inst in analyzer.Instantiations)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (inst.TargetClassSymbol != null)
+                    {
+                        // Il chiamante è la routine contenitrice oppure il modulo stesso se a livello di dichiarazione
+                        var sourceSymbol = FindEnclosingRoutine(extraction.ModuleSymbol, inst.EnclosingRoutineName) ?? extraction.ModuleSymbol;
+                        _graph.AddInstantiates(sourceSymbol, inst.TargetClassSymbol, inst.Line, inst.Confidence);
+                    }
+                }
+
+                // 1c. Generazione delle relazioni IMPLEMENTS da istruzioni 'Implements InterfaceName'
+                foreach (var (ifaceName, line) in extraction.ImplementedInterfaces)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var targetType = _symbolResolver.TypeResolver.ResolveType(ifaceName).UserTypeSymbol
+                                     ?? _graph.Symbols.FirstOrDefault(s => s.Kind is SymbolKind.Class or SymbolKind.Interface && string.Equals(s.Name, ifaceName, StringComparison.OrdinalIgnoreCase));
+                    if (targetType != null)
+                        _graph.AddImplements(extraction.ModuleSymbol, targetType, line);
                 }
             }
-
-            // 1b. Generazione delle relazioni INSTANTIATES da espressioni esplicite 'New Type' (es. "Set x = New Customer")
-            foreach (var inst in analyzer.Instantiations)
+            catch (OperationCanceledException)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (inst.TargetClassSymbol != null)
-                {
-                    // Il chiamante è la routine contenitrice oppure il modulo stesso se a livello di dichiarazione
-                    var sourceSymbol = FindEnclosingRoutine(extraction.ModuleSymbol, inst.EnclosingRoutineName) ?? extraction.ModuleSymbol;
-                    _graph.AddInstantiates(sourceSymbol, inst.TargetClassSymbol, inst.Line, inst.Confidence);
-                }
+                throw;
             }
-
-            // 1c. Generazione delle relazioni IMPLEMENTS da istruzioni 'Implements InterfaceName'
-            foreach (var (ifaceName, line) in extraction.ImplementedInterfaces)
+            catch (Exception ex)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var targetType = _symbolResolver.TypeResolver.ResolveType(ifaceName).UserTypeSymbol
-                                 ?? _graph.Symbols.FirstOrDefault(s => s.Kind is SymbolKind.Class or SymbolKind.Interface && string.Equals(s.Name, ifaceName, StringComparison.OrdinalIgnoreCase));
-                if (targetType != null)
-                    _graph.AddImplements(extraction.ModuleSymbol, targetType, line);
+                // Resilienza: isola eventuali eccezioni inattese su singoli moduli per consentire il completamento del resto del progetto
+                System.Diagnostics.Trace.TraceWarning($"[Macondo] Analisi modulo '{extraction.ModuleSymbol.Name}' saltata per errore: {ex.Message}");
             }
         }
 
@@ -341,27 +356,47 @@ public sealed class CallGraphBuilder
         {
             cancellationToken.ThrowIfCancellationRequested();
             var moduleChildren = _graph.GetChildren(extraction.ModuleSymbol.Id).ToList();
+            var moduleFields = moduleChildren.Where(s => s.Kind == SymbolKind.Field).ToList();
+            var moduleRoutines = moduleChildren.Where(s => s.Kind is SymbolKind.Method or SymbolKind.Property).ToList();
 
+            // 1. Raccoglie tutte le routine candidate gestori evento
+            var candidateRoutines = new HashSet<Symbol>();
             foreach (var eventHandlerName in extraction.LikelyEventHandlerNames)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var routine = moduleChildren.FirstOrDefault(s => s.Kind is SymbolKind.Method or SymbolKind.Property &&
-                                                                string.Equals(s.Name, eventHandlerName, StringComparison.OrdinalIgnoreCase));
-                if (routine != null)
-                {
-                    var underscoreIndex = eventHandlerName.LastIndexOf('_');
-                    if (underscoreIndex > 0)
-                    {
-                        var prefix = eventHandlerName[..underscoreIndex];
-                        var controlSymbol = moduleChildren.FirstOrDefault(s => s.Kind == SymbolKind.Field &&
-                                                                               string.Equals(s.Name, prefix, StringComparison.OrdinalIgnoreCase));
-                        if (controlSymbol != null)
-                            _graph.AddHandlesEvent(controlSymbol, routine, routine.LineStart);
-                    }
+                var r = moduleRoutines.FirstOrDefault(s => string.Equals(s.Name, eventHandlerName, StringComparison.OrdinalIgnoreCase));
+                if (r != null)
+                    candidateRoutines.Add(r);
+            }
 
-                    // Collega sempre il modulo container (Form, UserControl o Class) come generatore dell'evento
-                    _graph.AddHandlesEvent(extraction.ModuleSymbol, routine, routine.LineStart);
+            // Include anche qualsiasi routine che abbia come prefisso il nome di un campo o variabile WithEvents del modulo
+            foreach (var routine in moduleRoutines)
+            {
+                if (routine.Name.Contains('_'))
+                {
+                    bool matchesField = moduleFields.Any(f => routine.Name.StartsWith(f.Name + "_", StringComparison.OrdinalIgnoreCase) ||
+                                                              routine.Name.StartsWith(f.Name + "__", StringComparison.OrdinalIgnoreCase));
+                    if (matchesField)
+                        candidateRoutines.Add(routine);
                 }
+            }
+
+            // 2. Collega le relazioni HANDLES_EVENT
+            foreach (var routine in candidateRoutines)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Cerca il match con prefisso più lungo tra i campi del modulo (controlli visivi, variabili WithEvents)
+                var controlSymbol = moduleFields
+                    .Where(f => routine.Name.StartsWith(f.Name + "_", StringComparison.OrdinalIgnoreCase) ||
+                                routine.Name.StartsWith(f.Name + "__", StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(f => f.Name.Length)
+                    .FirstOrDefault();
+
+                if (controlSymbol != null)
+                    _graph.AddHandlesEvent(controlSymbol, routine, routine.LineStart);
+
+                // Collega sempre il modulo container (Form, UserControl o Class) come generatore dell'evento
+                _graph.AddHandlesEvent(extraction.ModuleSymbol, routine, routine.LineStart);
             }
         }
 

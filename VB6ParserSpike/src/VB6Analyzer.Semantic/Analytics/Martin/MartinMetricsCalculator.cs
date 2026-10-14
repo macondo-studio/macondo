@@ -56,7 +56,8 @@ public static class MartinMetricsCalculator
 
         foreach (var rel in graph.Relationships)
         {
-            if (rel.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.UsesType or RelationshipKind.Inherits or RelationshipKind.Implements)
+            // Considera qualsiasi dipendenza semantica (chiamate, istanziazioni, tipi, gestione eventi, letture costanti/campi)
+            if (rel.Kind != RelationshipKind.Contains && rel.Kind != RelationshipKind.Declares)
             {
                 if (memberToContainerMap.TryGetValue(rel.SourceId, out var srcContId) &&
                     memberToContainerMap.TryGetValue(rel.TargetId, out var tgtContId))

@@ -113,14 +113,23 @@ public sealed class SymbolResolver
         {
             var sym = targetResult.TargetSymbol;
             if (sym.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type)
-
                 targetTypeSymbol = sym;
-
+            else if (sym.Kind is SymbolKind.Method or SymbolKind.Property)
+            {
+                // Se il target è un metodo o una proprietà (es. bcPCassaProcessor), il tipo per la risoluzione dei membri
+                // successivi è il tipo restituito dalla routine (ReturnType / ResolvedReturnTypeSymbolId)
+                if (sym.ResolvedReturnTypeSymbolId.HasValue)
+                    targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == sym.ResolvedReturnTypeSymbolId.Value);
+                else if (sym.ReturnType is not null)
+                    targetTypeSymbol = _typeResolver.ResolveType(sym.ReturnType).UserTypeSymbol;
+                else if (sym.ResolvedTypeSymbolId.HasValue)
+                    targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == sym.ResolvedTypeSymbolId.Value);
+                else if (sym.DeclaredTypeName is not null)
+                    targetTypeSymbol = _typeResolver.ResolveType(sym.DeclaredTypeName).UserTypeSymbol;
+            }
             else if (sym.ResolvedTypeSymbolId.HasValue)
-
-    targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == sym.ResolvedTypeSymbolId.Value);
-
-else if (sym.DeclaredTypeName is not null)
+                targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == sym.ResolvedTypeSymbolId.Value);
+            else if (sym.DeclaredTypeName is not null)
             {
                 // Prova la risoluzione del nome del tipo dichiarato
                 var typeInfo = _typeResolver.ResolveType(sym.DeclaredTypeName);

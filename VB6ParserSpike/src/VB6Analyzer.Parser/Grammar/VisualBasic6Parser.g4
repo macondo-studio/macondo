@@ -356,11 +356,11 @@ getStmt
     ;
 
 goSubStmt
-    : GOSUB WS valueStmt
+    : GOSUB WS valueStmt COLON?
     ;
 
 goToStmt
-    : GOTO WS valueStmt
+    : GOTO WS valueStmt COLON?
     ;
 
 ifThenElseStmt
@@ -453,11 +453,11 @@ onErrorStmt
     ;
 
 onGoToStmt
-    : ON WS valueStmt WS GOTO WS valueStmt (WS? COMMA WS? valueStmt)*
+    : ON WS valueStmt WS GOTO WS valueStmt (WS? COMMA WS? valueStmt)* COLON?
     ;
 
 onGoSubStmt
-    : ON WS valueStmt WS GOSUB WS valueStmt (WS? COMMA WS? valueStmt)*
+    : ON WS valueStmt WS GOSUB WS valueStmt (WS? COMMA WS? valueStmt)* COLON?
     ;
 
 openStmt
@@ -525,7 +525,7 @@ resetStmt
     ;
 
 resumeStmt
-    : RESUME (WS (NEXT | ambiguousIdentifier))?
+    : RESUME (WS (NEXT | ambiguousIdentifier COLON?))?
     ;
 
 returnStmt
@@ -783,6 +783,7 @@ subscript_
 
 ambiguousIdentifier
     : (IDENTIFIER | ambiguousKeyword)+
+    | BRACKETED_IDENTIFIER
     | L_SQUARE_BRACKET (IDENTIFIER | ambiguousKeyword)+ R_SQUARE_BRACKET
     ;
 

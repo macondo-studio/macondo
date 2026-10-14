@@ -26,8 +26,26 @@ internal static class Program
     {
         if (CliRunner.IsCliInvocation(args))
         {
-            if (OperatingSystem.IsWindows())
-                AttachConsole(ATTACH_PARENT_PROCESS);
+            if (OperatingSystem.IsWindows() && AttachConsole(ATTACH_PARENT_PROCESS))
+            {
+                // In un'applicazione WinExe, .NET inizializza Console.Out come NullStream;
+                // dopo aver eseguito AttachConsole occorre reinizializzare gli stream standard collegandoli alla console padre.
+                var stdout = Console.OpenStandardOutput();
+                Console.SetOut(new StreamWriter(stdout, new System.Text.UTF8Encoding(false)) { AutoFlush = true });
+
+                var stderr = Console.OpenStandardError();
+                Console.SetError(new StreamWriter(stderr, new System.Text.UTF8Encoding(false)) { AutoFlush = true });
+            }
+
+            try
+            {
+                Console.OutputEncoding = new System.Text.UTF8Encoding(false);
+                Console.InputEncoding = new System.Text.UTF8Encoding(false);
+            }
+            catch
+            {
+                // Ignora nel caso l'ambiente host o la console non consentano l'override della codepage
+            }
 
             return CliRunner.Run(args);
         }

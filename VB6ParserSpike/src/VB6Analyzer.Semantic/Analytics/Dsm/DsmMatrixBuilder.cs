@@ -159,6 +159,27 @@ public static class DsmMatrixBuilder
 
             SortMatrix(matrix, ordering);
 
+        // ---------------------------------------------------------------------
+        // FASE 7: Calcolo InDegree e OutDegree per ciascun elemento della DSM.
+        // OutDegree = numero di altri moduli da cui dipende il modulo (celle riga r con HasDependency).
+        // InDegree  = numero di altri moduli che dipendono dal modulo (celle colonna r con HasDependency).
+        // ---------------------------------------------------------------------
+        int n = matrix.Size;
+        for (int r = 0; r < n; r++)
+        {
+            int outDeg = 0;
+            int inDeg = 0;
+            for (int c = 0; c < n; c++)
+            {
+                if (r != c && matrix.Cells[r, c].HasDependency)
+                    outDeg++;
+                if (r != c && matrix.Cells[c, r].HasDependency)
+                    inDeg++;
+            }
+            matrix.Items[r].OutDegree = outDeg;
+            matrix.Items[r].InDegree = inDeg;
+        }
+
         return matrix;
     }
 
