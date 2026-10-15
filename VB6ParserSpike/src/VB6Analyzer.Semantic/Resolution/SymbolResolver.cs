@@ -88,22 +88,58 @@ public sealed class SymbolResolver
 
     /// <summary>
     /// Risolve un membro su un target già precedentemente risolto.
-    /// Gestisce:
-    /// - Late binding su Object / Variant -> <see cref="ResolutionConfidence.Unknown"/>
-    /// - Accesso su tipo Class / Form / Module / Type -> cerca tra i figli del tipo
-    /// - Accesso su variabile/parametro tipizzato -> risale al tipo della variabile e cerca tra i membri di quel tipo.
+    /// 
+    /// GESTISCE:
+    /// 1. Proprietà intrinseche del runtime VB6 (es. 'ActiveForm' su MDIForm/Screen, 'Parent' su controlli UI):
+    ///    restituisce un <see cref="ResolutionResult"/> tipizzato come "Form" con confidenza <see cref="ResolutionConfidence.Inferred"/>.
+    /// 2. Late Binding su tipi dinamici o base astratti UI ('Object', 'Variant', 'Form', 'Control', 'MDIForm'):
+    ///    restituisce <see cref="ResolutionConfidence.Unknown"/> preservando il <see cref="ResolutionResult.TargetTypeName"/>
+    ///    effettivo per consentire al <see cref="Graph.CallGraphBuilder"/> di applicare l'euristica di candidate matching.
+    /// 3. Accesso su tipo o istanza (Class / Form / Module .bas / UserControl / Type UDT):
+    ///    risale al tipo semantico e cerca il membro tra i figli diretti del contenitore nel CodeGraph.
+    /// 4. Chiamate a catena su metodi/proprietà (es. 'getFirstForm().Method', 'prop.Method'):
+    ///    utilizza il ReturnType / ResolvedReturnTypeSymbolId della routine ricevente per risolvere i membri successivi.
     /// </summary>
+    /// <param name="targetResult">L'esito della risoluzione semantica dell'espressione ricevitore (target).</param>
+    /// <param name="memberName">Il nome del membro da risolvere sul target.</param>
+    /// <returns>L'esito <see cref="ResolutionResult"/> con il simbolo risolto e la relativa confidenza.</returns>
     public ResolutionResult ResolveMemberOnTarget(ResolutionResult targetResult, string memberName)
     {
-        // 1. Se il target è un tipo a binding dinamico (Object / Variant) -> Late Binding
-        if (string.Equals(targetResult.TargetTypeName, "Object", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(targetResult.TargetTypeName, "Variant", StringComparison.OrdinalIgnoreCase))
+        // 0. Proprietà intrinseche di contenitori VB6 che restituiscono un Form (es. MdiFrm.ActiveForm, ctrl.Parent).
+        // Nel runtime VB6 'ActiveForm' (su MDIForm o Screen) e 'Parent' (su controlli visivi) restituiscono sempre
+        // un'istanza polimorfica di Form. Inferiamo il tipo "Form" per guidare la successiva risoluzione dei membri.
+        if (string.Equals(memberName, "ActiveForm", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(memberName, "Parent", StringComparison.OrdinalIgnoreCase))
+            return new ResolutionResult
+            {
+                Confidence = ResolutionConfidence.Inferred,
+                TargetTypeName = "Form",
+                Details = $"Proprietà intrinseca VB6 '{memberName}' di tipo Form"
+            };
 
+        // Calcola il nome del tipo effettivo del ricevitore risalendo a:
+        // - TargetTypeName esplicito già determinato
+        // - ReturnType se il target è una Function o Property
+        // - DeclaredTypeName se il target è un campo, variabile o parametro
+        var effectiveTypeName = targetResult.TargetTypeName
+            ?? (targetResult.TargetSymbol?.Kind is SymbolKind.Method or SymbolKind.Property ? targetResult.TargetSymbol.ReturnType : null)
+            ?? targetResult.TargetSymbol?.DeclaredTypeName
+            ?? targetResult.TargetParameter?.DeclaredTypeName;
+
+        // 1. Se il target è un tipo a binding dinamico o base astratta UI (Object / Variant / Form / Control / MDIForm) -> Late Binding.
+        // In VB6 le chiamate su 'As Form', 'As Control' o 'As Object' vengono inoltrate a runtime via IDispatch::Invoke.
+        // Preserviamo 'effectiveTypeName' nel TargetTypeName per consentire al CallGraphBuilder di filtrare
+        // i candidati compatibili (es. solo metodi di Form quando il ricevitore è 'Form').
+        if (string.Equals(effectiveTypeName, "Object", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(effectiveTypeName, "Variant", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(effectiveTypeName, "Form", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(effectiveTypeName, "Control", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(effectiveTypeName, "MDIForm", StringComparison.OrdinalIgnoreCase))
             return new ResolutionResult
             {
                 Confidence = ResolutionConfidence.Unknown,
-                TargetTypeName = "Variant",
-                Details = $"Late binding su oggetto non tipizzato ({targetResult.TargetTypeName})"
+                TargetTypeName = effectiveTypeName,
+                Details = $"Late binding su oggetto dinamico o tipo base UI ({effectiveTypeName})"
             };
 
         Symbol? targetTypeSymbol = null;
@@ -141,9 +177,7 @@ public sealed class SymbolResolver
             // Il target è un parametro formale (es. "cust" di tipo "Customer")
             var param = targetResult.TargetParameter;
             if (param.ResolvedTypeSymbolId.HasValue)
-
                 targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == param.ResolvedTypeSymbolId.Value);
-
             else if (param.DeclaredTypeName is not null)
             {
                 var typeInfo = _typeResolver.ResolveType(param.DeclaredTypeName);
@@ -151,10 +185,8 @@ public sealed class SymbolResolver
             }
         }
         else if (targetResult.ResolvedTypeSymbolId.HasValue)
-
-    targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == targetResult.ResolvedTypeSymbolId.Value);
-
-else if (targetResult.TargetTypeName is not null)
+            targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == targetResult.ResolvedTypeSymbolId.Value);
+        else if (targetResult.TargetTypeName is not null)
         {
             var typeInfo = _typeResolver.ResolveType(targetResult.TargetTypeName);
             targetTypeSymbol = typeInfo.UserTypeSymbol;
@@ -167,13 +199,12 @@ else if (targetResult.TargetTypeName is not null)
                 .FirstOrDefault(m => string.Equals(m.Name, memberName, StringComparison.OrdinalIgnoreCase));
 
             if (member != null)
-
                 return new ResolutionResult
                 {
                     TargetSymbol = member,
                     Confidence = ResolutionConfidence.Exact,
-                    TargetTypeName = member.DeclaredTypeName,
-                    ResolvedTypeSymbolId = member.ResolvedTypeSymbolId
+                    TargetTypeName = member.ReturnType ?? member.DeclaredTypeName,
+                    ResolvedTypeSymbolId = member.ResolvedReturnTypeSymbolId ?? member.ResolvedTypeSymbolId
                 };
 
             return new ResolutionResult
@@ -186,6 +217,7 @@ else if (targetResult.TargetTypeName is not null)
         return new ResolutionResult
         {
             Confidence = ResolutionConfidence.Unknown,
+            TargetTypeName = effectiveTypeName,
             Details = $"Tipo del target '{targetResult}' non risolto o non definito nel progetto"
         };
     }

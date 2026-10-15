@@ -49,10 +49,16 @@ public sealed class TypeResolver
         "boolean", "Character", "Float", "Short", "List", "Map", "Set", "Optional"
     };
 
-    /// <summary>Tipi a binding dinamico / late binding in VB6.</summary>
+    /// <summary>
+    /// Tipi a binding dinamico / late binding in VB6.
+    /// Include sia i tipi generici non vincolati a tempo di compilazione ('Object', 'Variant', 'dynamic'),
+    /// sia i tipi base di interfaccia utente intrinseci del runtime VB6 ('Form', 'Control', 'MDIForm').
+    /// In VB6, variabili dichiarate 'As Form' o 'As Control' non espongono staticamente i metodi custom
+    /// delle singole form/controlli derivati: le relative chiamate a membro avvengono via IDispatch (late binding).
+    /// </summary>
     private static readonly HashSet<string> DynamicTypes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Object", "Variant", "dynamic"
+        "Object", "Variant", "dynamic", "Form", "Control", "MDIForm"
     };
 
     private readonly CodeGraph _graph;
@@ -69,11 +75,13 @@ public sealed class TypeResolver
     {
         _graph = graph;
 
-        // Costruisce l'indice dei tipi utente (Class, Form, UserControl, Type UDT, Enum, Interface, Struct, Record) presenti nel grafo.
+        // Costruisce l'indice dei tipi utente (Class, Form, UserControl, Module .bas, Type UDT, Enum, Interface, Struct, Record) presenti nel grafo.
+        // Include esplicitamente SymbolKind.Module in modo che funzioni e proprietà che restituiscono istanze o riferimenti
+        // a moduli standard .bas possano risolvere correttamente il relativo contenitore semantico.
         foreach (var symbol in _graph.Symbols)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum
+            if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.UserControl or SymbolKind.Module or SymbolKind.Type or SymbolKind.Enum
                             or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
             {
                 // I tipi utente sono accessibili per nome semplice o qualificato
@@ -128,7 +136,7 @@ public sealed class TypeResolver
                 UserTypeSymbol = null
             };
 
-        // 3. Verifica se è un tipo dichiarato dall'utente nel progetto locale
+        // 3. Verifica se è un tipo dichiarato dall'utente nel progetto locale per nome semplice o qualificato
         if (_userTypesByName.TryGetValue(cleanName, out var userSymbol))
             return new TypeInfo
             {
@@ -137,6 +145,25 @@ public sealed class TypeResolver
                 IsDynamicOrVariant = false,
                 UserTypeSymbol = userSymbol
             };
+
+        // 3b. Fallback per tipi qualificati con prefisso di progetto o libreria (es. "DUE.cntrDestinazione").
+        // Nel designer visivo delle form VB6 (sezioni 'Begin ... End'), le istanze di UserControl del progetto
+        // vengono spesso generate con il nome del progetto anteposto al nome del controllo (es. 'Begin DUE.cntrDestinazione cntrDestinazione').
+        // Poiché il controllo utente è definito nel file sorgente come 'cntrDestinazione.ctl', estraiamo il suffisso non qualificato
+        // dopo l'ultimo punto per risolvere correttamente il simbolo di tipo corrispondente presente nel grafo.
+        var lastDot = cleanName.LastIndexOf('.');
+        if (lastDot >= 0 && lastDot < cleanName.Length - 1)
+        {
+            var unqualified = cleanName[(lastDot + 1)..].Trim();
+            if (_userTypesByName.TryGetValue(unqualified, out var unqualifiedSymbol))
+                return new TypeInfo
+                {
+                    Name = cleanName,
+                    IsPrimitive = false,
+                    IsDynamicOrVariant = false,
+                    UserTypeSymbol = unqualifiedSymbol
+                };
+        }
 
         // 4. Tipo esterno non presente nel progetto (es. libreria COM ADODB.Recordset, MSXML2.DOMDocument, ecc.)
         return new TypeInfo

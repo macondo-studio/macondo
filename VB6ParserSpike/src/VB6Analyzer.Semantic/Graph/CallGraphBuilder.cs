@@ -55,6 +55,9 @@ public sealed class CallGraphBuilder
         // =========================================================================
         // In questa fase attraversiamo il Parse Tree ANTLR di ogni modulo VB6 tramite RoutineInvocationAnalyzer.
         // L'analizzatore identifica tutte le chiamate esplicite (Call Foo), implicite (Foo arg) e istanziazioni (New Foo).
+        Dictionary<string, List<Symbol>>? publicRoutinesByName = null;
+        Dictionary<Guid, SymbolKind>? symbolParentKindById = null;
+
         foreach (var extraction in extractionResults)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -71,16 +74,89 @@ public sealed class CallGraphBuilder
                 foreach (var callSite in analyzer.CallSites)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    var callerRoutine = FindEnclosingRoutine(extraction.ModuleSymbol, callSite.EnclosingRoutineName);
+                    if (callerRoutine == null)
+                        continue;
+
                     if (callSite.Result.TargetSymbol != null)
                     {
-                        // Individua la routine contenitore che effettua la chiamata all'interno del modulo
-                        var callerRoutine = FindEnclosingRoutine(extraction.ModuleSymbol, callSite.EnclosingRoutineName);
-                        if (callerRoutine != null)
+                        // Registra relazioni CALLS per Method, Property ed Event (generati da istruzioni 'RaiseEvent NomeEvento').
+                        // In VB6 'RaiseEvent' invoca formalmente l'evento dichiarato: collegare il chiamante all'evento garantisce
+                        // che il simbolo Event sia marcato come attivo e raggiungibile nel CodeGraph.
+                        if (callSite.Result.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
+                            _graph.AddCalls(callerRoutine, callSite.Result.TargetSymbol, callSite.Line, callSite.Result.Confidence);
+                        else if (callSite.Result.TargetSymbol.Kind is SymbolKind.Field or SymbolKind.Constant or SymbolKind.Enum)
+                            _graph.AddReads(callerRoutine, callSite.Result.TargetSymbol, callSite.Line);
+                    }
+                    else if (!string.IsNullOrEmpty(callSite.InvokedMemberName))
+                    {
+                        // =====================================================================
+                        // Risoluzione Late Binding in VB6 (ricevitori 'As Form', 'As Object', 'ActiveForm', ecc.)
+                        // =====================================================================
+                        // In VB6 le chiamate su tipi debolmente tipizzati o base astratta UI (IDispatch::Invoke)
+                        // non possono essere risolte su un unico tipo statico a tempo di compilazione.
+                        // Per prevenire falsi positivi nell'analisi del Dead Code (dove altrimenti metodi pubblici
+                        // polimorfici verrebbero scartati perché chiamati solo tramite 'frm.Metodo' o 'ActiveForm.Metodo'):
+                        // 1. Costruiamo in modo 'lazy' un indice globale delle routine pubbliche per nome O(1).
+                        // 2. Mappiamo il Kind del contenitore padre (Form, UserControl, Class) per ogni routine.
+                        // 3. Filtriamo i candidati in base al tipo semantico dichiarato o inferito del ricevitore:
+                        //    - Ricevitore 'Form' o 'MDIForm' -> abbina routine definite in Form o UserControl
+                        //    - Ricevitore 'Control'          -> abbina routine definite in UserControl o Form
+                        //    - Ricevitore 'Object' / Variant -> abbina routine definite in Form, UserControl o Class
+                        // 4. Colleghiamo le chiamate con confidenza Inferred.
+                        if (publicRoutinesByName == null)
                         {
-                            if (callSite.Result.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
-                                _graph.AddCalls(callerRoutine, callSite.Result.TargetSymbol, callSite.Line, callSite.Result.Confidence);
-                            else if (callSite.Result.TargetSymbol.Kind is SymbolKind.Field or SymbolKind.Constant or SymbolKind.Enum)
-                                _graph.AddReads(callerRoutine, callSite.Result.TargetSymbol, callSite.Line);
+                            publicRoutinesByName = new Dictionary<string, List<Symbol>>(StringComparer.OrdinalIgnoreCase);
+                            symbolParentKindById = new Dictionary<Guid, SymbolKind>();
+
+                            foreach (var rel in _graph.Relationships)
+                            {
+                                if (rel.Kind == RelationshipKind.Contains)
+                                {
+                                    var parent = _graph.FindSymbolById(rel.SourceId);
+                                    if (parent != null)
+                                        symbolParentKindById[rel.TargetId] = parent.Kind;
+                                }
+                            }
+
+                            foreach (var s in _graph.Symbols)
+                            {
+                                if (s.Kind is SymbolKind.Method or SymbolKind.Property && s.Accessibility != Accessibility.Private)
+                                {
+                                    if (!publicRoutinesByName.TryGetValue(s.Name, out var list))
+                                    {
+                                        list = new List<Symbol>();
+                                        publicRoutinesByName[s.Name] = list;
+                                    }
+                                    list.Add(s);
+                                }
+                            }
+                        }
+
+                        if (publicRoutinesByName.TryGetValue(callSite.InvokedMemberName, out var candidates))
+                        {
+                            var receiverType = callSite.ReceiverTypeName;
+                            foreach (var candidate in candidates)
+                            {
+                                if (callerRoutine.Id == candidate.Id)
+                                    continue;
+
+                                symbolParentKindById!.TryGetValue(candidate.Id, out var parentKind);
+
+                                bool matches = false;
+                                if (string.Equals(receiverType, "Form", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(receiverType, "MDIForm", StringComparison.OrdinalIgnoreCase))
+                                    matches = parentKind is SymbolKind.Form or SymbolKind.UserControl;
+                                else if (string.Equals(receiverType, "Control", StringComparison.OrdinalIgnoreCase))
+                                    matches = parentKind is SymbolKind.UserControl or SymbolKind.Form;
+                                else if (string.Equals(receiverType, "Object", StringComparison.OrdinalIgnoreCase) ||
+                                         string.Equals(receiverType, "Variant", StringComparison.OrdinalIgnoreCase) ||
+                                         string.IsNullOrEmpty(receiverType))
+                                    matches = parentKind is SymbolKind.Form or SymbolKind.UserControl or SymbolKind.Class;
+
+                                if (matches)
+                                    _graph.AddCalls(callerRoutine, candidate, callSite.Line, ResolutionConfidence.Inferred);
+                            }
                         }
                     }
                 }
@@ -393,7 +469,24 @@ public sealed class CallGraphBuilder
                     .FirstOrDefault();
 
                 if (controlSymbol != null)
+                {
                     _graph.AddHandlesEvent(controlSymbol, routine, routine.LineStart);
+
+                    // Se il controllo o variabile WithEvents ha un tipo utente risolto (es. UserControl o classe custom),
+                    // colleghiamo anche il simbolo esplicito dell'evento dichiarato sul tipo (SymbolKind.Event)
+                    // direttamente alla routine gestore (es. Event 'Cancellazione' su UserControl -> Sub 'cntr_Cancellazione').
+                    // Questo garantisce la bidirezionalità della propagazione degli eventi e la corretta raggiungibilità
+                    // sia quando l'evento viene sollevato (RaiseEvent) sia quando la Form viene istanziata.
+                    if (controlSymbol.ResolvedTypeSymbolId.HasValue)
+                    {
+                        var eventSuffix = routine.Name.Substring(controlSymbol.Name.Length).TrimStart('_');
+                        var userTypeChildren = _graph.GetChildren(controlSymbol.ResolvedTypeSymbolId.Value);
+                        var eventSym = userTypeChildren.FirstOrDefault(s => s.Kind == SymbolKind.Event &&
+                                                                            string.Equals(s.Name, eventSuffix, StringComparison.OrdinalIgnoreCase));
+                        if (eventSym != null)
+                            _graph.AddHandlesEvent(eventSym, routine, routine.LineStart);
+                    }
+                }
 
                 // Collega sempre il modulo container (Form, UserControl o Class) come generatore dell'evento
                 _graph.AddHandlesEvent(extraction.ModuleSymbol, routine, routine.LineStart);

@@ -103,7 +103,6 @@ public sealed class ProjectScope : IScope
 
         // 2. Cerca tra i tipi di progetto (es. "Customer", "Address")
         if (_projectTypes.TryGetValue(name, out var typeSymbol))
-
             return new ResolutionResult
             {
                 TargetSymbol = typeSymbol,
@@ -112,10 +111,26 @@ public sealed class ProjectScope : IScope
                 ResolvedTypeSymbolId = typeSymbol.ResolvedTypeSymbolId
             };
 
+        // 2b. Fallback per tipi o controlli con prefisso di progetto (es. "DUE.cntrDestinazione").
+        // Consente la risoluzione di simboli di tipo referenziati con qualificazione di progetto o libreria
+        // (tipico delle dichiarazioni dei controlli utente nel designer Form), estraendo il nome base non qualificato.
+        var lastDot = name.LastIndexOf('.');
+        if (lastDot >= 0 && lastDot < name.Length - 1)
+        {
+            var unqualified = name[(lastDot + 1)..].Trim();
+            if (_projectTypes.TryGetValue(unqualified, out var unqSymbol))
+                return new ResolutionResult
+                {
+                    TargetSymbol = unqSymbol,
+                    Confidence = ResolutionConfidence.Exact,
+                    TargetTypeName = unqSymbol.DeclaredTypeName,
+                    ResolvedTypeSymbolId = unqSymbol.ResolvedTypeSymbolId
+                };
+        }
+
         // 3. Verifica se è un tipo primitivo standard
         var typeInfo = _typeResolver.ResolveType(name);
         if (typeInfo.IsPrimitive)
-
             return new ResolutionResult
             {
                 Confidence = ResolutionConfidence.Unknown,
@@ -132,11 +147,25 @@ public sealed class ProjectScope : IScope
 
     /// <summary>
     /// Cerca il simbolo di un tipo specifico definito nel progetto.
+    /// Supporta sia nomi semplici (es. "Customer", "cntrDestinazione") sia nomi qualificati con prefisso
+    /// di progetto o libreria (es. "DUE.cntrDestinazione"), applicando il fallback sul nome base non qualificato.
     /// </summary>
+    /// <param name="typeName">Il nome del tipo da ricercare.</param>
+    /// <returns>Il <see cref="Symbol"/> corrispondente se trovato nel progetto; in caso contrario <c>null</c>.</returns>
     public Symbol? FindTypeSymbol(string typeName)
     {
         if (_projectTypes.TryGetValue(typeName, out var sym))
             return sym;
+
+        // Fallback per tipi qualificati con prefisso di progetto (es. "DUE.cntrDestinazione" -> "cntrDestinazione")
+        var lastDot = typeName.LastIndexOf('.');
+        if (lastDot >= 0 && lastDot < typeName.Length - 1)
+        {
+            var unqualified = typeName[(lastDot + 1)..].Trim();
+            if (_projectTypes.TryGetValue(unqualified, out var unqSym))
+                return unqSym;
+        }
+
         return null;
     }
 }

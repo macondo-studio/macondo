@@ -24,6 +24,18 @@ public sealed class ResolvedCallSite
     /// <summary>Indica se la chiamata risiede all'interno di un blocco contestuale 'With'.</summary>
     public bool IsInWithBlock { get; init; }
 
+    /// <summary>
+    /// Nome del membro invocato (se chiamata a membro qualificato o late binding, es. "DoSomething").
+    /// Utilizzato da <see cref="Graph.CallGraphBuilder"/> per il fallback euristico su chiamate a binding dinamico.
+    /// </summary>
+    public string? InvokedMemberName { get; init; }
+
+    /// <summary>
+    /// Nome del tipo del ricevitore della chiamata (es. "Form", "Control", "Object", "Variant", "Customer").
+    /// Permette di contestualizzare e filtrare i simboli candidati compatibili durante la risoluzione del late binding.
+    /// </summary>
+    public string? ReceiverTypeName { get; init; }
+
     public override string ToString() =>
         $"Riga {Line,3}: '{CallText}' -> {Result}";
 }
@@ -317,13 +329,14 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
             return base.VisitECS_ProcedureCall(context);
 
         var result = CurrentScope.Resolve(name);
-        RecordCallSite(context.GetText(), context.Start.Line, result);
+        RecordCallSite(context.GetText(), context.Start.Line, result, name);
         return base.VisitECS_ProcedureCall(context);
     }
 
     /// <summary>
     /// Chiamata esplicita a membro qualificato o contestuale (es. "Call Customer.Update()", "Call c.Save()", "Call .Save()").
     /// Se è presente un target esplicito, risolve prima il target e poi il membro sul target; altrimenti risolve ".membro" nel WithScope.
+    /// Registra sia l'eventuale routine ricevente a catena (es. 'Call getFirstForm().Save()') sia il membro finale invocato.
     /// </summary>
     public override object? VisitECS_MemberProcedureCall(VisualBasic6Parser.ECS_MemberProcedureCallContext context)
     {
@@ -335,16 +348,30 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
 
         if (context.implicitCallStmt_InStmt() != null)
         {
+            // 1. Risolve l'espressione target a sinistra del punto (es. "Customer", "c", "getFirstForm()", "modContabilita")
             var targetResult = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
+
+            // 1b. Se l'espressione target stessa è un'invocazione a Function o Property (chiamata a catena),
+            // registriamo il relativo call-site per garantire che la routine ricevente sia tracciata come chiamata attiva
+            if (targetResult.TargetSymbol != null && targetResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
+                RecordCallSite(targetResult.TargetSymbol.Name, context.Start.Line, targetResult, targetResult.TargetSymbol.Name);
+
+            // 2. Risolve il membro finale sul target ricavato al passo precedente
             result = _symbolResolver.ResolveMemberOnTarget(targetResult, memberName);
+
+            // 3. Determina il tipo semantico del ricevitore per consentire l'eventuale candidate-matching di late binding
+            var recType = targetResult.TargetTypeName 
+                ?? (targetResult.TargetSymbol?.Kind is SymbolKind.Method or SymbolKind.Property ? targetResult.TargetSymbol.ReturnType : null)
+                ?? targetResult.TargetSymbol?.DeclaredTypeName;
+            RecordCallSite(context.GetText(), context.Start.Line, result, memberName, recType);
         }
         else
         {
             // Chiamata con punto iniziale dentro un blocco With (es. "Call .Save()")
             result = CurrentScope.Resolve($".{memberName}");
+            RecordCallSite(context.GetText(), context.Start.Line, result, memberName);
         }
 
-        RecordCallSite(context.GetText(), context.Start.Line, result);
         return base.VisitECS_MemberProcedureCall(context);
     }
 
@@ -363,12 +390,13 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
             return base.VisitICS_B_ProcedureCall(context);
 
         var result = CurrentScope.Resolve(name);
-        RecordCallSite(name, context.Start.Line, result);
+        RecordCallSite(name, context.Start.Line, result, name);
         return base.VisitICS_B_ProcedureCall(context);
     }
 
     /// <summary>
     /// Invocazione nuda di membro qualificato o contestuale (es. "Customer.Update", "c.Save", "Me.Reset", ".Save").
+    /// Gestisce sia chiamate con target esplicito a catena sia chiamate contestuali '.Member' in blocchi With.
     /// </summary>
     public override object? VisitICS_B_MemberProcedureCall(VisualBasic6Parser.ICS_B_MemberProcedureCallContext context)
     {
@@ -380,16 +408,30 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
 
         if (context.implicitCallStmt_InStmt() != null)
         {
+            // 1. Risolve l'espressione target a sinistra del punto (es. "obj", "cntrDestinazione", "frmContabilizzaFatture")
             var targetResult = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
+
+            // 1b. Se l'espressione target è una Function o Property (chiamata a catena o accessor di modulo),
+            // registra esplicitamente il call-site verso la routine che agisce da ricevitore
+            if (targetResult.TargetSymbol != null && targetResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
+                RecordCallSite(targetResult.TargetSymbol.Name, context.Start.Line, targetResult, targetResult.TargetSymbol.Name);
+
+            // 2. Risolve il membro sul target
             result = _symbolResolver.ResolveMemberOnTarget(targetResult, memberName);
+
+            // 3. Determina il tipo semantico del ricevitore per supportare il late binding o la tipizzazione statica
+            var recType = targetResult.TargetTypeName 
+                ?? (targetResult.TargetSymbol?.Kind is SymbolKind.Method or SymbolKind.Property ? targetResult.TargetSymbol.ReturnType : null)
+                ?? targetResult.TargetSymbol?.DeclaredTypeName;
+            RecordCallSite(context.GetText().Trim(), context.Start.Line, result, memberName, recType);
         }
         else
         {
             // Chiamata con punto iniziale dentro un blocco With (es. ".Save")
             result = CurrentScope.Resolve($".{memberName}");
+            RecordCallSite(context.GetText().Trim(), context.Start.Line, result, memberName);
         }
 
-        RecordCallSite(context.GetText().Trim(), context.Start.Line, result);
         return base.VisitICS_B_MemberProcedureCall(context);
     }
 
@@ -459,7 +501,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
             return base.VisitRaiseEventStmt(context);
 
         var result = CurrentScope.Resolve(eventName);
-        RecordCallSite(context.GetText().Trim(), context.Start.Line, result);
+        RecordCallSite(context.GetText().Trim(), context.Start.Line, result, eventName);
         return base.VisitRaiseEventStmt(context);
     }
 
@@ -528,11 +570,16 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
                 currentResult = CurrentScope.Resolve(".");
             }
 
-            // Se la radice stessa è una chiamata a routine, registra il relativo call-site
+            // Se la radice stessa è una chiamata a routine (es. 'getFirstForm().Member'), registra il relativo call-site
             if (currentResult.TargetSymbol != null && currentResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
-                RecordCallSite(currentResult.TargetSymbol.Name, context.Start.Line, currentResult);
+                RecordCallSite(currentResult.TargetSymbol.Name, context.Start.Line, currentResult, currentResult.TargetSymbol.Name);
 
             // 3b. Risoluzione progressiva di ciascun membro successivo della catena (.Member1.Member2...)
+            // Per ogni membro conserviamo il tipo del ricevitore precedente (prevTargetType):
+            // se il membro è risolto staticamente, viene registrato con confidenza Exact;
+            // se invece il ricevitore precedente è un tipo dinamico o base UI (Form, Object, Variant),
+            // registriamo comunque il call-site con TargetSymbol nullo per consentire a CallGraphBuilder
+            // di applicare l'euristica di late binding collegando i metodi pubblici compatibili per nome.
             foreach (var memberCall in membersCall.iCS_S_MemberCall())
             {
                 var memberName = memberCall.iCS_S_VariableOrProcedureCall()?.ambiguousIdentifier()?.GetText()
@@ -541,10 +588,16 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
 
                 if (!string.IsNullOrEmpty(memberName))
                 {
+                    var prevTargetType = currentResult.TargetTypeName 
+                        ?? (currentResult.TargetSymbol?.Kind is SymbolKind.Method or SymbolKind.Property ? currentResult.TargetSymbol.ReturnType : null)
+                        ?? currentResult.TargetSymbol?.DeclaredTypeName;
+
                     // Risolve il membro 'memberName' sul tipo semantico ricavato dal risultato precedente
                     currentResult = _symbolResolver.ResolveMemberOnTarget(currentResult, memberName);
                     if (currentResult.TargetSymbol != null && currentResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
-                        RecordCallSite(memberName, context.Start.Line, currentResult);
+                        RecordCallSite(memberName, context.Start.Line, currentResult, memberName, prevTargetType);
+                    else if (currentResult.TargetSymbol == null && IsDynamicOrUiType(prevTargetType))
+                        RecordCallSite(memberName, context.Start.Line, currentResult, memberName, prevTargetType);
                 }
             }
 
@@ -569,9 +622,16 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Registra un call-site nella lista dei risultati evitando duplicazioni identiche sulla stessa riga.
+    /// Registra un call-site nella lista dei risultati del modulo, evitando duplicazioni identiche sulla stessa riga.
+    /// Supporta sia chiamate risolte staticamente (con TargetSymbol valorizzato) sia chiamate late-binding
+    /// (con TargetSymbol nullo ma InvokedMemberName e ReceiverTypeName valorizzati).
     /// </summary>
-    private void RecordCallSite(string callText, int line, ResolutionResult result)
+    /// <param name="callText">Testo sorgente dell'invocazione (es. "Customer.Save", "ActiveForm.Refresh").</param>
+    /// <param name="line">Numero di riga nel codice sorgente.</param>
+    /// <param name="result">Esito semantico della risoluzione.</param>
+    /// <param name="invokedMemberName">Nome del metodo o proprietà invocato.</param>
+    /// <param name="receiverTypeName">Nome del tipo dichiarato o inferito del ricevitore.</param>
+    private void RecordCallSite(string callText, int line, ResolutionResult result, string? invokedMemberName = null, string? receiverTypeName = null)
     {
         // Evita registrazioni duplicate dello stesso simbolo bersaglio sulla medesima riga di codice
         if (result.TargetSymbol != null)
@@ -579,7 +639,14 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
             if (_callSites.Any(c => c.Line == line &&
                                    c.EnclosingRoutineName == _currentRoutineName &&
                                    c.Result.TargetSymbol?.Id == result.TargetSymbol.Id))
-
+                return;
+        }
+        else if (!string.IsNullOrEmpty(invokedMemberName))
+        {
+            // Per chiamate late-binding prive di TargetSymbol, de-duplica per nome del membro invocato sulla stessa riga
+            if (_callSites.Any(c => c.Line == line &&
+                                   c.EnclosingRoutineName == _currentRoutineName &&
+                                   string.Equals(c.InvokedMemberName, invokedMemberName, StringComparison.OrdinalIgnoreCase)))
                 return;
         }
 
@@ -589,7 +656,29 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
             Line = line,
             Result = result,
             EnclosingRoutineName = _currentRoutineName,
-            IsInWithBlock = CurrentScope is WithScope
+            IsInWithBlock = CurrentScope is WithScope,
+            InvokedMemberName = invokedMemberName,
+            ReceiverTypeName = receiverTypeName ?? result.TargetTypeName
         });
+    }
+
+    /// <summary>
+    /// Determina se il nome del tipo corrisponde a un tipo a binding dinamico o a una classe base UI di VB6
+    /// ('Form', 'MDIForm', 'Control', 'Object', 'Variant', 'dynamic').
+    /// In tali contesti le invocazioni a membro non sono risolvibili staticamente a tempo di parsing
+    /// e devono essere tracciate per consentire a <see cref="Graph.CallGraphBuilder"/> di collegare le routine candidate.
+    /// </summary>
+    /// <param name="typeName">Il nome del tipo da verificare.</param>
+    /// <returns><c>true</c> se è un tipo dinamico o base UI; in caso contrario <c>false</c>.</returns>
+    private static bool IsDynamicOrUiType(string? typeName)
+    {
+        if (string.IsNullOrEmpty(typeName))
+            return false;
+        return string.Equals(typeName, "Form", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(typeName, "MDIForm", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(typeName, "Control", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(typeName, "Object", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(typeName, "Variant", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(typeName, "dynamic", StringComparison.OrdinalIgnoreCase);
     }
 }
