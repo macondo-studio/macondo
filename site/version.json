@@ -1,14 +1,14 @@
 ﻿{
-    "version":  "1.7.2",
+    "version":  "1.7.3",
     "title":  {
-                  "it":  "Macondo v1.7.2",
-                  "en":  "Macondo v1.7.2"
+                  "it":  "Macondo v1.7.3",
+                  "en":  "Macondo v1.7.3"
               },
     "releaseNotes":  {
-                         "it":  "Risoluzione di problemi critici emersi dall\u0027analisi di codebase VB6 su larga scala: supporto per salti con due punti finali (GoTo), identificatori tra quadre con spazi/punti, isolamento errori per singolo modulo con flag diagnostico --verbose, risoluzione chiamate su oggetti restituiti da proprietà globali, matching event handler WithEvents con underscore multipli, correzione LOC controlli designer e tracciamento costanti/campi, calcolo InDegree/OutDegree nella DSM, inclusione chiamate Win32 Declare nelle metriche di Martin e output CLI UTF-8 senza BOM.",
-                         "en":  "Comprehensive stability and accuracy release resolving critical issues identified in large-scale legacy VB6 codebases: support for jump labels with trailing colons, bracketed identifiers with spaces and dots, per-module error isolation with --verbose diagnostic CLI flag, semantic resolution of chained calls on objects returned by global properties, multi-underscore WithEvents event handler discovery, proper line extent for designer controls and shared constant/field tracking, accurate InDegree/OutDegree in DSM matrices, Win32 Declare inclusion in Martin metrics, and non-BOM UTF-8 CLI output."
+                         "it":  "Risoluzione di falsi positivi nell\u0027analisi del dead code per progetti VB6: supporto per tipi UserControl con qualificazione puntata, tracciamento invocazioni RaiseEvent collegate agli eventi dichiarati, risoluzione semantica di routine a catena e risoluzione chiamate late-binding su riferimenti a Form e Object generici.",
+                         "en":  "Resolution of dead code analysis false positives across VB6 projects: dot-qualified UserControl type resolution, RaiseEvent invocations linked to event declarations, chained routine call resolution, and late-binding resolution on Form and Object references."
                      },
     "downloadUrl":  "https://github.com/macondo-studio/macondo/releases/latest/download/Macondo-Setup.exe",
-    "publishedAt":  "2026-10-14T20:48:26Z",
+    "publishedAt":  "2026-10-15T21:18:13Z",
     "isMandatory":  false
 }
