@@ -75,6 +75,9 @@ public enum SourceLanguage
     /// <summary>Java.</summary>
     Java,
 
+    /// <summary>Kotlin (.kt / .kts).</summary>
+    Kotlin,
+
     /// <summary>Python.</summary>
     Python,
 

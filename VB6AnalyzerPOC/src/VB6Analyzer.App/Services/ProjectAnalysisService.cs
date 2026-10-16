@@ -77,11 +77,12 @@ public static class ProjectAnalysisService
         foreach (var proj in projects)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var isKotlin = proj.SourceFiles.Any(f => f.EndsWith(".kt", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".kts", StringComparison.OrdinalIgnoreCase));
             var isCs = proj.SourceFiles.Any(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) ||
                        (proj.ProjectFilePath != null && (proj.ProjectFilePath.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) || proj.ProjectFilePath.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)));
             var isJava = proj.SourceFiles.Any(f => f.EndsWith(".java", StringComparison.OrdinalIgnoreCase)) ||
                          (proj.ProjectFilePath != null && (proj.ProjectFilePath.EndsWith("pom.xml", StringComparison.OrdinalIgnoreCase) || proj.ProjectFilePath.EndsWith(".gradle", StringComparison.OrdinalIgnoreCase) || proj.ProjectFilePath.EndsWith(".gradle.kts", StringComparison.OrdinalIgnoreCase)));
-            var projLang = isJava ? SourceLanguage.Java : (isCs ? SourceLanguage.CSharp : SourceLanguage.VisualBasic6);
+            var projLang = isKotlin ? SourceLanguage.Kotlin : (isJava ? SourceLanguage.Java : (isCs ? SourceLanguage.CSharp : SourceLanguage.VisualBasic6));
 
             var projSymbol = new Symbol
             {
@@ -123,6 +124,7 @@ public static class ProjectAnalysisService
         var concurrentVbResults = new System.Collections.Concurrent.ConcurrentBag<(ModuleExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
         var concurrentCsResults = new System.Collections.Concurrent.ConcurrentBag<(CSharpExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
         var concurrentJavaResults = new System.Collections.Concurrent.ConcurrentBag<(JavaExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
+        var concurrentKotlinResults = new System.Collections.Concurrent.ConcurrentBag<(KotlinExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
 
         var parallelOptions = new ParallelOptions
         {
@@ -161,6 +163,12 @@ public static class ProjectAnalysisService
                     var javaResult = JavaExtractor.ExtractJavaFile(localGraph, file, source);
                     if (!cancellationToken.IsCancellationRequested)
                         concurrentJavaResults.Add((javaResult, localGraph, item.Project, item.ProjSymbol));
+                }
+                else if (string.Equals(fileExtension, ".kt", StringComparison.OrdinalIgnoreCase) || string.Equals(fileExtension, ".kts", StringComparison.OrdinalIgnoreCase))
+                {
+                    var kotlinResult = KotlinExtractor.ExtractKotlinFile(localGraph, file, source);
+                    if (!cancellationToken.IsCancellationRequested)
+                        concurrentKotlinResults.Add((kotlinResult, localGraph, item.Project, item.ProjSymbol));
                 }
                 else
                 {
@@ -218,7 +226,7 @@ public static class ProjectAnalysisService
                     CurrentFileIndex = currentDone,
                     TotalFiles = totalFiles,
                     CurrentFileName = fileName,
-                    ExtractedNodesCount = concurrentVbResults.Count + concurrentCsResults.Count + concurrentJavaResults.Count,
+                    ExtractedNodesCount = concurrentVbResults.Count + concurrentCsResults.Count + concurrentJavaResults.Count + concurrentKotlinResults.Count,
                     EstimatedTotalSeconds = estimatedTotalSeconds,
                     EstimatedRemainingSeconds = remainingSec,
                     PhaseMessage = LocalizationService.Instance.Get("Loading_ParsingFile", fileName)
@@ -296,10 +304,33 @@ public static class ProjectAnalysisService
             }
         }
 
+        var kotlinResults = new List<KotlinExtractionResult>(concurrentKotlinResults.Count);
+        foreach (var (kotlinResult, localGraph, proj, projSymbol) in concurrentKotlinResults)
+        {
+            kotlinResults.Add(kotlinResult);
+            semanticGraph.Symbols.AddRange(localGraph.Symbols);
+            semanticGraph.Relationships.AddRange(localGraph.Relationships);
+
+            foreach (var topSym in kotlinResult.TopLevelSymbols)
+            {
+                semanticGraph.Relationships.Add(new Relationship
+                {
+                    SourceId = projSymbol.Id,
+                    TargetId = topSym.Id,
+                    Kind = RelationshipKind.Contains,
+                    Confidence = ResolutionConfidence.Exact
+                });
+
+                if (projects.Count > 1 && !topSym.QualifiedName.StartsWith(proj.Name + ".", StringComparison.OrdinalIgnoreCase))
+                    topSym.QualifiedName = $"{proj.Name}.{topSym.QualifiedName}";
+            }
+        }
+
         // Dereferenzia e svuota le collezioni temporanee del parsing per liberare immediatamente la RAM
         concurrentVbResults.Clear();
         concurrentCsResults.Clear();
         concurrentJavaResults.Clear();
+        concurrentKotlinResults.Clear();
 
         // Ricostruisce gli indici del CodeGraph una sola volta in modo globale e atomico
         semanticGraph.BuildIndices();
@@ -340,13 +371,14 @@ public static class ProjectAnalysisService
 
         var symbolResolver = new SymbolResolver(semanticGraph, typeResolver);
         var callGraphBuilder = new CallGraphBuilder(semanticGraph, symbolResolver);
-        callGraphBuilder.BuildGraph(extractionResults, csharpResults, javaResults, cancellationToken);
+        callGraphBuilder.BuildGraph(extractionResults, csharpResults, javaResults, kotlinResults, cancellationToken);
 
         // Dereferenzia e svuota le collezioni di estrazione non appena il Call Graph è generato
         // per liberare memoria prima di procedere con il grafo visuale e il relativo layout
         extractionResults.Clear();
         csharpResults.Clear();
         javaResults.Clear();
+        kotlinResults.Clear();
 
         // 5. Adattamento al modello visuale per Avalonia
         cancellationToken.ThrowIfCancellationRequested();

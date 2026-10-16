@@ -99,6 +99,7 @@ public sealed class GraphNode
             ".csproj" or ".sln" or ".cs" => SourceLanguage.CSharp,
             ".cpp" or ".c" or ".h" or ".hpp" or ".vcxproj" => SourceLanguage.CPlusPlus,
             ".java" => SourceLanguage.Java,
+            ".kt" or ".kts" => SourceLanguage.Kotlin,
             ".py" => SourceLanguage.Python,
             ".ts" => SourceLanguage.TypeScript,
             ".js" => SourceLanguage.JavaScript,

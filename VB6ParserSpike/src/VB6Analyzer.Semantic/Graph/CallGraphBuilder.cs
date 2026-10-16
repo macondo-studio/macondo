@@ -43,11 +43,13 @@ public sealed class CallGraphBuilder
     /// <param name="extractionResults">Elenco dei risultati di estrazione dei moduli VB6 contenenti gli AST (<see cref="ModuleExtractionResult"/>).</param>
     /// <param name="csharpResults">Elenco opzionale dei risultati di estrazione dei file sorgente C# (<see cref="CSharpExtractionResult"/>).</param>
     /// <param name="javaResults">Elenco opzionale dei risultati di estrazione dei file sorgente Java (<see cref="JavaExtractionResult"/>).</param>
+    /// <param name="kotlinResults">Elenco opzionale dei risultati di estrazione dei file sorgente Kotlin (<see cref="KotlinExtractionResult"/>).</param>
     /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere l'elaborazione del Call Graph.</param>
     public void BuildGraph(
         IEnumerable<ModuleExtractionResult> extractionResults,
         IEnumerable<CSharpExtractionResult>? csharpResults = null,
         IEnumerable<JavaExtractionResult>? javaResults = null,
+        IEnumerable<KotlinExtractionResult>? kotlinResults = null,
         CancellationToken cancellationToken = default)
     {
         // =========================================================================
@@ -348,6 +350,82 @@ public sealed class CallGraphBuilder
 
                 // 3. Risoluzione Ereditarietà e Interfacce Java (INHERITS / IMPLEMENTS da 'extends' o 'implements')
                 foreach (var inh in javaResult.Inheritances)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var baseType = _symbolResolver.TypeResolver.ResolveType(inh.BaseOrInterfaceTypeName).UserTypeSymbol;
+                    if (baseType != null)
+                    {
+                        if (inh.DerivedTypeSymbol.Kind == SymbolKind.Interface || (!inh.IsInterface && baseType.Kind != SymbolKind.Interface))
+                            _graph.AddInherits(inh.DerivedTypeSymbol, baseType, inh.Line);
+                        else
+                        {
+                            _graph.AddImplements(inh.DerivedTypeSymbol, baseType, inh.Line);
+                        }
+                    }
+                }
+            }
+        }
+
+        // =========================================================================
+        // FASE 1d: GENERAZIONE RELAZIONI SEMANTICHE PER FILE KOTLIN
+        // =========================================================================
+        // Se sono presenti file sorgente Kotlin analizzati (.kt o .kts), risolviamo:
+        // 1. Invocazioni di funzioni o metodi (CALLS): tramite ricevitore o indice globale O(1).
+        // 2. Creazioni di oggetti e istanziazioni (INSTANTIATES): costruttori 'TargetTypeName(...)'.
+        // 3. Ereditarietà di classi e interfacce (INHERITS / IMPLEMENTS da ': BaseType, IInterface').
+        if (kotlinResults != null)
+        {
+            Dictionary<string, Symbol>? routineIndexByName = null;
+
+            foreach (var kotlinResult in kotlinResults)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // 1. Risoluzione Invocazioni di Metodi Kotlin (CALLS)
+                foreach (var callSite in kotlinResult.CallSites)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    Symbol? targetMethod = null;
+
+                    if (!string.IsNullOrEmpty(callSite.ReceiverExpressionText))
+                    {
+                        var receiverType = _symbolResolver.TypeResolver.ResolveType(callSite.ReceiverExpressionText).UserTypeSymbol;
+                        if (receiverType != null)
+                            targetMethod = _graph.GetChildren(receiverType.Id)
+                                .FirstOrDefault(s => s.Kind is SymbolKind.Method or SymbolKind.Property &&
+                                                    string.Equals(s.Name, callSite.InvokedMethodName, StringComparison.OrdinalIgnoreCase));
+                    }
+
+                    if (targetMethod == null)
+                    {
+                        if (routineIndexByName == null)
+                        {
+                            routineIndexByName = new Dictionary<string, Symbol>(StringComparer.OrdinalIgnoreCase);
+                            foreach (var s in _graph.Symbols)
+                            {
+                                if (s.Kind is SymbolKind.Method or SymbolKind.Property && !routineIndexByName.ContainsKey(s.Name))
+                                    routineIndexByName[s.Name] = s;
+                            }
+                        }
+
+                        routineIndexByName.TryGetValue(callSite.InvokedMethodName, out targetMethod);
+                    }
+
+                    if (targetMethod != null)
+                        _graph.AddCalls(callSite.CallerSymbol, targetMethod, callSite.Line, ResolutionConfidence.Exact);
+                }
+
+                // 2. Risoluzione Istanziazioni Kotlin (INSTANTIATES)
+                foreach (var inst in kotlinResult.Instantiations)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var targetType = _symbolResolver.TypeResolver.ResolveType(inst.TargetTypeName).UserTypeSymbol;
+                    if (targetType != null)
+                        _graph.AddInstantiates(inst.SourceSymbol, targetType, inst.Line, ResolutionConfidence.Exact);
+                }
+
+                // 3. Risoluzione Ereditarietà e Interfacce Kotlin (INHERITS / IMPLEMENTS)
+                foreach (var inh in kotlinResult.Inheritances)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var baseType = _symbolResolver.TypeResolver.ResolveType(inh.BaseOrInterfaceTypeName).UserTypeSymbol;

@@ -132,4 +132,40 @@ public static class TestGraphFactory
 
         return (graph, results);
     }
+
+    public static (CodeGraph Graph, KotlinExtractionResult Result) CreateAndAnalyzeKotlinSource(string fileName, string sourceText)
+    {
+        var graph = new CodeGraph();
+        var result = KotlinExtractor.ExtractKotlinFile(graph, fileName, sourceText);
+
+        var typeResolver = new TypeResolver(graph);
+        typeResolver.ResolveAllTypes();
+        var symbolResolver = new SymbolResolver(graph, typeResolver);
+
+        var builder = new CallGraphBuilder(graph, symbolResolver);
+        builder.BuildGraph(Array.Empty<ModuleExtractionResult>(), null, null, new[] { result });
+
+        return (graph, result);
+    }
+
+    public static (CodeGraph Graph, List<KotlinExtractionResult> Results) CreateAndAnalyzeKotlinSources(params (string FileName, string SourceText)[] sources)
+    {
+        var graph = new CodeGraph();
+        var results = new List<KotlinExtractionResult>();
+
+        foreach (var (fileName, sourceText) in sources)
+        {
+            var res = KotlinExtractor.ExtractKotlinFile(graph, fileName, sourceText);
+            results.Add(res);
+        }
+
+        var typeResolver = new TypeResolver(graph);
+        typeResolver.ResolveAllTypes();
+        var symbolResolver = new SymbolResolver(graph, typeResolver);
+
+        var builder = new CallGraphBuilder(graph, symbolResolver);
+        builder.BuildGraph(Array.Empty<ModuleExtractionResult>(), null, null, results);
+
+        return (graph, results);
+    }
 }

@@ -956,7 +956,7 @@ public partial class MainWindow : Window
             {
                 new FilePickerFileType(localizationService["Open_FileTypeSupportedProjects"])
                 {
-                    Patterns = new[] { "*.vbp", "*.vbg", "*.csproj", "*.sln", "pom.xml", "build.gradle", "build.gradle.kts", "*.cs", "*.java" }
+                    Patterns = new[] { "*.vbp", "*.vbg", "*.csproj", "*.sln", "pom.xml", "build.gradle", "build.gradle.kts", "*.cs", "*.java", "*.kt", "*.kts" }
                 },
                 new FilePickerFileType(localizationService["Open_FileTypeJavaProjects"])
                 {
@@ -965,6 +965,10 @@ public partial class MainWindow : Window
                 new FilePickerFileType(localizationService["Open_FileTypeJavaSources"])
                 {
                     Patterns = new[] { "*.java" }
+                },
+                new FilePickerFileType(localizationService["Open_FileTypeKotlinSources"])
+                {
+                    Patterns = new[] { "*.kt", "*.kts" }
                 },
                 new FilePickerFileType(localizationService["Open_FileTypeCSharpProjects"])
                 {

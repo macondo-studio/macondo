@@ -318,6 +318,8 @@ public sealed class ProjectDescriptor
         return Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories)
             .Where(f => !IsInIgnoredFolder(f) &&
                         (f.EndsWith(".java", StringComparison.OrdinalIgnoreCase) ||
+                         f.EndsWith(".kt", StringComparison.OrdinalIgnoreCase) ||
+                         f.EndsWith(".kts", StringComparison.OrdinalIgnoreCase) ||
                          f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
                          f.EndsWith(".cls", StringComparison.OrdinalIgnoreCase) ||
                          f.EndsWith(".bas", StringComparison.OrdinalIgnoreCase) ||
@@ -419,16 +421,22 @@ public sealed class ProjectDescriptor
                 .ToList();
         }
 
-        // Recupera solo i file .java appartenenti al modulo corrente, escludendo cartelle ignorate e sottomoduli
-        var sourceFiles = Directory.GetFiles(folder, "*.java", SearchOption.AllDirectories)
-            .Where(f => !IsInIgnoredFolder(f) && !IsInChildProjectFolder(f, childProjectFolders))
+        // Recupera i file sorgente Java e Kotlin (.java, .kt, .kts) appartenenti al modulo corrente, escludendo cartelle ignorate e sottomoduli
+        var sourceFiles = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
+            .Where(f => !IsInIgnoredFolder(f) &&
+                        !IsInChildProjectFolder(f, childProjectFolders) &&
+                        (f.EndsWith(".java", StringComparison.OrdinalIgnoreCase) ||
+                         f.EndsWith(".kt", StringComparison.OrdinalIgnoreCase) ||
+                         f.EndsWith(".kts", StringComparison.OrdinalIgnoreCase)))
             .OrderBy(f => Path.GetFileName(f))
             .ToList();
+
+        var defaultName = sourceFiles.Any(f => f.EndsWith(".kt", StringComparison.OrdinalIgnoreCase)) ? "Kotlin Maven Project" : "Java Maven Project";
 
         return new ProjectDescriptor
         {
             Id = Guid.NewGuid(),
-            Name = string.IsNullOrEmpty(projName) ? "Java Maven Project" : projName,
+            Name = string.IsNullOrEmpty(projName) ? defaultName : projName,
             FolderPath = folder,
             PomXmlPath = pomXmlPath,
             SourceFiles = sourceFiles
@@ -475,16 +483,22 @@ public sealed class ProjectDescriptor
                 .ToList();
         }
 
-        // Recupera solo i file .java appartenenti al modulo corrente, escludendo cartelle ignorate e sottomoduli
-        var sourceFiles = Directory.GetFiles(folder, "*.java", SearchOption.AllDirectories)
-            .Where(f => !IsInIgnoredFolder(f) && !IsInChildProjectFolder(f, childProjectFolders))
+        // Recupera i file sorgente Java e Kotlin (.java, .kt, .kts) appartenenti al modulo corrente, escludendo cartelle ignorate e sottomoduli
+        var sourceFiles = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
+            .Where(f => !IsInIgnoredFolder(f) &&
+                        !IsInChildProjectFolder(f, childProjectFolders) &&
+                        (f.EndsWith(".java", StringComparison.OrdinalIgnoreCase) ||
+                         f.EndsWith(".kt", StringComparison.OrdinalIgnoreCase) ||
+                         f.EndsWith(".kts", StringComparison.OrdinalIgnoreCase)))
             .OrderBy(f => Path.GetFileName(f))
             .ToList();
+
+        var defaultName = sourceFiles.Any(f => f.EndsWith(".kt", StringComparison.OrdinalIgnoreCase)) ? "Kotlin Gradle Project" : "Java Gradle Project";
 
         return new ProjectDescriptor
         {
             Id = Guid.NewGuid(),
-            Name = string.IsNullOrEmpty(projName) ? "Java Gradle Project" : projName,
+            Name = string.IsNullOrEmpty(projName) ? defaultName : projName,
             FolderPath = folder,
             GradlePath = gradlePath,
             SourceFiles = sourceFiles
