@@ -80,7 +80,7 @@ public class KotlinAnalyticsAndQualityMetricsTests
 
                 private fun sendPayload(data: String) { }
 
-                fun unusedDeprecatedReport() {
+                private fun unusedDeprecatedReport() {
                     // Non invocato
                 }
             }

@@ -52,7 +52,7 @@ public class KotlinArchitectureStressAndQualityHunterTests
                     return repository.insertOrder(data)
                 }
 
-                fun deadUseCaseHelper() {
+                private fun deadUseCaseHelper() {
                     // Mai invocato
                 }
             }

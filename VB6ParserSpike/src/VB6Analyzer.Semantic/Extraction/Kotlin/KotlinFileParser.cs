@@ -64,6 +64,14 @@ internal sealed class KotlinFileParser
         "actual", "companion", "reified", "crossinline", "noinline"
     };
 
+    /// <summary>Insieme delle parole chiave e strutture di controllo che non possono rappresentare invocazioni di metodi.</summary>
+    private static readonly HashSet<string> NonCallableKeywords = new(StringComparer.Ordinal)
+    {
+        "if", "while", "for", "when", "catch", "return", "throw", "else", "try", "finally",
+        "do", "init", "constructor", "class", "interface", "object", "package", "import",
+        "val", "var", "fun", "typealias", "by", "is", "as", "in"
+    };
+
     public KotlinFileParser(CodeGraph graph, string filePath, string sourceText)
     {
         _graph = graph;
@@ -811,6 +819,9 @@ internal sealed class KotlinFileParser
             var val = Peek().Value;
             if (ModifierKeywords.Contains(val))
             {
+                if (Peek(1).Value is ":" or "=" or "," or ")" or "(" or "{" or ";" or ".")
+                    break;
+
                 mods.Add(Next().Value);
                 continue;
             }
@@ -1671,11 +1682,11 @@ internal sealed class KotlinFileParser
             var line = tok.Line;
             var val = tok.Value;
 
-            // Chiamata con parentesi: name(...)
-            if (Check("("))
+            // Chiamata con parentesi: name(...) o trailing lambda: name { ... }
+            if ((Check("(") || Check("{")) && !NonCallableKeywords.Contains(val))
             {
                 // In Kotlin le istanziazioni di classe si scrivono come 'Customer("Alice")' o 'ArrayList()'
-                if (char.IsUpper(val[0]) && string.IsNullOrEmpty(lastReceiver))
+                if (val.Length > 0 && char.IsUpper(val[0]) && string.IsNullOrEmpty(lastReceiver))
                 {
                     _instantiations.Add(new KotlinInstantiation
                     {
