@@ -908,12 +908,15 @@ strong, b {
 
 .footer-links {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
 }
 
 .footer-links a {
   color: var(--text-secondary);
   text-decoration: none;
+  white-space: nowrap;
   transition: color 0.15s;
 }
 
@@ -928,6 +931,14 @@ strong, b {
   font-size: 0.72rem;
   color: var(--text-muted);
   line-height: 1.5;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.footer-disclaimer p {
+  font-size: inherit;
+  color: inherit;
+  line-height: inherit;
 }
 
 /* Legal & Documentation Pages */
@@ -1204,6 +1215,19 @@ strong, b {
   .release-card { padding: 28px 20px; }
   .guide-layout { grid-template-columns: 1fr; }
   .guide-sidebar { position: static; max-height: none; margin-bottom: 24px; }
+  .footer-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+  }
+  .footer-links {
+    justify-content: center;
+    gap: 10px 18px;
+  }
+  .footer-disclaimer {
+    text-align: center;
+  }
 }
 
 @media (max-width: 600px) {
@@ -1216,6 +1240,9 @@ strong, b {
   .release-card-header { flex-direction: column; align-items: flex-start; }
   .release-actions { width: 100%; justify-content: flex-start; }
   .guide-card { padding: 22px 18px; }
+  .footer { padding: 20px 0 28px; }
+  .footer-links { gap: 8px 14px; font-size: 0.78rem; }
+  .footer-disclaimer { font-size: 0.7rem; line-height: 1.55; }
 }
 
 /* Guide & Documentation Page */
