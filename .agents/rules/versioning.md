@@ -3,29 +3,33 @@ description: Regola automatica per la sincronizzazione delle versioni su tutti i
 trigger: always_on
 ---
 
-# Sincronizzazione Automatica delle Versioni e del Sito Web
+# Sincronizzazione Automatica delle Versioni e Release Pipeline
 
 - **Repository privata (sorgenti app e sito)**: `.` (sito in `site/`)
 - **Repository pubblica (distribuzione sito web)**: `../macondo`
 - **Regola Generale Sito Web**: Copiare SEMPRE l'intero contenuto aggiornato di `site/` dentro `../macondo` (escluso `.git`) ad ogni modifica del sito o della versione.
-- **Nessuna Build per Modifiche al Solo Sito**: Quando si apportano modifiche unicamente ai file del sito web (`site/`, HTML, CSS, JS, immagini), **NON eseguire la compilazione (`dotnet build`)**. La build va effettuata solo quando si modifica il codice C#/.NET o durante le procedure di bump di versione.
+- **Nessuna Build per Modifiche al Solo Sito**: Quando si apportano modifiche unicamente ai file del sito web (`site/`, HTML, CSS, JS, immagini), **NON eseguire la compilazione (`dotnet build`)**. La build va effettuata solo quando si modifica il codice C#/.NET o durante la pipeline di release.
 
-Quando l'utente richiede di incrementare o aggiornare la versione di Macondo (es. "aggiorna la versione a 1.2.0", "bump version", "nuova release"):
+## Pubblicazione e Release ad Alto Risparmio di Token
 
-1. Utilizzare lo script di automazione `./scripts/bump-version.ps1 -NewVersion "<X.Y.Z>" -NotesIt "<Note>" -NotesEn "<Notes>"` oppure:
-   - Aggiornare contestualmente i target nella repository privata:
-     - `VB6AnalyzerPOC/src/VB6Analyzer.App/VB6Analyzer.App.csproj`
-     - `VB6AnalyzerPOC/src/VB6Analyzer.App/Services/UpdateService.cs`
-     - `site/version.json` (sito web e manifesto aggiornamento)
-     - `site/it.html` (sito web italiano)
-     - `site/index.html` (sito web inglese)
-   - Copiare tutti i file della cartella `site/` nella cartella della repository pubblica `../macondo/` (preservando `.git`) per predisporre il successivo commit pubblico dell'utente.
-2. Ricompilare la soluzione con `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln` per verificare l'integrità.
-3. Eseguire lo script `./scripts/publish-single-file.ps1` (oppure `./scripts/bump-and-publish.ps1`) per creare il nuovo eseguibile unico distribuibile (`publish/win-x64/Macondo.exe`).
-4. **Proposta Aggiornamenti Contenuti del Sito Web**: Se la versione include nuove feature visibili o impattanti (es. nuova CLI per CI/CD, anteprima codice, nuove analisi), proporre modifiche ai contenuti del sito (`index.html`, `it.html`, card informative, specifiche tecniche) per valorizzare al massimo il software.
-5. Proporre sempre il testo formattato in Markdown per il campo "Describe this release" su GitHub (senza emoji, pulito e formale).
+Quando l'utente richiede di pubblicare, aggiornare o rilasciare una nuova versione (es. "pubblica una nuova versione", "bump version", "nuova release"):
+
+1. **Eseguire l'Unico Script di Automazione**:
+   - Eseguire direttamente:
+     `./scripts/release.ps1 [-BumpType Patch|Minor|Major] [-NewVersion "<X.Y.Z>"] [-GitCommit]`
+   - Lo script esegue automaticamente l'intero ciclo end-to-end:
+     1. Test automatizzati xUnit (blocco se falliscono).
+     2. Risoluzione automatica della versione (default Patch, o Minor/Major/NewVersion).
+     3. Estrazione automatica note dai commit Git dall'ultimo rilascio.
+     4. Aggiornamento contestuale di `VB6Analyzer.App.csproj`, `UpdateService.cs`, `site/version.json` e tutte le pagine `site/*.html`.
+     5. Aggiornamento automatico delle date formattate ("Ultimo aggiornamento" / "Last updated") nelle pagine HTML.
+     6. Sincronizzazione con Robocopy verso la repository pubblica `../macondo/`.
+     7. Pubblicazione dell'eseguibile unico portable (`publish/win-x64/Macondo.exe`).
+     8. Generazione installer Inno Setup (`publish/win-x64/Macondo-Setup.exe`).
+     9. Creazione automatica del file `publish/win-x64/RELEASE_NOTES_GITHUB.md`.
+2. **Nessun Passaggio Manuale**:
+   - L'assistente NON deve modificare manualmente file, versioni o date né richiedere conferme superflue: delegare l'intero processo a `./scripts/release.ps1`.
+   - Riportare all'utente il riepilogo finale prodotto dallo script con le note di rilascio pronte.
 
 ## Note di Rilascio Ordinarie
 - Per ogni modifica o richiesta dell'utente, fornire sempre al termine della risposta una release note sintetica di una sola frase in lingua inglese.
-
-

@@ -4,34 +4,34 @@
 - **Sorgenti del sito web (repository privata Macondo / Vb6Analyzer)**: `.\site`
 - **Repository pubblica del sito web**: `../macondo`
 - **Regola di Sincronizzazione Obbligatoria**: Ogni volta che vengono modificati file nella cartella `site/` (pagine HTML, immagini, CSS, script o file `version.json`), copiare SEMPRE e immediatamente l'intero contenuto aggiornato della cartella `site/` dentro `../macondo` (preservando la cartella `.git` della repo pubblica), in modo che sia sempre allineata e pronta per il commit dell'utente.
-- **Nessuna Build per Modifiche al Solo Sito**: Quando le modifiche riguardano unicamente file del sito web (`site/`, HTML, CSS, script, immagini) e non il codice sorgente C#/.NET, **NON eseguire la compilazione (`dotnet build`)**. La build va eseguita solo quando si modifica il codice C# o durante la procedura di bump/rilascio versione.
+- **Nessuna Build per Modifiche al Solo Sito**: Quando le modifiche riguardano unicamente file del sito web (`site/`, HTML, CSS, script, immagini) e non il codice sorgente C#/.NET, **NON eseguire la compilazione (`dotnet build`)**. La build va eseguita solo quando si modifica il codice C# o durante la procedura di release.
 
-## Gestione Versioni e Release (SemVer)
+## Procedura Automatica di Rilascio e Pubblicazione (Zero-Token Release)
 
-Ogni volta che l'utente richiede di aggiornare la versione del software, rilasciare una nuova versione o eseguire un "bump" di versione:
+Ogni volta che l'utente richiede di pubblicare, aggiornare o rilasciare una nuova versione (es. "voglio pubblicare una nuova versione", "rilascia una versione patch/minor", "bump version"):
 
-1. **Procedura Automatica Obbligatoria**:
-   - Eseguire lo script di sincronizzazione `./scripts/bump-version.ps1 -NewVersion "<NuovaVersione>" [-NotesIt "<Note IT>" -NotesEn "<Note EN>"]` oppure verificare e aggiornare in modo sincronizzato e atomico tutti i seguenti file:
-     1. `VB6AnalyzerPOC/src/VB6Analyzer.App/VB6Analyzer.App.csproj` (`<Version>`, `<AssemblyVersion>`, `<FileVersion>`)
-     2. `VB6AnalyzerPOC/src/VB6Analyzer.App/Services/UpdateService.cs` (`CurrentVersion`, `CurrentVersionString`)
-     3. `site/version.json` (sito web repo privata: `"version"`, timestamp UTC `publishedAt`, `releaseNotes` in IT ed EN)
-     4. `site/it.html` (`softwareVersion`, hero badge)
-     5. `site/index.html` (`softwareVersion`, hero badge)
-     6. **Sincronizzazione Repo Pubblica**: Copiare tutti i file aggiornati da `site/` a `../macondo/` (cartella della repo pubblica, preservando `.git`), in modo che sia pronta per il commit dell'utente.
+1. **Eseguire Direttamente lo Script Unificato**:
+   - Eseguire in un unico comando senza passaggi manuali intermedi:
+     `./scripts/release.ps1 [-BumpType Patch|Minor|Major] [-NewVersion "<X.Y.Z>"] [-GitCommit]`
+   - *(Oppure `./scripts/bump-and-publish.ps1`)*
 
-2. **Verifica Post-Aggiornamento e Generazione Eseguibile Distribuibile**:
-   - Eseguire `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln` per confermare che la compilazione vada a buon fine con 0 errori.
-   - Eseguire lo script `./scripts/publish-single-file.ps1` (oppure `./scripts/bump-and-publish.ps1`) per creare il nuovo file eseguibile unico distribuibile (`publish/win-x64/Macondo.exe`).
+2. **Automazioni Integrate Eseguite Interamente dallo Script**:
+   - **Test automatizzati**: esegue automaticamente la suite xUnit (`run-tests.ps1`) bloccando il rilascio in caso di fallimenti.
+   - **Calcolo versione SemVer**: se non specificata, calcola automaticamente la nuova versione (Patch di default, o in base a BumpType).
+   - **Estrazione automatica note**: se non fornite, estrae automaticamente i commit git rilevanti dall'ultima release.
+   - **Allineamento atomico dei file**: aggiorna `csproj`, `UpdateService.cs`, `site/version.json` e tutte le pagine `site/*.html`.
+   - **Date del sito**: aggiorna automaticamente le date formattate ("Ultimo aggiornamento" / "Last updated") nelle pagine HTML.
+   - **Sincronizzazione repo pubblica**: copia automaticamente `site/` su `../macondo/` (preservando `.git`).
+   - **Binari distribuibili**: compila `publish/win-x64/Macondo.exe` (Single-File) e `publish/win-x64/Macondo-Setup.exe` (Inno Setup).
+   - **Manifesto GitHub Release**: genera il file pronto `publish/win-x64/RELEASE_NOTES_GITHUB.md`.
 
-3. **Proposta Aggiornamenti Contenuti del Sito Web (Showcase / Feature Cards)**:
-   - In fase di rilascio o bump di versione, se sono state introdotte nuove funzionalità rilevanti, impattanti o visibili per l'utente (es. nuova CLI headless per CI/CD, anteprima codice sorgente integrata, nuove metriche o controlli di esecuzione on-demand), valutare e **proporre attivamente modifiche/integrazioni ai contenuti delle pagine del sito web** (`site/index.html`, `site/it.html`, showcase, feature cards o specifiche tecniche) per valorizzare al massimo il software verso il pubblico.
-
-4. **Proposta Note di Rilascio per GitHub**:
-   - Proporre sempre all'utente il testo formattato in Markdown pronto da incollare nel campo "Describe this release" di GitHub (strutturato con What's New, Key Features, Bug Fixes / Improvements, stile formale e pulito SENZA emoji).
+3. **Output per l'Utente**:
+   - Mostrare all'utente l'esito restituito dallo script e il testo delle note per GitHub già generato nel file `RELEASE_NOTES_GITHUB.md`.
+   - Non richiedere passaggi intermedi né eseguire modifiche manuali a singoli file: delegare sempre l'intero flusso allo script.
 
 ## Esecuzione dei Test Unitari
-- **NON eseguire mai i test (`VB6Analyzer.Tests` / `dotnet test`)** durante le iterazioni e modifiche ordinarie di sviluppo.
-- L'esecuzione dei test sarà effettuata o richiesta dall'utente unicamente prima di una pubblicazione/rilascio.
+- **NON eseguire i test (`dotnet test`)** durante le iterazioni e modifiche ordinarie di sviluppo.
+- La suite di test viene eseguita automaticamente dallo script `./scripts/release.ps1` prima di ogni pubblicazione.
 - Per la verifica ordinaria del codice, limitarsi alla compilazione rapida con `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln`.
 
 ## Stile di Codice (C#)
@@ -39,5 +39,3 @@ Ogni volta che l'utente richiede di aggiornare la versione del software, rilasci
 
 ## Release Note per ogni Modifica
 - **Per ogni modifica o funzionalità richiesta dall'utente**, fornire sempre al termine della risposta una **release note di una sola frase in lingua inglese**, chiara, sintetica e formale.
-
-
