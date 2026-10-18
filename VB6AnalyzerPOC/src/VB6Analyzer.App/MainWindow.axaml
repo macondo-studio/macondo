@@ -61,7 +61,7 @@
                                     <PathIcon Data="{StaticResource IconBeaker}" Width="14" Height="14" />
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem x:Name="GenerateFakeMenuItem" Header="Grafo Demo (~500 nodi)" IsVisible="False">
+                            <MenuItem x:Name="GenerateFakeMenuItem" Header="Grafo Demo (~5000 nodi)" IsVisible="False">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconZap}" Width="14" Height="14" />
                                 </MenuItem.Icon>

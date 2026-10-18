@@ -62,4 +62,36 @@ public class FakeGraphGeneratorTests
             nodeIds.Should().Contain(edge.TargetId);
         }
     }
+
+    /// <summary>
+    /// Verifica che la generazione predefinita produca esattamente 5000 nodi e che la distribuzione
+    /// dei membri tra i componenti sia eterogenea (componenti con molti nodi e componenti con pochi nodi).
+    /// </summary>
+    [Fact]
+    public void FakeGraphGenerator_DefaultCall_ShouldGenerate5000NodesWithHeterogeneousComponents()
+    {
+        // Arrange & Act
+        var visualGraph = FakeGraphGenerator.Generate(seed: 42);
+
+        // Assert
+        visualGraph.Should().NotBeNull();
+        visualGraph.Nodes.Should().HaveCount(5000);
+
+        var containers = visualGraph.Nodes.Where(n => n.IsContainer).ToList();
+        containers.Should().HaveCountGreaterThan(50);
+
+        var memberCounts = containers.Select(c => visualGraph.GetChildren(c.Id).Count()).ToList();
+        // Forte eterogeneità: presenza di componenti leader con molti metodi e componenti piccoli/foglia con pochissimi metodi
+        memberCounts.Max().Should().BeGreaterThan(60);
+        memberCounts.Min().Should().BeLessThanOrEqualTo(3);
+
+        // Verifica che tutti i nodi abbiano coordinate finite e non NaN
+        foreach (var node in visualGraph.Nodes)
+        {
+            node.X.Should().NotBe(double.NaN);
+            node.Y.Should().NotBe(double.NaN);
+            double.IsInfinity(node.X).Should().BeFalse();
+            double.IsInfinity(node.Y).Should().BeFalse();
+        }
+    }
 }

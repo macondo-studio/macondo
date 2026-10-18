@@ -782,14 +782,14 @@ public partial class MainWindow : Window
     #region Caricamento Dati, Workspace & Fixture
 
     /// <summary>
-    /// Genera e carica un grafo sintetico di ~500 nodi tramite FakeGraphGenerator per benchmark e test.
+    /// Genera e carica un grafo sintetico di ~5000 nodi tramite FakeGraphGenerator per benchmark e test.
     /// </summary>
     private async void LoadSyntheticGraph()
     {
         var localizationService = LocalizationService.Instance;
         ShowLoading(
             "Generazione del grafo sintetico...",
-            "Creazione di ~500 nodi e calcolo del layout radiale...",
+            "Creazione di ~5000 nodi e calcolo del layout radiale...",
             canCancel: true);
         var token = _loadingCts?.Token ?? CancellationToken.None;
         try
