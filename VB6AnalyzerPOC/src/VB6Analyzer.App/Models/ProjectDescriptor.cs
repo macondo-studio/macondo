@@ -10,9 +10,10 @@ public sealed class ProjectDescriptor
     public required string FolderPath { get; init; }
     public string? VbpPath { get; init; }
     public string? CsprojPath { get; init; }
+    public string? VbprojPath { get; init; }
     public string? PomXmlPath { get; init; }
     public string? GradlePath { get; init; }
-    public string? ProjectFilePath => VbpPath ?? CsprojPath ?? PomXmlPath ?? GradlePath;
+    public string? ProjectFilePath => VbpPath ?? CsprojPath ?? VbprojPath ?? PomXmlPath ?? GradlePath;
     public List<string> SourceFiles { get; init; } = new();
 
     /// <summary>

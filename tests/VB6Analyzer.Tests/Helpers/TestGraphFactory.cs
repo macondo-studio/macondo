@@ -168,4 +168,40 @@ public static class TestGraphFactory
 
         return (graph, results);
     }
+
+    public static (CodeGraph Graph, VisualBasicNetExtractionResult Result) CreateAndAnalyzeVisualBasicNetSource(string fileName, string sourceText)
+    {
+        var graph = new CodeGraph();
+        var result = VisualBasicNetExtractor.ExtractVisualBasicNetFile(graph, fileName, sourceText);
+
+        var typeResolver = new TypeResolver(graph);
+        typeResolver.ResolveAllTypes();
+        var symbolResolver = new SymbolResolver(graph, typeResolver);
+
+        var builder = new CallGraphBuilder(graph, symbolResolver);
+        builder.BuildGraph(Array.Empty<ModuleExtractionResult>(), null, null, null, new[] { result });
+
+        return (graph, result);
+    }
+
+    public static (CodeGraph Graph, List<VisualBasicNetExtractionResult> Results) CreateAndAnalyzeVisualBasicNetSources(params (string FileName, string SourceText)[] sources)
+    {
+        var graph = new CodeGraph();
+        var results = new List<VisualBasicNetExtractionResult>();
+
+        foreach (var (fileName, sourceText) in sources)
+        {
+            var res = VisualBasicNetExtractor.ExtractVisualBasicNetFile(graph, fileName, sourceText);
+            results.Add(res);
+        }
+
+        var typeResolver = new TypeResolver(graph);
+        typeResolver.ResolveAllTypes();
+        var symbolResolver = new SymbolResolver(graph, typeResolver);
+
+        var builder = new CallGraphBuilder(graph, symbolResolver);
+        builder.BuildGraph(Array.Empty<ModuleExtractionResult>(), null, null, null, results);
+
+        return (graph, results);
+    }
 }

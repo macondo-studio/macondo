@@ -84,6 +84,9 @@ public enum SourceLanguage
     /// <summary>TypeScript.</summary>
     TypeScript,
 
+    /// <summary>Visual Basic .NET (.vb / Roslyn).</summary>
+    VisualBasicNet,
+
     /// <summary>JavaScript.</summary>
     JavaScript
 }
