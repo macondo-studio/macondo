@@ -616,6 +616,126 @@ function initGuideScrollSpy() {
   }
 }
 
+function initHeroShowcaseCarousel() {
+  const showcase = document.getElementById('app-showcase');
+  if (!showcase) return;
+
+  const tabs = Array.from(showcase.querySelectorAll('.showcase-tab'));
+  const slides = Array.from(showcase.querySelectorAll('.showcase-slide'));
+  const prevBtn = document.getElementById('showcase-prev');
+  const nextBtn = document.getElementById('showcase-next');
+
+  if (!tabs.length || !slides.length) return;
+
+  // Preload all slide images to prevent transition flicker
+  slides.forEach(slide => {
+    const img = slide.querySelector('img');
+    if (img && img.src) {
+      const preload = new Image();
+      preload.src = img.src;
+    }
+  });
+
+  let currentIndex = 0;
+  let isAutoPlaying = true;
+  let timer = null;
+  const slideDuration = 5500; // 5.5 seconds per view
+
+  function updateSlide(index) {
+    currentIndex = (index + slides.length) % slides.length;
+
+    // Update tabs
+    tabs.forEach((tab, i) => {
+      const isActive = i === currentIndex;
+      tab.classList.toggle('active', isActive);
+      tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    // Update slides
+    slides.forEach((slide, i) => {
+      const isActive = i === currentIndex;
+      slide.classList.toggle('active', isActive);
+    });
+  }
+
+  function startAutoPlay() {
+    clearTimeout(timer);
+    if (!isAutoPlaying) return;
+    timer = setTimeout(() => {
+      if (!isAutoPlaying) return;
+      updateSlide(currentIndex + 1);
+      startAutoPlay();
+    }, slideDuration);
+  }
+
+  function stopAutoPlay() {
+    isAutoPlaying = false;
+    clearTimeout(timer);
+    timer = null;
+  }
+
+  function handleUserSelect(index) {
+    stopAutoPlay();
+    updateSlide(index);
+  }
+
+  // Tab click handlers -> user interacted, stop auto-rotation
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => {
+      handleUserSelect(i);
+    });
+  });
+
+  // Controls: Prev / Next -> user interacted, stop auto-rotation
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      handleUserSelect(currentIndex - 1);
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      handleUserSelect(currentIndex + 1);
+    });
+  }
+
+  // Keyboard navigation on tabs -> user interacted, stop auto-rotation
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const next = (i + 1) % tabs.length;
+        tabs[next].focus();
+        handleUserSelect(next);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const prev = (i - 1 + tabs.length) % tabs.length;
+        tabs[prev].focus();
+        handleUserSelect(prev);
+      }
+    });
+  });
+
+  // Touch swipe support for mobile -> user interacted, stop auto-rotation
+  let touchStartX = 0;
+  let touchEndX = 0;
+  showcase.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  showcase.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    if (touchEndX < touchStartX - 40) {
+      handleUserSelect(currentIndex + 1);
+    } else if (touchEndX > touchStartX + 40) {
+      handleUserSelect(currentIndex - 1);
+    }
+  }, { passive: true });
+
+  // Start initial auto-rotation
+  startAutoPlay();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Set current year dynamically
   const yearEl = document.getElementById('current-year');
@@ -624,6 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initLanguageSwitcher();
+  initHeroShowcaseCarousel();
   initAnalysesTabs();
   initSpecsCarousel();
   initGuideScrollSpy();

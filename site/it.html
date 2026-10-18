@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8">
@@ -138,9 +138,44 @@
       </div>
 
       <!-- App Screenshot Showcase -->
-      <div class="showcase-window">
+      <div class="showcase-window" id="app-showcase">
+        <!-- Showcase Header with Tabs and Controls -->
+        <div class="showcase-header">
+          <div class="showcase-header-spacer" aria-hidden="true"></div>
+          <div class="showcase-tabs" role="tablist" aria-label="Visualizzazioni di Macondo">
+            <button type="button" class="showcase-tab active" data-index="0" role="tab" aria-selected="true" aria-controls="showcase-slide-0">Vista Grafo</button>
+            <button type="button" class="showcase-tab" data-index="1" role="tab" aria-selected="false" aria-controls="showcase-slide-1">Flussi Architetturali</button>
+            <button type="button" class="showcase-tab" data-index="2" role="tab" aria-selected="false" aria-controls="showcase-slide-2">Flusso Schermate</button>
+            <button type="button" class="showcase-tab" data-index="3" role="tab" aria-selected="false" aria-controls="showcase-slide-3">Treemap Metriche</button>
+            <button type="button" class="showcase-tab" data-index="4" role="tab" aria-selected="false" aria-controls="showcase-slide-4">CodeCity 3D</button>
+          </div>
+          <div class="showcase-carousel-ctrls">
+            <button type="button" class="showcase-ctrl-btn" id="showcase-prev" aria-label="Vista precedente" title="Vista precedente">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>
+            </button>
+            <button type="button" class="showcase-ctrl-btn" id="showcase-next" aria-label="Vista successiva" title="Vista successiva">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Screenshot View Slides -->
         <div class="screenshot-holder">
-          <img id="graph-screenshot" src="VistaGrafoIta.png" alt="Macondo Semantic Graph UI" class="app-screenshot">
+          <div class="showcase-slide active" id="showcase-slide-0">
+            <img id="graph-screenshot" src="VistaGrafoIta.png" alt="Macondo Vista Grafo UI" class="app-screenshot">
+          </div>
+          <div class="showcase-slide" id="showcase-slide-1">
+            <img src="ArcFlowIta.png" alt="Macondo Flussi Architetturali UI" class="app-screenshot" loading="lazy">
+          </div>
+          <div class="showcase-slide" id="showcase-slide-2">
+            <img src="ScreenFlowIta.png" alt="Macondo Flusso Schermate UI" class="app-screenshot" loading="lazy">
+          </div>
+          <div class="showcase-slide" id="showcase-slide-3">
+            <img src="TreemapIta.png" alt="Macondo Treemap Metriche UI" class="app-screenshot" loading="lazy">
+          </div>
+          <div class="showcase-slide" id="showcase-slide-4">
+            <img src="CodeCityIta.png" alt="Macondo CodeCity 3D UI" class="app-screenshot" loading="lazy">
+          </div>
         </div>
         <div class="showcase-statusbar">
           <div class="statusbar-left">
