@@ -78,6 +78,14 @@ public sealed class ProjectDescriptor
                         descriptors.Add(proj);
                     }
                 }
+                else if (ext == ".vbproj")
+                {
+                    if (seenProjectFiles.Add(fullPath))
+                    {
+                        var proj = ParseVbprojFile(fullPath, cancellationToken);
+                        descriptors.Add(proj);
+                    }
+                }
                 else if (fileName == "pom.xml")
                 {
                     if (seenProjectFiles.Add(fullPath))
@@ -94,7 +102,7 @@ public sealed class ProjectDescriptor
                         descriptors.Add(proj);
                     }
                 }
-                else if (ext is ".java" or ".cs" or ".cls" or ".bas" or ".frm" or ".ctl" || (ext == ".kt" || (ext == ".kts" && !fileName.EndsWith(".gradle.kts") && fileName != "settings.gradle.kts")))
+                else if (ext is ".java" or ".cs" or ".vb" or ".cls" or ".bas" or ".frm" or ".ctl" || (ext == ".kt" || (ext == ".kts" && !fileName.EndsWith(".gradle.kts") && fileName != "settings.gradle.kts")))
                 {
                     // File singolo
                     var folder = Path.GetDirectoryName(fullPath) ?? "";
@@ -106,6 +114,7 @@ public sealed class ProjectDescriptor
                         FolderPath = folder,
                         VbpPath = null,
                         CsprojPath = null,
+                        VbprojPath = null,
                         PomXmlPath = null,
                         GradlePath = null,
                         SourceFiles = new List<string> { fullPath }
@@ -159,6 +168,11 @@ public sealed class ProjectDescriptor
                     .ToArray();
 
                 cancellationToken.ThrowIfCancellationRequested();
+                var vbprojFiles = Directory.GetFiles(fullPath, "*.vbproj", SearchOption.AllDirectories)
+                    .Where(f => !IsInIgnoredFolder(f))
+                    .ToArray();
+
+                cancellationToken.ThrowIfCancellationRequested();
                 var vbpFiles = Directory.GetFiles(fullPath, "*.vbp", SearchOption.AllDirectories);
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -176,13 +190,20 @@ public sealed class ProjectDescriptor
                     .Where(f => !IsInIgnoredFolder(f) && (f.EndsWith("build.gradle", StringComparison.OrdinalIgnoreCase) || f.EndsWith("build.gradle.kts", StringComparison.OrdinalIgnoreCase)))
                     .ToArray();
 
-                if (csprojFiles.Length > 0 || vbpFiles.Length > 0 || pomFiles.Length > 0 || gradleSettingsFiles.Length > 0 || gradleBuildFiles.Length > 0)
+                if (csprojFiles.Length > 0 || vbprojFiles.Length > 0 || vbpFiles.Length > 0 || pomFiles.Length > 0 || gradleSettingsFiles.Length > 0 || gradleBuildFiles.Length > 0)
                 {
                     foreach (var csprojFile in csprojFiles)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         if (seenProjectFiles.Add(csprojFile))
                             descriptors.Add(ParseCsprojFile(csprojFile, cancellationToken));
+                    }
+
+                    foreach (var vbprojFile in vbprojFiles)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        if (seenProjectFiles.Add(vbprojFile))
+                            descriptors.Add(ParseVbprojFile(vbprojFile, cancellationToken));
                     }
 
                     foreach (var vbpFile in vbpFiles)
@@ -667,6 +688,35 @@ public sealed class ProjectDescriptor
         };
     }
 
+    /// <summary>
+    /// Esegue il parsing e la scansione dei file sorgente per un file di progetto Visual Basic .NET ('.vbproj').
+    /// Raccoglie tutti i file '.vb' all'interno della cartella di progetto, escludendo automaticamente le cartelle di build ('bin', 'obj').
+    /// </summary>
+    /// <param name="vbprojPath">Percorso assoluto del file .vbproj.</param>
+    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
+    /// <returns>Il descrittore di progetto <see cref="ProjectDescriptor"/> popolato.</returns>
+    public static ProjectDescriptor ParseVbprojFile(string vbprojPath, CancellationToken cancellationToken = default)
+    {
+        var folder = Path.GetDirectoryName(vbprojPath) ?? "";
+        var fileNameWithoutExt = Path.GetFileNameWithoutExtension(vbprojPath);
+        var projName = fileNameWithoutExt;
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var sourceFiles = Directory.GetFiles(folder, "*.vb", SearchOption.AllDirectories)
+            .Where(f => !IsInIgnoredFolder(f))
+            .OrderBy(f => Path.GetFileName(f))
+            .ToList();
+
+        return new ProjectDescriptor
+        {
+            Id = Guid.NewGuid(),
+            Name = projName,
+            FolderPath = folder,
+            VbprojPath = vbprojPath,
+            SourceFiles = sourceFiles
+        };
+    }
+
     public static List<ProjectDescriptor> ParseSlnFile(string slnPath, CancellationToken cancellationToken = default)
     {
         var result = new List<ProjectDescriptor>();
@@ -682,7 +732,7 @@ public sealed class ProjectDescriptor
                 var trimmed = line.Trim();
                 if (trimmed.StartsWith("Project(", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Esempio: Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyApp", "src\MyApp\MyApp.csproj", "{...}"
+                    // Esempio: Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "MyApp", "src\MyApp\MyApp.vbproj", "{...}"
                     var eqIdx = trimmed.IndexOf('=');
                     if (eqIdx > 0)
                     {
@@ -697,6 +747,8 @@ public sealed class ProjectDescriptor
                                 var ext = Path.GetExtension(absPath).ToLowerInvariant();
                                 if (ext == ".csproj")
                                     result.Add(ParseCsprojFile(absPath, cancellationToken));
+                                else if (ext == ".vbproj")
+                                    result.Add(ParseVbprojFile(absPath, cancellationToken));
                                 else if (ext == ".vbp")
                                     result.Add(ParseVbpFile(absPath, cancellationToken));
                             }

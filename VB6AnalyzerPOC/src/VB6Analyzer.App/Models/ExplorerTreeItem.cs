@@ -336,6 +336,7 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
     public static (string? Text, string? Background, string? Foreground, string? Tooltip) GetLanguageBadgeInfo(SourceLanguage lang) => lang switch
     {
         SourceLanguage.VisualBasic6 => ("VB6", "#2563EB", "#FFFFFF", "Visual Basic 6.0"),
+        SourceLanguage.VisualBasicNet => ("VB.NET", "#007ACC", "#FFFFFF", "Visual Basic .NET"),
         SourceLanguage.CSharp => ("C#", "#7C3AED", "#FFFFFF", "C# (.NET)"),
         SourceLanguage.CPlusPlus => ("C++", "#00599C", "#FFFFFF", "C / C++"),
         SourceLanguage.Java => ("JAVA", "#EA580C", "#FFFFFF", "Java"),
@@ -377,6 +378,7 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
             return ext switch
             {
                 ".vbp" or ".vbg" or ".frm" or ".bas" or ".cls" or ".ctl" => SourceLanguage.VisualBasic6,
+                ".vbproj" or ".vb" => SourceLanguage.VisualBasicNet,
                 ".csproj" or ".sln" or ".cs" => SourceLanguage.CSharp,
                 ".cpp" or ".c" or ".h" or ".hpp" or ".vcxproj" => SourceLanguage.CPlusPlus,
                 ".java" => SourceLanguage.Java,

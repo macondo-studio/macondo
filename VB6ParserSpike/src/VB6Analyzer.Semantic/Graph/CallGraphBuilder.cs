@@ -459,6 +459,15 @@ public sealed class CallGraphBuilder
         // =========================================================================
         // FASE 1e: GENERAZIONE RELAZIONI SEMANTICHE PER FILE VB.NET
         // =========================================================================
+        // Se sono presenti file sorgente Visual Basic .NET analizzati (.vb in progetti standard o .vbproj),
+        // colleghiamo le relazioni semantiche nel grafo comune:
+        // 1. Invocazioni di metodi e procedure (CALLS):
+        //    - Passo A: Se è presente un ricevitore esplicito (es. 'logger.WriteLog()' o 'Me.Validate()'),
+        //      tentiamo la risoluzione del tipo del ricevitore tramite il TypeResolver e cerchiamo il metodo nei figli del tipo.
+        //    - Passo B: Se il metodo è invocato senza ricevitore (chiamata interna, ereditata o funzione di modulo standard),
+        //      usiamo l'indice globale O(1) con confronto case-insensitive (garantito da StringComparer.OrdinalIgnoreCase).
+        // 2. Creazioni di oggetti (INSTANTIATES da 'New ClassName()' o auto-istanziazione 'Dim x As New ClassName()').
+        // 3. Ereditarietà di classi base ('Inherits') e implementazione di interfacce ('Implements') (INHERITS / IMPLEMENTS).
         if (vbNetResults != null)
         {
             Dictionary<string, Symbol>? routineIndexByName = null;

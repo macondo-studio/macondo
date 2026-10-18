@@ -77,12 +77,14 @@ public static class ProjectAnalysisService
         foreach (var proj in projects)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var isVbNet = proj.SourceFiles.Any(f => f.EndsWith(".vb", StringComparison.OrdinalIgnoreCase)) ||
+                          (proj.ProjectFilePath != null && proj.ProjectFilePath.EndsWith(".vbproj", StringComparison.OrdinalIgnoreCase));
             var isKotlin = proj.SourceFiles.Any(f => f.EndsWith(".kt", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".kts", StringComparison.OrdinalIgnoreCase));
             var isCs = proj.SourceFiles.Any(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) ||
                        (proj.ProjectFilePath != null && (proj.ProjectFilePath.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) || proj.ProjectFilePath.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)));
             var isJava = proj.SourceFiles.Any(f => f.EndsWith(".java", StringComparison.OrdinalIgnoreCase)) ||
                          (proj.ProjectFilePath != null && (proj.ProjectFilePath.EndsWith("pom.xml", StringComparison.OrdinalIgnoreCase) || proj.ProjectFilePath.EndsWith(".gradle", StringComparison.OrdinalIgnoreCase) || proj.ProjectFilePath.EndsWith(".gradle.kts", StringComparison.OrdinalIgnoreCase)));
-            var projLang = isKotlin ? SourceLanguage.Kotlin : (isJava ? SourceLanguage.Java : (isCs ? SourceLanguage.CSharp : SourceLanguage.VisualBasic6));
+            var projLang = isVbNet ? SourceLanguage.VisualBasicNet : (isKotlin ? SourceLanguage.Kotlin : (isJava ? SourceLanguage.Java : (isCs ? SourceLanguage.CSharp : SourceLanguage.VisualBasic6)));
 
             var projSymbol = new Symbol
             {
@@ -123,6 +125,7 @@ public static class ProjectAnalysisService
         // Strutture concorrenti per raccogliere i risultati dai vari worker thread
         var concurrentVbResults = new System.Collections.Concurrent.ConcurrentBag<(ModuleExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
         var concurrentCsResults = new System.Collections.Concurrent.ConcurrentBag<(CSharpExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
+        var concurrentVbNetResults = new System.Collections.Concurrent.ConcurrentBag<(VisualBasicNetExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
         var concurrentJavaResults = new System.Collections.Concurrent.ConcurrentBag<(JavaExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
         var concurrentKotlinResults = new System.Collections.Concurrent.ConcurrentBag<(KotlinExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
 
@@ -157,6 +160,12 @@ public static class ProjectAnalysisService
                     var csResult = CSharpExtractor.ExtractCSharpFile(localGraph, file, source);
                     if (!cancellationToken.IsCancellationRequested)
                         concurrentCsResults.Add((csResult, localGraph, item.Project, item.ProjSymbol));
+                }
+                else if (string.Equals(fileExtension, ".vb", StringComparison.OrdinalIgnoreCase))
+                {
+                    var vbNetResult = VisualBasicNetExtractor.ExtractVisualBasicNetFile(localGraph, file, source);
+                    if (!cancellationToken.IsCancellationRequested)
+                        concurrentVbNetResults.Add((vbNetResult, localGraph, item.Project, item.ProjSymbol));
                 }
                 else if (string.Equals(fileExtension, ".java", StringComparison.OrdinalIgnoreCase))
                 {
@@ -226,7 +235,7 @@ public static class ProjectAnalysisService
                     CurrentFileIndex = currentDone,
                     TotalFiles = totalFiles,
                     CurrentFileName = fileName,
-                    ExtractedNodesCount = concurrentVbResults.Count + concurrentCsResults.Count + concurrentJavaResults.Count + concurrentKotlinResults.Count,
+                    ExtractedNodesCount = concurrentVbResults.Count + concurrentCsResults.Count + concurrentVbNetResults.Count + concurrentJavaResults.Count + concurrentKotlinResults.Count,
                     EstimatedTotalSeconds = estimatedTotalSeconds,
                     EstimatedRemainingSeconds = remainingSec,
                     PhaseMessage = LocalizationService.Instance.Get("Loading_ParsingFile", fileName)
@@ -268,6 +277,29 @@ public static class ProjectAnalysisService
             semanticGraph.Relationships.AddRange(localGraph.Relationships);
 
             foreach (var topSym in csResult.TopLevelSymbols)
+            {
+                semanticGraph.Relationships.Add(new Relationship
+                {
+                    SourceId = projSymbol.Id,
+                    TargetId = topSym.Id,
+                    Kind = RelationshipKind.Contains,
+                    Confidence = ResolutionConfidence.Exact
+                });
+
+                if (projects.Count > 1 && !topSym.QualifiedName.StartsWith(proj.Name + ".", StringComparison.OrdinalIgnoreCase))
+                    topSym.QualifiedName = $"{proj.Name}.{topSym.QualifiedName}";
+            }
+        }
+
+        // 2c. Unione atomica dei simboli e delle relazioni estratte dai file Visual Basic .NET
+        var vbNetResults = new List<VisualBasicNetExtractionResult>(concurrentVbNetResults.Count);
+        foreach (var (vbNetResult, localGraph, proj, projSymbol) in concurrentVbNetResults)
+        {
+            vbNetResults.Add(vbNetResult);
+            semanticGraph.Symbols.AddRange(localGraph.Symbols);
+            semanticGraph.Relationships.AddRange(localGraph.Relationships);
+
+            foreach (var topSym in vbNetResult.TopLevelSymbols)
             {
                 semanticGraph.Relationships.Add(new Relationship
                 {
@@ -329,6 +361,7 @@ public static class ProjectAnalysisService
         // Dereferenzia e svuota le collezioni temporanee del parsing per liberare immediatamente la RAM
         concurrentVbResults.Clear();
         concurrentCsResults.Clear();
+        concurrentVbNetResults.Clear();
         concurrentJavaResults.Clear();
         concurrentKotlinResults.Clear();
 
@@ -371,12 +404,13 @@ public static class ProjectAnalysisService
 
         var symbolResolver = new SymbolResolver(semanticGraph, typeResolver);
         var callGraphBuilder = new CallGraphBuilder(semanticGraph, symbolResolver);
-        callGraphBuilder.BuildGraph(extractionResults, csharpResults, javaResults, kotlinResults, cancellationToken);
+        callGraphBuilder.BuildGraph(extractionResults, csharpResults, javaResults, kotlinResults, vbNetResults, cancellationToken);
 
         // Dereferenzia e svuota le collezioni di estrazione non appena il Call Graph è generato
         // per liberare memoria prima di procedere con il grafo visuale e il relativo layout
         extractionResults.Clear();
         csharpResults.Clear();
+        vbNetResults.Clear();
         javaResults.Clear();
         kotlinResults.Clear();
 

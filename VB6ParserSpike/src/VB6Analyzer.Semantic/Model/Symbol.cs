@@ -85,6 +85,7 @@ public sealed class Symbol
             return ext switch
             {
                 ".vbp" or ".vbg" or ".frm" or ".bas" or ".cls" or ".ctl" or ".pag" or ".dsx" or ".dob" => SourceLanguage.VisualBasic6,
+                ".vbproj" or ".vb" => SourceLanguage.VisualBasicNet,
                 ".csproj" or ".sln" or ".cs" => SourceLanguage.CSharp,
                 ".cpp" or ".c" or ".h" or ".hpp" or ".vcxproj" => SourceLanguage.CPlusPlus,
                 ".java" => SourceLanguage.Java,
