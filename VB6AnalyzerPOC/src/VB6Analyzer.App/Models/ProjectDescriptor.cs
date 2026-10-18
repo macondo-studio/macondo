@@ -85,7 +85,7 @@ public sealed class ProjectDescriptor
                         descriptors.Add(proj);
                     }
                 }
-                else if (fileName is "build.gradle" or "build.gradle.kts")
+                else if (fileName is "build.gradle" or "build.gradle.kts" or "settings.gradle" or "settings.gradle.kts")
                 {
                     if (seenProjectFiles.Add(fullPath))
                     {
@@ -93,7 +93,7 @@ public sealed class ProjectDescriptor
                         descriptors.Add(proj);
                     }
                 }
-                else if (ext is ".java" or ".cs" or ".cls" or ".bas" or ".frm" or ".ctl")
+                else if (ext is ".java" or ".cs" or ".cls" or ".bas" or ".frm" or ".ctl" || (ext == ".kt" || (ext == ".kts" && !fileName.EndsWith(".gradle.kts") && fileName != "settings.gradle.kts")))
                 {
                     // File singolo
                     var folder = Path.GetDirectoryName(fullPath) ?? "";
@@ -166,11 +166,16 @@ public sealed class ProjectDescriptor
                     .ToArray();
 
                 cancellationToken.ThrowIfCancellationRequested();
-                var gradleFiles = Directory.GetFiles(fullPath, "build.gradle*", SearchOption.AllDirectories)
+                var gradleSettingsFiles = Directory.GetFiles(fullPath, "settings.gradle*", SearchOption.AllDirectories)
+                    .Where(f => !IsInIgnoredFolder(f) && (f.EndsWith("settings.gradle", StringComparison.OrdinalIgnoreCase) || f.EndsWith("settings.gradle.kts", StringComparison.OrdinalIgnoreCase)))
+                    .ToArray();
+
+                cancellationToken.ThrowIfCancellationRequested();
+                var gradleBuildFiles = Directory.GetFiles(fullPath, "build.gradle*", SearchOption.AllDirectories)
                     .Where(f => !IsInIgnoredFolder(f) && (f.EndsWith("build.gradle", StringComparison.OrdinalIgnoreCase) || f.EndsWith("build.gradle.kts", StringComparison.OrdinalIgnoreCase)))
                     .ToArray();
 
-                if (csprojFiles.Length > 0 || vbpFiles.Length > 0 || pomFiles.Length > 0 || gradleFiles.Length > 0)
+                if (csprojFiles.Length > 0 || vbpFiles.Length > 0 || pomFiles.Length > 0 || gradleSettingsFiles.Length > 0 || gradleBuildFiles.Length > 0)
                 {
                     foreach (var csprojFile in csprojFiles)
                     {
@@ -216,39 +221,68 @@ public sealed class ProjectDescriptor
                         }
                     }
 
-                    // 2b. Gestione avanzata Gradle Multi-Project (es. Android / Robolectric / Spring Multi-Module):
-                    // Identifica tutte le directory contenenti build.gradle o build.gradle.kts per circoscrivere
-                    // l'assegnazione dei file Java al solo modulo proprietario diretto, prevenendo la duplicazione a catena.
-                    if (gradleFiles.Length > 0)
+                    // 2b. Gestione avanzata Gradle Multi-Project (es. Android / Kotlin / Spring / Robolectric):
+                    // Identifica in modo deterministico le directory radice dei progetti Gradle per preservare la reale architettura:
+                    // 1) Nei progetti Android standard o multi-modulo, 'settings.gradle' o 'settings.gradle.kts' risiede nella
+                    //    cartella genitrice principale (es. 'BroadcastApp'), mentre il codice applicativo risiede convenzionalmente
+                    //    nel sottomodulo 'app/' (che include il proprio 'build.gradle[.kts]').
+                    // 2) Assegnando l'intera gerarchia di sottocartelle alla radice proprietaria, si garantisce che tutti i sorgenti
+                    //    (.kt, .java) compaiano raggruppati sotto il rispettivo progetto applicativo nel Project Explorer,
+                    //    evitando la proliferazione di progetti orfani o duplicati chiamati genericamente 'app'.
+                    if (gradleSettingsFiles.Length > 0 || gradleBuildFiles.Length > 0)
                     {
-                        var gradleFolders = gradleFiles
+                        var gradleProjectRoots = new List<string>();
+
+                        // Fase 1: Censimento delle radici ufficiali con file di impostazioni 'settings.gradle' o 'settings.gradle.kts'
+                        var settingsDirs = gradleSettingsFiles
                             .Select(Path.GetDirectoryName)
                             .Where(d => !string.IsNullOrEmpty(d))
                             .Cast<string>()
                             .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .OrderBy(d => d.Length) // Priorità alle directory di livello gerarchico superiore
                             .ToList();
 
-                        foreach (var gradleFile in gradleFiles)
+                        foreach (var sDir in settingsDirs)
+                        {
+                            var normalized = sDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                            if (!gradleProjectRoots.Any(r => normalized.StartsWith(r.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)))
+                                gradleProjectRoots.Add(sDir);
+                        }
+
+                        // Fase 2: Censimento di ulteriori progetti Gradle standalone (con 'build.gradle[.kts]' ma senza 'settings.gradle[.kts]')
+                        // che non facciano già parte di una gerarchia radice censita nella Fase 1
+                        var buildDirs = gradleBuildFiles
+                            .Select(Path.GetDirectoryName)
+                            .Where(d => !string.IsNullOrEmpty(d))
+                            .Cast<string>()
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .OrderBy(d => d.Length)
+                            .ToList();
+
+                        foreach (var bDir in buildDirs)
+                        {
+                            var normalized = bDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                            if (!gradleProjectRoots.Any(r => normalized.StartsWith(r.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)))
+                                gradleProjectRoots.Add(bDir);
+                        }
+
+                        // Fase 3: Creazione dei descrittori di progetto con aggregazione completa dei relativi sorgenti
+                        foreach (var gRoot in gradleProjectRoots)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
-                            if (seenProjectFiles.Add(gradleFile))
+                            var gradleKey = "gradle:" + gRoot;
+                            if (seenProjectFiles.Add(gradleKey))
                             {
-                                var folder = Path.GetDirectoryName(gradleFile) ?? "";
-                                var normalizedFolder = folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
-
-                                // Individua tutte le sottocartelle interne che ospitano un sottomodulo Gradle figlio
-                                var childFolders = gradleFolders
-                                    .Where(d => !string.Equals(d, folder, StringComparison.OrdinalIgnoreCase) && d.StartsWith(normalizedFolder, StringComparison.OrdinalIgnoreCase))
-                                    .ToList();
-
-                                descriptors.Add(ParseGradleFile(gradleFile, childFolders, cancellationToken));
+                                var proj = ParseGradleProjectFolder(gRoot, cancellationToken);
+                                if (proj.SourceFiles.Count > 0 || gradleProjectRoots.Count == 1)
+                                    descriptors.Add(proj);
                             }
                         }
                     }
 
                     // 2c. Pulizia moduli aggregatori privi di sorgenti:
                     // Se sono stati scoperti più progetti nel workspace e almeno uno contiene file sorgente effettivi,
-                    // scarta i progetti radice puramente configurativi/aggregatori (es. root build.gradle senza codice Java proprio)
+                    // scarta i progetti radice puramente configurativi/aggregatori (es. root build.gradle senza codice Java/Kotlin proprio)
                     // evitando di generare progetti vuoti o nodi orfani nel grafo visuale.
                     if (descriptors.Count > 1 && descriptors.Any(d => d.SourceFiles.Count > 0))
                         descriptors.RemoveAll(d => d.SourceFiles.Count == 0);
@@ -312,21 +346,43 @@ public sealed class ProjectDescriptor
 
     private static List<string> GetAllSourceFilesInDirectory(string dir, CancellationToken cancellationToken = default)
     {
-        if (!Directory.Exists(dir)) return new List<string>();
+        if (!Directory.Exists(dir))
+            return new List<string>();
 
         cancellationToken.ThrowIfCancellationRequested();
         return Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories)
-            .Where(f => !IsInIgnoredFolder(f) &&
-                        (f.EndsWith(".java", StringComparison.OrdinalIgnoreCase) ||
-                         f.EndsWith(".kt", StringComparison.OrdinalIgnoreCase) ||
-                         f.EndsWith(".kts", StringComparison.OrdinalIgnoreCase) ||
-                         f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
-                         f.EndsWith(".cls", StringComparison.OrdinalIgnoreCase) ||
-                         f.EndsWith(".bas", StringComparison.OrdinalIgnoreCase) ||
-                         f.EndsWith(".frm", StringComparison.OrdinalIgnoreCase) ||
-                         f.EndsWith(".ctl", StringComparison.OrdinalIgnoreCase)))
+            .Where(f => !IsInIgnoredFolder(f) && IsValidSourceFile(f))
             .OrderBy(f => Path.GetFileName(f))
             .ToList();
+    }
+
+    /// <summary>
+    /// Verifica se un file è un sorgente valido di codice applicativo analizzabile (VB6, C#, Java, Kotlin).
+    /// Esclude esplicitamente file di configurazione o script di build come 'build.gradle.kts' o 'settings.gradle.kts'.
+    /// </summary>
+    private static bool IsValidSourceFile(string f)
+    {
+        if (f.EndsWith(".java", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (f.EndsWith(".kt", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (f.EndsWith(".cls", StringComparison.OrdinalIgnoreCase) ||
+            f.EndsWith(".bas", StringComparison.OrdinalIgnoreCase) ||
+            f.EndsWith(".frm", StringComparison.OrdinalIgnoreCase) ||
+            f.EndsWith(".ctl", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (f.EndsWith(".kts", StringComparison.OrdinalIgnoreCase))
+        {
+            var name = Path.GetFileName(f);
+            if (name.Equals("build.gradle.kts", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("settings.gradle.kts", StringComparison.OrdinalIgnoreCase) ||
+                name.EndsWith(".gradle.kts", StringComparison.OrdinalIgnoreCase))
+                return false;
+            return true;
+        }
+        return false;
     }
 
     private static bool IsInIgnoredFolder(string path)
@@ -425,9 +481,7 @@ public sealed class ProjectDescriptor
         var sourceFiles = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
             .Where(f => !IsInIgnoredFolder(f) &&
                         !IsInChildProjectFolder(f, childProjectFolders) &&
-                        (f.EndsWith(".java", StringComparison.OrdinalIgnoreCase) ||
-                         f.EndsWith(".kt", StringComparison.OrdinalIgnoreCase) ||
-                         f.EndsWith(".kts", StringComparison.OrdinalIgnoreCase)))
+                        IsValidSourceFile(f))
             .OrderBy(f => Path.GetFileName(f))
             .ToList();
 
@@ -444,52 +498,137 @@ public sealed class ProjectDescriptor
     }
 
     /// <summary>
-    /// Esegue il parsing di uno script di build Gradle ('build.gradle' o 'build.gradle.kts') e raccoglie tutti i file .java.
-    /// Rileva automaticamente eventuali sottomoduli Gradle annidati per escluderne i file sorgente ed evitare duplicazioni.
+    /// Esegue il parsing di uno script di build Gradle ('build.gradle', 'build.gradle.kts', 'settings.gradle' o 'settings.gradle.kts')
+    /// e raccoglie tutti i file sorgente Java e Kotlin associati.
+    /// Risolve automaticamente la radice del progetto se invocato all'interno di un modulo standard come 'app'.
     /// </summary>
     public static ProjectDescriptor ParseGradleFile(string gradlePath, CancellationToken cancellationToken = default)
         => ParseGradleFile(gradlePath, childProjectFolders: null, cancellationToken);
 
     /// <summary>
-    /// Esegue il parsing di uno script di build Gradle ('build.gradle' o 'build.gradle.kts') e raccoglie tutti i file .java.
-    /// Utilizza il nome della directory del modulo come nome del progetto.
+    /// Esegue il parsing di uno script di build Gradle ('build.gradle' o 'build.gradle.kts') e raccoglie tutti i file Java e Kotlin.
     /// Se specificato l'elenco dei sottomoduli, esclude ricorsivamente i file di questi ultimi.
     /// </summary>
     /// <param name="gradlePath">Percorso assoluto del file build.gradle o build.gradle.kts.</param>
     /// <param name="childProjectFolders">Cartelle opzionali di sottomoduli annidati i cui file sorgente non devono essere inclusi nel modulo corrente.</param>
     /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
-    /// <returns>Il descrittore del progetto Gradle con l'elenco completo dei file sorgente Java trovati.</returns>
+    /// <returns>Il descrittore del progetto Gradle con l'elenco completo dei file sorgente trovati.</returns>
     public static ProjectDescriptor ParseGradleFile(
         string gradlePath,
         IReadOnlyCollection<string>? childProjectFolders,
         CancellationToken cancellationToken = default)
     {
         var folder = Path.GetDirectoryName(gradlePath) ?? "";
-        var projName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
-        cancellationToken.ThrowIfCancellationRequested();
-
-        // Se non specificato esplicitamente, individua in autonomia eventuali sottomoduli Gradle annidati nella cartella
-        if (childProjectFolders == null && Directory.Exists(folder))
+        // Se la cartella indicata è 'app' e il genitore contiene settings.gradle o build.gradle,
+        // risolve direttamente alla radice del progetto genitore
+        if (string.Equals(Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)), "app", StringComparison.OrdinalIgnoreCase))
         {
-            childProjectFolders = Directory.GetFiles(folder, "build.gradle*", SearchOption.AllDirectories)
-                .Where(f => !IsInIgnoredFolder(f) &&
-                            !string.Equals(f, gradlePath, StringComparison.OrdinalIgnoreCase) &&
-                            (f.EndsWith("build.gradle", StringComparison.OrdinalIgnoreCase) || f.EndsWith("build.gradle.kts", StringComparison.OrdinalIgnoreCase)))
-                .Select(Path.GetDirectoryName)
-                .Where(d => !string.IsNullOrEmpty(d))
-                .Cast<string>()
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            var parent = Path.GetDirectoryName(folder);
+            if (!string.IsNullOrEmpty(parent))
+            {
+                var parentSettings = Directory.GetFiles(parent, "settings.gradle*", SearchOption.TopDirectoryOnly);
+                var parentBuild = Directory.GetFiles(parent, "build.gradle*", SearchOption.TopDirectoryOnly);
+                if (parentSettings.Length > 0 || parentBuild.Length > 0)
+                    folder = parent;
+            }
         }
 
-        // Recupera i file sorgente Java e Kotlin (.java, .kt, .kts) appartenenti al modulo corrente, escludendo cartelle ignorate e sottomoduli
+        if (childProjectFolders != null && childProjectFolders.Count > 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var projName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+            var sourceFiles = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
+                .Where(f => !IsInIgnoredFolder(f) &&
+                            !IsInChildProjectFolder(f, childProjectFolders) &&
+                            IsValidSourceFile(f))
+                .OrderBy(f => Path.GetFileName(f))
+                .ToList();
+
+            var defaultName = sourceFiles.Any(f => f.EndsWith(".kt", StringComparison.OrdinalIgnoreCase)) ? "Kotlin Gradle Project" : "Java Gradle Project";
+
+            return new ProjectDescriptor
+            {
+                Id = Guid.NewGuid(),
+                Name = string.IsNullOrEmpty(projName) ? defaultName : projName,
+                FolderPath = folder,
+                GradlePath = gradlePath,
+                SourceFiles = sourceFiles
+            };
+        }
+
+        return ParseGradleProjectFolder(folder, cancellationToken);
+    }
+
+    /// <summary>
+    /// Esegue il parsing di una directory radice di progetto Gradle (contenente settings.gradle[.kts] o build.gradle[.kts]),
+    /// rilevando il nome reale del progetto ed includendo tutti i sorgenti Java e Kotlin (inclusi i sottomoduli interni come 'app').
+    /// </summary>
+    /// <param name="folder">Percorso assoluto della cartella radice del progetto Gradle.</param>
+    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere l'analisi.</param>
+    /// <returns>Il descrittore del progetto Gradle configurato con tutti i file sorgente appartenenti alla gerarchia applicativa.</returns>
+    public static ProjectDescriptor ParseGradleProjectFolder(string folder, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Individua il file di configurazione principale
+        string? gradlePath = null;
+        var candBuildKts = Path.Combine(folder, "build.gradle.kts");
+        var candBuildGroovy = Path.Combine(folder, "build.gradle");
+        var candSettingsKts = Path.Combine(folder, "settings.gradle.kts");
+        var candSettingsGroovy = Path.Combine(folder, "settings.gradle");
+
+        if (File.Exists(candBuildKts))
+            gradlePath = candBuildKts;
+        else if (File.Exists(candBuildGroovy))
+            gradlePath = candBuildGroovy;
+        else if (File.Exists(candSettingsKts))
+            gradlePath = candSettingsKts;
+        else if (File.Exists(candSettingsGroovy))
+            gradlePath = candSettingsGroovy;
+        else
+        {
+            var subBuild = Directory.GetFiles(folder, "build.gradle*", SearchOption.AllDirectories)
+                .FirstOrDefault(f => !IsInIgnoredFolder(f) && (f.EndsWith("build.gradle", StringComparison.OrdinalIgnoreCase) || f.EndsWith("build.gradle.kts", StringComparison.OrdinalIgnoreCase)));
+            gradlePath = subBuild;
+        }
+
+        var folderName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        var projName = folderName;
+
+        // Se la cartella è genericamente "app", prova a leggere il nome della cartella genitrice
+        if (string.Equals(projName, "app", StringComparison.OrdinalIgnoreCase))
+        {
+            var parent = Path.GetDirectoryName(folder);
+            if (!string.IsNullOrEmpty(parent))
+            {
+                var parentName = Path.GetFileName(parent.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                if (!string.IsNullOrEmpty(parentName))
+                    projName = parentName;
+            }
+        }
+
+        // Se disponibile settings.gradle[.kts], controlla se è specificato un rootProject.name personalizzato
+        var settingsPath = File.Exists(candSettingsKts) ? candSettingsKts : (File.Exists(candSettingsGroovy) ? candSettingsGroovy : null);
+        if (settingsPath != null && File.Exists(settingsPath))
+        {
+            try
+            {
+                var content = File.ReadAllText(settingsPath);
+                var match = System.Text.RegularExpressions.Regex.Match(content, @"rootProject\.name\s*=\s*\(?[""']([^""'\r\n]+)[""']\)?");
+                if (match.Success && !string.IsNullOrWhiteSpace(match.Groups[1].Value))
+                    projName = match.Groups[1].Value.Trim();
+            }
+            catch
+            {
+                // Ignora errori di parsing del file settings
+            }
+        }
+
+        // Raccoglie tutti i file sorgente Java e Kotlin nel progetto (inclusi tutti i sottomoduli come app/)
         var sourceFiles = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
-            .Where(f => !IsInIgnoredFolder(f) &&
-                        !IsInChildProjectFolder(f, childProjectFolders) &&
-                        (f.EndsWith(".java", StringComparison.OrdinalIgnoreCase) ||
-                         f.EndsWith(".kt", StringComparison.OrdinalIgnoreCase) ||
-                         f.EndsWith(".kts", StringComparison.OrdinalIgnoreCase)))
+            .Where(f => !IsInIgnoredFolder(f) && IsValidSourceFile(f))
             .OrderBy(f => Path.GetFileName(f))
             .ToList();
 
