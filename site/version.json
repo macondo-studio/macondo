@@ -1,14 +1,14 @@
 ﻿{
-    "version":  "1.7.3",
+    "version":  "1.8.0",
     "title":  {
-                  "it":  "Macondo v1.7.3",
-                  "en":  "Macondo v1.7.3"
+                  "it":  "Macondo v1.8.0",
+                  "en":  "Macondo v1.8.0"
               },
     "releaseNotes":  {
-                         "it":  "Risoluzione di falsi positivi nell\u0027analisi del dead code per progetti VB6: supporto per tipi UserControl con qualificazione puntata, tracciamento invocazioni RaiseEvent collegate agli eventi dichiarati, risoluzione semantica di routine a catena e risoluzione chiamate late-binding su riferimenti a Form e Object generici.",
-                         "en":  "Resolution of dead code analysis false positives across VB6 projects: dot-qualified UserControl type resolution, RaiseEvent invocations linked to event declarations, chained routine call resolution, and late-binding resolution on Form and Object references."
+                         "it":  "Supporto completo all\u0027analisi semantica e al grafo delle dipendenze per il linguaggio Kotlin (.kt, .kts) su progetti Gradle, Android e Maven. Riconoscimento intelligente delle gerarchie di moduli Android aggregati sotto la cartella radice, gestione dei pattern idiomatici (soft-keywords nei parametri, trailing lambdas e call-site DSL), risoluzione semantica multi-linguaggio ed estensione dell\u0027analisi del dead code.",
+                         "en":  "Full static semantic analysis and dependency call graph extraction for the Kotlin language (.kt, .kts) across Gradle, Android, and Maven project architectures. Automatic discovery of nested Android module hierarchies aggregated under root parent project workspaces, comprehensive handling of idiomatic constructs (parameter soft-keyword parsing, trailing lambdas, and DSL builder call sites), cross-language resolution, and Kotlin dead code reachability."
                      },
     "downloadUrl":  "https://github.com/macondo-studio/macondo/releases/latest/download/Macondo-Setup.exe",
-    "publishedAt":  "2026-10-15T21:18:13Z",
+    "publishedAt":  "2026-10-18T09:52:42Z",
     "isMandatory":  false
 }
