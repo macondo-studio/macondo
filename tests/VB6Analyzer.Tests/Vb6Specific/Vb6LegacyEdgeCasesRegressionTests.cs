@@ -14,7 +14,7 @@ namespace Macondo.Tests.Vb6Specific;
 
 /// <summary>
 /// Suite di regression test mirati a prevenire e validare i bug riscontrati durante l'analisi reale
-/// di progetti VB6 enterprise complessi:
+/// di progetti VB6 complessi (oltre 500.000 righe di codice enterprise):
 /// 1. Crash Call Graph per 'GoTo Label:' con i due punti dentro blocchi If/While.
 /// 2. Crash Call Graph per identificatori tra quadre con spazi/punti in argomenti di chiamate ('RS![a b]').
 /// 3. Resilienza del CallGraphBuilder su eccezioni o costrutti malformati.

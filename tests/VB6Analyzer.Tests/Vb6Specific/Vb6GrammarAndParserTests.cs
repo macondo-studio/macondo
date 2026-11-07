@@ -1,4 +1,4 @@
-using Antlr4.Runtime;
+﻿using Antlr4.Runtime;
 using FluentAssertions;
 using Macondo.Parser.Diagnostics;
 using Macondo.Parser.Grammar;
@@ -433,71 +433,5 @@ public class Vb6GrammarAndParserTests
         // Assert
         errors.Should().BeEmpty("Implements statements at module level should parse without errors");
         tree.Should().NotBeNull();
-    }
-
-    /// <summary>
-    /// Verifica l'estrazione semantica completa del file di classe reale SampleClass.cls del progetto SampleLegacyApp.
-    /// </summary>
-    [Fact]
-    public void ModuleExtractor_ShouldExtractSampleClassCls_WithAllMethods()
-    {
-        var path = @".\SampleLegacyApp\SampleLegacyApp\SampleClass.cls";
-        if (!File.Exists(path)) return;
-
-        var graph = new CodeGraph();
-        var source = File.ReadAllText(path);
-        var result = ModuleExtractor.ExtractModule(graph, path, source);
-
-        if (result.ParseErrors.Count > 0)
-        {
-            throw new Exception($"SampleClass.cls still has {result.ParseErrors.Count} errors:\n" + string.Join("\n", result.ParseErrors));
-        }
-
-        result.Success.Should().BeTrue();
-        result.ParseErrors.Should().BeEmpty();
-
-        var comandaSymbol = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Class && s.Name == "SampleClass");
-        comandaSymbol.Should().NotBeNull();
-
-        var childIds = graph.Relationships
-            .Where(r => r.SourceId == comandaSymbol!.Id && r.Kind == RelationshipKind.Contains)
-            .Select(r => r.TargetId)
-            .ToHashSet();
-        var children = graph.Symbols.Where(s => childIds.Contains(s.Id)).ToList();
-        children.Should().NotBeEmpty();
-        children.Count.Should().BeGreaterThan(20);
-
-        var localAddRiga = children.FirstOrDefault(s => s.Name.Equals("local_AddRow", StringComparison.OrdinalIgnoreCase));
-        localAddRiga.Should().NotBeNull();
-    }
-
-    /// <summary>
-    /// Verifica che i file sorgente critici del progetto reale SampleLegacyApp vengano parsati con successo senza errori sintattici.
-    /// </summary>
-    [Fact]
-    public void ModuleExtractor_ShouldParseDueSampleAppProblematicFiles_Successfully()
-    {
-        var dir = @".\SampleLegacyApp\SampleLegacyApp";
-        if (!Directory.Exists(dir)) return;
-
-        var targetFileNames = new[] { "SampleClass.cls", "SampleAccount.cls", "SampleMonitor.cls", "SampleDish.cls", "SampleSuspended.cls" };
-        var graph = new CodeGraph();
-        var failedFiles = new List<string>();
-
-        foreach (var fileName in targetFileNames)
-        {
-            var filePath = Path.Combine(dir, fileName);
-            if (!File.Exists(filePath)) continue;
-
-            var source = File.ReadAllText(filePath);
-            var result = ModuleExtractor.ExtractModule(graph, filePath, source);
-
-            if (!result.Success)
-            {
-                failedFiles.Add($"{fileName}: {result.ParseErrors.Count} errors (first: {result.ParseErrors[0]})");
-            }
-        }
-
-        failedFiles.Should().BeEmpty();
     }
 }

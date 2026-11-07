@@ -23,9 +23,7 @@ Desktop.ini
 .DS_Store
 /VB6AnalyzerPOC/.vs/CopilotSnapshots
 /publish
-/SampleLegacyApp
-SampleLegacyApp.zip
-_MacondoReports.zip
-/_MacondoReports
-ARCHIVE_SAMPLE.zip
-/ARCHIVE_SAMPLE
+# Local archives & reports
+*.zip
+_MacondoReports/
+[Dd][Uu][Ee]*/
