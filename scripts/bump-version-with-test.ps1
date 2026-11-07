@@ -33,7 +33,7 @@ $ErrorActionPreference = "Stop"
 
 $workspaceRoot = Split-Path -Parent $PSScriptRoot
 $progettiRoot = Split-Path -Parent $workspaceRoot
-$siteRoot = Join-Path $workspaceRoot "site"
+$siteRoot = Join-Path $workspaceRoot "docs"
 $macondoPublicRoot = Join-Path $progettiRoot "macondo"
 
 Write-Host "==========================================================" -ForegroundColor Cyan

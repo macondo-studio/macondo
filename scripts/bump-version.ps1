@@ -45,7 +45,7 @@ $ErrorActionPreference = "Stop"
 
 $workspaceRoot = Split-Path -Parent $PSScriptRoot
 $progettiRoot = Split-Path -Parent $workspaceRoot
-$siteRoot = Join-Path $workspaceRoot "site"
+$siteRoot = Join-Path $workspaceRoot "docs"
 $macondoPublicRoot = Join-Path $progettiRoot "macondo"
 $csprojPath = Join-Path $workspaceRoot "VB6AnalyzerPOC\src\VB6Analyzer.App\VB6Analyzer.App.csproj"
 

@@ -1,10 +1,8 @@
 # Regole e Convenzioni del Progetto Macondo (VB6 Analyzer)
 
-## Struttura Repository e Sincronizzazione Sito Web
-- **Sorgenti del sito web (repository privata Macondo / Vb6Analyzer)**: `.\site`
-- **Repository pubblica del sito web**: `../macondo`
-- **Regola di Sincronizzazione Obbligatoria**: Ogni volta che vengono modificati file nella cartella `site/` (pagine HTML, immagini, CSS, script o file `version.json`), copiare SEMPRE e immediatamente l'intero contenuto aggiornato della cartella `site/` dentro `../macondo` (preservando la cartella `.git` della repo pubblica), in modo che sia sempre allineata e pronta per il commit dell'utente.
-- **Nessuna Build per Modifiche al Solo Sito**: Quando le modifiche riguardano unicamente file del sito web (`site/`, HTML, CSS, script, immagini) e non il codice sorgente C#/.NET, **NON eseguire la compilazione (`dotnet build`)**. La build va eseguita solo quando si modifica il codice C# o durante la procedura di release.
+## Struttura Repository e Sito Web (Monorepo)
+- **Sorgenti del sito web**: `.\docs` (servito nativamente da GitHub Pages dalla cartella `/docs`).
+- **Nessuna Build per Modifiche al Solo Sito**: Quando le modifiche riguardano unicamente file del sito web (`docs/`, HTML, CSS, script, immagini) e non il codice sorgente C#/.NET, **NON eseguire la compilazione (`dotnet build`)**. La build va eseguita solo quando si modifica il codice C# o durante la procedura di release.
 
 ## Procedura Automatica di Rilascio e Pubblicazione (Zero-Token Release)
 
@@ -19,9 +17,8 @@ Ogni volta che l'utente richiede di pubblicare, aggiornare o rilasciare una nuov
    - **Test automatizzati**: esegue automaticamente la suite xUnit (`run-tests.ps1`) bloccando il rilascio in caso di fallimenti.
    - **Calcolo versione SemVer**: se non specificata, calcola automaticamente la nuova versione (Patch di default, o in base a BumpType).
    - **Estrazione automatica note**: se non fornite, estrae automaticamente i commit git rilevanti dall'ultima release.
-   - **Allineamento atomico dei file**: aggiorna `csproj`, `UpdateService.cs`, `site/version.json` e tutte le pagine `site/*.html`.
+   - **Allineamento atomico dei file**: aggiorna `csproj`, `UpdateService.cs`, `docs/version.json` e tutte le pagine `docs/*.html`.
    - **Date del sito**: aggiorna automaticamente le date formattate ("Ultimo aggiornamento" / "Last updated") nelle pagine HTML.
-   - **Sincronizzazione repo pubblica**: copia automaticamente `site/` su `../macondo/` (preservando `.git`).
    - **Binari distribuibili**: compila `publish/win-x64/Macondo.exe` (Single-File) e `publish/win-x64/Macondo-Setup.exe` (Inno Setup).
    - **Manifesto GitHub Release**: genera il file pronto `publish/win-x64/RELEASE_NOTES_GITHUB.md`.
 
