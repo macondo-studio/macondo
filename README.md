@@ -1,207 +1,187 @@
-# Macondo — Visual Basic 6 Analyzer & Architecture Explorer
+# Macondo • Visual Code Graph & Semantic Analysis Suite
 
-> ⚠️ **REQUISITO FONDAMENTALE PER SVILUPPATORI E ASSISTENTI AI (LLM)**:  
-> **Ogni modifica al codice, nuova funzionalità, componente UI o messaggio utente DEVE supportare nativamente il multi-lingua (Italiano + Inglese)** tramite `LocalizationService`. Non inserire mai stringhe utente hardcodate. Consulta la sezione [Supporto Multi-Lingua (i18n) & Regole per LLM](#supporto-multi-lingua-i18n--regole-per-llm) prima di qualsiasi modifica.
+<p align="center">
+  <img src="docs/logo.svg" width="96" height="96" alt="Macondo Logo">
+</p>
+
+<p align="center">
+  <strong>Deterministic Visual Code Graph, Blast Radius Impact Analyzer &amp; Architecture Suite for Legacy and Modern Codebases</strong>
+</p>
+
+<p align="center">
+  <a href="https://macondo-studio.com"><img src="https://img.shields.io/badge/Website-macondo--studio.com-4F46E5?style=flat-square" alt="Website"></a>
+  <a href="https://github.com/macondo-studio/macondo/releases/latest"><img src="https://img.shields.io/badge/Release-v1.8.0-10B981?style=flat-square" alt="Latest Release"></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/badge/License-Source--Available-blue?style=flat-square" alt="License"></a>
+  <img src="https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square" alt=".NET 8">
+  <img src="https://img.shields.io/badge/UI-Avalonia%2011-EC4899?style=flat-square" alt="Avalonia 11">
+  <img src="https://img.shields.io/badge/Privacy-100%25%20Offline-green?style=flat-square" alt="Offline">
+</p>
 
 ---
 
-## 📌 Cos'è Macondo / VB6 Analyzer
+## Overview
 
-**Macondo (VB6 Analyzer)** è un tool desktop avanzato (.NET 8 + Avalonia UI) per l'analisi statica, il reverse engineering e la visualizzazione architetturale di grandi codebase legacy in **Microsoft Visual Basic 6.0** (`.vbp`, `.vbg`, `.frm`, `.bas`, `.cls`, `.ctl`, `.dob`, `.pag`).
+**Macondo** is a desktop engineering suite and headless static analysis engine built with **.NET 8** and **Avalonia UI**. It is engineered to deconstruct, visualize, and safely refactor mission-critical legacy applications and modern architectures across **Visual Basic 6.0**, **C# / .NET**, **Java**, and **Kotlin**.
 
-L'applicazione permette di:
-1. **Analizzare singoli progetti (`.vbp`), gruppi di progetti (`.vbg`) o intere cartelle** contenenti centinaia di moduli VB6.
-2. **Costruire un Grafo Semantico in memoria (`CodeGraph`)** con risoluzione di simboli, tipi, chiamate e istanziazioni cross-project.
-3. **Esplorare visivamente l'architettura** tramite grafi interattivi, matrici di dipendenza (DSM), mappe di complessità (Treemap), grafi di rischio (Hotspots), flussi di navigazione UI (Screen Flow) e grafi di flusso di controllo (CFG).
-4. **Calcolare l'impatto delle modifiche (Blast Radius)** per individuare chiamanti diretti/indiretti, form UI impattate, classi toccate e livello di rischio prima di toccare una riga di codice legacy.
-5. **Generare contesti semantici ottimizzati per LLM (AI Context Slices & Repo Maps)** da iniettare in prompt per modelli AI generativi.
+Unlike basic heuristic linters, Macondo builds a **deterministic in-memory semantic graph (`CodeGraph`)** with full cross-project type resolution, OOP inheritance hierarchies, call-site mapping, and instantiation tracking.
+
+### Key Capabilities
+1. **Multi-Language AST Extraction**: Full semantic parsing of Visual Basic 6.0 (`.vbp`, `.vbg`, `.frm`, `.bas`, `.cls`), C# / .NET (`.csproj`, `.sln`, `.cs`), Java / Android (Maven `pom.xml`, Gradle `build.gradle`, `.java`), and Kotlin (`build.gradle.kts`, `.kt`, `.kts`).
+2. **Interactive 60 FPS Visual Code Graph**: GPU-accelerated canvas with 4 layout algorithms (Radial, Affinity, Clustered Subsystems, Force-Directed Physics) supporting massive 5,000+ node graphs.
+3. **Blast Radius & Impact Matrix**: Recursive upstream and downstream dependency resolution with automated regression risk scoring (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`).
+4. **20+ Built-In Analytical Views**: Design Structure Matrix (DSM), Cyclomatic Complexity Treemaps, Risk Hotspots, UI Screen Flow diagrams, Control Flow Graphs (CFG), Martin Package Metrics, Dead Code Detection, Code Clones, and Data Flow.
+5. **AI Context Slices & Repo Maps**: One-click extraction of token-efficient, hierarchical knowledge graphs optimized for LLM prompts (Claude Code, Cursor, ChatGPT, Gemini, Copilot).
+6. **100% Local & Offline**: Absolute data privacy with zero cloud transmission or telemetry.
 
 ---
 
-## 🏗️ Architettura della Soluzione
+## Solution Architecture
 
-La soluzione è suddivisa in tre componenti modulari (.NET 8):
+The repository is organized as a clean, modular .NET 8 monorepo:
 
-```
-Vb6Analyzer/
-├── README.md                                 # Questo file (panoramica globale e guida LLM)
-├── scripts/                                  # Script di automazione (bump version, publish, test suite)
-│   ├── bump-and-publish.ps1                  # Pipeline completa: bump versione e pubblicazione EXE
-│   ├── bump-version.ps1                      # Aggiornamento atomico versione SemVer
-│   ├── publish-single-file.ps1               # Compilazione ed esportazione EXE standalone
-│   └── run-tests.ps1                         # Esecuzione automatica test suite xUnit
+```text
+macondo/
+├── docs/                                     # Official documentation and GitHub Pages website
+│   ├── index.html                            # Landing page (English)
+│   ├── it.html                               # Landing page (Italian)
+│   ├── guide.html / guide-it.html            # Complete user manuals
+│   └── version.json                          # Release manifest and update endpoint
 │
-├── VB6AnalyzerPOC/                           # Frontend Desktop Desktop UI (Avalonia 11)
-│   ├── README.md                             # Documentazione specifica della UI
-│   ├── VB6AnalyzerPOC.sln                    # Solution completa (App + Parser + Semantic)
+├── scripts/                                  # Fully automated PowerShell release pipelines
+│   ├── bump-and-publish.ps1                  # Single-command end-to-end release pipeline
+│   ├── build-installer.ps1                   # Inno Setup compiler integration
+│   ├── publish-single-file.ps1               # Portable single-file Windows x64 publisher
+│   ├── release.ps1                           # Unified release entry point
+│   └── run-tests.ps1                         # xUnit automated test suite runner
+│
+├── VB6AnalyzerPOC/                           # Desktop GUI Application (Avalonia 11)
 │   └── src/VB6Analyzer.App/
-│       ├── Controls/                         # Custom controls: Graph, DSM, Treemap, Hotspots, ScreenFlow, CFG
-│       ├── Layout/                           # Layout Engines (Radial, Affinity, Islands, Force-Directed)
-│       ├── Models/                           # Modelli di visualizzazione (VisualCodeGraph, BlastRadiusGridRow)
-│       ├── Services/                         # LocalizationService, SettingsService, CacheService, VcsService
-│       ├── Views/                            # Finestre modali (SettingsWindow, InfoWindow)
-│       └── MainWindow.axaml(.cs)             # Finestra principale a 3 pannelli (Explorer, Canvas/Tabs, Inspector)
+│       ├── Controls/                         # Graph, DSM, Treemap, Hotspots, ScreenFlow, CFG
+│       ├── Layout/                           # Radial, Affinity, Islands, Force-Directed engines
+│       ├── Models/                           # VisualCodeGraph, BlastRadiusGridRow, ViewModels
+│       ├── Services/                         # LocalizationService, SettingsService, CacheService
+│       └── Views/                            # Main 3-pane window and dialogs
 │
-└── VB6ParserSpike/                           # Core Engine: Parsing & Analisi Semantica
-    ├── README.md                             # Documentazione specifica del motore semantico
-    ├── VB6ParserSpike.sln                    # Solution per test e spike da console
-    └── src/
-        ├── VB6Analyzer.Parser/               # Grammar ANTLR4 per VB6 e codice generato
-        ├── VB6Analyzer.Parser.Spike/         # Test fixture e verifiche sintattiche
-        ├── VB6Analyzer.Semantic/             # Symbol extraction, Scope resolution, Call Graph, Blast Radius
-        └── VB6Analyzer.Semantic.Spike/       # Test fixture per verifiche semantiche
+├── VB6ParserSpike/                           # Core Parsing & Semantic Analysis Engine
+│   └── src/
+│       ├── VB6Analyzer.Parser/               # ANTLR4 lexer and parser for Visual Basic 6.0
+│       └── VB6Analyzer.Semantic/             # Semantic extractors (VB6, C#, Java, Kotlin, VB.NET),
+│                                             # Call Graph Builder, Blast Radius, Metrics
+│
+└── tests/
+    └── VB6Analyzer.Tests/                    # Comprehensive xUnit automated test suites
 ```
 
 ---
 
-## ⚡ Funzionalità Principali
+## Core Features
 
-### 1. Canvas del Grafo Interattivo (`GraphControl`)
-- **Rendering ad alte prestazioni** basato su rendering vettoriale custom Avalonia (supporta fluidamente grafi da oltre 500+ nodi).
-- **Pan & Zoom** fluidi, centrati sul cursore del mouse con zoom reset.
-- **Evidenziazione dinamica delle relazioni**: alla selezione di una routine vengono evidenziati i chiamanti (*Callers* in ambra) e le chiamate effettuate (*Callees* in ciano).
-- **Espansione / Compressione** dei contenitori (Form, Modulo, Classe) con doppio clic.
-- **4 Algoritmi di Layout**:
-  - *Radiale Standard*: disposizione concentrica gerarchica.
-  - *Radiale per Affinità*: raggruppamento per coesione di chiamate.
-  - *Cluster a Isole (Sottosistemi)*: suddivisione in macro-aree architetturali disconnesse.
-  - *Force-Directed (Fisica a Molle)*: simulazione fisica di attrazione/repulsione.
+### 1. Interactive Visual Code Graph (`GraphControl`)
+- **Hardware-Accelerated Canvas**: Custom Avalonia vector rendering supporting large-scale codebases with sub-millisecond interaction.
+- **Dynamic Relationship Highlighting**: Selecting any routine immediately highlights its upstream callers (*Callers* in amber) and downstream calls (*Callees* in cyan).
+- **Container Collapse / Expand**: Double-click Forms, Modules, or Classes to collapse or inspect internal routine structures.
+- **4 Algorithmic Layout Engines**:
+  - *Standard Radial*: Concentric hierarchical arrangement.
+  - *Affinity Radial*: Call-cohesion grouping to surface tight couplings.
+  - *Clustered Islands*: Subsystem partitioning for decoupled components.
+  - *Force-Directed (Spring Physics)*: Real-time physical attraction/repulsion simulation.
 
-### 2. Project Explorer & Ricerca Globale
-- Albero del workspace raggruppato logicamente (Forms, Moduli, Classi, Controlli Utente, UDT, Enums).
-- Ricerca rapida simboli con evidenziazione immediata nel grafo.
-- Integrazione col filesystem: apertura diretta del file originale o della cartella contenitrice.
+### 2. Blast Radius & Change Impact Analysis
+- **Recursive Transitive Impact**: Compute the upstream blast radius across arbitrary depths to identify every method, UI form, and business entity affected before modifying legacy code.
+- **Risk Categorization**: Automatic risk scoring based on Fan-In, Fan-Out, Cyclomatic Complexity, and distance from entry points.
+- **Call Chain Visualization**: Full trace path from trigger UI events (buttons, menu clicks) down to internal database helpers.
 
-### 3. Symbol Inspector & Analizzatore Blast Radius
-- **Dettagli Simbolo**: tipo di ritorno, parametri formali, visibilità (Public/Private/Friend), righe sorgente.
-- **Blast Radius Engine**: calcolo ricorsivo dell'impatto con profondità massima, conteggio chiamanti diretti e indiretti, form e classi impattate, classificazione del rischio (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`).
-- **Call Chains**: visualizzazione dei percorsi completi di invocazione a partire da bottoni/eventi UI fino alla routine selezionata.
+### 3. Deep Architectural & Quality Views
+- **Design Structure Matrix (DSM)**: Identify circular dependencies and architectural layers at a glance.
+- **Metrics Treemap**: Hierarchical area-proportional visualization colored by Cyclomatic Complexity (CC) with interactive drill-down.
+- **Risk Hotspots**: 2D scatter plots isolating critical methods (High Complexity vs High Churn / In-Degree).
+- **Screen Flow Diagram**: Visual state machine displaying VB6 Form transitions, modal dialogs, and navigation triggers.
+- **Control Flow Graph (CFG)**: Basic-block flow graphs for individual routines with branch complexity calculations.
+- **Tabular Blast Radius Grid**: Sortable, searchable workspace audit with risk-level filtering.
 
-### 4. Viste Analitiche Avanzate (Tab Centrali)
-- **Matrice DSM (Design Structure Matrix)**: matrice di dipendenza tra moduli per individuare dipendenze circolari e accoppiamento.
-- **Treemap Metriche**: mappa ad albero proporzionale a LOC/dimensione e colorata per Complessità Ciclomatica (CC) con drill-down interattivo.
-- **Risk Hotspots**: scatter plot 2D per identificare routine ad alto rischio (Complessità Ciclomatica elevata vs Frequenza modifiche / Churn / Fan-In).
-- **Flusso Schermate (Screen Flow)**: diagramma di navigazione tra Form VB6, transizioni UI, bottoni di trigger e form di avvio.
-- **Control Flow Graph (CFG)**: grafo di flusso a blocchi base (Basic Blocks) per singola routine con calcolo della Complessità Ciclomatica.
-- **Griglia Blast Radius Tabellare**: audit completo e ordinabile di tutte le routine del workspace con filtro per livello di rischio e ricerca.
-
-### 5. Esportazione & Integrazione con LLM / AI
-- **Esporta Repo Map (Markdown)**: esporta l'intera architettura del progetto in formato Markdown compatto e token-efficient, ideale per fare system prompt o reference per LLM.
-- **Esporta / Importa Grafo (JSON)**: serializzazione completa del `CodeGraph` per analisi esterne o persistenza.
-- **Context Slice LLM (1-Click)**: estrae il subgrafo semantico isolato del simbolo selezionato (comprensivo di definizioni, chiamanti, chiamate e classi istanziate) e lo copia negli appunti o lo salva in `.md` pronto da incollare in ChatGPT / Claude / Gemini.
-
-### 6. Strumenti Operativi & Cache
-- **Integrazione VCS (Git & SVN)**: rilevamento automatico del branch/trunk corrente e cambio branch direttamente dall'interfaccia (`git checkout` / `svn switch`).
-- **Cache Persistente dei Progetti**: salvataggio snapshot in `%APPDATA%\Macondo\cache\` con rilevamento modifiche su disco per tempi di apertura istantanei su progetti enormi.
-- **Temi Grafici**: Dark Modern (predefinito), Dark Studio, One Dark Pro, Forest Dark, Light Modern.
+### 4. AI Agent & LLM Harness Integration
+`Macondo.exe` acts as a deterministic knowledge extraction tool for LLMs and autonomous agents:
+- **Repo Map Export (`--export-md`)**: Condensed, token-efficient Markdown summarizing modules, classes, methods, parameters, and calls.
+- **Semantic JSON Export (`--export-json`)**: Complete typed `CodeGraph` serialization ready for graph databases or programmatic reasoning.
+- **Context Slice (1-Click)**: Extracts the isolated semantic subgraph for any selected symbol directly to the clipboard or `.md` file, ready to paste into Claude, ChatGPT, Cursor, or Gemini.
 
 ---
 
-## 🌐 Supporto Multi-Lingua (i18n) & Regole per LLM
+## Building from Source
+
+### Prerequisites
+- **[.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)** (or later).
+- **[Java JRE/JDK 11+](https://adoptium.net)** (required **only** at build time for the ANTLR4 grammar compilation task; pure C# runtime).
+
+### Build Solution
+```bash
+dotnet build VB6AnalyzerPOC/VB6AnalyzerPOC.sln
+```
+
+### Run Automated Tests
+```bash
+dotnet test VB6AnalyzerPOC/VB6AnalyzerPOC.sln --nologo -v minimal
+```
+
+### Launch Desktop Application
+```bash
+dotnet run --project VB6AnalyzerPOC/src/VB6Analyzer.App
+```
+
+---
+
+## Headless & CLI Usage
+
+The single executable `Macondo.exe` can be executed directly from a terminal or CI/CD pipeline to analyze projects and generate reports without opening the GUI:
+
+```bash
+# Export hierarchical Markdown Repo Map for AI context
+Macondo.exe analyze "C:\Projects\LegacyApp" --export-md "repo-map.md"
+
+# Export complete semantic CodeGraph to structured JSON
+Macondo.exe analyze "C:\Projects\LegacyApp\Billing.vbp" --export-json "graph.json"
+
+# Export both formats simultaneously
+Macondo.exe analyze "C:\Projects\LegacyApp" --export-md "repo-map.md" --export-json "graph.json"
+```
+
+### Command Options:
+- `--export-md <path>`, `-m <path>`: Output condensed Markdown architecture summary.
+- `--export-json <path>`, `-j <path>`: Output full typed `CodeGraph` JSON.
+- `--help`, `-h`: Display command-line options and syntax.
+
+---
+
+## Internationalization (i18n) & Contributor Rules
 
 > [!IMPORTANT]
-> **REQUISITO MANDATORIO PER QUALSIASI MODIFICA AL CODICE:**  
-> L'applicazione supporta nativamente il **bilinguismo completo (Italiano e Inglese)** tramite la classe singleton `Macondo.App.Services.LocalizationService`.
+> **MANDATORY REQUIREMENT FOR CODE MODIFICATIONS:**  
+> The application natively supports full **bilingual localization (English and Italian)** via `Macondo.App.Services.LocalizationService`.
 
-Quando si implementa una modifica o si aggiunge codice:
-
-1. **Mai inserire stringhe fisse/hardcoded nella UI o nel codice C#**:
-   - Qualsiasi testo destinato all'utente (etichette, titoli di finestre, voci di menu, tooltip, messaggi di stato, descrizioni di colonne, placeholder, messaggi di errore, alert) deve essere recuperato tramite `LocalizationService.Instance.Get("Key")` o `LocalizationService.Instance["Key"]`.
-2. **Aggiornare SEMPRE entrambi i dizionari in `LocalizationService.cs`**:
-   - `_itStrings`: traduzione in lingua Italiana.
-   - `_enStrings`: traduzione corrispondente in lingua Inglese con la **stessa identica chiave**.
-3. **Gestione dei parametri formattati**:
-   - Usare placeholder standard (`{0}`, `{1}`, ecc.) e richiamare `LocalizationService.Instance.Get("Key_Name", arg0, arg1)`.
-4. **Convenzione di Naming delle Chiavi**:
-   - `Menu_*` per voci della barra dei menu.
-   - `Tooltip_*` per suggerimenti e descrizioni al passaggio del mouse.
-   - `Status_*` per messaggi nella barra di stato o log.
-   - `Tab_*` per intestazioni dei tab centrali.
-   - `Inspector_*` per etichette e sezioni del pannello Inspector.
-   - `Explorer_*` per voci del pannello Project Explorer.
-   - `Grid_*` / `Col_*` per etichette e colonne delle griglie.
-   - `Theme_*` / `Lang_*` / `Settings_*` per opzioni di configurazione.
-   - `Loading_*` per titoli e sottotitoli delle operazioni asincrone.
+When submitting code or adding features:
+1. **Never Hardcode User-Facing Strings**: All labels, menu items, tooltips, dialogs, status messages, and errors must use `LocalizationService.Instance.Get("Key")`.
+2. **Update Both Dictionaries in `LocalizationService.cs`**:
+   - `_enStrings`: English translation.
+   - `_itStrings`: Italian translation.
+3. **Format Parameters**: Use standard placeholders (`{0}`, `{1}`) via `LocalizationService.Instance.Get("Key_Name", arg0, arg1)`.
 
 ---
 
-## 🚀 Come Compilare ed Eseguire
+## License & Intellectual Property
 
-### Prerequisiti
-- **.NET 8.0 SDK** (o superiore).
-- **Java JRE/JDK 11+** (richiesto **solo** per la compilazione ANTLR durante la build, non necessario a runtime).
+Macondo is distributed under the **[Macondo Source-Available License](LICENSE.md)**:
 
-### Esecuzione in Sviluppo
-```bash
-# Eseguire l'interfaccia grafica desktop
-cd VB6AnalyzerPOC/src/VB6Analyzer.App
-dotnet run
+* **Permitted Use & Audit**: You are free to inspect, study, compile, and run the software for personal, educational, research, and **internal commercial/business purposes** (including analyzing proprietary corporate software).
+* **Community Contributions**: Bug reports, feature suggestions, and Pull Requests are welcomed under these license terms.
+* **Prohibition of Commercial Redistribution**: You may not sell, sublicense, monetize, package, or embed Macondo (including parsers, semantic models, and algorithms) into competing or commercial third-party products and services.
+* **Branding & Assets Reserved**: The name "Macondo", the Macondo Studio brand, application icons, and visual assets remain the exclusive intellectual property of Macondo Studio.
 
-# Eseguire i test/spike del parser
-cd VB6ParserSpike/src/VB6Analyzer.Parser.Spike
-dotnet run
-
-# Eseguire i test/spike dell'analisi semantica
-cd VB6ParserSpike/src/VB6Analyzer.Semantic.Spike
-dotnet run
-```
-
-### 💻 Utilizzo da Riga di Comando (CLI & Headless)
-L'eseguibile `Macondo.exe` (oppure `dotnet run --project VB6AnalyzerPOC/src/VB6Analyzer.App -- analyze ...`) può essere eseguito direttamente da terminale o pipeline CI/CD per analizzare progetti ed esportare report senza aprire la GUI:
-
-```bash
-# Esporta la Repo Map Markdown del progetto
-Macondo.exe analyze "C:\Progetti\MioProgettoVB6" --export-md "repo-map.md"
-
-# Esporta il grafo semantico completo in JSON
-Macondo.exe analyze "C:\Progetti\MioProgettoVB6\App.vbp" --export-json "graph.json"
-
-# Esporta entrambi i formati contemporaneamente
-Macondo.exe analyze "C:\Progetti\MioProgettoVB6" --export-md "repo-map.md" --export-json "graph.json"
-```
-
-Opzioni disponibili:
-- `--export-md <file.md>`, `-m <file.md>`: Esporta la Repo Map gerarchica token-efficient in Markdown.
-- `--export-json <file.json>`, `-j <file.json>`: Esporta l'intero `CodeGraph` in formato JSON strutturato.
-- `--help`, `-h`: Mostra il sommario delle opzioni da riga di comando.
-
-### Pubblicazione EXE Standalone (Single-File)
-Per generare l'eseguibile unico autonomo per Windows x64:
-```powershell
-.\scripts\publish-single-file.ps1
-```
-Oppure per eseguire l'aggiornamento di versione e la pubblicazione in un unico comando:
-```powershell
-.\scripts\bump-and-publish.ps1 -NewVersion "1.2.0" -NotesIt "Descrizione release IT" -NotesEn "Release notes EN"
-```
-L'eseguibile generato sarà disponibile in `publish/win-x64/Macondo.exe`.
+For complete terms and legal details, please read **[LICENSE.md](LICENSE.md)**.
 
 ---
 
-## 🤖 Integrazione con LLM Harness & AI Agents
+## Contact & Support
 
-`Macondo.exe` è progettato per essere consumato direttamente da **LLM Harness, Agenti Autonomi e Assistenti AI** (come Claude Code, Cursor, Antigravity, o server MCP custom):
-
-### 1. Invocazione come Tool Deterministico da Sub-Processo
-Invece di far leggere e interpretare centinaia di file sorgente VB6 all'LLM (consumando milioni di token ed esponendosi ad allucinazioni sintattiche), l'harness esegue `Macondo.exe`:
-
-```bash
-Macondo.exe analyze "C:\Percorso\ProgettoVB6" --export-md "repo-map.md" --export-json "graph.json"
-```
-
-### 2. Risultati Ottenuti per il Prompt / Contesto:
-- **`repo-map.md`**: Mappa gerarchica condensata e token-efficient che riassume tutti i moduli, classi, routine, parametri formali e chiamate. Ideale come system prompt di contesto.
-- **`graph.json`**: Grafo semantico strutturato con tutti i simboli (GUID, percorsi file, righe), relazioni di chiamata (`CALLS`), istanziazioni (`INSTANTIATES`), e livelli di visibilità.
-- **Analisi d'Impatto (Blast Radius)**: L'LLM può determinare a priori il rischio di una modifica e le form impattate senza dover analizzare l'intero codice manualmente.
-
----
-
-## 🧭 Regole per Assistenti AI che Lavorano su questa Codebase
-
-Se sei un assistente AI incaricato di sviluppare, modificare o refactorizzare questo repository:
-- **Consulta sempre questo file e `VB6Analyzer-Project.md`** per comprendere lo scope e le decisioni architetturali del progetto.
-- **Separazione Rigorosa dei Livelli**:
-  - `VB6Analyzer.Parser`: solo grammatica e parse tree ANTLR (nessuna logica di business o UI).
-  - `VB6Analyzer.Semantic`: modelli `CodeGraph`, risoluzione semantica, calcolo metriche e impatti (indipendente dalla UI).
-  - `VB6Analyzer.App`: interfaccia Avalonia, controlli grafici, gestione interazioni, caching e localizzazione.
-- **REQUISITO MANDATORIO i18n**: Ogni singolo testo utente (UI, notifiche, menu, tooltip, log, errori) deve essere registrato sia in `_itStrings` che in `_enStrings` in `LocalizationService.cs`. Non inserire mai stringhe hardcodate.
+- **Bug Reports & Issues:** [GitHub Issues](https://github.com/macondo-studio/macondo/issues)
+- **Official Website:** [macondo-studio.com](https://macondo-studio.com)
+- **Direct Inquiries:** [info@macondo-studio.com](mailto:info@macondo-studio.com)
