@@ -415,8 +415,8 @@ public static class ProjectAnalysisService
         {
             Path.Combine(baseDir, "Fixtures"),
             Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\..\VB6ParserSpike\src\VB6Analyzer.Semantic.Spike\Fixtures")),
-            Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\VB6AnalyzerPOC\src\VB6Analyzer.App\bin\Debug\net8.0\Fixtures")),
-            @".\VB6ParserSpike\src\VB6Analyzer.Semantic.Spike\Fixtures"
+            Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\VB6AnalyzerPOC\src\VB6Analyzer.App\bin\Debug\net8.0\Fixtures"))
+
         };
 
         foreach (var dir in candidates)

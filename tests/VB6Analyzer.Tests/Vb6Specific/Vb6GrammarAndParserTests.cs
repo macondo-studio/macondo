@@ -441,7 +441,7 @@ public class Vb6GrammarAndParserTests
     [Fact]
     public void ModuleExtractor_ShouldExtractSampleClassCls_WithAllMethods()
     {
-        var path = @".\SampleLegacyApp\SampleLegacyApp\SampleClass.cls";
+        var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\..\SampleLegacyApp\SampleLegacyApp\SampleClass.cls"));
         if (!File.Exists(path)) return;
 
         var graph = new CodeGraph();
@@ -477,7 +477,7 @@ public class Vb6GrammarAndParserTests
     [Fact]
     public void ModuleExtractor_ShouldParseDueSampleAppProblematicFiles_Successfully()
     {
-        var dir = @".\SampleLegacyApp\SampleLegacyApp";
+        var dir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\..\SampleLegacyApp\SampleLegacyApp"));
         if (!Directory.Exists(dir)) return;
 
         var targetFileNames = new[] { "SampleClass.cls", "SampleAccount.cls", "SampleMonitor.cls", "SampleDish.cls", "SampleSuspended.cls" };

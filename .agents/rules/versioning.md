@@ -5,7 +5,7 @@ trigger: always_on
 
 # Sincronizzazione Automatica delle Versioni e Release Pipeline
 
-- **Sorgenti applicazione e sito web (Monorepo)**: `.` (sito in `docs/` per GitHub Pages)
+- **Sorgenti applicazione e sito web (Monorepo)**: radice del repository (sito in `docs/` per GitHub Pages)
 - **Nessuna Build per Modifiche al Solo Sito**: Quando si apportano modifiche unicamente ai file del sito web (`docs/`, HTML, CSS, JS, immagini), **NON eseguire la compilazione (`dotnet build`)**. La build va effettuata solo quando si modifica il codice C#/.NET o durante la pipeline di release.
 
 ## Pubblicazione e Release ad Alto Risparmio di Token

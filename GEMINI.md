@@ -1,7 +1,7 @@
 # Regole e Convenzioni del Progetto Macondo (VB6 Analyzer)
 
 ## Struttura Repository e Sito Web (Monorepo)
-- **Sorgenti del sito web**: `.\docs` (servito nativamente da GitHub Pages dalla cartella `/docs`).
+- **Sorgenti del sito web**: cartella `docs/` nella radice del repository (servito nativamente da GitHub Pages).
 - **Nessuna Build per Modifiche al Solo Sito**: Quando le modifiche riguardano unicamente file del sito web (`docs/`, HTML, CSS, script, immagini) e non il codice sorgente C#/.NET, **NON eseguire la compilazione (`dotnet build`)**. La build va eseguita solo quando si modifica il codice C# o durante la procedura di release.
 
 ## Procedura Automatica di Rilascio e Pubblicazione (Zero-Token Release)
