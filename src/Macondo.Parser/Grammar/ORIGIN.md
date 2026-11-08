@@ -1,23 +1,21 @@
-# Origine e licenza della grammar
+# Grammar Origin and Licensing
 
-I file in questa cartella (`VisualBasic6Lexer.g4`, `VisualBasic6Parser.g4`) provengono da:
+The ANTLR4 grammar files located in this directory (`VisualBasic6Lexer.g4`, `VisualBasic6Parser.g4`) originate from:
 
 https://github.com/antlr/grammars-v4/tree/master/vb6
 
-che a sua volta li deriva da:
+which in turn derives them from:
 
 https://github.com/uwol/proleap-vb6-parser
 
-Copyright (C) 2017, Ulrich Wolffgang <ulrich.wolffgang@proleap.io>. Tutti i diritti riservati.
+Copyright (C) 2017, Ulrich Wolffgang <ulrich.wolffgang@proleap.io>. All rights reserved.
 
-Distribuiti sotto licenza MIT (vedi intestazione di `VisualBasic6Parser.g4`).
+Distributed under the MIT License (see the header of `VisualBasic6Parser.g4`).
 
-## Perché sono qui invece che referenziati come pacchetto
+## Rationale for In-Tree Inclusion
 
-ANTLR4 richiede i file `.g4` sorgente per generare lexer/parser nel linguaggio target
-(C#, nel nostro caso) in fase di build. Non esiste un pacchetto NuGet "grammar VB6
-precompilata per C#" — vanno rigenerati localmente. Per questo i `.g4` sono copiati
-qui invece che scaricati automaticamente: il progetto deve poter compilare anche
-offline, una volta ripristinati i pacchetti NuGet una prima volta.
+ANTLR4 requires source `.g4` grammar files to generate the target language lexer and parser (C# in our case) during the build process. There is no official precompiled "VB6 Grammar for C#" NuGet package available — code generation must happen locally.
 
-Non sono state apportate modifiche al contenuto dei file rispetto all'origine.
+For this reason, the `.g4` grammar files are committed directly to the repository rather than downloaded dynamically at build time. This ensures deterministic, reproducible builds and allows full offline compilation once standard NuGet packages are restored.
+
+No modifications have been made to the original grammar contents.
