@@ -33,7 +33,7 @@ echo " [Git Hook] Esecuzione suite di test automatizzati..."
 echo "=========================================================="
 echo ""
 
-dotnet test "VB6AnalyzerPOC/VB6AnalyzerPOC.sln" --nologo -v minimal
+dotnet test "Macondo.sln" --nologo -v minimal
 RESULT=$?
 
 if [ $RESULT -ne 0 ]; then

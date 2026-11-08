@@ -3,7 +3,7 @@
 $ErrorActionPreference = "Stop"
 
 $workspaceRoot = Split-Path -Parent $PSScriptRoot
-$ProjectPath = Join-Path $workspaceRoot "VB6AnalyzerPOC\src\VB6Analyzer.App\VB6Analyzer.App.csproj"
+$ProjectPath = Join-Path $workspaceRoot "src\Macondo.App\Macondo.App.csproj"
 $OutputDir = Join-Path $workspaceRoot "publish\win-x64"
 
 Write-Host "Compilazione e creazione pacchetto eseguibile unico (Macondo.exe)..." -ForegroundColor Cyan

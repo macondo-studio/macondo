@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Macondo.Parser</RootNamespace>
+    <AssemblyName>Macondo.Parser</AssemblyName>
+
+    <!--
+      Antlr4BuildTasks invokes ANTLR4 (Java) during build to regenerate
+      C# lexer/parser from .g4 files. Requires a local JRE/JDK (build-time only, never at runtime).
+      AntlrProbePath points to a local jar in external/ to bypass proxy download issues.
+    -->
+    <AntlrProbePath>file:///$(MSBuildProjectDirectory)/external/</AntlrProbePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Antlr4BuildTasks" Version="12.*" />
+    <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Package = generated C# namespace. Same Package for lexer and parser.
+    -->
+    <Antlr4 Include="Grammar\VisualBasic6Lexer.g4">
+      <Package>Macondo.Parser.Grammar</Package>
+      <Visitor>true</Visitor>
+      <Listener>false</Listener>
+    </Antlr4>
+    <Antlr4 Include="Grammar\VisualBasic6Parser.g4">
+      <Package>Macondo.Parser.Grammar</Package>
+      <Visitor>true</Visitor>
+      <Listener>false</Listener>
+    </Antlr4>
+  </ItemGroup>
+
+</Project>

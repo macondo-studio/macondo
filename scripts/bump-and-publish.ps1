@@ -186,7 +186,7 @@ if ($GitCommit) {
     
     # Repo Privata
     try {
-        git -C $workspaceRoot add VB6AnalyzerPOC/src/VB6Analyzer.App/VB6Analyzer.App.csproj VB6AnalyzerPOC/src/VB6Analyzer.App/Services/UpdateService.cs docs/
+        git -C $workspaceRoot add src/Macondo.App/Macondo.App.csproj src/Macondo.App/Services/UpdateService.cs docs/
         git -C $workspaceRoot commit -m "v$effectiveVersion" 2>$null
         git -C $workspaceRoot tag -a "v$effectiveVersion" -m "v$effectiveVersion" 2>$null
         Write-Host "      -> Commit e tag creati nella repository privata (v$effectiveVersion)" -ForegroundColor Green
@@ -233,7 +233,7 @@ Write-Host $githubNotesContent -ForegroundColor Gray
 if (-not $GitCommit) {
     Write-Host "`n--- [Comandi Git per il Rilascio] ---" -ForegroundColor Cyan
     Write-Host "# Repository Privata:" -ForegroundColor Gray
-    Write-Host "git add VB6AnalyzerPOC/src/VB6Analyzer.App/VB6Analyzer.App.csproj VB6AnalyzerPOC/src/VB6Analyzer.App/Services/UpdateService.cs docs/" -ForegroundColor Gray
+    Write-Host "git add src/Macondo.App/Macondo.App.csproj src/Macondo.App/Services/UpdateService.cs docs/" -ForegroundColor Gray
     Write-Host "git commit -m `"v$effectiveVersion`"" -ForegroundColor Gray
     Write-Host "git push && git push --tags`n" -ForegroundColor Gray
     Write-Host "# Repository Pubblica (sito web):" -ForegroundColor Gray

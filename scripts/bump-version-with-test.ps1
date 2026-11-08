@@ -41,7 +41,7 @@ Write-Host "  Macondo Version Bump Tool -> $NewVersion" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
 # 0. Verifica preliminare obbligatoria: esecuzione suite di test automatizzati
-$slnPath = Join-Path $workspaceRoot "VB6AnalyzerPOC\VB6AnalyzerPOC.sln"
+$slnPath = Join-Path $workspaceRoot "Macondo.sln"
 Write-Host "[0/6] Esecuzione suite di test automatizzati preliminare..." -ForegroundColor Yellow
 $testProcess = Start-Process -FilePath "dotnet" -ArgumentList "test", "`"$slnPath`"", "--nologo", "-v", "minimal" -NoNewWindow -PassThru -Wait
 if ($testProcess.ExitCode -ne 0) {
@@ -51,8 +51,8 @@ if ($testProcess.ExitCode -ne 0) {
 }
 Write-Host "      -> Tutti i test superati con successo (0 errori)." -ForegroundColor Green
 
-# 1. Aggiornamento VB6Analyzer.App.csproj
-$csprojPath = Join-Path $workspaceRoot "VB6AnalyzerPOC\src\VB6Analyzer.App\VB6Analyzer.App.csproj"
+# 1. Aggiornamento Macondo.App.csproj
+$csprojPath = Join-Path $workspaceRoot "src\Macondo.App\Macondo.App.csproj"
 if (Test-Path $csprojPath) {
     Write-Host "[1/6] Aggiornamento $csprojPath..." -ForegroundColor Yellow
     $csprojContent = Get-Content $csprojPath -Raw -Encoding UTF8
@@ -67,7 +67,7 @@ if (Test-Path $csprojPath) {
 }
 
 # 2. Aggiornamento UpdateService.cs
-$updateServicePath = Join-Path $workspaceRoot "VB6AnalyzerPOC\src\VB6Analyzer.App\Services\UpdateService.cs"
+$updateServicePath = Join-Path $workspaceRoot "src\Macondo.App\Services\UpdateService.cs"
 if (Test-Path $updateServicePath) {
     Write-Host "[2/6] Aggiornamento $updateServicePath..." -ForegroundColor Yellow
     $updateContent = Get-Content $updateServicePath -Raw -Encoding UTF8
@@ -85,7 +85,7 @@ if (Test-Path $updateServicePath) {
 }
 
 # 3. Aggiornamento MainWindow.axaml (Fallback placeholder)
-$mainWindowAxamlPath = Join-Path $workspaceRoot "VB6AnalyzerPOC\src\VB6Analyzer.App\MainWindow.axaml"
+$mainWindowAxamlPath = Join-Path $workspaceRoot "src\Macondo.App\MainWindow.axaml"
 if (Test-Path $mainWindowAxamlPath) {
     Write-Host "[3/6] Aggiornamento $mainWindowAxamlPath..." -ForegroundColor Yellow
     $axamlContent = Get-Content $mainWindowAxamlPath -Raw -Encoding UTF8

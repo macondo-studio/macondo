@@ -29,7 +29,7 @@ Ogni volta che l'utente richiede di pubblicare, aggiornare o rilasciare una nuov
 ## Esecuzione dei Test Unitari
 - **NON eseguire i test (`dotnet test`)** durante le iterazioni e modifiche ordinarie di sviluppo.
 - La suite di test viene eseguita automaticamente dallo script `./scripts/release.ps1` prima di ogni pubblicazione.
-- Per la verifica ordinaria del codice, limitarsi alla compilazione rapida con `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln`.
+- Per la verifica ordinaria del codice, limitarsi alla compilazione rapida con `dotnet build Macondo.sln`.
 
 ## Stile di Codice (C#)
 - **Assegnazioni Semplici e Guard Clauses senza Graffe (a capo)**: Per guard clauses immediate o semplici assegnazioni/controlli di proprietà (es. `if (prop != val)` a capo `    prop = val;`), non usare parentesi graffe mantenendo la formattazione pulita con istruzione a capo riga indentata.

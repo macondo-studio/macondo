@@ -11,6 +11,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
-    <ProjectReference Include="..\VB6Analyzer.Parser\VB6Analyzer.Parser.csproj" />
+    <ProjectReference Include="..\Macondo.Parser\Macondo.Parser.csproj" />
   </ItemGroup>
 </Project>

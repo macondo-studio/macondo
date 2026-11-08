@@ -414,8 +414,8 @@ public static class ProjectAnalysisService
         var candidates = new[]
         {
             Path.Combine(baseDir, "Fixtures"),
-            Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\..\VB6ParserSpike\src\VB6Analyzer.Semantic.Spike\Fixtures")),
-            Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\VB6AnalyzerPOC\src\VB6Analyzer.App\bin\Debug\net8.0\Fixtures"))
+            Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\..\tests\Fixtures")),
+            Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\..\src\Macondo.App\bin\Debug\net8.0\Fixtures"))
 
         };
 

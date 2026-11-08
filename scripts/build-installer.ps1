@@ -3,7 +3,7 @@
     Compila il pacchetto di installazione Windows (Macondo-Setup.exe) utilizzando Inno Setup.
 
 .PARAMETER Version
-    La versione di Macondo da incorporare nell'installer. Se non specificata, viene letta da VB6Analyzer.App.csproj.
+    La versione di Macondo da incorporare nell'installer. Se non specificata, viene letta da Macondo.App.csproj.
 
 .EXAMPLE
     .\scripts\build-installer.ps1
@@ -19,7 +19,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $workspaceRoot = Split-Path -Parent $PSScriptRoot
-$csprojPath = Join-Path $workspaceRoot "VB6AnalyzerPOC\src\VB6Analyzer.App\VB6Analyzer.App.csproj"
+$csprojPath = Join-Path $workspaceRoot "src\Macondo.App\Macondo.App.csproj"
 $issPath = Join-Path $workspaceRoot "installer\macondo.iss"
 $publishExe = Join-Path $workspaceRoot "publish\win-x64\Macondo.exe"
 

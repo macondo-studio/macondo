@@ -24,13 +24,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\VB6ParserSpike\src\VB6Analyzer.Parser\VB6Analyzer.Parser.csproj" />
-    <ProjectReference Include="..\..\VB6ParserSpike\src\VB6Analyzer.Semantic\VB6Analyzer.Semantic.csproj" />
-    <ProjectReference Include="..\..\VB6AnalyzerPOC\src\VB6Analyzer.App\VB6Analyzer.App.csproj" />
+    <ProjectReference Include="..\..\src\Macondo.Parser\Macondo.Parser.csproj" />
+    <ProjectReference Include="..\..\src\Macondo.Semantic\Macondo.Semantic.csproj" />
+    <ProjectReference Include="..\..\src\Macondo.App\Macondo.App.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\VB6ParserSpike\src\VB6Analyzer.Semantic.Spike\Fixtures\**\*.*">
+    <None Include="..\Fixtures\**\*.*">
       <Link>Fixtures\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

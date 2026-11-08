@@ -19,7 +19,7 @@ Quando l'utente richiede di pubblicare, aggiornare o rilasciare una nuova versio
      1. Test automatizzati xUnit (blocco se falliscono).
      2. Risoluzione automatica della versione (default Patch, o Minor/Major/NewVersion).
      3. Estrazione automatica note dai commit Git dall'ultimo rilascio.
-     4. Aggiornamento contestuale di `VB6Analyzer.App.csproj`, `UpdateService.cs`, `docs/version.json` e tutte le pagine `docs/*.html`.
+     4. Aggiornamento contestuale di `Macondo.App.csproj`, `UpdateService.cs`, `docs/version.json` e tutte le pagine `docs/*.html`.
      5. Aggiornamento automatico delle date formattate ("Ultimo aggiornamento" / "Last updated") nelle pagine HTML.
      6. Pubblicazione dell'eseguibile unico portable (`publish/win-x64/Macondo.exe`).
      8. Generazione installer Inno Setup (`publish/win-x64/Macondo-Setup.exe`).
