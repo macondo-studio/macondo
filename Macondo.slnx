@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Macondo.App/Macondo.App.csproj" />
+    <Project Path="src/Macondo.Parser/Macondo.Parser.csproj" />
+    <Project Path="src/Macondo.Semantic/Macondo.Semantic.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Macondo.Tests/Macondo.Tests.csproj" />
+  </Folder>
+</Solution>

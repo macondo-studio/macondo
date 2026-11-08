@@ -54,22 +54,20 @@ macondo/
 │   ├── release.ps1                           # Unified release entry point
 │   └── run-tests.ps1                         # xUnit automated test suite runner
 │
-├── VB6AnalyzerPOC/                           # Desktop GUI Application (Avalonia 11)
-│   └── src/VB6Analyzer.App/
-│       ├── Controls/                         # Graph, DSM, Treemap, Hotspots, ScreenFlow, CFG
-│       ├── Layout/                           # Radial, Affinity, Islands, Force-Directed engines
-│       ├── Models/                           # VisualCodeGraph, BlastRadiusGridRow, ViewModels
-│       ├── Services/                         # LocalizationService, SettingsService, CacheService
-│       └── Views/                            # Main 3-pane window and dialogs
-│
-├── VB6ParserSpike/                           # Core Parsing & Semantic Analysis Engine
-│   └── src/
-│       ├── VB6Analyzer.Parser/               # ANTLR4 lexer and parser for Visual Basic 6.0
-│       └── VB6Analyzer.Semantic/             # Semantic extractors (VB6, C#, Java, Kotlin, VB.NET),
+├── src/                                      # Application and analysis engine source code
+│   ├── Macondo.App/                          # Desktop GUI Application (Avalonia 11)
+│   │   ├── Controls/                         # Graph, DSM, Treemap, Hotspots, ScreenFlow, CFG
+│   │   ├── Layout/                           # Radial, Affinity, Islands, Force-Directed engines
+│   │   ├── Models/                           # VisualCodeGraph, BlastRadiusGridRow, ViewModels
+│   │   ├── Services/                         # LocalizationService, SettingsService, CacheService
+│   │   └── Views/                            # Main 3-pane window and dialogs
+│   ├── Macondo.Parser/                       # ANTLR4 lexer and parser for Visual Basic 6.0
+│   └── Macondo.Semantic/                     # Semantic extractors (VB6, C#, Java, Kotlin, VB.NET),
 │                                             # Call Graph Builder, Blast Radius, Metrics
 │
 └── tests/
-    └── VB6Analyzer.Tests/                    # Comprehensive xUnit automated test suites
+    ├── Fixtures/                             # Multi-language test fixtures and sample projects
+    └── Macondo.Tests/                        # Comprehensive xUnit automated test suites
 ```
 
 ---
@@ -115,17 +113,17 @@ macondo/
 
 ### Build Solution
 ```bash
-dotnet build VB6AnalyzerPOC/VB6AnalyzerPOC.sln
+dotnet build Macondo.sln
 ```
 
 ### Run Automated Tests
 ```bash
-dotnet test VB6AnalyzerPOC/VB6AnalyzerPOC.sln --nologo -v minimal
+dotnet test Macondo.sln --nologo -v minimal
 ```
 
 ### Launch Desktop Application
 ```bash
-dotnet run --project VB6AnalyzerPOC/src/VB6Analyzer.App
+dotnet run --project src/Macondo.App
 ```
 
 ---

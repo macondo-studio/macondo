@@ -1,32 +1,32 @@
 ---
-description: Regola automatica per la sincronizzazione delle versioni su tutti i file del progetto e del sito web
+description: Automatic version synchronization across all project and website files
 trigger: always_on
 ---
 
-# Sincronizzazione Automatica delle Versioni e Release Pipeline
+# Automated Version Synchronization and Release Pipeline
 
-- **Sorgenti applicazione e sito web (Monorepo)**: radice del repository (sito in `docs/` per GitHub Pages)
-- **Nessuna Build per Modifiche al Solo Sito**: Quando si apportano modifiche unicamente ai file del sito web (`docs/`, HTML, CSS, JS, immagini), **NON eseguire la compilazione (`dotnet build`)**. La build va effettuata solo quando si modifica il codice C#/.NET o durante la pipeline di release.
+- **Application and Website Sources (Monorepo)**: Repository root (website under `docs/` for GitHub Pages).
+- **No Build for Website-Only Changes**: When making changes strictly to website files (`docs/`, HTML, CSS, JS, images), **DO NOT compile (`dotnet build`)**. Builds should only occur when modifying C#/.NET code or running the release pipeline.
 
-## Pubblicazione e Release ad Alto Risparmio di Token
+## Token-Efficient Automated Release
 
-Quando l'utente richiede di pubblicare, aggiornare o rilasciare una nuova versione (es. "pubblica una nuova versione", "bump version", "nuova release"):
+When the user requests to publish, update, or release a new version (e.g., "publish a new version", "bump version", "new release"):
 
-1. **Eseguire l'Unico Script di Automazione**:
-   - Eseguire direttamente:
+1. **Execute the Unified Automation Script Directly**:
+   - Run directly:
      `./scripts/release.ps1 [-BumpType Patch|Minor|Major] [-NewVersion "<X.Y.Z>"] [-GitCommit]`
-   - Lo script esegue automaticamente l'intero ciclo end-to-end:
-     1. Test automatizzati xUnit (blocco se falliscono).
-     2. Risoluzione automatica della versione (default Patch, o Minor/Major/NewVersion).
-     3. Estrazione automatica note dai commit Git dall'ultimo rilascio.
-     4. Aggiornamento contestuale di `VB6Analyzer.App.csproj`, `UpdateService.cs`, `docs/version.json` e tutte le pagine `docs/*.html`.
-     5. Aggiornamento automatico delle date formattate ("Ultimo aggiornamento" / "Last updated") nelle pagine HTML.
-     6. Pubblicazione dell'eseguibile unico portable (`publish/win-x64/Macondo.exe`).
-     8. Generazione installer Inno Setup (`publish/win-x64/Macondo-Setup.exe`).
-     9. Creazione automatica del file `publish/win-x64/RELEASE_NOTES_GITHUB.md`.
-2. **Nessun Passaggio Manuale**:
-   - L'assistente NON deve modificare manualmente file, versioni o date né richiedere conferme superflue: delegare l'intero processo a `./scripts/release.ps1`.
-   - Riportare all'utente il riepilogo finale prodotto dallo script con le note di rilascio pronte.
+   - The script automatically executes the entire end-to-end cycle:
+     1. Automated xUnit test suite execution (halts if any test fails).
+     2. Automated SemVer version calculation (default Patch, or Minor/Major/NewVersion).
+     3. Automatic extraction of Git commit notes since the last release.
+     4. Contextual synchronization of `Macondo.App.csproj`, `UpdateService.cs`, `docs/version.json`, and all `docs/*.html` pages.
+     5. Automatic updates of formatted dates ("Last updated" / "Ultimo aggiornamento") in HTML pages.
+     6. Publication of the portable single-file executable (`publish/win-x64/Macondo.exe`).
+     7. Generation of the Inno Setup installer (`publish/win-x64/Macondo-Setup.exe`).
+     8. Creation of the ready GitHub release manifest (`publish/win-x64/RELEASE_NOTES_GITHUB.md`).
+2. **No Manual Steps**:
+   - The assistant must NOT manually edit version strings, dates, or manifest files: delegate the entire process to `./scripts/release.ps1`.
+   - Present the final summary output produced by the script along with the generated release notes.
 
-## Note di Rilascio Ordinarie
-- Per ogni modifica o richiesta dell'utente, fornire sempre al termine della risposta una release note sintetica di una sola frase in lingua inglese.
+## Routine Release Notes
+- For every user task or modification, always provide a concise, single-sentence English release note at the end of the response.

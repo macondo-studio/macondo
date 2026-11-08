@@ -11,7 +11,7 @@ param()
 
 $ErrorActionPreference = "Stop"
 $workspaceRoot = Split-Path -Parent $PSScriptRoot
-$slnPath = Join-Path $workspaceRoot "VB6AnalyzerPOC\VB6AnalyzerPOC.sln"
+$slnPath = Join-Path $workspaceRoot "Macondo.sln"
 
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "  Macondo (VB6 Analyzer) - Test Suite Execution           " -ForegroundColor Cyan

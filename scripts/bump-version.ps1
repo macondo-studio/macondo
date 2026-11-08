@@ -47,7 +47,7 @@ $workspaceRoot = Split-Path -Parent $PSScriptRoot
 $progettiRoot = Split-Path -Parent $workspaceRoot
 $siteRoot = Join-Path $workspaceRoot "docs"
 $macondoPublicRoot = Join-Path $progettiRoot "macondo"
-$csprojPath = Join-Path $workspaceRoot "VB6AnalyzerPOC\src\VB6Analyzer.App\VB6Analyzer.App.csproj"
+$csprojPath = Join-Path $workspaceRoot "src\Macondo.App\Macondo.App.csproj"
 
 # 1. Determinazione versione attuale
 $currentVersion = "1.0.0"
@@ -135,7 +135,7 @@ if ([string]::IsNullOrWhiteSpace($NotesEn) -or [string]::IsNullOrWhiteSpace($Not
     }
 }
 
-# 4. Aggiornamento VB6Analyzer.App.csproj
+# 4. Aggiornamento Macondo.App.csproj
 if (Test-Path $csprojPath) {
     Write-Host "[1/5] Aggiornamento $csprojPath..." -ForegroundColor Yellow
     $csprojContent = Get-Content $csprojPath -Raw -Encoding UTF8
@@ -150,7 +150,7 @@ if (Test-Path $csprojPath) {
 }
 
 # 5. Aggiornamento UpdateService.cs
-$updateServicePath = Join-Path $workspaceRoot "VB6AnalyzerPOC\src\VB6Analyzer.App\Services\UpdateService.cs"
+$updateServicePath = Join-Path $workspaceRoot "src\Macondo.App\Services\UpdateService.cs"
 if (Test-Path $updateServicePath) {
     Write-Host "[2/5] Aggiornamento $updateServicePath..." -ForegroundColor Yellow
     $updateContent = Get-Content $updateServicePath -Raw -Encoding UTF8

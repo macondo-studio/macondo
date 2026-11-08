@@ -1,38 +1,38 @@
-# Regole e Convenzioni del Progetto Macondo (VB6 Analyzer)
+# Macondo Project Rules and Conventions
 
-## Struttura Repository e Sito Web (Monorepo)
-- **Sorgenti del sito web**: cartella `docs/` nella radice del repository (servito nativamente da GitHub Pages).
-- **Nessuna Build per Modifiche al Solo Sito**: Quando le modifiche riguardano unicamente file del sito web (`docs/`, HTML, CSS, script, immagini) e non il codice sorgente C#/.NET, **NON eseguire la compilazione (`dotnet build`)**. La build va eseguita solo quando si modifica il codice C# o durante la procedura di release.
+## Repository Structure and Website (Monorepo)
+- **Website Sources**: Located in the `docs/` folder in the repository root (natively served by GitHub Pages).
+- **No Build for Website-Only Changes**: When modifications affect only website files (`docs/`, HTML, CSS, JavaScript, images) and not C#/.NET source code, **DO NOT run compilation (`dotnet build`)**. Builds should only be executed when C# code is modified or during the release pipeline.
 
-## Procedura Automatica di Rilascio e Pubblicazione (Zero-Token Release)
+## Automated Release and Publishing Pipeline (Zero-Token Release)
 
-Ogni volta che l'utente richiede di pubblicare, aggiornare o rilasciare una nuova versione (es. "voglio pubblicare una nuova versione", "rilascia una versione patch/minor", "bump version"):
+Whenever the user requests to publish, update, or release a new version (e.g., "publish a new version", "release patch/minor", "bump version"):
 
-1. **Eseguire Direttamente lo Script Unificato**:
-   - Eseguire in un unico comando senza passaggi manuali intermedi:
+1. **Execute the Unified Script Directly**:
+   - Run in a single command without intermediate manual steps:
      `./scripts/release.ps1 [-BumpType Patch|Minor|Major] [-NewVersion "<X.Y.Z>"] [-GitCommit]`
-   - *(Oppure `./scripts/bump-and-publish.ps1`)*
+   - *(Or `./scripts/bump-and-publish.ps1`)*
 
-2. **Automazioni Integrate Eseguite Interamente dallo Script**:
-   - **Test automatizzati**: esegue automaticamente la suite xUnit (`run-tests.ps1`) bloccando il rilascio in caso di fallimenti.
-   - **Calcolo versione SemVer**: se non specificata, calcola automaticamente la nuova versione (Patch di default, o in base a BumpType).
-   - **Estrazione automatica note**: se non fornite, estrae automaticamente i commit git rilevanti dall'ultima release.
-   - **Allineamento atomico dei file**: aggiorna `csproj`, `UpdateService.cs`, `docs/version.json` e tutte le pagine `docs/*.html`.
-   - **Date del sito**: aggiorna automaticamente le date formattate ("Ultimo aggiornamento" / "Last updated") nelle pagine HTML.
-   - **Binari distribuibili**: compila `publish/win-x64/Macondo.exe` (Single-File) e `publish/win-x64/Macondo-Setup.exe` (Inno Setup).
-   - **Manifesto GitHub Release**: genera il file pronto `publish/win-x64/RELEASE_NOTES_GITHUB.md`.
+2. **Integrated Automations Handled Fully by the Script**:
+   - **Automated Tests**: Automatically runs the xUnit test suite (`run-tests.ps1`) and halts the release if any test fails.
+   - **SemVer Version Calculation**: Automatically calculates the next version (Patch by default, or according to BumpType/NewVersion).
+   - **Automatic Release Notes Extraction**: Automatically extracts relevant Git commit messages since the previous release.
+   - **Atomic File Synchronization**: Updates `src/Macondo.App/Macondo.App.csproj`, `UpdateService.cs`, `docs/version.json`, and all `docs/*.html` pages.
+   - **Website Date Formatting**: Automatically updates formatted dates ("Last updated" / "Ultimo aggiornamento") in HTML pages.
+   - **Distributable Binaries**: Compiles `publish/win-x64/Macondo.exe` (Single-File) and `publish/win-x64/Macondo-Setup.exe` (Inno Setup).
+   - **GitHub Release Manifest**: Generates the ready-to-use `publish/win-x64/RELEASE_NOTES_GITHUB.md`.
 
-3. **Output per l'Utente**:
-   - Mostrare all'utente l'esito restituito dallo script e il testo delle note per GitHub già generato nel file `RELEASE_NOTES_GITHUB.md`.
-   - Non richiedere passaggi intermedi né eseguire modifiche manuali a singoli file: delegare sempre l'intero flusso allo script.
+3. **User Output**:
+   - Display the execution summary and the release notes ready for GitHub from `RELEASE_NOTES_GITHUB.md`.
+   - Do not require manual intermediate steps: always delegate the full workflow to the script.
 
-## Esecuzione dei Test Unitari
-- **NON eseguire i test (`dotnet test`)** durante le iterazioni e modifiche ordinarie di sviluppo.
-- La suite di test viene eseguita automaticamente dallo script `./scripts/release.ps1` prima di ogni pubblicazione.
-- Per la verifica ordinaria del codice, limitarsi alla compilazione rapida con `dotnet build VB6AnalyzerPOC\VB6AnalyzerPOC.sln`.
+## Unit Test Execution
+- **DO NOT run tests (`dotnet test`)** during ordinary development iterations or minor edits.
+- The unit test suite is executed automatically by `./scripts/release.ps1` before each release.
+- For ordinary code verification, rely on quick compilation with `dotnet build Macondo.sln`.
 
-## Stile di Codice (C#)
-- **Assegnazioni Semplici e Guard Clauses senza Graffe (a capo)**: Per guard clauses immediate o semplici assegnazioni/controlli di proprietà (es. `if (prop != val)` a capo `    prop = val;`), non usare parentesi graffe mantenendo la formattazione pulita con istruzione a capo riga indentata.
+## Code Style (C#)
+- **Simple Assignments and Guard Clauses Without Braces (Newline)**: For immediate guard clauses or simple property assignments/checks (e.g., `if (prop != val)` newline `    prop = val;`), omit curly braces, keeping clean formatting with an indented newline statement.
 
-## Release Note per ogni Modifica
-- **Per ogni modifica o funzionalità richiesta dall'utente**, fornire sempre al termine della risposta una **release note di una sola frase in lingua inglese**, chiara, sintetica e formale.
+## Release Note for Every Task
+- **For every task, edit, or feature requested by the user**, always provide at the very end of the response a **formal, single-sentence release note in English**.

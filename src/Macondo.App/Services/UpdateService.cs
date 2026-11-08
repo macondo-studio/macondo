@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
@@ -34,7 +34,7 @@ public sealed class UpdateService
         {
             Timeout = TimeSpan.FromSeconds(8)
         };
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", $"VB6Analyzer-Macondo/{CurrentVersionString}");
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", $"Macondo/{CurrentVersionString}");
     }
 
     /// <summary>
