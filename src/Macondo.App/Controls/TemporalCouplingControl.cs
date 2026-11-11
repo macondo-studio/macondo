@@ -15,7 +15,7 @@ using Macondo.Semantic.Analytics.TemporalCoupling;
 namespace Macondo.App.Controls;
 
 /// <summary>
-/// Riga per il DataGrid dell'analisi di Temporal Coupling (co-modifica storica nei commit).
+/// Row for the Temporal Coupling analysis DataGrid (historical co-modification in commits).
 /// </summary>
 public sealed class TemporalCouplingGridRow
 {
@@ -50,8 +50,8 @@ public sealed class TemporalCouplingGridRow
 }
 
 /// <summary>
-/// Controllo visuale per l'analisi di Temporal Coupling &amp; Co-Change Matrix.
-/// Estrae la cronologia da Git / VCS, calcola l'indice di Jaccard tra file e identifica gli accoppiamenti nascosti.
+/// Visual control for Temporal Coupling & Co-Change Matrix analysis.
+/// Extracts history from Git/VCS, calculates Jaccard index between files, and identifies hidden mates.
 /// </summary>
 public sealed class TemporalCouplingControl : UserControl
 {
@@ -138,7 +138,7 @@ public sealed class TemporalCouplingControl : UserControl
             ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,*,Auto")
         };
 
-        // Filtro di ricerca testuale
+        // Text search filter
         var searchPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -523,7 +523,7 @@ public sealed class TemporalCouplingControl : UserControl
             Width = new DataGridLength(100)
         });
 
-        // Confidenza A -> B
+        // Confidence A -> B
         grid.Columns.Add(new DataGridTextColumn
         {
             Header = "P(B|A)",
@@ -531,7 +531,7 @@ public sealed class TemporalCouplingControl : UserControl
             Width = new DataGridLength(75)
         });
 
-        // Confidenza B -> A
+        // Confidence B -> A
         grid.Columns.Add(new DataGridTextColumn
         {
             Header = "P(A|B)",

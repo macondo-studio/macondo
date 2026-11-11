@@ -8,8 +8,8 @@ namespace Macondo.Tests.CSharpSpecific;
 public class CSharpAdvancedLanguageTests
 {
     /// <summary>
-    /// Verifica che CSharpExtractor estragga classi generiche con vincoli di tipo ('where TEntity : class')
-    /// e metodi generici, preservando i nomi dei parametri di tipo e dei tipi dichiarati.
+    /// Verify that CSharpExtractor extracts generic classes with type constraints ('where TEntity : class')
+    /// and generic methods, preserving the names of type parameters and declared types.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractGenericClassesAndMethods()
@@ -49,8 +49,8 @@ public class CSharpAdvancedLanguageTests
     }
 
     /// <summary>
-    /// Verifica il corretto riconoscimento e l'estrazione di metodi asincroni ('async Task&lt;T&gt;', 'async ValueTask')
-    /// e dei relativi parametri con cancellation token e default value.
+    /// Check for correct recognition and extraction of asynchronous methods ('async Task<T>', 'async ValueTask')
+    /// and the related parameters with cancellation token and default value.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractAsyncMethods_WithTaskReturnTypes()
@@ -97,8 +97,8 @@ public class CSharpAdvancedLanguageTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di tipi annidati all'interno di classi contenitore (nested classes ed enum annidati)
-    /// e la creazione delle relazioni semantiche CONTAINS verso la classe genitore.
+    /// Tests extraction of nested types within container classes (nested classes and nested enums)
+    /// and the creation of CONTAINS semantic relations towards the parent class.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractNestedTypes_AndWireContainmentRelationships()
@@ -142,7 +142,7 @@ public class CSharpAdvancedLanguageTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di dichiarazioni multiple di variabili/campi separate da virgola sulla stessa riga
+    /// Tests extraction of multiple comma-separated variable/field declarations on the same line
     /// (es. 'int _rows = 10, _columns = 20, _depth;').
     /// </summary>
     [Fact]
@@ -184,7 +184,7 @@ public class CSharpAdvancedLanguageTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione e rappresentazione di tipi nullable (es. 'string?', 'int?') e tuple nominative.
+    /// Verifies the extraction and representation of nullable types (e.g. 'string?', 'int?') and nominative tuples.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractNullableAndTupleReturnTypes()
@@ -216,8 +216,8 @@ public class CSharpAdvancedLanguageTests
     }
 
     /// <summary>
-    /// Verifica le novità sintattiche di C# 12+ come record con costruttori primari posizionali,
-    /// proprietà 'required' e setter 'init'.
+    /// Check C# 12+ syntactic novelties as records with positional primary constructors,
+    /// 'required' property and 'init' setter.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractPrimaryConstructors_AndInitProperties()

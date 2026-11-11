@@ -2,22 +2,22 @@ namespace Macondo.Semantic.Model;
 
 
 /// <summary>
-/// Rappresenta una relazione diretta / arco orientato tra due simboli all'interno del <see cref="CodeGraph"/>.
+/// Represents a direct relationship/directed arc between two symbols within the <see cref="CodeGraph"/>.
 /// </summary>
 public sealed class Relationship
 {
-    /// <summary>ID del simbolo sorgente della relazione.</summary>
+    /// <summary>ID of the relationship source symbol.</summary>
     public required Guid SourceId { get; init; }
 
-    /// <summary>ID del simbolo di destinazione della relazione.</summary>
+    /// <summary>ID of the relationship target symbol.</summary>
     public required Guid TargetId { get; init; }
 
-    /// <summary>Tipologia della relazione (Contains, Calls, Instantiates, UsesType, ecc.).</summary>
+    /// <summary>Type of relationship (Contains, Calls, Instantiates, UsesType, etc.).</summary>
     public required RelationshipKind Kind { get; init; }
 
-    /// <summary>Numero di riga nel file sorgente in cui si origina la relazione (opzionale).</summary>
+    /// <summary>Line number in the source file where the relationship originates (optional).</summary>
     public int? Line { get; init; }
 
-    /// <summary>Grado di certezza della relazione semantica.</summary>
+    /// <summary>Degree of certainty of the semantic relationship.</summary>
     public ResolutionConfidence Confidence { get; init; } = ResolutionConfidence.Exact;
 }

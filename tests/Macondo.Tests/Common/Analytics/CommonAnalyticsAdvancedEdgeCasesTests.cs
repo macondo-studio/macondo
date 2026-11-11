@@ -15,8 +15,8 @@ public class CommonAnalyticsAdvancedEdgeCasesTests
     #region Code City Edge Cases
 
     /// <summary>
-    /// Verifica che CodeCityBuilder gestisca un grafo semantico completamente vuoto senza generare eccezioni,
-    /// restituendo un dataset con zero distretti e zero edifici.
+    /// Verify that CodeCityBuilder handles a completely empty semantic graph without throwing exceptions,
+    /// returning a dataset with zero districts and zero buildings.
     /// </summary>
     [Fact]
     public void CodeCityBuilder_ShouldHandleEmptyGraph_Gracefully()
@@ -36,8 +36,8 @@ public class CommonAnalyticsAdvancedEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che simboli con 0 LOC o intervalli di riga non valorizzati ricevano comunque dimensioni minime positive
-    /// (Width >= 1.0, Depth >= 1.0, Height >= 1.0) senza coordinate degenerate.
+    /// Verifies that symbols with 0 LOC or unvalued line intervals still receive positive minimum sizes
+    /// (Width >= 1.0, Depth >= 1.0, Height >= 1.0) without degenerate coordinates.
     /// </summary>
     [Fact]
     public void CodeCityBuilder_ShouldEnsureMinimumDimensions_ForZeroLocContainers()
@@ -72,8 +72,8 @@ public class CommonAnalyticsAdvancedEdgeCasesTests
     #region Treemap Layout Edge Cases
 
     /// <summary>
-    /// Verifica che TreemapLayoutEngine posizioni gerarchicamente i figli mantenendo i rettangoli
-    /// strettamente all'interno dei confini del rettangolo contenitore genitore.
+    /// Verify that TreemapLayoutEngine positions children hierarchically while maintaining rectangles
+    /// strictly within the boundaries of the parent containing rectangle.
     /// </summary>
     [Fact]
     public void TreemapLayoutEngine_ShouldContainChildBounds_WithinParentViewport()
@@ -115,8 +115,8 @@ public class CommonAnalyticsAdvancedEdgeCasesTests
     #region Martin Metrics Edge Cases
 
     /// <summary>
-    /// Verifica che un modulo isolato privo di chiamanti e di chiamate (Ca = 0, Ce = 0)
-    /// produca Instability = 0.0 e non provochi divisioni per zero (NaN / Infinity).
+    /// Verifies that an isolated module free of callers and calls (Ca = 0, Ce = 0)
+    /// produces Instability = 0.0 and does not cause divisions by zero (NaN / Infinity).
     /// </summary>
     [Fact]
     public void MartinMetrics_ShouldHandleZeroCoupling_WithoutDivisionByZero()
@@ -153,8 +153,8 @@ public class CommonAnalyticsAdvancedEdgeCasesTests
     #region CRUD Matrix Edge Cases
 
     /// <summary>
-    /// Verifica il tracciamento di entità con operazioni esclusive di sola cancellazione (Delete-only)
-    /// o solo aggiornamento (Update-only).
+    /// Verify entity tracking with unique Delete-only operations
+    /// or update-only.
     /// </summary>
     [Fact]
     public void CrudMatrix_ShouldTrackUpdateOnlyAndDeleteOnlyEntities()
@@ -194,8 +194,8 @@ public class CommonAnalyticsAdvancedEdgeCasesTests
     #region Taint & Data Flow Broken Chains
 
     /// <summary>
-    /// Verifica che in presenza di un anello mancante nella catena di chiamate tra la sorgente UI e il sink DB,
-    /// TaintAnalyzer non segnali falsi percorsi di contaminazione.
+    /// Check that if there is a missing link in the call chain between the UI source and the DB sink,
+    /// TaintAnalyzer does not report false contamination paths.
     /// </summary>
     [Fact]
     public void TaintAnalyzer_ShouldNotReportTaint_WhenCallChainIsBroken()

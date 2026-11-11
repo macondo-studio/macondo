@@ -9,8 +9,8 @@ namespace Macondo.Tests.Common.App;
 public class LocalizationParityTests
 {
     /// <summary>
-    /// Verifica la parità esatta 1:1 di tutte le chiavi di localizzazione tra il dizionario italiano e quello inglese,
-    /// prevenendo errori di traduzione mancante nell'interfaccia utente.
+    /// Verifies the exact 1:1 parity of all localization keys between the Italian and English dictionary,
+    /// preventing missing translation errors in the user interface.
     /// </summary>
     [Fact]
     public void Localization_ShouldHaveExactKeyParity_BetweenItalianAndEnglish()
@@ -37,8 +37,8 @@ public class LocalizationParityTests
     }
 
     /// <summary>
-    /// Verifica che il metodo LocalizationService.Get formatti correttamente i parametri posizionali ({0}, {1}...)
-    /// sia in lingua italiana che in lingua inglese.
+    /// Verify that the LocalizationService.Get method correctly formats the positional parameters ({0}, {1}...)
+    /// both in Italian and in English.
     /// </summary>
     [Fact]
     public void Localization_Get_ShouldReturnFormattedString_WhenKeyExists()
@@ -57,7 +57,7 @@ public class LocalizationParityTests
     }
 
     /// <summary>
-    /// Verifica il meccanismo di fallback che restituisce la chiave stessa come stringa se la chiave richiesta non esiste.
+    /// Tests the fallback mechanism that returns the key itself as a string if the requested key does not exist.
     /// </summary>
     [Fact]
     public void Localization_Get_ShouldFallbackToKey_WhenKeyDoesNotExist()
@@ -68,8 +68,8 @@ public class LocalizationParityTests
     }
 
     /// <summary>
-    /// Verifica che il cambio di lingua tramite SetLanguage aggiorni la lingua attiva
-    /// e restituisca le traduzioni specifiche per la lingua selezionata.
+    /// Verify that switching languages via SetLanguage updates the active language
+    /// and returns specific translations for the selected language.
     /// </summary>
     [Fact]
     public void Localization_SetLanguage_ShouldSwitchActiveLanguageAndTranslations()
@@ -89,7 +89,7 @@ public class LocalizationParityTests
     }
 
     /// <summary>
-    /// Verifica che LocalizationService gestisca chiamate a chiavi inesistenti con argomenti di formattazione senza lanciare eccezioni.
+    /// Verify that LocalizationService handles calls to non-existent keys with formatting arguments without throwing exceptions.
     /// </summary>
     [Fact]
     public void Localization_Get_ShouldHandleNonExistentKeyWithFormatArguments_Safely()

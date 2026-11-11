@@ -7,8 +7,8 @@ using Xunit;
 namespace Macondo.Tests.KotlinSpecific;
 
 /// <summary>
-/// Suite di test completa per la sintassi avanzata, costrutti idiomatici ed edge cases del linguaggio Kotlin
-/// (Sealed classes, costruttori secondari, coroutine suspend, enum complessi, classi innestate, operatori e tipi generici con varianza).
+/// Comprehensive test suite for advanced syntax, idiomatic constructs and edge cases of the Kotlin language
+/// (Sealed classes, secondary constructors, suspend coroutines, complex enums, nested classes, operators and generic types with variance).
 /// </summary>
 public class KotlinComprehensiveLanguageAndEdgeCasesTests
 {
@@ -162,7 +162,7 @@ public class KotlinComprehensiveLanguageAndEdgeCasesTests
     [Fact]
     public void KotlinCallGraph_ShouldResolveSuspendFunctionCalls()
     {
-        // Arrange: Coroutine Kotlin con funzioni suspend
+        // Arrange: Kotlin coroutine with suspend functions
         var code = """
             package com.acme.async
 

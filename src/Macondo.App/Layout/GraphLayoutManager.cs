@@ -3,43 +3,43 @@ using Macondo.App.Models;
 namespace Macondo.App.Layout;
 
 /// <summary>
-/// Gestore e dispatcher centrale dei motori di layout per il CodeGraph visuale.
+/// Central layout engine manager and dispatcher for visual CodeGraph.
 /// </summary>
 public static class GraphLayoutManager
 {
     /// <summary>
-    /// Applica l'algoritmo di disposizione spaziale specificato al grafo visuale.
+    /// Applies the specified spatial arrangement algorithm to the visual graph.
     /// </summary>
-    /// <param name="graph">Il grafo visuale su cui calcolare e assegnare le posizioni dei nodi.</param>
-    /// <param name="mode">La modalità o algoritmo di layout selezionato dall'utente.</param>
-    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere il calcolo del layout.</param>
+    /// <param name="graph">The visual graph on which to calculate and assign the positions of the nodes.</param>
+    /// <param name="mode">The layout mode or algorithm selected by the user.</param>
+    /// <param name="cancellationToken">Optional clear token to stop layout calculation.</param>
     public static void ApplyLayout(VisualCodeGraph graph, GraphLayoutMode mode, CancellationToken cancellationToken = default)
     {
-        // Smista l'esecuzione verso l'engine di layout specifico in base alla modalità selezionata
+        // Routes execution to the specific layout engine based on the selected mode
         switch (mode)
         {
             case GraphLayoutMode.StandardRadial:
-                // Layout radiale concentrico standard (moduli sull'anello principale, membri su satelliti)
+                // Standard concentric radial layout (modules on main ring, members on satellites)
                 RadialLayoutEngine.Apply(graph);
                 break;
 
             case GraphLayoutMode.AffinityRadial:
-                // Layout radiale con ottimizzazione angolare per affinità semantica (TSP / Nearest Neighbor)
+                // Radial layout with angular optimization for semantic affinity (TSP / Nearest Neighbor)
                 AffinityRadialLayoutEngine.Apply(graph, cancellationToken);
                 break;
 
             case GraphLayoutMode.ClusteredIslands:
-                // Layout a isole funzionali basato su componenti connesse (Union-Find)
+                // Functional island layout based on connected components (Union-Find)
                 ClusteredIslandsLayoutEngine.Apply(graph, cancellationToken);
                 break;
 
             case GraphLayoutMode.ForceDirected:
-                // Layout fisico a forze repulsive ed elastiche (Fruchterman-Reingold con Simulated Annealing)
+                // Physical layout with repulsive and elastic forces (Fruchterman-Reingold with Simulated Annealing)
                 ForceDirectedLayoutEngine.Apply(graph, cancellationToken);
                 break;
 
             default:
-                // Fallback di sicurezza su modalità radiale standard
+                // Safety fallback to standard radial mode
                 RadialLayoutEngine.Apply(graph);
                 break;
         }

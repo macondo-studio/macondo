@@ -9,8 +9,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class ArchitecturalFlowTests
 {
     /// <summary>
-    /// Verifica l'esecuzione dell'analisi dei flussi architetturali sull'intero set di fixture di progetto,
-    /// confermando la costruzione coerente di nodi, layer, link e volumi di flusso.
+    /// Verifies the execution of the architectural flow analysis on the entire set of project fixtures,
+    /// confirming the coherent construction of nodes, layers, links and flow volumes.
     /// </summary>
     [Fact]
     public void ArchitecturalFlow_ShouldExecuteOnFixtures_AndBuildValidFlowDataset()
@@ -35,8 +35,8 @@ public class ArchitecturalFlowTests
     }
 
     /// <summary>
-    /// Verifica che l'analizzatore deduca correttamente i layer architetturali (UserInterface, BusinessLogic,
-    /// DataAccess, CommonUtilities) in base alla tipologia di simbolo e alle convenzioni di denominazione.
+    /// Verify that the analyzer correctly infers architectural layers (UserInterface, BusinessLogic,
+    /// DataAccess, CommonUtilities) based on symbol type and naming conventions.
     /// </summary>
     [Fact]
     public void ArchitecturalFlow_ShouldInferLayers_BasedOnSymbolKindAndNameConventions()
@@ -62,8 +62,8 @@ public class ArchitecturalFlowTests
     }
 
     /// <summary>
-    /// Verifica che le chiamate che violano la gerarchia a livelli (es. DataAccess che richiama direttamente la UI
-    /// o CommonUtilities che dipende da BusinessLogic) vengano contrassegnate come violazioni architetturali (IsLayerViolation = true).
+    /// Verify that calls that violate the level hierarchy (e.g. DataAccess calling the UI directly
+    /// or CommonUtilities which depends on BusinessLogic) are marked as architectural violations (IsLayerViolation = true).
     /// </summary>
     [Fact]
     public void ArchitecturalFlow_ShouldDetectLayerViolations_SuchAsDataAccessCallingUserInterface()
@@ -81,7 +81,7 @@ public class ArchitecturalFlowTests
         graph.Symbols.AddRange(new[] { dao, daoMethod });
         graph.AddContains(dao, daoMethod);
 
-        // Violazione: daoMethod chiama formMethod
+        // Violation: daoMethod calls formMethod
         graph.AddCalls(daoMethod, formMethod);
 
         // Act
@@ -96,7 +96,7 @@ public class ArchitecturalFlowTests
     }
 
     /// <summary>
-    /// Verifica che i nodi del Chord Diagram abbiano archi angolari coerenti che coprono l'intervallo [0 .. 2π].
+    /// Verify that the nodes of the Chord Diagram have coherent angular arcs spanning the interval [0 .. 2π].
     /// </summary>
     [Fact]
     public void ArchitecturalFlow_ShouldComputeInflowOutflowAndChordAngles()

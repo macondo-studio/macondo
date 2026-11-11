@@ -11,7 +11,7 @@ namespace Macondo.Tests.Common.App;
 public class SettingsAndCacheTests
 {
     /// <summary>
-    /// Verifica la serializzazione e deserializzazione JSON corretta dell'oggetto AppSettings (Lingua, Tema, preferenze).
+    /// Verify correct JSON serialization and deserialization of the AppSettings object (Language, Theme, Preferences).
     /// </summary>
     [Fact]
     public void AppSettings_ShouldSerializeAndDeserializeCorrectly()
@@ -38,8 +38,8 @@ public class SettingsAndCacheTests
     }
 
     /// <summary>
-    /// Verifica che tutte le 13 impostazioni di visibilità delle schede (Graph View e tab analitici)
-    /// siano abilitate per impostazione predefinita (true) e vengano serializzate/deserializzate fedelmente.
+    /// Verify that all 13 tab visibility settings (Graph View and Analytical tabs)
+    /// are enabled by default (true) and are serialized/deserialized faithfully.
     /// </summary>
     [Fact]
     public void AppSettings_ShouldPersistAllTabVisibilityFlags_AndDefaultToTrue()
@@ -100,8 +100,8 @@ public class SettingsAndCacheTests
     }
 
     /// <summary>
-    /// Verifica che ProjectCacheService ripristini fedelmente il VisualCodeGraph, le coordinate dei nodi
-    /// e le righe della griglia del Blast Radius a partire da uno snapshot serializzato su cache.
+    /// Verify that ProjectCacheService faithfully restores the VisualCodeGraph,node coordinates
+    /// and the Blast Radius grid lines from a cache-serialized snapshot.
     /// </summary>
     [Fact]
     public void ProjectCacheSnapshot_ShouldRestoreVisualGraphAndRows()

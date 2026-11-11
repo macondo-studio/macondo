@@ -7,16 +7,16 @@ using Xunit;
 namespace Macondo.Tests.KotlinSpecific;
 
 /// <summary>
-/// Suite di test per validare la scoperta, la risoluzione gerarchica e l'aggregazione
-/// dei progetti Kotlin e Android (Gradle multi-module e standalone) in Macondo.
-/// Previene regressioni relative a sottomoduli 'app' orfani, cartelle radice vuote e inclusione di build script.
+/// Test suite to validate discovery, hierarchical resolution and aggregation
+/// of Kotlin and Android projects (Gradle multi-module and standalone) in Macondo.
+/// Prevents regressions related to orphaned 'app' submodules, empty root folders, and build script inclusion.
 /// </summary>
 public class KotlinProjectDiscoveryTests
 {
     /// <summary>
-    /// Verifica che una classica applicazione Android con directory radice (contenente build.gradle.kts e settings.gradle.kts)
-    /// e sottomodulo 'app/' venga riconosciuta come UN SINGOLO progetto avente il nome dell'applicazione,
-    /// aggregando tutti i file sorgente Kotlin contenuti in 'app/' senza generare sottomoduli duplicati o orfani denominati 'app'.
+    /// Verify that a classic Android application with root directory (containing build.gradle.kts and settings.gradle.kts)
+    /// and submodule 'app/' is recognized as a SINGLE project having the name of the application,
+    /// aggregating all Kotlin source files contained in 'app/' without generating duplicate or orphaned submodules named 'app'.
     /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldDiscoverAndroidApp_WithNestedAppModule_AsSingleProject()
@@ -82,7 +82,7 @@ public class KotlinProjectDiscoveryTests
             proj.SourceFiles.Should().Contain(mainActivityPath);
             proj.SourceFiles.Should().Contain(unitTestPath);
 
-            // Gli script di build (.gradle.kts, settings.gradle.kts) non devono essere conteggiati nei sorgenti
+            // Build scripts (.gradle.kts, settings.gradle.kts) should not be counted in source
             proj.SourceFiles.Should().NotContain(rootBuild);
             proj.SourceFiles.Should().NotContain(rootSettings);
             proj.SourceFiles.Should().NotContain(appBuild);
@@ -95,9 +95,9 @@ public class KotlinProjectDiscoveryTests
     }
 
     /// <summary>
-    /// Verifica che aprendo una cartella workspace contenente molteplici applicazioni Android (come Android-Practice-main),
-    /// vengano scoperti tutti e soli i singoli progetti applicativi con i rispettivi file sorgente,
-    /// senza progetti vuoti al vertice né duplicati denominati 'app'.
+    /// Verify that by opening a workspace folder containing multiple Android applications (such as Android-Practice-main),
+    /// all and only the individual application projects with their respective source files are discovered,
+    /// with no empty projects at the top or duplicates named 'app'.
     /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldDiscoverMultipleAndroidApps_InWorkspaceFolder_WithoutAppDuplicates()
@@ -150,9 +150,9 @@ public class KotlinProjectDiscoveryTests
     }
 
     /// <summary>
-    /// Verifica che i file di script Gradle (*.gradle, *.gradle.kts, settings.gradle, settings.gradle.kts)
-    /// vengano rigorosamente esclusi dai sorgenti analizzabili, mentre script Kotlin generici (.kts non gradle)
-    /// e sorgenti standard (.kt) vengano correttamente inclusi.
+    /// Verify that the Gradle script files (*.gradle, *.gradle.kts, settings.gradle, settings.gradle.kts)
+    /// are strictly excluded from the analyzable sources, while generic Kotlin scripts (.kts not gradle)
+    /// and standard sources (.kt) are correctly included.
     /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldFilterOutGradleScripts_FromSourceFiles()
@@ -196,8 +196,8 @@ public class KotlinProjectDiscoveryTests
     }
 
     /// <summary>
-    /// Verifica che passando direttamente il percorso di un file sorgente Kotlin (.kt),
-    /// venga creato un descrittore di progetto a file singolo.
+    /// Verify that by directly passing the path to a Kotlin source file (.kt),
+    /// a single-file project descriptor is created.
     /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldDiscoverSingleKotlinFile()
@@ -224,8 +224,8 @@ public class KotlinProjectDiscoveryTests
     }
 
     /// <summary>
-    /// Verifica che invocando direttamente il file 'build.gradle.kts' del modulo interno 'app',
-    /// il resolver risalga automaticamente alla cartella radice del progetto genitore assegnando il nome corretto.
+    /// Verify that by directly invoking the 'build.gradle.kts' file of the internal module 'app',
+    /// the resolver automatically goes back to the root folder of the parent project by assigning the correct name.
     /// </summary>
     [Fact]
     public void ProjectDescriptor_WhenGivenNestedAppBuildFile_ShouldResolveToParentProject()
@@ -246,7 +246,7 @@ public class KotlinProjectDiscoveryTests
 
         try
         {
-            // Act: passa direttamente il build.gradle.kts di app/
+            // Act: directly pass the build.gradle.kts of app/
             var descriptors = ProjectDescriptor.DiscoverFromPaths(new[] { appBuildPath });
 
             // Assert
@@ -263,9 +263,9 @@ public class KotlinProjectDiscoveryTests
     }
 
     /// <summary>
-    /// Verifica la generazione dell'albero gerarchico del Project Explorer (ExplorerTreeItem.BuildTree)
-    /// su un workspace multi-app, assicurando che i nodi di progetto visualizzino il badge lingua Kotlin ('KT')
-    /// e raggruppino le classi all'interno della rispettiva applicazione, senza nodi orfani 'app'.
+    /// Tests the generation of the Project Explorer hierarchical tree (ExplorerTreeItem.BuildTree)
+    /// on a multi-app workspace, ensuring that project nodes display the Kotlin language badge ('KT')
+    /// and group the classes within the respective application, without orphaned 'app' nodes.
     /// </summary>
     [Fact]
     public void ExplorerTreeItem_ShouldBuildTree_WithCorrectKotlinAppHierarchy()
@@ -293,10 +293,10 @@ public class KotlinProjectDiscoveryTests
             var descriptors = ProjectDescriptor.DiscoverFromPaths(new[] { workspaceDir });
             descriptors.Should().HaveCount(1);
 
-            // Analizza il progetto estraendo i simboli semantici nel CodeGraph
+            // Analyze the project by extracting semantic symbols in the CodeGraph
             var visualGraph = ProjectAnalysisService.AnalyzeProjects(descriptors);
 
-            // Costruisce l'albero del Project Explorer
+            // Builds the Project Explorer tree
             var tree = ExplorerTreeItem.BuildTree(visualGraph, workspaceDir);
 
             // Assert
@@ -304,7 +304,7 @@ public class KotlinProjectDiscoveryTests
             tree.Name.Should().Be("CalculatorApp");
             tree.LanguageBadgeText.Should().Be("KT", "il progetto Kotlin deve esporre il badge 'KT'");
 
-            // Deve esistere il gruppo 'Moduli di classe' con all'interno 'CalculatorActivity'
+            // The 'Class Modules' group must exist with 'CalculatorActivity' inside
             var classGroup = tree.Children.FirstOrDefault(c => c.IsGroup);
             classGroup.Should().NotBeNull("le classi Kotlin devono essere raggruppate sotto il relativo gruppo");
             classGroup!.Children.Should().ContainSingle(item => item.Name == "CalculatorActivity");

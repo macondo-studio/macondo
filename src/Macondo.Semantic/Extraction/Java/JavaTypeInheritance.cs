@@ -3,19 +3,19 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Rappresenta una clausola di ereditarietà di classe base ('extends') o implementazione di interfaccia ('implements') per un tipo Java.
+/// Represents a base class inheritance clause ('extends') or interface implementation ('implements') for a Java type.
 /// </summary>
 public sealed class JavaTypeInheritance
 {
-    /// <summary>Simbolo del tipo derivato o che implementa l'interfaccia (Classe, Record o Interfaccia).</summary>
+    /// <summary>Symbol of the type derived from or implementing the interface (Class, Record or Interface).</summary>
     public required Symbol DerivedTypeSymbol { get; init; }
 
-    /// <summary>Nome del tipo base o dell'interfaccia ereditata/implementata (es. "BaseEntity", "Comparable", "Serializable").</summary>
+    /// <summary>Name of the base type or inherited/implemented interface (e.g. "BaseEntity", "Comparable", "Serializable").</summary>
     public required string BaseOrInterfaceTypeName { get; init; }
 
-    /// <summary>Numero di riga nel file sorgente Java in cui è presente la clausola (1-indexed).</summary>
+    /// <summary>Line number in the Java source file in which the (1-indexed) clause is present.</summary>
     public int Line { get; init; }
 
-    /// <summary>Indica se la relazione è di implementazione interfaccia ('implements') o ereditarietà ('extends').</summary>
+    /// <summary>Indicates whether the relationship is interface implementation ('implements') or inheritance ('extends').</summary>
     public bool IsInterface { get; init; }
 }

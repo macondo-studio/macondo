@@ -9,8 +9,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class ControlFlowTests
 {
     /// <summary>
-    /// Verifica che ControlFlowBuilder costruisca il grafo di flusso di controllo (CFG) e calcoli
-    /// la complessità ciclomatica per una routine estratta dal codice sorgente.
+    /// Verify that ControlFlowBuilder constructs the control flow graph (CFG) and computes
+    /// the cyclomatic complexity for a routine extracted from the source code.
     /// </summary>
     [Fact]
     public void ControlFlowBuilder_ShouldBuildCFGAndCalculateComplexity()
@@ -31,8 +31,8 @@ public class ControlFlowTests
     }
 
     /// <summary>
-    /// Verifica che per routine complesse con parametri e chiamate multiple vengano generati blocchi di decisione (DecisionIf),
-    /// percorsi di eccezione (ExceptionHandler), rami True/False/ExceptionJump e coordinate di layout valide.
+    /// Verifies that decision blocks (DecisionIf) are generated for complex routines with parameters and multiple calls,
+    /// exception paths (ExceptionHandler), True/False/ExceptionJump branches, and valid layout coordinates.
     /// </summary>
     [Fact]
     public void ControlFlowBuilder_ShouldGenerateBranchingAndExceptionHandler_ForComplexRoutine()
@@ -80,8 +80,8 @@ public class ControlFlowTests
     }
 
     /// <summary>
-    /// Verifica che per routine lineari senza rami condizionali né parametri venga generato un CFG minimale
-    /// (Entry -> BasicBlock -> Exit) con complessità ciclomatica pari a 1.
+    /// Verifies that a minimal CFG is generated for linear routines without conditional branches or parameters
+    /// (Entry -> BasicBlock -> Exit) with cyclomatic complexity equal to 1.
     /// </summary>
     [Fact]
     public void ControlFlowBuilder_ShouldGenerateLinearFlow_ForSimpleRoutine()

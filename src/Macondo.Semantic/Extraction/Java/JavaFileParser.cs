@@ -6,7 +6,7 @@ using Accessibility = Macondo.Semantic.Model.Accessibility;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Parser sintattico ricorsivo per file sorgente Java (.java).
+/// Recursive syntactic parser for Java source files (.java).
 /// </summary>
 internal sealed class JavaFileParser
 {
@@ -16,28 +16,28 @@ internal sealed class JavaFileParser
     private readonly List<JavaToken> _tokens = new();
     private int _tokenIndex;
 
-    /// <summary>Stack dei simboli contenitori attivi (per gerarchia CONTAINS e QualifiedName).</summary>
+    /// <summary>Stack of active container symbols (for CONTAINS and QualifiedName hierarchy).</summary>
     private readonly Stack<Symbol> _scopeStack = new();
 
-    /// <summary>Package Java corrente estratto dalla dichiarazione 'package ...;'.</summary>
+    /// <summary>Current Java package extracted from declaration 'package ...;'.</summary>
     private string _packageName = string.Empty;
 
-    /// <summary>Elenco dei simboli radice di primo livello estratti dal file.</summary>
+    /// <summary>List of top-level root symbols extracted from the file.</summary>
     private readonly List<Symbol> _topLevelSymbols = new();
 
-    /// <summary>Elenco dei call-site di chiamata a metodo rilevati nei corpi.</summary>
+    /// <summary>List of method call call-sites detected in the bodies.</summary>
     private readonly List<JavaCallSite> _callSites = new();
 
-    /// <summary>Elenco delle istanziazioni 'new' rilevate.</summary>
+    /// <summary>List of detected 'new' instances.</summary>
     private readonly List<JavaInstantiation> _instantiations = new();
 
-    /// <summary>Elenco delle clausole 'extends' e 'implements' rilevate.</summary>
+    /// <summary>List of 'extends' and 'implements' clauses detected.</summary>
     private readonly List<JavaTypeInheritance> _inheritances = new();
 
-    /// <summary>Elenco degli errori o avvisi sintattici raccolti durante il parsing.</summary>
+    /// <summary>List of syntactic errors or warnings collected during parsing.</summary>
     private readonly List<string> _parseErrors = new();
 
-    /// <summary>Insieme delle parole chiave riservate in Java (fino a Java 21).</summary>
+    /// <summary>Set of reserved keywords in Java (up to Java 21).</summary>
     private static readonly HashSet<string> JavaKeywords = new(StringComparer.Ordinal)
     {
         "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class",
@@ -49,7 +49,7 @@ internal sealed class JavaFileParser
         "void", "volatile", "while", "yield", "var"
     };
 
-    /// <summary>Insieme dei modificatori di visibilità e caratteristiche di tipo/membro Java.</summary>
+    /// <summary>Set of visibility modifiers and Java type/member characteristics.</summary>
     private static readonly HashSet<string> ModifierKeywords = new(StringComparer.Ordinal)
     {
         "public", "protected", "private", "static", "final", "abstract", "synchronized",
@@ -64,16 +64,16 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Avvia il processo a due fasi: tokenizzazione lessicale seguita da parsing AST ricorsivo.
+    /// It starts the two-step process: lexical tokenization followed by recursive AST parsing.
     /// </summary>
     public JavaExtractionResult Parse()
     {
         try
         {
-            // Fase 1: Lexing del sorgente in sequenza di JavaToken
+            // Phase 1: Sequentially Lexing JavaToken Source
             Tokenize();
 
-            // Fase 2: Parsing della Compilation Unit (package, imports, tipi, metodi, campi)
+            // Phase 2: Parsing the Compilation Unit (packages, imports, types, methods, fields)
             ParseCompilationUnit();
         }
         catch (Exception ex)
@@ -82,8 +82,8 @@ internal sealed class JavaFileParser
         }
         finally
         {
-            // Rilascia immediatamente il buffer dei token per liberare la memoria managed heap
-            // non appena il parsing della compilation unit è completato.
+            // Immediately releases the token buffer to free managed heap memory
+            // as soon as parsing of the compilation unit is complete.
             _tokens.Clear();
             _tokens.TrimExcess();
         }
@@ -100,12 +100,12 @@ internal sealed class JavaFileParser
     }
 
     // =========================================================================
-    // FASE 1: LEXER / TOKENIZZAZIONE LESSICALE
+    // PHASE 1: LEXER / LEXICAL TOKENIZATION
     // =========================================================================
 
     /// <summary>
-    /// Scansiona il testo sorgente carattere per carattere producendo la lista piatta dei token.
-    /// Gestisce commenti riga (//), commenti blocco (/* */), JavaDoc (/** */), stringhe e text block multiriga (""").
+    /// Scans the source text character by character producing the flat list of tokens.
+    /// Handles line comments (//), block comments (/* */), JavaDocs (/** */), strings, and multiline text blocks (""").
     /// </summary>
     private void Tokenize()
     {
@@ -118,7 +118,7 @@ internal sealed class JavaFileParser
         {
             var ch = _sourceText[i];
 
-            // 1. Gestione a capo Windows (\r\n) o Unix (\n)
+            // 1. Wrap Management Windows (\r\n) or Unix (\n)
             if (ch == '\r')
             {
                 i++;
@@ -142,7 +142,7 @@ internal sealed class JavaFileParser
                 continue;
             }
 
-            // 2. Commenti a riga singola '//'
+            // 2. Single line comments '//'
             if (ch == '/' && i + 1 < len && _sourceText[i + 1] == '/')
             {
                 i += 2;
@@ -151,7 +151,7 @@ internal sealed class JavaFileParser
                 continue;
             }
 
-            // 3. Commenti a blocchi '/*' o JavaDoc '/**'
+            // 3. Block Comments '/*' or JavaDoc '/**'
             if (ch == '/' && i + 1 < len && _sourceText[i + 1] == '*')
             {
                 i += 2;
@@ -304,7 +304,7 @@ internal sealed class JavaFileParser
                 continue;
             }
 
-            // 7. Identificatori e Parole Chiave
+            // 7. Identifiers and Keywords
             if (IsJavaIdentifierStart(ch))
             {
                 var startLine = line;
@@ -348,7 +348,7 @@ internal sealed class JavaFileParser
                 continue;
             }
 
-            // 9. Operatori a tre caratteri (varargs ...)
+            // 9. Three-character operators (varargs ...)
             var startOpLine = line;
             var startOpCol = col;
             if (i + 2 < len)
@@ -369,7 +369,7 @@ internal sealed class JavaFileParser
                 }
             }
 
-            // 10. Operatori a due caratteri (::, ->, ==, !=, <=, >=, &&, ||, ++, --, +=, -=, *=, /=)
+            // 10. Two-character operators (::, ->, ==, !=, <=, >=, &&, ||, ++, --, +=, -=, *=, /=)
             if (i + 1 < len)
             {
                 var pair = _sourceText.Substring(i, 2);
@@ -388,7 +388,7 @@ internal sealed class JavaFileParser
                 }
             }
 
-            // 11. Simboli e Punteggiatura a singolo carattere
+            // 11. Single character symbols and punctuation
             _tokens.Add(new JavaToken
             {
                 Type = JavaTokenType.Symbol,
@@ -400,7 +400,7 @@ internal sealed class JavaFileParser
             col++;
         }
 
-        // Token sentinella di fine file
+        // End-of-file sentinel token
         _tokens.Add(new JavaToken
         {
             Type = JavaTokenType.EndOfFile,
@@ -447,7 +447,7 @@ internal sealed class JavaFileParser
     }
 
     // =========================================================================
-    // HELPER DI NAVIGAZIONE DEI TOKEN
+    // TOKEN NAVIGATION HELPER
     // =========================================================================
 
     private JavaToken Peek(int offset = 0)
@@ -481,11 +481,11 @@ internal sealed class JavaFileParser
     private bool Check(JavaTokenType type) => Peek().Type == type;
 
     // =========================================================================
-    // FASE 2: PARSER DELLA COMPILATION UNIT E TOP LEVEL
+    // PHASE 2: COMPILATION UNIT PARSER AND TOP LEVEL
     // =========================================================================
 
     /// <summary>
-    /// Analizza la struttura complessiva del file Java: pacchetto, importazioni e dichiarazioni top level.
+    /// Analyze the overall structure of the Java file: package, imports and top level declarations.
     /// </summary>
     private void ParseCompilationUnit()
     {
@@ -515,7 +515,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Salta le annotazioni (@Annotation(...)) presenti prima di dichiarazioni di classi, metodi o campi.
+    /// Skip annotations (@Annotation(...)) before class, method, or field declarations.
     /// </summary>
     private void SkipAnnotations()
     {
@@ -531,7 +531,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Consuma ricorsivamente un blocco racchiuso tra parentesi tonde '(' e ')'.
+    /// Recursively consumes a block enclosed in parentheses '(' and ')'.
     /// </summary>
     private void ConsumeParenthesizedGroup()
     {
@@ -546,7 +546,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Consuma ricorsivamente un blocco racchiuso tra parentesi graffe '{' e '}'.
+    /// Recursively consumes a block enclosed in curly braces '{' and '}'.
     /// </summary>
     private void ConsumeBracedGroup()
     {
@@ -561,7 +561,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Analizza un identificatore qualificato con punti (es. "java.util.concurrent.atomic").
+    /// Parses a dot-qualified identifier (e.g. "java.util.concurrent.atomic").
     /// </summary>
     private string ParseQualifiedIdentifier()
     {
@@ -584,13 +584,13 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Analizza una dichiarazione di primo livello (Classe, Interfaccia, Enum, Record o Annotazione).
+    /// Parses a top-level declaration (Class, Interface, Enum, Record, or Annotation).
     /// </summary>
     private void ParseTopLevelDeclaration()
     {
         var modifiers = ParseModifiers();
 
-        // Riconosce dichiarazione di annotazione: @interface MyAnnotation
+        // Recognizes annotation declaration: @interface MyAnnotation
         if (Check("@") && Peek(1).Value == "interface")
         {
             Next(); // '@'
@@ -620,12 +620,12 @@ internal sealed class JavaFileParser
             return;
         }
 
-        // Fallback resiliente: avanza di un token se non riconosciuto
+        // Resilient Fallback: Advances one token if not recognized
         Next();
     }
 
     /// <summary>
-    /// Raccoglie tutti i modificatori Java consecutivi (public, private, static, final, abstract, ecc.).
+    /// Collects all consecutive Java modifiers (public, private, static, final, abstract, etc.).
     /// </summary>
     private List<string> ParseModifiers()
     {
@@ -653,8 +653,8 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Determina il livello di visibilità semantico (<see cref="Accessibility"/>) dai modificatori Java.
-    /// In Java l'assenza di modificatori espliciti indica visibilità di package (Default).
+    /// Determine semantic visibility level (<see cref="Accessibility"/>) from Java modifiers.
+    /// In Java the absence of explicit modifiers indicates package visibility (Default).
     /// </summary>
     private Accessibility DetermineAccessibility(IEnumerable<string> modifiers)
     {
@@ -665,7 +665,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Costruisce il nome qualificato completo tenendo conto del package e della gerarchia di classi annidate.
+    /// Constructs the full qualified name taking into account the package and nested class hierarchy.
     /// </summary>
     private string BuildQualifiedName(string simpleName)
     {
@@ -684,7 +684,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Registra un simbolo nel CodeGraph impostando il linguaggio Java e creando la relazione CONTAINS con il genitore.
+    /// Register a symbol in the CodeGraph by setting the Java language and creating the CONTAINS relationship with the parent.
     /// </summary>
     private void RegisterSymbol(Symbol symbol)
     {
@@ -703,11 +703,11 @@ internal sealed class JavaFileParser
     }
 
     // =========================================================================
-    // DICHIARAZIONI DI TIPI: CLASSI, INTERFACCE, RECORD, ENUM
+    // TYPE DECLARATIONS: CLASSES, INTERFACES, RECORDS, ENUM
     // =========================================================================
 
     /// <summary>
-    /// Analizza una dichiarazione di classe o interfaccia Java ("class Foo<T> extends Base implements IFoo").
+    /// Parses a Java class or interface declaration ("class Foo<T> extends Base implements IFoo").
     /// </summary>
     private void ParseTypeDeclaration(SymbolKind kind, List<string> modifiers)
     {
@@ -722,7 +722,7 @@ internal sealed class JavaFileParser
         var lineStart = nameToken.Line;
         var qname = BuildQualifiedName(name);
 
-        // Salta parametri di tipo generici: <T, K extends Comparable<K>>
+        // Skip generic type parameters: <T, K extends Comparable<K>>
         SkipTypeParameters();
 
         var symbol = new Symbol
@@ -740,7 +740,7 @@ internal sealed class JavaFileParser
 
         RegisterSymbol(symbol);
 
-        // Ereditarietà di classe o interfacce: extends BaseClass, BaseIface
+        // Class inheritance or interfaces: extends BaseClass, BaseIface
         if (Match("extends"))
         {
             do
@@ -760,7 +760,7 @@ internal sealed class JavaFileParser
             } while (Match(","));
         }
 
-        // Implementazione di interfacce: implements Iface1, Iface2
+        // Interface implementation: implements Iface1, Iface2
         if (Match("implements") || Match("permits"))
         {
             do
@@ -789,7 +789,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Analizza una dichiarazione di Java Record ("record Person(String name, int age) implements IPerson").
+    /// Parses a Java Record declaration ("record Person(String name, int age) implements IPerson").
     /// </summary>
     private void ParseRecordDeclaration(List<string> modifiers)
     {
@@ -821,7 +821,7 @@ internal sealed class JavaFileParser
 
         RegisterSymbol(symbol);
 
-        // Componenti del record nell'intestazione: record Point(int x, int y)
+        // Record components in the header: record Point(int x, int y)
         if (Match("("))
         {
             while (!Check(")") && !Check(JavaTokenType.EndOfFile))
@@ -881,7 +881,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Analizza una dichiarazione di Java Enum ("enum Status { PENDING, COMPLETED; void helper() {} }").
+    /// Parses a Java Enum declaration ("enum Status { PENDING, COMPLETED; void helper() {} }").
     /// </summary>
     private void ParseEnumDeclaration(List<string> modifiers)
     {
@@ -934,7 +934,7 @@ internal sealed class JavaFileParser
 
         _scopeStack.Push(symbol);
 
-        // Estrazione delle costanti dichiarate nell'Enum
+        // Extraction of the constants declared in the Enum
         while (!Check("}") && !Check(";") && !Check(JavaTokenType.EndOfFile))
         {
             SkipAnnotations();
@@ -956,11 +956,11 @@ internal sealed class JavaFileParser
                 _graph.Symbols.Add(constSymbol);
                 _graph.AddContains(symbol, constSymbol);
 
-                // Argomenti del costruttore enum (es. STATUS_OK(200, "OK"))
+                // Enum constructor arguments (e.g. STATUS_OK(200, "OK"))
                 if (Check("("))
                     ConsumeParenthesizedGroup();
 
-                // Corpo specifico per singola costante enum (es. CONST { void execute() {} })
+                // Specific body for single enum constant (e.g. CONST { void execute() {} })
                 if (Check("{"))
                     ConsumeBracedGroup();
 
@@ -975,7 +975,7 @@ internal sealed class JavaFileParser
 
         if (Match(";"))
         {
-            // Corpo esteso dell'enum contenente metodi o campi aggiuntivi
+            // Extended body of the enum containing additional methods or fields
             ParseTypeBody(symbol);
         }
         else
@@ -987,11 +987,11 @@ internal sealed class JavaFileParser
     }
 
     // =========================================================================
-    // CORPO DEI TIPI: METODI, COSTRUTTORI, CAMPI, INNER TYPES
+    // BODY OF TYPES: METHODS, CONSTRUCTORS, FIELDS, INNER TYPES
     // =========================================================================
 
     /// <summary>
-    /// Analizza tutti i membri interni dichiarati all'interno di un tipo Java.
+    /// Parses all internal members declared within a Java type.
     /// </summary>
     private void ParseTypeBody(Symbol enclosingType)
     {
@@ -1001,7 +1001,7 @@ internal sealed class JavaFileParser
 
             if (Check("}")) break;
 
-            // Blocchi statici o di inizializzazione di istanza (static { ... } o { ... })
+            // Static or instance initialization blocks (static { ... } or { ... })
             if (Match("static") && Check("{"))
             {
                 ParseMethodBody(enclosingType);
@@ -1043,17 +1043,17 @@ internal sealed class JavaFileParser
                 continue;
             }
 
-            // Generics a livello di metodo: <T, R>
+            // Method-level generics: <T, R>
             SkipTypeParameters();
 
-            // Rilevamento Costruttore: NomeTipo(parametri) oppure compact constructor NomeTipo { ... } nei Record
+            // Constructor Detection: TypeName(parameters) or compact constructor TypeName { ... } in Records
             if (Check(JavaTokenType.Identifier) && Peek().Value == enclosingType.Name && (Peek(1).Value == "(" || (enclosingType.Kind == SymbolKind.Record && Peek(1).Value == "{")))
             {
                 ParseConstructorDeclaration(enclosingType, modifiers);
                 continue;
             }
 
-            // Altrimenti: Dichiarazione di Metodo o Campo
+            // Otherwise: Method or Field Declaration
             var typeName = ParseTypeName();
             if (string.IsNullOrEmpty(typeName))
             {
@@ -1069,14 +1069,14 @@ internal sealed class JavaFileParser
 
             var memberNameToken = Next();
 
-            // Se seguito da '(', è una dichiarazione di Metodo
+            // If followed by '(', it is a Method declaration
             if (Check("("))
             {
                 ParseMethodDeclaration(enclosingType, memberNameToken, typeName, modifiers);
             }
             else
             {
-                // È una dichiarazione di Campo o Costante
+                // It is a Field or Constant statement
                 ParseFieldDeclaration(enclosingType, memberNameToken, typeName, modifiers);
             }
         }
@@ -1088,7 +1088,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Analizza una dichiarazione di costruttore Java ("public MyClass(String name) { ... }").
+    /// Parses a Java constructor declaration ("public MyClass(String name) { ... }").
     /// </summary>
     private void ParseConstructorDeclaration(Symbol enclosingType, List<string> modifiers)
     {
@@ -1129,7 +1129,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Analizza una dichiarazione di metodo Java ("public int calculate(int x) throws IOException { ... }").
+    /// Parses a Java method declaration ("public int calculate(int x) throws IOException { ... }").
     /// </summary>
     private void ParseMethodDeclaration(Symbol enclosingType, JavaToken nameToken, string returnType, List<string> modifiers)
     {
@@ -1156,7 +1156,7 @@ internal sealed class JavaFileParser
         // Salta clausola throws
         SkipThrows();
 
-        // Valore predefinito in annotazioni @interface (es. default "test"; o default {};)
+        // Default value in @interface annotations (e.g. default "test"; or default {};)
         if (Match("default"))
         {
             while (!Check(";") && !Check(JavaTokenType.EndOfFile))
@@ -1184,8 +1184,8 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Analizza una dichiarazione di uno o più campi ("private final int count = 0, total = 10;").
-    /// Se static final o membro di interfaccia, viene classificato come <see cref="SymbolKind.Constant"/>.
+    /// Parses a declaration of one or more fields ("private final int count = 0, total = 10;").
+    /// If static final or interface member, it is classified as <see cref="SymbolKind.Constant"/>.
     /// </summary>
     private void ParseFieldDeclaration(Symbol enclosingType, JavaToken firstFieldNameToken, string typeName, List<string> modifiers)
     {
@@ -1196,13 +1196,13 @@ internal sealed class JavaFileParser
 
         var fieldTokens = new List<JavaToken> { firstFieldNameToken };
 
-        // Gestione di campi multipli separati da virgola
+        // Management of multiple fields separated by comma
         while (!Check(";") && !Check(JavaTokenType.EndOfFile))
         {
             if (Check("="))
             {
                 Next(); // consuma '='
-                // Ispeziona l'inizializzatore per catturare 'new Type()'
+                // Inspect initializer to catch 'new Type()'
                 ParseFieldInitializer(enclosingType, firstFieldNameToken);
             }
 
@@ -1241,7 +1241,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Analizza l'espressione di inizializzazione inline di un campo per intercettare creazioni di oggetti 'new'.
+    /// Parses a field's inline initialization expression to intercept creations of 'new' objects.
     /// </summary>
     private void ParseFieldInitializer(Symbol enclosingType, JavaToken fieldToken)
     {
@@ -1281,7 +1281,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Estrae la lista dei parametri formali di un metodo o costruttore Java.
+    /// Extracts the list of formal parameters of a Java method or constructor.
     /// </summary>
     private void ExtractParameters(Symbol routineSymbol)
     {
@@ -1300,7 +1300,7 @@ internal sealed class JavaFileParser
             if (Check(JavaTokenType.Identifier))
             {
                 var pname = Next().Value;
-                // Notazione array sul nome del parametro: byte buffer[]
+                // Array notation on parameter name: byte buffer[]
                 while (Match("["))
                 {
                     Match("]");
@@ -1323,7 +1323,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Salta la clausola 'throws Exception1, Exception2'.
+    /// Skip the 'throws Exception1, Exception2' clause.
     /// </summary>
     private void SkipThrows()
     {
@@ -1337,7 +1337,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Salta i parametri di tipo generico '<...>' gestendo l'annidamento.
+    /// Skip generic type parameters '<...>' managing nesting.
     /// </summary>
     private void SkipTypeParameters()
     {
@@ -1354,7 +1354,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Estrae e ripulisce il nome di un tipo Java (gestendo generics, array [] e package completi).
+    /// Extracts and cleans up the name of a Java type (handling generics, arrays [], and complete packages).
     /// </summary>
     private string ParseTypeName()
     {
@@ -1387,7 +1387,7 @@ internal sealed class JavaFileParser
             }
         }
 
-        // Notazione array: String[] o int[][]
+        // Array notation: String[] or int[][]
         while (Match("["))
         {
             Match("]");
@@ -1399,7 +1399,7 @@ internal sealed class JavaFileParser
     }
 
     /// <summary>
-    /// Restituisce il nome semplice del tipo rimuovendo generics e prefissi di package.
+    /// Returns the simple name of the type by removing generics and package prefixes.
     /// </summary>
     private static string GetSimpleTypeName(string rawName)
     {
@@ -1415,9 +1415,9 @@ internal sealed class JavaFileParser
     // =========================================================================
 
     /// <summary>
-    /// Attraversa il corpo del metodo analizzando le istruzioni per rilevare:
-    /// 1. Invocazioni di metodi (CALLS): 'service.process()', 'doSomething()', 'super.init()'.
-    /// 2. Creazioni di oggetti (INSTANTIATES): 'new HashMap<>()', 'new Customer(id)'.
+    /// Go through the method body parsing the statements to detect:
+    /// 1. Method invocations (CALLS): 'service.process()', 'doSomething()', 'super.init()'.
+    /// 2. Object creations (INSTANTIATES): 'new HashMap<>()', 'new Customer(id)'.
     /// 3. Method references: 'System.out::println', 'User::getId'.
     /// </summary>
     private void ParseMethodBody(Symbol callerSymbol)
@@ -1443,7 +1443,7 @@ internal sealed class JavaFileParser
                 continue;
             }
 
-            // 1. Riconoscimento 'new TypeName(...)'
+            // 1. Recognizing 'new TypeName(...)'
             if (Match("new"))
             {
                 var line = Peek(-1).Line;
@@ -1460,7 +1460,7 @@ internal sealed class JavaFileParser
                 continue;
             }
 
-            // 2. Riconoscimento Invocazioni e Accessi a Metodi
+            // 2. Recognition of Invocations and Accesses to Methods
             if (Check(JavaTokenType.Identifier))
             {
                 var idTok = Next();
@@ -1468,7 +1468,7 @@ internal sealed class JavaFileParser
 
                 if (Check("("))
                 {
-                    // Invocazione diretta o con ricevitore precedente: receiver.methodName(...)
+                    // Invocation directly or with previous receiver: receiver.methodName(...)
                     _callSites.Add(new JavaCallSite
                     {
                         CallerSymbol = callerSymbol,
@@ -1481,7 +1481,7 @@ internal sealed class JavaFileParser
                 }
                 else if (Check("."))
                 {
-                    // Accesso a membro 'receiver.'
+                    // Access to member 'receiver.'
                     lastReceiver = idTok.Value;
                     lastReceiverLine = line;
                     Next(); // consuma '.'
@@ -1517,7 +1517,7 @@ internal sealed class JavaFileParser
                 }
                 else if (Check("("))
                 {
-                    // Chiamata esplicita al costruttore 'super(...)' o 'this(...)'
+                    // Explicit call to constructor 'super(...)' or 'this(...)'
                     _callSites.Add(new JavaCallSite
                     {
                         CallerSymbol = callerSymbol,

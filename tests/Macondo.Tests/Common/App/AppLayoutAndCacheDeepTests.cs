@@ -12,8 +12,8 @@ public class AppLayoutAndCacheDeepTests
     #region Layout Engines Star Topology and High Degree Nodes
 
     /// <summary>
-    /// Verifica che i motori di layout gestiscano topologie a stella ad alto grado
-    /// (1 nodo centrale connesso a 50 nodi foglia satellite) senza generare sovrapposizioni a raggio zero,
+    /// Verify that layout engines handle high-degree star topologies
+    /// (1 central node connected to 50 satellite leaf nodes) without generating zero radius overlaps,
     /// valori NaN o coordinate infinite.
     /// </summary>
     [Theory]
@@ -79,8 +79,8 @@ public class AppLayoutAndCacheDeepTests
     #region GraphVisualAdapter Multi-Level Hierarchy
 
     /// <summary>
-    /// Verifica che GraphVisualAdapter mantenga l'integrità della gerarchia genitore-figlio (ParentId)
-    /// attraverso una catena a 3 livelli (Progetto -> Modulo -> Metodo).
+    /// Verify that GraphVisualAdapter maintains the integrity of the parent-child hierarchy (ParentId)
+    /// through a 3-level chain (Project -> Module -> Method).
     /// </summary>
     [Fact]
     public void GraphVisualAdapter_ShouldPreserveThreeLevelParentHierarchy()
@@ -116,8 +116,8 @@ public class AppLayoutAndCacheDeepTests
     #region ProjectCacheService Resilience on Corrupted Data
 
     /// <summary>
-    /// Verifica che ProjectCacheService sia resiliente di fronte a stringhe JSON corrotte,
-    /// incomplete o con strutture errate, senza mandare in crash l'applicazione.
+    /// Verify that ProjectCacheService is resilient to corrupt JSON strings,
+    /// incomplete or with incorrect structures, without crashing the application.
     /// </summary>
     [Theory]
     [InlineData("")]
@@ -136,7 +136,7 @@ public class AppLayoutAndCacheDeepTests
             }
             catch (Exception)
             {
-                // Un'eccezione gestita è attesa, l'importante è non produrre crash fatali
+                // A handled exception is expected, the important thing is not to produce fatal crashes
                 return null;
             }
         };

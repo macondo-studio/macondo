@@ -4,8 +4,8 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Export;
 
 /// <summary>
-/// Esportatore e deserializzatore del <see cref="CodeGraph"/> in formato JSON.
-/// Consente la persistenza su disco, l'interscambio con strumenti esterni e il caching dell'analisi semantica.
+/// <see cref="CodeGraph"/> exporter and deserializer in JSON format.
+/// It allows disk persistence, interchange with external tools, and semantic analysis caching.
 /// </summary>
 public static class CodeGraphJsonExporter
 {
@@ -22,7 +22,7 @@ public static class CodeGraphJsonExporter
     };
 
     /// <summary>
-    /// Serializza il <see cref="CodeGraph"/> in una stringa JSON.
+    /// Serialize the <see cref="CodeGraph"/> into a JSON string.
     /// </summary>
     public static string ExportToJson(CodeGraph graph, bool indented = true)
     {
@@ -31,7 +31,7 @@ public static class CodeGraphJsonExporter
     }
 
     /// <summary>
-    /// Esporta il context slice di un singolo simbolo e delle sue relazioni inbound/outbound in formato JSON.
+    /// Export the context slice of a single symbol and its inbound/outbound relationships in JSON format.
     /// </summary>
     public static string ExportSliceToJson(CodeGraph graph, Symbol rootSymbol, bool indented = true)
     {
@@ -116,7 +116,7 @@ public static class CodeGraphJsonExporter
     }
 
     /// <summary>
-    /// Converte il <see cref="CodeGraph"/> in un DTO strutturato.
+    /// Converts the <see cref="CodeGraph"/> to a structured DTO.
     /// </summary>
     private static CodeGraphDto ExportToDto(CodeGraph graph)
     {
@@ -177,7 +177,7 @@ public static class CodeGraphJsonExporter
     }
 
     /// <summary>
-    /// Deserializza una stringa JSON ricostruendo un'istanza funzionante di <see cref="CodeGraph"/>.
+    /// Deserialize a JSON string by rebuilding a working instance of <see cref="CodeGraph"/>.
     /// </summary>
     public static CodeGraph ImportFromJson(string json)
     {
@@ -188,7 +188,7 @@ public static class CodeGraphJsonExporter
     }
 
     /// <summary>
-    /// Ricostruisce un'istanza di <see cref="CodeGraph"/> a partire da un <see cref="CodeGraphDto"/>.
+    /// Rebuilds an instance of <see cref="CodeGraph"/> from a <see cref="CodeGraphDto"/>.
     /// </summary>
     private static CodeGraph ImportFromDto(CodeGraphDto dto)
     {

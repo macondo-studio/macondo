@@ -12,17 +12,17 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Controls;
 
 /// <summary>
-/// Controllo custom Avalonia/Skia ad alte prestazioni per il rendering e l'interazione con il CodeGraph (M5 + M6).
+/// High performance Avalonia/Skia custom control for rendering and interaction with CodeGraph (M5 + M6).
 /// 
-/// CARATTERISTICHE E INTERAZIONI:
-/// 1. Zoom: zoom continuo tramite rotella del mouse con stabilità del punto sotto il cursore.
-/// 2. Pan: trascinamento libero del canvas bidimensionale con il tasto sinistro/centrale del mouse.
-/// 3. Select: selezione di un nodo tramite clic con evidenziazione del bordo, degli archi connessi e dei nodi vicini.
-/// 4. Expand / Collapse: doppio clic su container (Class, Form, Module, Type, Enum) per progressive disclosure.
-/// 5. Callers Mode: evidenziazione visiva gerarchica dei chiamanti della routine selezionata.
-/// 6. Callees Mode: evidenziazione visiva gerarchica delle routine chiamate.
-/// 7. Blast Radius Mode (M6): visualizzazione dell'impatto di modifica con gradiente di colore per profondità (Rosso -> Arancione -> Giallo) e Form UI toccate.
-/// 8. Rendering Archi Direzionati con Frecce: CALLS, INSTANTIATES, USES_TYPE, CONTAINS.
+/// FEATURES AND INTERACTIONS:
+/// 1. Zoom: Continuous zoom via mouse wheel with stability of the point under the cursor.
+/// 2. Pan: free dragging of the two-dimensional canvas with the left/central mouse button.
+/// 3. Select: selection of a node by clicking with highlighting of the edge, connected arcs and neighboring nodes.
+/// 4. Expand/Collapse: Double click on containers (Class, Form, Module, Type, Enum) for progressive disclosure.
+/// 5. Callers Mode: hierarchical visual highlighting of the callers of the selected routine.
+/// 6. Callees Mode: hierarchical visual highlighting of called routines.
+/// 7. Blast Radius Mode (M6): Visualization of change impact with color gradient for depth (Red -> Orange -> Yellow) and Form UI touch.
+/// 8. Rendering Directed Arcs with Arrows: CALLS, INSTANTIATES, USES_TYPE, CONTAINS.
 /// </summary>
 public sealed class GraphControl : Control
 {
@@ -35,41 +35,41 @@ public sealed class GraphControl : Control
         set => SetValue(GraphProperty, value);
     }
 
-    /// <summary>Sollevato quando cambia la selezione del nodo.</summary>
+    /// <summary>Raised when node selection changes.</summary>
     public event EventHandler<GraphNode?>? SelectionChanged;
 
-    /// <summary>Sollevato quando cambiano i filtri di visibilità dei simboli.</summary>
+    /// <summary>Raised when symbol visibility filters change.</summary>
     public event EventHandler? FilterChanged;
 
     // =========================================================================
-    // OTTIMIZZAZIONI DI PERFORMANCE & CACHING DEI NODI VISIBILI
+    // PERFORMANCE OPTIMIZATIONS & CACHING OF VISIBLE NODES
     // =========================================================================
-    // L'insieme dei nodi visibili viene memorizzato nella cache per evitare di rieseguire
-    // la scansione O(N) e le allocazioni di HashSet<Guid> ad ogni frame di rendering o
-    // movimento del mouse (HitTest). La cache viene invalidata in modo mirato solo quando
-    // cambiano i filtri, la modalità di evidenziazione, il grafo o lo stato di espansione dei nodi.
+    // The set of visible nodes is cached to avoid re-execution
+    // O(N) scan and HashSet<Guid> allocations at each render frame o
+    // mouse movement (HitTest). The cache is only specifically invalidated when
+    // the filters, highlighting mode, graph or node expansion status change.
     private HashSet<Guid>? _cachedVisibleNodeIds;
     private bool _isVisibilityCacheDirty = true;
 
     // =========================================================================
-    // SPATIAL HASH GRID: INDICIZZAZIONE SPAZIALE 2D PER HIT TESTING O(1)
+    // SPATIAL HASH GRID: 2D SPATIAL INDEXING FOR HIT TESTING O(1)
     // =========================================================================
-    // Suddivide lo spazio euclideo del grafo in celle regolari di 250x250 unità.
-    // Trasforma l'HitTest da una scansione lineare O(N) su 10.000+ nodi ad ogni frame
-    // a una ricerca costante O(1) circoscritta alla sola cella sotto al cursore e alle
-    // sue 8 celle adiacenti (5-15 nodi analizzati anziché 10.000, riducendo del 99.9% i controlli).
+    // Subdivides the Euclidean space of the graph into regular cells of 250x250 units.
+    // Transform the HitTest from an O(N) linear scan across 10,000+ nodes per frame
+    // to a constant O(1) search limited to just the cell under the cursor and the
+    // its 8 adjacent cells (5-15 nodes analyzed instead of 10,000, reducing checks by 99.9%).
     private const double SpatialCellSize = 250.0;
     private readonly Dictionary<long, List<GraphNode>> _spatialGrid = new();
     private bool _isSpatialGridDirty = true;
 
     /// <summary>
-    /// Calcola la chiave hash a 64-bit per una cella della griglia spaziale (cx, cy)
-    /// impacchettando le coordinate intere nei 32 bit alti e bassi.
+    /// Compute the 64-bit hash key for a spatial grid cell (cx, cy)
+    /// packing the integer coordinates into the high and low 32 bits.
     /// </summary>
     private static long GetSpatialCellKey(int cx, int cy) => ((long)cx << 32) | (uint)cy;
 
     /// <summary>
-    /// Invalida l'indice spaziale del grafo forzandone la ricostruzione al successivo HitTest o frame.
+    /// Invalidates the spatial index of the graph, forcing its reconstruction at the next HitTest or frame.
     /// </summary>
     public void InvalidateSpatialIndex()
     {
@@ -77,8 +77,8 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Invalida la cache dei nodi visibili, forzandone il ricalcolo al frame successivo
-    /// e richiedendo un ridisegno immediato del controllo.
+    /// Invalidates the visible node cache, forcing it to be recalculated at the next frame
+    /// and requiring an immediate redesign of the control.
     /// </summary>
     public void InvalidateVisibilityCache()
     {
@@ -162,7 +162,7 @@ public sealed class GraphControl : Control
     }
 
     private bool _enableHoverSelection = true;
-    /// <summary>Indica se la selezione e ispezione dei nodi avviene automaticamente al passaggio del puntatore del mouse (Hover).</summary>
+    /// <summary>Indicates whether node selection and inspection occurs automatically when the mouse pointer passes over (Hover).</summary>
     public bool EnableHoverSelection
     {
         get => _enableHoverSelection;
@@ -181,7 +181,7 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Imposta simultaneamente tutti i filtri di visibilità per tipologia di simbolo.
+    /// Simultaneously set all visibility filters by symbol type.
     /// </summary>
     public void SetFilters(
         bool methods,
@@ -200,7 +200,7 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Calcola il numero di nodi visibili e totali nel grafo corrente.
+    /// Calculates the number of visible and total nodes in the current graph.
     /// </summary>
     public (int visibleNodes, int totalNodes) GetNodeCounts()
     {
@@ -210,19 +210,19 @@ public sealed class GraphControl : Control
     }
 
     private readonly HashSet<Guid> _hiddenProjectIds = new();
-    /// <summary>Insieme di ID dei progetti nascosti nel grafo.</summary>
+    /// <summary>Set of project IDs hidden in the graph.</summary>
     public IReadOnlySet<Guid> HiddenProjectIds => _hiddenProjectIds;
 
-    /// <summary>Sollevato quando cambia la visibilità di un progetto nel grafo.</summary>
+    /// <summary>Raised when the visibility of a project in the graph changes.</summary>
     public event EventHandler<Guid>? ProjectVisibilityChanged;
 
-    /// <summary>Sollevato quando l'utente termina lo spostamento/trascinamento di un nodo con il mouse.</summary>
+    /// <summary>Raised when the user finishes moving/dragging a node with the mouse.</summary>
     public event EventHandler? NodeMoved;
 
-    /// <summary>Verifica se un progetto è visibile nel grafo.</summary>
+    /// <summary>Checks if a project is visible in the graph.</summary>
     public bool IsProjectVisible(Guid projectId) => !_hiddenProjectIds.Contains(projectId);
 
-    /// <summary>Imposta la visibilità di un progetto nel grafo.</summary>
+    /// <summary>Set the visibility of a project in the graph.</summary>
     public void SetProjectVisibility(Guid projectId, bool isVisible)
     {
         if (isVisible)
@@ -235,7 +235,7 @@ public sealed class GraphControl : Control
             if (!_hiddenProjectIds.Add(projectId))
                 return;
 
-            // Se il nodo selezionato appartiene al progetto nascosto, deselezionalo
+            // If the selected node belongs to the hidden project, deselect it
             if (_selectedNode != null)
             {
                 var isSelectedInProject = (_selectedNode.Kind == SymbolKind.Project && _selectedNode.Id == projectId) ||
@@ -249,7 +249,7 @@ public sealed class GraphControl : Control
         ProjectVisibilityChanged?.Invoke(this, projectId);
     }
 
-    /// <summary>Rende visibili tutti i progetti nel grafo.</summary>
+    /// <summary>Makes all projects in the graph visible.</summary>
     public void ClearHiddenProjects()
     {
         if (_hiddenProjectIds.Count == 0) return;
@@ -258,7 +258,7 @@ public sealed class GraphControl : Control
         ProjectVisibilityChanged?.Invoke(this, Guid.Empty);
     }
 
-    /// <summary>Calcola il numero di progetti visibili e totali nel grafo corrente.</summary>
+    /// <summary>Calculates the number of visible and total projects in the current graph.</summary>
     public (int visibleProjects, int totalProjects) GetProjectCounts()
     {
         if (Graph is not { } graph) return (0, 0);
@@ -269,12 +269,12 @@ public sealed class GraphControl : Control
         return (visible, total);
     }
 
-    // Trasformazioni di vista (Zoom & Pan)
+    // View Transformations (Zoom & Pan)
     private double _scale = 1.0;
     private double _offsetX;
     private double _offsetY;
 
-    // Stato di interazione puntatore e trascinamento nodi
+    // State of pointer interaction and dragging nodes
     private Point _pointerDownScreenPos;
     private bool _isPointerDown;
     private bool _isPanning;
@@ -283,9 +283,9 @@ public sealed class GraphControl : Control
     private Point _lastDragGraphPos;
     private const double PanThreshold = 4.0;
 
-    // Stato di selezione ed evidenziazione
+    // Selection and highlighting status
     private GraphNode? _selectedNode;
-    /// <summary>Nodo attualmente selezionato nel grafo.</summary>
+    /// <summary>Node currently selected in the graph.</summary>
     public GraphNode? SelectedNode => _selectedNode;
     private readonly HashSet<Guid> _highlightedNodeIds = new();
     private readonly HashSet<Guid> _callerNodeIds = new();
@@ -296,12 +296,12 @@ public sealed class GraphControl : Control
     private readonly HashSet<(Guid, Guid)> _callerEdgeIds = new();
     private readonly HashSet<(Guid, Guid)> _highlightedEdges = new();
 
-    // Stato Blast Radius (M6)
+    // Blast Radius Status (M6)
     private readonly Dictionary<Guid, int> _blastRadiusDepths = new();
     private readonly HashSet<Guid> _affectedContainerIds = new();
     private ImpactReport? _activeBlastRadiusReport;
 
-    // Modalità di evidenziazione
+    // Highlight mode
     private HighlightMode _currentHighlightMode = HighlightMode.Normal;
     public HighlightMode CurrentHighlightMode => _currentHighlightMode;
 
@@ -325,7 +325,7 @@ public sealed class GraphControl : Control
     private static readonly IPen TargetBlastOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#FF3344")), 3.5);
     private static readonly IPen FormBlastOutlinePen = new Pen(new SolidColorBrush(Color.Parse("#00D0FF")), 2.5);
 
-    // Palette statica di pennelli pre-allocati per eliminare le allocazioni GC a ogni frame di rendering
+    // Static palette of pre-allocated brushes to eliminate GC allocations at each render frame
     private static readonly IBrush BrushProject = new SolidColorBrush(Color.Parse("#E85D75"));
     private static readonly IBrush BrushForm = new SolidColorBrush(Color.Parse("#4FA8E8"));
     private static readonly IBrush BrushClass = new SolidColorBrush(Color.Parse("#54C08C"));
@@ -361,10 +361,10 @@ public sealed class GraphControl : Control
     // =========================================================================
     // CACHING FLYWEIGHT FORMATTED TEXT & PENNELLI ETICHETTE
     // =========================================================================
-    // La generazione di FormattedText in Avalonia/Skia implica il layout del testo,
-    // misurazione e font shaping via HarfBuzz. Creare istanze ad ogni frame provoca
-    // centinaia di migliaia di allocazioni al secondo e cali drastici di framerate.
-    // Questa cache Flyweight memorizza il testo formattato e lo riutilizza a costo zero.
+    // Generating FormattedText in Avalonia/Skia involves text layout,
+    // measurement and font shaping via HarfBuzz. Creating instances every frame causes
+    // hundreds of thousands of allocations per second and drastic framerate drops.
+    // This Flyweight cache stores formatted text and reuses it at no cost.
     private static readonly IBrush BrushLabelSelectedDark = Brushes.Gold;
     private static readonly IBrush BrushLabelSelectedLight = new SolidColorBrush(Color.Parse("#B36200"));
     private static readonly IBrush BrushLabelCalleeDark = new SolidColorBrush(Color.Parse("#00D0FF"));
@@ -377,8 +377,8 @@ public sealed class GraphControl : Control
     private readonly Dictionary<(string text, int fontSize, IBrush brush), FormattedText> _formattedTextCache = new();
 
     /// <summary>
-    /// Restituisce un'istanza pre-formattata di <see cref="FormattedText"/> dalla cache interna,
-    /// oppure ne crea una nuova inserendola in cache per i frame successivi (zero allocazioni a regime).
+    /// Returns a pre-formatted instance of <see cref="FormattedText"/> from the internal cache,
+    /// or it creates a new one by inserting it into the cache for subsequent frames (zero allocations when fully operational).
     /// </summary>
     private FormattedText GetOrCreateFormattedText(string text, int fontSize, IBrush brush)
     {
@@ -393,7 +393,7 @@ public sealed class GraphControl : Control
                 fontSize,
                 brush);
 
-            // Svuota periodicamente la cache se supera la soglia di sicurezza (es. carichi dinamici enormi)
+            // Periodically clear the cache if it exceeds the safety threshold (e.g. huge dynamic loads)
             if (_formattedTextCache.Count > 4000)
                 _formattedTextCache.Clear();
 
@@ -406,15 +406,15 @@ public sealed class GraphControl : Control
     private static readonly Typeface LabelTypeface = new("Inter", FontStyle.Normal, FontWeight.Medium);
 
     // =========================================================================
-    // BATCHING DELLE GEOMETRIE DEGLI ARCHI (Draw Call Reduction da 16k a < 10)
+    // BATCHING OF ARC GEOMETRIES (Draw Call Reduction from 16k to < 10)
     // =========================================================================
-    // Invece di invocare DrawingContext.DrawLine singolarmente per ogni arco (che genererebbe
-    // oltre 16.000 draw commands distinti per frame), le linee e le frecce visibili vengono
-    // raggruppate per stile/penna in accumulatori continui pre-allocati.
-    // Ciascun gruppo viene poi disegnato con un unico StreamGeometry multipart: la GPU
-    // e Skia rasterizzano l'intero grafo in meno di 10 draw calls complessive.
+    // Instead of invoking DrawingContext.DrawLine individually for each arc (which would generate
+    // over 16,000 distinct draw commands per frame), visible lines and arrows are
+    // grouped by style/pen in pre-allocated continuous accumulators.
+    // Each group is then drawn with a single multipart StreamGeometry: the GPU
+    // and Skia rasterize the entire graph in less than 10 draw calls overall.
 
-    /// <summary>Rappresenta un segmento di linea non orientato tra due punti a schermo.</summary>
+    /// <summary>Represents an unoriented line segment between two points on the screen.</summary>
     private readonly struct LineSegment
     {
         public readonly Point P1;
@@ -427,7 +427,7 @@ public sealed class GraphControl : Control
         }
     }
 
-    /// <summary>Accumulatore di segmenti di linea associati a una specifica penna di rendering.</summary>
+    /// <summary>Accumulator of line segments associated with a specific rendering pen.</summary>
     private sealed class EdgeBatch
     {
         public IPen Pen { get; set; }
@@ -453,8 +453,8 @@ public sealed class GraphControl : Control
     private readonly EdgeBatch _batchDimmed;
     private readonly EdgeBatch[] _allEdgeBatches;
 
-    // Timer di debouncing per l'Hover Selection: evita di scatenare decine di aggiornamenti
-    // pesanti su ViewModel e pannelli laterali durante il transito rapido del puntatore sui nodi.
+    // Debouncing timer for Hover Selection: avoid unleashing dozens of updates
+    // heavy on ViewModel and side panels during rapid pointer transit over nodes.
     private readonly DispatcherTimer _hoverDebounceTimer;
     private GraphNode? _pendingHoverNode;
 
@@ -532,9 +532,9 @@ public sealed class GraphControl : Control
             return;
         }
 
-        // Verifica e aggiorna la cache dei nodi visibili solo se contrassegnata come dirty.
-        // Evita di rieseguire ComputeVisibleNodeIds (scansione lineare di tutti i simboli con allocazione di un nuovo HashSet)
-        // a ogni singolo frame di rendering (es. durante pan o zoom continui).
+        // Check and update the visible node cache only if marked dirty.
+        // Avoid rerunning ComputeVisibleNodeIds (linear scan of all symbols with allocation of a new HashSet)
+        // to each single rendering frame (e.g. during continuous panning or zooming).
         if (_isVisibilityCacheDirty || _cachedVisibleNodeIds == null)
         {
             _cachedVisibleNodeIds = ComputeVisibleNodeIds(graph);
@@ -546,12 +546,12 @@ public sealed class GraphControl : Control
         var viewHeight = Bounds.Height;
 
         // =========================================================================
-        // VIEWPORT INVERSO (Coordinate Grafo): Culling O(1) prima delle conversioni
+        // REVERSE VIEWPORT (Coordinate Graph): Culling O(1) before conversions
         // =========================================================================
-        // Invece di calcolare GraphToScreen per tutti i 16.000 archi e 10.000 nodi ad ogni frame,
-        // convertiamo il rettangolo dello schermo una sola volta nello spazio cartesiano del grafo.
-        // Gli elementi fuori visuale vengono scartati con semplici confronti float, risparmiando
-        // decine di migliaia di calcoli trigonometrici e conversioni di matrici a ogni frame.
+        // Instead of calculating GraphToScreen for all 16,000 edges and 10,000 nodes at each frame,
+        // we convert the screen rectangle only once into the Cartesian space of the graph.
+        // Out-of-view elements are discarded with simple float comparisons, saving money
+        // tens of thousands of trigonometric calculations and matrix conversions every frame.
         var pTopLeft = ScreenToGraph(new Point(-50, -50));
         var pBottomRight = ScreenToGraph(new Point(viewWidth + 50, viewHeight + 50));
         var viewMinX = Math.Min(pTopLeft.X, pBottomRight.X);
@@ -560,15 +560,15 @@ public sealed class GraphControl : Control
         var viewMaxY = Math.Max(pTopLeft.Y, pBottomRight.Y);
 
         // =========================================================================
-        // 1. RENDERING BATCHED DEGLI ARCHI (Sotto ai nodi)
+        // 1. BATCHED RENDERING OF THE ARCHES (Under the nodes)
         // =========================================================================
-        // Svuota gli accumulatori pre-allocati (zero allocazioni GC)
+        // Empty pre-allocated accumulators (zero GC allocations)
         for (var i = 0; i < _allEdgeBatches.Length; i++)
             _allEdgeBatches[i].Clear();
 
         foreach (var edge in graph.Edges)
         {
-            // Salta gli archi i cui nodi estremi non sono entrambi visibili nella gerarchia attiva
+            // Skips edges whose end nodes are not both visible in the active hierarchy
             if (!visibleIds.Contains(edge.SourceId) || !visibleIds.Contains(edge.TargetId))
                 continue;
 
@@ -576,7 +576,7 @@ public sealed class GraphControl : Control
             var target = graph.GetNode(edge.TargetId);
             if (source is null || target is null) continue;
 
-            // Viewport edge culling in coordinate grafo: scarta l'arco prima delle conversioni a schermo
+            // Viewport edge culling in graph coordinates: discard the edge before screen conversions
             var eMinX = Math.Min(source.X, target.X);
             var eMaxX = Math.Max(source.X, target.X);
             var eMinY = Math.Min(source.Y, target.Y);
@@ -585,7 +585,7 @@ public sealed class GraphControl : Control
             if (eMaxX < viewMinX || eMinX > viewMaxX || eMaxY < viewMinY || eMinY > viewMaxY)
                 continue;
 
-            // Proietta a schermo solo i segmenti effettivamente intersecati dal viewport
+            // Projects onto the screen only the segments actually intersected by the viewport
             var p1 = GraphToScreen(source.X, source.Y);
             var p2 = GraphToScreen(target.X, target.Y);
 
@@ -596,7 +596,7 @@ public sealed class GraphControl : Control
                                     (_blastRadiusDepths.ContainsKey(edge.TargetId) || _selectedNode?.Id == edge.TargetId);
             var isHighlighted = _highlightedEdges.Contains((edge.SourceId, edge.TargetId));
 
-            // Classifica l'arco nell'accumulatore corrispondente allo stile visivo attivo
+            // Classifies the arc in the accumulator corresponding to the active visual style
             EdgeBatch targetBatch;
             if (isCalleeEdge)
                 targetBatch = _batchCallee;
@@ -615,7 +615,7 @@ public sealed class GraphControl : Control
 
             targetBatch.AddLine(p1, p2);
 
-            // LOD Frecce: mostra le frecce solo se l'arco è attivo/evidenziato oppure se lo zoom è sufficiente (scale >= 0.45)
+            // LOD Arrows: shows the arrows only if the arc is active/highlighted or if the zoom is sufficient (scale >= 0.45)
             var shouldDrawArrow = (isCalleeEdge || isCallerEdge || isBlastRadiusEdge || isHighlighted) ||
                 (_scale >= 0.45 && (edge.IsCrossProject || edge.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.HandlesEvent));
 
@@ -634,15 +634,15 @@ public sealed class GraphControl : Control
                     var a1 = new Point(tip.X - ux * arrowSize + uy * (arrowSize * 0.6), tip.Y - uy * arrowSize - ux * (arrowSize * 0.6));
                     var a2 = new Point(tip.X - ux * arrowSize - uy * (arrowSize * 0.6), tip.Y - uy * arrowSize + ux * (arrowSize * 0.6));
 
-                    // Aggiunge le due cuspidi della freccia allo stesso batch della linea (zero allocazioni)
+                    // Adds the two arrow cusps to the same line batch (zero allocations)
                     targetBatch.AddLine(tip, a1);
                     targetBatch.AddLine(tip, a2);
                 }
             }
         }
 
-        // Emette le geometrie batched degli archi: converte migliaia di segmenti in un unico StreamGeometry
-        // per penna, eseguendo al massimo 11 draw calls GPU per l'intera rete relazionale.
+        // Outputs batched arc geometries: converts thousands of segments into a single StreamGeometry
+        // per pen, executing at most 11 GPU draw calls for the entire relational network.
         for (var i = 0; i < _allEdgeBatches.Length; i++)
         {
             var batch = _allEdgeBatches[i];
@@ -664,14 +664,14 @@ public sealed class GraphControl : Control
         }
 
         // =========================================================================
-        // 2. RENDERING DEI NODI (Sopra agli archi)
+        // 2. RENDERING OF THE NODES (Above the arcs)
         // =========================================================================
         foreach (var node in graph.Nodes)
         {
             if (!visibleIds.Contains(node.Id)) continue;
 
             var nodeRadius = node.Radius;
-            // Viewport culling in coordinate grafo: scarta il nodo prima delle conversioni a schermo
+            // Viewport culling in graph coordinates: discard the node before screen conversions
             if (node.X + nodeRadius < viewMinX || node.X - nodeRadius > viewMaxX ||
                 node.Y + nodeRadius < viewMinY || node.Y - nodeRadius > viewMaxY)
                 continue;
@@ -679,7 +679,7 @@ public sealed class GraphControl : Control
             var screenPos = GraphToScreen(node.X, node.Y);
             var radius = Math.Max(nodeRadius * Math.Min(_scale, 2.5), 1.0);
 
-            // Viewport culling per performance
+            // Viewport culling for performance
             if (screenPos.X < -radius - 50 || screenPos.Y < -radius - 50 ||
                 screenPos.X - radius > Bounds.Width + 50 || screenPos.Y - radius > Bounds.Height + 50)
                 continue;
@@ -700,7 +700,7 @@ public sealed class GraphControl : Control
 
             context.DrawEllipse(fill, outlinePen, screenPos, radius, radius);
 
-            // Indicatore visivo di container espanso/compresso
+            // Expanded/compressed container visual indicator
             if (node.IsContainer && radius >= 4)
             {
                 IBrush markerColor = node.IsExpanded 
@@ -710,7 +710,7 @@ public sealed class GraphControl : Control
                 context.DrawEllipse(markerColor, null, screenPos, markerRadius, markerRadius);
             }
 
-            // Etichetta del nodo: Level of Detail (LOD) e FormattedText da cache a zero allocazioni
+            // Node Label: Level of Detail (LOD) and FormattedText from cache to zero allocations
             var isProminent = isSelected || isHighlighted || isCaller || isCallee || (isInBlastRadius && blastDepth.HasValue);
             var showLabel = isProminent ? radius >= 4.0 : (node.IsContainer ? radius >= 7.0 : radius >= 11.0);
 
@@ -739,9 +739,9 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Restituisce il batch di disegno per il tipo di relazione specificato.
-    /// Distingue visivamente archi di chiamata (linea continua blu), gestione eventi (tratteggiata arancione),
-    /// istanziazione (tratteggiata ambra), uso tipo (puntinata verde smeraldo) o contenimento (grigio scuro/chiaro).
+    /// Returns the drawing batch for the specified relationship type.
+    /// Visually distinguishes call arcs (solid blue line), event management (dashed orange),
+    /// instantiation (dotted amber), typical use (dotted emerald green) or containment (dark/light grey).
     /// </summary>
     private EdgeBatch GetBatchForEdgeKind(RelationshipKind kind) => kind switch
     {
@@ -753,11 +753,11 @@ public sealed class GraphControl : Control
     };
 
     /// <summary>
-    /// Determina il pennello di riempimento del nodo in base allo stato di interazione corrente:
-    /// 1. Modalità Blast Radius: gradiente di rischio (Rosso = Target, Arancione/Ambra/Giallo = Chiamanti per livello di profondità, Ciano = Form UI impattate).
-    /// 2. Modalità Callees: Oro per il nodo sorgente, Ciano per le routine chiamate, Slate per i relativi moduli.
-    /// 3. Modalità Callers: Oro per il nodo target, Ambra per i chiamanti, Slate per i relativi moduli.
-    /// 4. Modalità Normale: tavolozza semantica per SymbolKind (Form, Class, Module, Method, Property, Field, Constant, Type, Enum).
+    /// Determines the node's fill brush based on the current interaction state:
+    /// 1. Blast Radius Mode: Risk Gradient (Red = Target, Orange/Amber/Yellow = Callers by Depth Level, Cyan = Impacted UI Forms).
+    /// 2. Callees mode: Gold for source node, Cyan for called routines, Slate for related modules.
+    /// 3. Callers Mode: Gold for target node, Amber for callers, Slate for related modules.
+    /// 4. Normal Mode: Semantic palette for SymbolKind (Form, Class, Module, Method, Property, Field, Constant, Type, Enum).
     /// </summary>
     private IBrush GetNodeBrush(
         GraphNode node,
@@ -769,7 +769,7 @@ public sealed class GraphControl : Control
         int? blastDepth,
         bool isAffectedContainer)
     {
-        // Se siamo in modalità Blast Radius: colora in base alla profondità di rischio
+        // If we are in Blast Radius mode: color based on risk depth
         if (isInBlastRadius)
         {
             if (isSelected)
@@ -790,11 +790,11 @@ public sealed class GraphControl : Control
                     ? BrushAffectedForm // Form UI toccata
                     : BrushAffectedContainer; // Classe/Modulo toccato
 
-            // Nodi non impattati: attenuati
+            // Unimpacted nodes: attenuated
             return _isDarkTheme ? BrushDimmedDark : BrushDimmedLight;
         }
 
-        // Modalità Callees: evidenzia il chiamante sorgente, le routine chiamate (Cyan) e i loro container
+        // Callees mode: Highlights the source caller, the called routines (Cyan), and their containers
         if (_currentHighlightMode == HighlightMode.Callees)
         {
             if (isSelected) return BrushSelected;
@@ -802,7 +802,7 @@ public sealed class GraphControl : Control
 
             if (_selectedNode is { IsContainer: true } && node.ParentId == _selectedNode.Id)
             {
-                // Routine interna del container che effettua chiamate
+                // Internal routine of the container that makes calls
                 if (_calleeEdgeIds.Any(e => e.Item1 == node.Id))
                     return BrushRoutineInnerCall;
             }
@@ -818,7 +818,7 @@ public sealed class GraphControl : Control
             return _isDarkTheme ? BrushDimmedAltDark : BrushDimmedLight;
         }
 
-        // Modalità Callers: evidenzia la routine target, i chiamanti (Amber/Orange) e i loro container
+        // Callers Mode: Highlights the target routine, callers (Amber/Orange) and their containers
         if (_currentHighlightMode == HighlightMode.Callers)
         {
             if (isSelected) return BrushSelected;
@@ -826,7 +826,7 @@ public sealed class GraphControl : Control
 
             if (_selectedNode is { IsContainer: true } && node.ParentId == _selectedNode.Id)
             {
-                // Routine interna del container chiamata dall'esterno
+                // Internal container routine called from outside
                 if (_callerEdgeIds.Any(e => e.Item2 == node.Id))
                     return BrushRoutineInnerCall;
             }
@@ -864,18 +864,18 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Progressive disclosure e filtraggio per livelli/categorie:
-    /// - I container principali (Project, Form, Class, Module, UserControl) sono sempre presenti nello scheletro architetturale.
-    /// - I membri figli e le tipologie sono visibili solo se il relativo container è espanso E la rispettiva categoria è abilitata nel filtro.
-    /// - Quando un container o un suo membro è selezionato o espanso, tutti i membri di quel container sono resi visibili indipendentemente dal filtro di dettaglio.
-    /// - In modalità Blast Radius o Callees/Callers, i nodi impattati e il percorso di chiamata vengono forzati visibili.
+    /// Progressive disclosure and filtering by levels/categories:
+    /// - The main containers (Project, Form, Class, Module, UserControl) are always present in the architectural skeleton.
+    /// - Child members and types are only visible if the relevant container is expanded AND the respective category is enabled in the filter.
+    /// - When a container or its member is selected or expanded, all members of that container are made visible regardless of the detail filter.
+    /// - In Blast Radius or Callees/Callers mode, impacted nodes and call path are forced visible.
     /// </summary>
     private HashSet<Guid> ComputeVisibleNodeIds(VisualCodeGraph graph)
     {
         var visible = new HashSet<Guid>();
         foreach (var node in graph.Nodes)
         {
-            // Se il progetto a cui appartiene il nodo o il nodo radice di progetto è nascosto, ignoralo
+            // If the project to which the node belongs or the project root node is hidden, ignore it
             if (node.ProjectId.HasValue && _hiddenProjectIds.Contains(node.ProjectId.Value))
                 continue;
             if (node.Kind == SymbolKind.Project && _hiddenProjectIds.Contains(node.Id))
@@ -890,10 +890,10 @@ public sealed class GraphControl : Control
                 continue;
             }
 
-            // Un membro è forzato visibile se:
-            // 1. È nel raggio di blast radius o nei percorsi di chiamata calcolati
-            // 2. È il nodo attualmente selezionato
-            // 3. È un membro del container attualmente selezionato o condivide il container con il membro selezionato
+            // A member is forced visible if:
+            // 1. Is within blast radius or calculated call paths
+            // 2. This is the currently selected node
+            // 3. Is a member of the currently selected container or shares the container with the selected member
             var isChildOfSelected = _selectedNode != null && (node.ParentId == _selectedNode.Id || (_selectedNode.ParentId.HasValue && node.ParentId == _selectedNode.ParentId));
 
             var isForcedVisible = _blastRadiusDepths.ContainsKey(node.Id) ||
@@ -902,7 +902,7 @@ public sealed class GraphControl : Control
                                   _selectedNode?.Id == node.Id ||
                                   isChildOfSelected;
 
-            // Verifica se la categoria del simbolo è abilitata nel filtro attivo
+            // Check if the symbol category is enabled in the active filter
             var isCategoryEnabled = node.Kind switch
             {
                 SymbolKind.Method => ShowMethods,
@@ -913,7 +913,7 @@ public sealed class GraphControl : Control
                 _ => true
             };
 
-            // Se la categoria non è abilitata nel filtro e il nodo non è forzato/selezionato, non mostrarlo
+            // If the category is not enabled in the filter and the node is not forced/selected, do not show it
             if (!isCategoryEnabled && !isForcedVisible)
 
                 continue;
@@ -927,7 +927,7 @@ public sealed class GraphControl : Control
     }
 
     // =========================================================================
-    // TRASFORMAZIONI DI COORDINATE (Pan & Zoom)
+    // COORDINATE TRANSFORMATIONS (Pan & Zoom)
     // =========================================================================
 
     public Point GraphToScreen(double x, double y) =>
@@ -945,7 +945,7 @@ public sealed class GraphControl : Control
         InvalidateVisual();
     }
 
-    /// <summary>Centra la vista del canvas su un nodo specifico.</summary>
+    /// <summary>Centers the canvas view on a specific node.</summary>
     public void FocusOnNode(Guid nodeId)
     {
         var node = Graph?.GetNode(nodeId);
@@ -957,11 +957,11 @@ public sealed class GraphControl : Control
     }
 
     // =========================================================================
-    // GESTIONE INPUT PUNTATORE (Pan, Zoom, Drag Nodi, Clic, Doppio Clic)
+    // POINTER INPUT MANAGEMENT (Pan, Zoom, Drag Nodes, Click, Double Click)
     // =========================================================================
 
     /// <summary>
-    /// Sposta un nodo e ricorsivamente tutti i suoi nodi discendenti (figli diretti e indiretti) dello stesso vettore delta.
+    /// Move a node and recursively all its descendant nodes (direct and indirect children) of the same delta vector.
     /// </summary>
     private void MoveNodeAndDescendants(GraphNode rootNode, double deltaX, double deltaY)
     {
@@ -1068,11 +1068,11 @@ public sealed class GraphControl : Control
 
             if (hit != null)
             {
-                // Aggiorna istantaneamente il cursore visivo (Hand) senza alcun ritardo percettibile
+                // Instantly updates the visual cursor (Hand) without any perceptible delay
                 Cursor = new Cursor(StandardCursorType.Hand);
 
-                // Debounce di 45ms per la selezione effettiva: evita di scatenare decine di eventi
-                // SelectionChanged e ricalcoli pesanti su chiamanti/callees quando il cursore attraversa rapidamente i nodi
+                // 45ms debounce for actual selection: avoid triggering dozens of events
+                // SelectionChanged and heavy recalculations on callers/callees when cursor rapidly crosses nodes
                 if (hit.Id != _selectedNode?.Id && hit.Id != _pendingHoverNode?.Id)
                 {
                     _pendingHoverNode = hit;
@@ -1145,8 +1145,8 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Gestisce l'evento di doppio clic per implementare il progressive disclosure:
-    /// se il cursore si trova su un nodo container (Class, Form, Module, Type, Enum), ne alterna lo stato di espansione.
+    /// Handles the double-click event to implement progressive disclosure:
+    /// if the cursor is on a container node (Class, Form, Module, Type, Enum), it toggles its expansion state.
     /// </summary>
     private void OnDoubleTapped(object? sender, TappedEventArgs e)
     {
@@ -1181,8 +1181,8 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Ricostruisce la griglia spaziale (Spatial Hash Grid) raggruppando i nodi in celle di 250x250 coordinate grafo.
-    /// Consente ricerche e collision test O(1) con zero allocazioni a regime.
+    /// It reconstructs the spatial grid (Spatial Hash Grid) by grouping the nodes into cells of 250x250 graph coordinates.
+    /// Allows O(1) searches and collision tests with zero allocations at steady state.
     /// </summary>
     private void RebuildSpatialGrid(VisualCodeGraph graph)
     {
@@ -1203,19 +1203,19 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Esegue il rilevamento del nodo sotto il cursore (Hit Testing) nello spazio coordinate del grafo.
-    /// Utilizza la griglia spaziale (Spatial Hash Grid) O(1) per ispezionare solo i nodi delle celle limitrofe
-    /// al cursore, garantendo risposta istantanea a 0 ritardi anche con decine di migliaia di nodi.
+    /// Performs detection of the node under the cursor (Hit Testing) in the coordinate space of the graph.
+    /// Use the O(1) Spatial Hash Grid to inspect only the nodes of neighboring cells
+    /// to the cursor, ensuring instant response with 0 delays even with tens of thousands of nodes.
     /// </summary>
-    /// <param name="graphPoint">Coordinate del puntatore convertite nello spazio cartesiano del grafo.</param>
-    /// <returns>Il <see cref="GraphNode"/> più vicino entro il raggio di tolleranza, oppure null.</returns>
+    /// <param name="graphPoint">Pointer coordinates converted to the Cartesian space of the graph.</param>
+    /// <returns>The closest <see cref="GraphNode"/> within the tolerance radius, or null.</returns>
     public GraphNode? HitTest(Point graphPoint)
     {
         var graph = Graph;
         if (graph is null) return null;
 
-        // Riutilizza l'insieme dei nodi visibili in cache: fondamentale per non allocare
-        // un nuovo HashSet<Guid> ad ogni micro-movimento del cursore del mouse (OnPointerMoved).
+        // Reuse the set of nodes visible in cache: essential to avoid allocating
+        // a new HashSet<Guid> with each micro-move of the mouse cursor (OnPointerMoved).
         if (_isVisibilityCacheDirty || _cachedVisibleNodeIds == null)
         {
             _cachedVisibleNodeIds = ComputeVisibleNodeIds(graph);
@@ -1232,7 +1232,7 @@ public sealed class GraphControl : Control
         var centerCx = (int)Math.Floor(graphPoint.X / SpatialCellSize);
         var centerCy = (int)Math.Floor(graphPoint.Y / SpatialCellSize);
 
-        // Raggio di ricerca celle limitato in base alla scala di zoom per non scandire troppe celle su zoom estremi
+        // Cell search radius limited based on zoom scale to avoid scanning too many cells at extreme zooms
         var maxTolerance = 50.0 / Math.Max(_scale, 0.05) + 6.0;
         var cellRadius = Math.Clamp((int)Math.Ceiling(maxTolerance / SpatialCellSize), 1, 3);
 
@@ -1253,7 +1253,7 @@ public sealed class GraphControl : Control
                     var dy = node.Y - graphPoint.Y;
                     var distSq = dx * dx + dy * dy;
 
-                    // Raggio di selezione adattivo scalato con il fattore di zoom (minimo 6px di tolleranza)
+                    // Adaptive selection radius scaled with zoom factor (minimum 6px tolerance)
                     var hitRadius = node.Radius / Math.Max(_scale, 0.002) + 6.0;
                     if (distSq <= hitRadius * hitRadius && distSq < bestDistSq)
                     {
@@ -1268,16 +1268,16 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Rileva il nodo posizionato sotto le coordinate a schermo specificate.
+    /// Detects the node positioned below the specified screen coordinates.
     /// </summary>
     public GraphNode? GetNodeAtScreenPos(Point screenPoint) => HitTest(ScreenToGraph(screenPoint));
 
     // =========================================================================
-    // SELEZIONE ED EVIDENZIAZIONE CALLERS / CALLEES / BLAST RADIUS
+    // SELECTION AND HIGHLIGHTING CALLERS / CALLEES / BLAST RADIUS
     // =========================================================================
 
     /// <summary>
-    /// Ripristina lo stato interno delle strutture dati di evidenziazione (chiamanti, chiamati, percorsi e blast radius).
+    /// Restores the internal state of highlight data structures (callers, callees, paths, and blast radius).
     /// </summary>
     private void ClearInternalHighlightState()
     {
@@ -1293,10 +1293,10 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Seleziona esplicitamente un nodo sul canvas, evidenziando i suoi archi e vicini diretti
-    /// e notificando i listener tramite l'evento <see cref="SelectionChanged"/>.
+    /// Explicitly select a node on the canvas, highlighting its edges and direct neighbors
+    /// and notifying listeners via the <see cref="SelectionChanged"/> event.
     /// </summary>
-    /// <param name="node">Il nodo da selezionare, oppure null per deselezionare.</param>
+    /// <param name="node">The node to select, or null to deselect.</param>
     public void SelectNode(GraphNode? node)
     {
         if (_selectedNode == node && _currentHighlightMode == HighlightMode.Normal)
@@ -1340,9 +1340,9 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Evidenzia sul grafo tutti i chiamanti (callers diretti) del nodo selezionato (routine o container).
-    /// Se è selezionato un container (Classe, Modulo, Form), aggrega i chiamanti di tutte le routine membro.
-    /// Espande automaticamente i container dei chiamanti per rendere i nodi visibili.
+    /// Highlights on the graph all the callers (direct callers) of the selected node (routine or container).
+    /// If a container (Class, Module, Form) is selected, aggregate the callers of all member procedures.
+    /// Automatically expands caller containers to make nodes visible.
     /// </summary>
     public IReadOnlyList<Symbol> HighlightCallersForSelected()
     {
@@ -1383,7 +1383,7 @@ public sealed class GraphControl : Control
                     resultList.Add(caller);
                     _callerNodeIds.Add(caller.Id);
 
-                    // Auto-espansione del container del caller
+                    // Auto-expanding of the caller container
                     var callerNode = Graph.GetNode(caller.Id);
                     if (callerNode?.ParentId.HasValue == true)
                     {
@@ -1395,7 +1395,7 @@ public sealed class GraphControl : Control
             }
         }
 
-        // Espandi il container padre del nodo selezionato se presente
+        // Expand the parent container of the selected node if present
         if (_selectedNode.ParentId.HasValue && Graph.GetNode(_selectedNode.ParentId.Value) is { } selParent)
             selParent.IsExpanded = true;
 
@@ -1405,9 +1405,9 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Evidenzia sul grafo tutti i chiamati (callees diretti) del nodo selezionato (routine o container).
-    /// Se è selezionato un container (Classe, Modulo, Form), aggrega le chiamate di tutte le routine membro.
-    /// Espande automaticamente i container di destinazione per rendere i nodi visibili.
+    /// Highlights on the graph all the calls (direct callees) of the selected node (routine or container).
+    /// If a container (Class, Module, Form) is selected, aggregate calls of all member routines.
+    /// Automatically expands target containers to make nodes visible.
     /// </summary>
     public IReadOnlyList<Symbol> HighlightCalleesForSelected()
     {
@@ -1448,7 +1448,7 @@ public sealed class GraphControl : Control
                     resultList.Add(callee);
                     _calleeNodeIds.Add(callee.Id);
 
-                    // Auto-espansione del container del callee
+                    // Self-expanding of the callee container
                     var calleeNode = Graph.GetNode(callee.Id);
                     if (calleeNode?.ParentId.HasValue == true)
                     {
@@ -1460,7 +1460,7 @@ public sealed class GraphControl : Control
             }
         }
 
-        // Espandi il container padre del nodo selezionato se presente
+        // Expand the parent container of the selected node if present
         if (_selectedNode.ParentId.HasValue && Graph.GetNode(_selectedNode.ParentId.Value) is { } selParent)
             selParent.IsExpanded = true;
 
@@ -1470,8 +1470,8 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Evidenzia sul grafo l'intero Blast Radius (M6): target in rosso, chiamanti per livello di profondità e Form UI toccate.
-    /// Espande automaticamente i container dei nodi impattati.
+    /// Highlight the entire Blast Radius (M6) on the graph: targets in red, callers by depth level and Form UI touched.
+    /// Automatically expands the containers of impacted nodes.
     /// </summary>
     public void HighlightBlastRadius(ImpactReport report)
     {
@@ -1504,7 +1504,7 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Ripristina l'evidenziazione normale.
+    /// Restore normal highlighting.
     /// </summary>
     public void ClearHighlightMode()
     {
@@ -1515,7 +1515,7 @@ public sealed class GraphControl : Control
     }
 
     /// <summary>
-    /// Applica il tema al canvas del grafo (colore di sfondo ed etichette).
+    /// Apply the theme to the graph canvas (background color and labels).
     /// </summary>
     public void ApplyTheme(ThemeDefinition theme)
     {

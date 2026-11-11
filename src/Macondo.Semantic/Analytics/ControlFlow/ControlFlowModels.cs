@@ -3,37 +3,37 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.ControlFlow;
 
 /// <summary>
-/// Tipologia di blocco base all'interno del Control Flow Graph (CFG).
+/// Type of basic block within the Control Flow Graph (CFG).
 /// </summary>
 public enum ControlFlowBlockKind
 {
-    /// <summary>Punto di ingresso della procedura (Header / Arguments check).</summary>
+    /// <summary>Procedure entry point (Header / Arguments check).</summary>
     Entry,
 
-    /// <summary>Blocco sequenziale lineare di istruzioni (Basic Block senza salti intermedi).</summary>
+    /// <summary>Linear sequential block of instructions (Basic Block without intermediate jumps).</summary>
     BasicBlock,
 
-    /// <summary>Punto di decisione condizionale binaria (If ... Then ... Else).</summary>
+    /// <summary>Binary conditional decision point (If ... Then ... Else).</summary>
     DecisionIf,
 
-    /// <summary>Punto di decisione multipla (Select Case / Switch).</summary>
+    /// <summary>Multiple decision point (Select Case / Switch).</summary>
     DecisionSelect,
 
-    /// <summary>Intestazione di ciclo (For / While / Do Loop / Foreach).</summary>
+    /// <summary>Loop header (For / While / Do Loop / Foreach).</summary>
     LoopHeader,
 
-    /// <summary>Corpo del ciclo.</summary>
+    /// <summary>Loop body.</summary>
     LoopBody,
 
-    /// <summary>Gestore di eccezioni / errori (On Error GoTo / catch / except).</summary>
+    /// <summary>Exception / Error Handler (On Error GoTo / catch / except).</summary>
     ExceptionHandler,
 
-    /// <summary>Punto di uscita o ritorno (Exit Sub / Exit Function / Return / End).</summary>
+    /// <summary>Exit or return point (Exit Sub / Exit Function / Return / End).</summary>
     Exit
 }
 
 /// <summary>
-/// Tipologia di ramo o salto tra blocchi del CFG.
+/// Type of branch or jump between blocks of the CFG.
 /// </summary>
 public enum ControlFlowBranchKind
 {
@@ -47,7 +47,7 @@ public enum ControlFlowBranchKind
 }
 
 /// <summary>
-/// Singolo nodo / blocco base del Control Flow Graph.
+/// Control Flow Graph single node/basic block.
 /// </summary>
 public sealed class ControlFlowNode
 {
@@ -65,7 +65,7 @@ public sealed class ControlFlowNode
 }
 
 /// <summary>
-/// Arco o ramo orientato tra due blocchi base del CFG.
+/// Arc or branch oriented between two basic blocks of the CFG.
 /// </summary>
 public sealed class ControlFlowEdge
 {
@@ -77,7 +77,7 @@ public sealed class ControlFlowEdge
 }
 
 /// <summary>
-/// Modello completo del grafo di flusso di controllo per una singola procedura o metodo.
+/// Complete control flow graph model for a single procedure or method.
 /// </summary>
 public sealed class ProcedureControlFlowGraph
 {

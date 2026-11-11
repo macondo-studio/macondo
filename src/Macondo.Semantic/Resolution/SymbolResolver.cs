@@ -5,21 +5,21 @@ namespace Macondo.Semantic.Resolution;
 
 
 /// <summary>
-/// Motore principale di risoluzione dei simboli e degli accessi per VB6.
+/// Core symbol and access resolution engine for VB6.
 /// 
 /// RESPONSABILITÀ:
-/// 1. Risoluzione Identificatori Semplici: delega alla gerarchia di scope (<see cref="IScope"/>).
-/// 2. Risoluzione Accessi Qualificati:
+/// 1. Simple Identifiers Resolution: delegation to the scope hierarchy (<see cref="IScope"/>).
+/// 2. Qualified Access Resolution:
 ///    - "Target.Member" (es. "c.Save", "Customer.Update", "UtilsModule.LogMessage").
-///    - Risolve prima 'Target' per individuarne il tipo semantico (<see cref="SymbolKind.Class"/>, ecc.),
-///      poi cerca 'Member' tra i membri figli di quel tipo.
-/// 3. Risoluzione di 'Me':
-///    - "Me.Member" risolve sui membri dichiarati nella classe/form corrente.
+/// - Resolve 'Target' first to find its semantic type (<see cref="SymbolKind.Class"/>, etc.),
+/// then search for 'Member' among the child members of that type.
+/// 3. Resolution of 'Me':
+/// - "Me.Member" resolves to the members declared in the current class/form.
 /// 4. Risoluzione Chiamate Contestuali 'With':
-///    - ".Member" dentro un blocco "With expr" risolve direttamente sui membri del tipo di 'expr'.
-/// 5. Gestione Late Binding e Tipi Dinamici:
-///    - Su oggetti dichiarati come 'Object' o 'Variant' (o CreateObject), produce <see cref="ResolutionConfidence.Unknown"/>
-///      senza errori e senza inventare relazioni false.
+/// - ".Member" inside a "With expr" block resolves directly to members of the type of 'expr'.
+/// 5. Late Binding and Dynamic Type Management:
+/// - On objects declared as 'Object' or 'Variant' (or CreateObject), produces <see cref="ResolutionConfidence.Unknown"/>
+/// without errors and without inventing false relationships.
 /// </summary>
 public sealed class SymbolResolver
 {
@@ -27,27 +27,27 @@ public sealed class SymbolResolver
     private readonly TypeResolver _typeResolver;
     private readonly ProjectScope _projectScope;
 
-    /// <summary>Cache dei ModuleScope per ciascun modulo/classe nel progetto.</summary>
+    /// <summary>Cache of ModuleScopes for each module/class in the project.</summary>
     private readonly Dictionary<Guid, ModuleScope> _moduleScopes = new();
 
-    /// <summary>Scope di progetto globale condiviso.</summary>
+    /// <summary>Shared global project scope.</summary>
     public ProjectScope ProjectScope => _projectScope;
 
-    /// <summary>Motore di risoluzione dei tipi associato.</summary>
+    /// <summary>Associated type resolution engine.</summary>
     public TypeResolver TypeResolver => _typeResolver;
 
     /// <summary>
-    /// Inizializza il SymbolResolver per il grafo specificato.
+    /// Initializes the SymbolResolver for the specified graph.
     /// </summary>
-    /// <param name="graph">Il CodeGraph con tutti i simboli del progetto.</param>
-    /// <param name="typeResolver">Il resolver dei tipi per interrogare classificazioni e tipi utente.</param>
+    /// <param name="graph">The CodeGraph with all the project symbols.</param>
+    /// <param name="typeResolver">The type resolver for querying user classifications and types.</param>
     public SymbolResolver(CodeGraph graph, TypeResolver typeResolver)
     {
         _graph = graph;
         _typeResolver = typeResolver;
         _projectScope = new ProjectScope(graph, typeResolver);
 
-        // Inizializza i ModuleScope per tutte le classi, form, moduli e user control presenti nel grafo.
+        // Initializes ModuleScopes for all classes, forms, modules and user controls in the graph.
         foreach (var symbol in _graph.Symbols)
         {
             if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl)
@@ -57,7 +57,7 @@ public sealed class SymbolResolver
     }
 
     /// <summary>
-    /// Recupera o crea il <see cref="ModuleScope"/> per il modulo specificato.
+    /// Gets or creates the <see cref="ModuleScope"/> for the specified module.
     /// </summary>
     public ModuleScope GetModuleScope(Symbol moduleSymbol)
     {
@@ -70,7 +70,7 @@ public sealed class SymbolResolver
     }
 
     /// <summary>
-    /// Crea un nuovo <see cref="LocalScope"/> per una routine (Sub, Function, Property) agganciato al parent scope specificato.
+    /// Creates a new <see cref="LocalScope"/> for a procedure (Sub, Function, Property) hooked to the specified parent scope.
     /// </summary>
     public LocalScope CreateLocalScope(Symbol routineSymbol, IScope parentScope)
     {
@@ -78,7 +78,7 @@ public sealed class SymbolResolver
     }
 
     /// <summary>
-    /// Crea un nuovo <see cref="WithScope"/> contestuale agganciato all'espressione target del blocco 'With'.
+    /// Creates a new contextual <see cref="WithScope"/> hooked to the target expression of the 'With' block.
     /// </summary>
     public WithScope CreateWithScope(IScope parentScope, ResolutionResult targetResult)
     {
@@ -87,27 +87,27 @@ public sealed class SymbolResolver
 
 
     /// <summary>
-    /// Risolve un membro su un target già precedentemente risolto.
+    /// Resolves a member on a previously resolved target.
     /// 
-    /// GESTISCE:
-    /// 1. Proprietà intrinseche del runtime VB6 (es. 'ActiveForm' su MDIForm/Screen, 'Parent' su controlli UI):
-    ///    restituisce un <see cref="ResolutionResult"/> tipizzato come "Form" con confidenza <see cref="ResolutionConfidence.Inferred"/>.
-    /// 2. Late Binding su tipi dinamici o base astratti UI ('Object', 'Variant', 'Form', 'Control', 'MDIForm'):
-    ///    restituisce <see cref="ResolutionConfidence.Unknown"/> preservando il <see cref="ResolutionResult.TargetTypeName"/>
-    ///    effettivo per consentire al <see cref="Graph.CallGraphBuilder"/> di applicare l'euristica di candidate matching.
-    /// 3. Accesso su tipo o istanza (Class / Form / Module .bas / UserControl / Type UDT):
-    ///    risale al tipo semantico e cerca il membro tra i figli diretti del contenitore nel CodeGraph.
-    /// 4. Chiamate a catena su metodi/proprietà (es. 'getFirstForm().Method', 'prop.Method'):
-    ///    utilizza il ReturnType / ResolvedReturnTypeSymbolId della routine ricevente per risolvere i membri successivi.
+    /// HANDLES:
+    /// 1. Intrinsic properties of the VB6 runtime (e.g. 'ActiveForm' on MDIForm/Screen, 'Parent' on UI controls):
+    /// returns a <see cref="ResolutionResult"/> typed as "Form" with <see cref="ResolutionConfidence.Inferred"/> confidence.
+    /// 2. Late Binding on Dynamic or Basic UI Abstract Types ('Object', 'Variant', 'Form', 'Control', 'MDIForm'):
+    /// returns <see cref="ResolutionConfidence.Unknown"/> preserving the <see cref="ResolutionResult.TargetTypeName"/>
+    /// effective to allow the <see cref="Graph.CallGraphBuilder"/> to apply the candidate matching heuristic.
+    /// 3. Access on type or instance (Class / Form / Module .bas / UserControl / Type UDT):
+    /// goes back to the semantic type and looks for the member among the direct children of the container in the CodeGraph.
+    /// 4. Chain calls on methods/properties (e.g. 'getFirstForm().Method', 'prop.Method'):
+    /// uses the ReturnType / ResolvedReturnTypeSymbolId of the receiving routine to resolve subsequent members.
     /// </summary>
-    /// <param name="targetResult">L'esito della risoluzione semantica dell'espressione ricevitore (target).</param>
-    /// <param name="memberName">Il nome del membro da risolvere sul target.</param>
-    /// <returns>L'esito <see cref="ResolutionResult"/> con il simbolo risolto e la relativa confidenza.</returns>
+    /// <param name="targetResult">The outcome of the semantic resolution of the receiver (target) expression.</param>
+    /// <param name="memberName">The name of the member to resolve to the target.</param>
+    /// <returns>The outcome <see cref="ResolutionResult"/> with the solved symbol and the related confidence.</returns>
     public ResolutionResult ResolveMemberOnTarget(ResolutionResult targetResult, string memberName)
     {
-        // 0. Proprietà intrinseche di contenitori VB6 che restituiscono un Form (es. MdiFrm.ActiveForm, ctrl.Parent).
-        // Nel runtime VB6 'ActiveForm' (su MDIForm o Screen) e 'Parent' (su controlli visivi) restituiscono sempre
-        // un'istanza polimorfica di Form. Inferiamo il tipo "Form" per guidare la successiva risoluzione dei membri.
+        // 0. Intrinsic properties of VB6 containers that return a Form (e.g. MdiFrm.ActiveForm, ctrl.Parent).
+        // In the VB6 runtime 'ActiveForm' (on MDIForm or Screen) and 'Parent' (on visual controls) always return
+        // a polymorphic instance of Form. We infer the type "Form" to guide subsequent member resolution.
         if (string.Equals(memberName, "ActiveForm", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(memberName, "Parent", StringComparison.OrdinalIgnoreCase))
             return new ResolutionResult
@@ -117,19 +117,19 @@ public sealed class SymbolResolver
                 Details = $"Proprietà intrinseca VB6 '{memberName}' di tipo Form"
             };
 
-        // Calcola il nome del tipo effettivo del ricevitore risalendo a:
+        // Calculate the actual type name of the receiver by going back to:
         // - TargetTypeName esplicito già determinato
-        // - ReturnType se il target è una Function o Property
-        // - DeclaredTypeName se il target è un campo, variabile o parametro
+        // - ReturnType if the target is a Function or Property
+        // - DeclaredTypeName if the target is a field, variable or parameter
         var effectiveTypeName = targetResult.TargetTypeName
             ?? (targetResult.TargetSymbol?.Kind is SymbolKind.Method or SymbolKind.Property ? targetResult.TargetSymbol.ReturnType : null)
             ?? targetResult.TargetSymbol?.DeclaredTypeName
             ?? targetResult.TargetParameter?.DeclaredTypeName;
 
-        // 1. Se il target è un tipo a binding dinamico o base astratta UI (Object / Variant / Form / Control / MDIForm) -> Late Binding.
-        // In VB6 le chiamate su 'As Form', 'As Control' o 'As Object' vengono inoltrate a runtime via IDispatch::Invoke.
-        // Preserviamo 'effectiveTypeName' nel TargetTypeName per consentire al CallGraphBuilder di filtrare
-        // i candidati compatibili (es. solo metodi di Form quando il ricevitore è 'Form').
+        // 1. If the target is a dynamically bound type or abstract base UI (Object / Variant / Form / Control / MDIForm) -> Late Binding.
+        // In VB6 calls to 'As Form', 'As Control' or 'As Object' are forwarded to runtime via IDispatch::Invoke.
+        // We preserve 'effectiveTypeName' in the TargetTypeName to allow the CallGraphBuilder to filter
+        // compatible candidates (e.g. only Form methods when the receiver is 'Form').
         if (string.Equals(effectiveTypeName, "Object", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(effectiveTypeName, "Variant", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(effectiveTypeName, "Form", StringComparison.OrdinalIgnoreCase) ||
@@ -144,7 +144,7 @@ public sealed class SymbolResolver
 
         Symbol? targetTypeSymbol = null;
 
-        // 2. Determina il simbolo che descrive il tipo del target
+        // 2. Determine the symbol that describes the type of the target
         if (targetResult.TargetSymbol is not null)
         {
             var sym = targetResult.TargetSymbol;
@@ -152,8 +152,8 @@ public sealed class SymbolResolver
                 targetTypeSymbol = sym;
             else if (sym.Kind is SymbolKind.Method or SymbolKind.Property)
             {
-                // Se il target è un metodo o una proprietà (es. bcPCassaProcessor), il tipo per la risoluzione dei membri
-                // successivi è il tipo restituito dalla routine (ReturnType / ResolvedReturnTypeSymbolId)
+                // If the target is a method or property (e.g. bcPCassaProcessor), the type for member resolution
+                // subsequent is the type returned by the procedure (ReturnType / ResolvedReturnTypeSymbolId)
                 if (sym.ResolvedReturnTypeSymbolId.HasValue)
                     targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == sym.ResolvedReturnTypeSymbolId.Value);
                 else if (sym.ReturnType is not null)
@@ -167,14 +167,14 @@ public sealed class SymbolResolver
                 targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == sym.ResolvedTypeSymbolId.Value);
             else if (sym.DeclaredTypeName is not null)
             {
-                // Prova la risoluzione del nome del tipo dichiarato
+                // Test name resolution of declared type
                 var typeInfo = _typeResolver.ResolveType(sym.DeclaredTypeName);
                 targetTypeSymbol = typeInfo.UserTypeSymbol;
             }
         }
         else if (targetResult.TargetParameter is not null)
         {
-            // Il target è un parametro formale (es. "cust" di tipo "Customer")
+            // The target is a formal parameter (e.g. "cust" of type "Customer")
             var param = targetResult.TargetParameter;
             if (param.ResolvedTypeSymbolId.HasValue)
                 targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == param.ResolvedTypeSymbolId.Value);
@@ -192,7 +192,7 @@ public sealed class SymbolResolver
             targetTypeSymbol = typeInfo.UserTypeSymbol;
         }
 
-        // 3. Cerca il membro specificato all'interno del tipo target identificato
+        // 3. Searches for the specified member within the identified target type
         if (targetTypeSymbol is not null)
         {
             var member = _graph.GetChildren(targetTypeSymbol.Id)

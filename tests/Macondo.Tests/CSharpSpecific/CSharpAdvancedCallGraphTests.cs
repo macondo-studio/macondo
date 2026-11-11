@@ -10,9 +10,9 @@ namespace Macondo.Tests.CSharpSpecific;
 public class CSharpAdvancedCallGraphTests
 {
     /// <summary>
-    /// Verifica che le chiamate a metodi interne ad espressioni Lambda e metodi di estensione LINQ
-    /// (es. .Select(x => TransformItem(x)).Where(x => FilterItem(x))) vengano attribuite correttamente
-    /// alla routine C# racchiudente.
+    /// Verify internal method calls to Lambda expressions and LINQ extension methods
+    /// (e.g. .Select(x => TransformItem(x)).Where(x => FilterItem(x))) are assigned correctly
+    /// to the enclosing C# routine.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldDetectCallsInsideLambdasAndLinqExpressions()
@@ -52,7 +52,7 @@ public class CSharpAdvancedCallGraphTests
     }
 
     /// <summary>
-    /// Verifica il rilevamento e la registrazione di chiamate a metodi statici su classi di utilità (es. MathUtility.DoubleValue(x)).
+    /// Tests detection and logging of static method calls on utility classes (e.g. MathUtility.DoubleValue(x)).
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldDetectStaticMethodInvocations()
@@ -88,8 +88,8 @@ public class CSharpAdvancedCallGraphTests
     }
 
     /// <summary>
-    /// Verifica che l'algoritmo di Cycle Detection (DFS a 3 stati) individui correttamente sia la ricorsione diretta
-    /// che la mutua ricorsione ciclica tra due o più metodi C#.
+    /// Verify that the Cycle Detection (3-state DFS) algorithm correctly detects both direct recursion
+    /// that mutual cyclic recursion between two or more C# methods.
     /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldDetectDirectAndMutualRecursion_InCSharpCode()
@@ -135,8 +135,8 @@ public class CSharpAdvancedCallGraphTests
     }
 
     /// <summary>
-    /// Verifica che l'estrattore identifichi correttamente il tipo bersaglio istanziato anche quando
-    /// racchiuso all'interno di collezioni generiche (es. 'new List&lt;DataItem&gt;()').
+    /// Verify that the extractor correctly identifies the instantiated target type even when
+    /// enclosed within generic collections (e.g. 'new List<DataItem>()').
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldExtractGenericInstantiations()
@@ -174,8 +174,8 @@ public class CSharpAdvancedCallGraphTests
     }
 
     /// <summary>
-    /// Verifica la ricerca dei cammini di esecuzione multi-salto (A -> B -> C -> D -> E) e il calcolo
-    /// della profondità massima di impatto nel Blast Radius per catene complesse C#.
+    /// Verify multi-hop execution path search (A -> B -> C -> D -> E) and calculation
+    /// of the maximum impact depth in the Blast Radius for complex C# chains.
     /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldTrackDeepCallChains_AndCalculateMultiHopImpact()

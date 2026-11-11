@@ -18,7 +18,7 @@ public class CommonAnalyticsDeepEdgeCasesTests
     #region DSM & Tarjan SCC Tests
 
     /// <summary>
-    /// Verifica che DsmMatrixBuilder gestisca correttamente grafi vuoti o composti da un singolo nodo isolato senza dipendenze.
+    /// Verify that DsmMatrixBuilder correctly handles graphs that are empty or composed of a single isolated node without dependencies.
     /// </summary>
     [Fact]
     public void DsmMatrix_ShouldHandleEmptyAndSingleNodeGraphs_Gracefully()
@@ -47,8 +47,8 @@ public class CommonAnalyticsDeepEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che la matrice DSM individui molteplici componenti fortemente connesse (SCC) disgiunte
-    /// presenti simultaneamente in parti differenti del grafo (es. Ciclo 1: A <-> B e Ciclo 2: C <-> D).
+    /// Verify that the DSM matrix identifies multiple disjoint strongly connected components (SCCs).
+    /// present simultaneously in different parts of the graph (e.g. Cycle 1: A <-> B and Cycle 2: C <-> D).
     /// </summary>
     [Fact]
     public void DsmMatrix_ShouldDetectMultipleDisjointStronglyConnectedComponents()
@@ -89,8 +89,8 @@ public class CommonAnalyticsDeepEdgeCasesTests
     #region Shared State & Global Variable Mutators
 
     /// <summary>
-    /// Verifica che SharedStateAnalyzer ignori rigorosamente campi privati e costanti locali,
-    /// limitando l'analisi unicamente alle variabili con visibilità Public o Global.
+    /// Verify that SharedStateAnalyzer strictly ignores private fields and local constants,
+    /// limiting the analysis only to variables with Public or Global visibility.
     /// </summary>
     [Fact]
     public void SharedState_ShouldIgnorePrivateFieldsAndConstants()
@@ -111,13 +111,13 @@ public class CommonAnalyticsDeepEdgeCasesTests
         // Act
         var dataset = SharedStateAnalyzer.Analyze(graph);
 
-        // Assert: Solo g_ActiveSession deve essere inclusa (privField è privato, pubConst è costante)
+        // Assert: Only g_ActiveSession should be included (privField is private, pubConst is constant)
         dataset.Items.Should().ContainSingle(i => i.VariableName == "g_ActiveSession");
     }
 
     /// <summary>
-    /// Verifica la corretta gestione di accessi sia in lettura che in scrittura (Read-Modify-Write)
-    /// da parte della medesima routine sulla stessa variabile globale.
+    /// Check the correct management of both reading and writing access (Read-Modify-Write)
+    /// by the same routine on the same global variable.
     /// </summary>
     [Fact]
     public void SharedState_ShouldHandleRoutineReadingAndWritingSameVariable()
@@ -133,7 +133,7 @@ public class CommonAnalyticsDeepEdgeCasesTests
         graph.AddContains(mod, globalCounter);
         graph.AddContains(mod, incrementSub);
 
-        // La routine legge e scrive g_HitCount (g_HitCount = g_HitCount + 1)
+        // The routine reads and writes g_HitCount (g_HitCount = g_HitCount + 1)
         graph.AddReads(incrementSub, globalCounter);
         graph.AddWrites(incrementSub, globalCounter);
 
@@ -152,8 +152,8 @@ public class CommonAnalyticsDeepEdgeCasesTests
     #region Cohesion & LCOM4 Edge Cases
 
     /// <summary>
-    /// Verifica che una classe frammentata in 4 cluster di metodi completamente disgiunti
-    /// produca un LCOM4 = 4 e venga segnalata come forte candidata al refactoring.
+    /// Verify that a class is fragmented into 4 fully disjoint method clusters
+    /// produces an LCOM4 = 4 and is reported as a strong candidate for refactoring.
     /// </summary>
     [Fact]
     public void Cohesion_ShouldCalculateHighLcom4_ForHighlyFragmentedClass()
@@ -163,7 +163,7 @@ public class CommonAnalyticsDeepEdgeCasesTests
         var cls = new Symbol { Id = Guid.NewGuid(), Name = "MegaService", QualifiedName = "MegaService", FilePath = "MegaService.cs", Kind = SymbolKind.Class };
         graph.Symbols.Add(cls);
 
-        // Creazione di 4 cluster indipendenti (ciascuno con 1 campo e 2 metodi)
+        // Creation of 4 independent clusters (each with 1 field and 2 methods)
         for (int c = 1; c <= 4; c++)
         {
             var fld = new Symbol { Id = Guid.NewGuid(), Name = $"_fld_{c}", QualifiedName = $"MegaService._fld_{c}", FilePath = "MegaService.cs", Kind = SymbolKind.Field };
@@ -192,8 +192,8 @@ public class CommonAnalyticsDeepEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che una classe perfettamente coesa (tutti i metodi condividono tutti i campi)
-    /// produca un LCOM4 = 1 e non sia marcata come candidato al refactoring.
+    /// Verify that a perfectly cohesive class (all methods share all fields)
+    /// produces an LCOM4 = 1 and is not marked as a refactoring candidate.
     /// </summary>
     [Fact]
     public void Cohesion_ShouldProduceLcom4OfOne_ForFullyCohesiveClass()
@@ -213,7 +213,7 @@ public class CommonAnalyticsDeepEdgeCasesTests
         graph.AddContains(cls, mthMove);
         graph.AddContains(cls, mthDistance);
 
-        // Entrambi i metodi leggono/scrivono entrambi i campi
+        // Both methods read/write both fields
         graph.AddWrites(mthMove, fldX);
         graph.AddWrites(mthMove, fldY);
         graph.AddReads(mthDistance, fldX);
@@ -235,7 +235,7 @@ public class CommonAnalyticsDeepEdgeCasesTests
     #region CRUD Matrix Inference Tests
 
     /// <summary>
-    /// Verifica la classificazione di tabelle o entità con pattern operativi specifici (es. tabelle di sola lettura o tabelle di solo log/append).
+    /// Check the classification of tables or entities with specific operational patterns (e.g. read-only tables or log/append-only tables).
     /// </summary>
     [Fact]
     public void CrudMatrix_ShouldIdentifyReadOnlyAndAppendOnlyEntities()
@@ -277,8 +277,8 @@ public class CommonAnalyticsDeepEdgeCasesTests
     #region Social Code & Temporal Coupling Edge Cases
 
     /// <summary>
-    /// Verifica che SocialCodeAnalyzer assegni un livello di rischio Healthy quando la proprietà del codice
-    /// è distribuita uniformemente tra molteplici autori attivi (Bus Factor &gt; 1).
+    /// Verify that SocialCodeAnalyzer assigns a Healthy risk level when owning the code
+    /// it is uniformly distributed among multiple active authors (Bus Factor > 1).
     /// </summary>
     [Fact]
     public void SocialCode_ShouldAssignHealthyRisk_WhenCodeIsSharedBetweenMultipleActiveAuthors()
@@ -308,13 +308,13 @@ public class CommonAnalyticsDeepEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che TemporalCouplingAnalyzer deduplichi nomi di file ripetuti all'interno del medesimo commit
-    /// e calcoli un indice di Jaccard pari a 0.0 per file che non compaiono mai assieme in alcun commit.
+    /// Verify that TemporalCouplingAnalyzer deduplicates repeated file names within the same commit
+    /// and calculate a Jaccard index of 0.0 for files that never appear together in any commit.
     /// </summary>
     [Fact]
     public void TemporalCoupling_ShouldDeduplicateFilesInSameCommit_AndHandleZeroCoupling()
     {
-        // Arrange: Commit 1 con file duplicati, Commit 2 con file completamente disgiunti
+        // Arrange: Commit 1 with duplicate files, Commit 2 with completely disjoint files
         var changelists = new List<List<string>>
         {
             new() { "src/Alpha.cls", "src/Alpha.cls", "src/Beta.cls", "src/Beta.cls" }, // duplicati
@@ -327,12 +327,12 @@ public class CommonAnalyticsDeepEdgeCasesTests
         // Assert
         dataset.TotalCommitsAnalyzed.Should().Be(2);
 
-        // Alpha e Beta devono avere 1 sola correlazione con CoChangeCount = 1
+        // Alpha and Beta must have only 1 correlation with CoChangeCount = 1
         var alphaBetaPair = dataset.Pairs.FirstOrDefault(p => (p.FileAName == "Alpha.cls" && p.FileBName == "Beta.cls") || (p.FileAName == "Beta.cls" && p.FileBName == "Alpha.cls"));
         alphaBetaPair.Should().NotBeNull();
         alphaBetaPair!.CoChangeCount.Should().Be(1);
 
-        // Alpha e Gamma non devono avere alcuna coppia registrata
+        // Alpha and Gamma must not have any registered pairs
         dataset.Pairs.Should().NotContain(p => (p.FileAName == "Alpha.cls" && p.FileBName == "Gamma.cls") || (p.FileAName == "Gamma.cls" && p.FileBName == "Alpha.cls"));
     }
 
@@ -341,7 +341,7 @@ public class CommonAnalyticsDeepEdgeCasesTests
     #region Screen Flow & Navigation Cycles
 
     /// <summary>
-    /// Verifica che ScreenFlowBuilder rilevi e gestisca correttamente cicli di navigazione tra maschere (FormA -> FormB -> FormA).
+    /// Verify that ScreenFlowBuilder correctly detects and handles navigation loops between forms (FormA -> FormB -> FormA).
     /// </summary>
     [Fact]
     public void ScreenFlow_ShouldHandleCyclicFormNavigation_Gracefully()

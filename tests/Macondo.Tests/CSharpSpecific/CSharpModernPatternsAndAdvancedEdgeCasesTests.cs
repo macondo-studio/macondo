@@ -8,7 +8,7 @@ namespace Macondo.Tests.CSharpSpecific;
 public class CSharpModernPatternsAndAdvancedEdgeCasesTests
 {
     /// <summary>
-    /// Verifica l'estrazione di classi e metodi che utilizzano list patterns e pattern combinatori ('and', 'or', 'not').
+    /// Check the extraction of classes and methods that use list patterns and combinatorial patterns ('and', 'or', 'not').
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractMethodsUsingListAndCombinatorPatterns()
@@ -40,7 +40,7 @@ public class CSharpModernPatternsAndAdvancedEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica il parsing di raw string literals multi-riga con interpolazione e caratteri speciali.
+    /// Test parsing of multi-line raw string literals with interpolation and special characters.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldParseRawStringLiteralsAndNestedInterpolations()
@@ -71,7 +71,7 @@ public class CSharpModernPatternsAndAdvancedEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di tipi generici con vincoli ricorsivi (CRTP - Curiously Recurring Template Pattern).
+    /// Tests the extraction of generic types with recursive constraints (CRTP - Curiously Recurring Template Pattern).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractRecursiveGenericsAndConstraints()
@@ -101,7 +101,7 @@ public class CSharpModernPatternsAndAdvancedEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di classi con primary constructors (C# 12+).
+    /// Test class extraction with primary constructors (C# 12+).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractClassWithPrimaryConstructor()

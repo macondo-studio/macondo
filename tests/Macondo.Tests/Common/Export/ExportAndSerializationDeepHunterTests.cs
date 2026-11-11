@@ -17,8 +17,8 @@ public class ExportAndSerializationDeepHunterTests
     #region Special Characters and Unicode Escaping in Exporters
 
     /// <summary>
-    /// Verifica che AnalysisJsonExporter e AnalysisMarkdownExporter gestiscano correttamente simboli con caratteri speciali
-    /// (simboli matematici, caratteri XML/HTML come &lt;, &gt;, &amp;, virgolette, Unicode e percorsi complessi).
+    /// Verify that AnalysisJsonExporter and AnalysisMarkdownExporter correctly handle symbols with special characters
+    /// (mathematical symbols, XML/HTML characters such as <, >, &, quotes, Unicode and complex paths).
     /// </summary>
     [Fact]
     public void Exporters_ShouldHandleUnicodeAndSpecialCharacters_WithoutErrors()
@@ -74,7 +74,7 @@ public class ExportAndSerializationDeepHunterTests
     #region Empty CodeGraph Export Robustness
 
     /// <summary>
-    /// Verifica che tutti i metodi di esportazione JSON e Markdown funzionino correttamente su un CodeGraph completamente vuoto.
+    /// Verify that all JSON and Markdown export methods work correctly on a completely empty CodeGraph.
     /// </summary>
     [Fact]
     public void Exporters_ShouldHandleEmptyGraph_Gracefully()
@@ -115,8 +115,8 @@ public class ExportAndSerializationDeepHunterTests
     #region Audit Report Full Roundtrip and Structure Integrity
 
     /// <summary>
-    /// Verifica che AuditReportBuilder generi sezioni complete e serializzabili
-    /// e che il parsing del JSON risultante contenga tutte le proprietà chiave attese.
+    /// Verify that AuditReportBuilder generates complete, serializable sections
+    /// and that the resulting JSON parse contains all expected key properties.
     /// </summary>
     [Fact]
     public void AuditReportBuilder_ShouldProduceCompleteStructuredOutput_ForMultiComponentGraph()

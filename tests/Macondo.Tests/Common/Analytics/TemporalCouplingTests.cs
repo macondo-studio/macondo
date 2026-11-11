@@ -8,13 +8,13 @@ namespace Macondo.Tests.Common.Analytics;
 public class TemporalCouplingTests
 {
     /// <summary>
-    /// Verifica che l'analizzatore di accoppiamento temporale calcoli correttamente il numero di co-modifiche,
-    /// i commit totali per file e l'indice di similarità di Jaccard a partire dalla cronologia dei changelist.
+    /// Verify that the temporal coupling analyzer correctly calculates the number of co-modifications,
+    /// the total commits per file and the Jaccard similarity index from the changelist history.
     /// </summary>
     [Fact]
     public void TemporalCoupling_ShouldCalculateCoChangeAndJaccardIndex_FromCommitHistory()
     {
-        // Arrange: 4 commit in cui FileA.cls e FileB.cls cambiano sempre insieme
+        // Arrange: 4 commits where FileA.cls and FileB.cls always change together
         var changelists = new List<List<string>>
         {
             new() { "src/OrderService.cls", "src/InvoiceService.cls" },
@@ -42,8 +42,8 @@ public class TemporalCouplingTests
     }
 
     /// <summary>
-    /// Verifica che le coppie di file con alto indice di co-modifica (Jaccard >= 0.4)
-    /// ma prive di qualsiasi dipendenza statica nel CodeGraph vengano segnalate come Hidden Coupling (accoppiamento nascosto).
+    /// Verify that file pairs with high co-modification index (Jaccard >= 0.4)
+    /// but without any static dependencies in the CodeGraph are reported as Hidden Coupling.
     /// </summary>
     [Fact]
     public void TemporalCoupling_ShouldIdentifyHiddenCoupling_WhenCoChangeIsHighWithoutStaticDependency()
@@ -56,7 +56,7 @@ public class TemporalCouplingTests
             new() { "src/SecurityPolicy.bas", "src/UserAuditor.cls" }
         };
 
-        // CodeGraph in cui i due moduli non hanno alcuna relazione di chiamata o istanziazione tra loro
+        // CodeGraph where the two modules have no calling or instantiation relationship with each other
         var graph = new CodeGraph();
         var secMod = new Symbol { Id = Guid.NewGuid(), Name = "SecurityPolicy", QualifiedName = "SecurityPolicy", FilePath = "src/SecurityPolicy.bas", Kind = SymbolKind.Module };
         var auditClass = new Symbol { Id = Guid.NewGuid(), Name = "UserAuditor", QualifiedName = "UserAuditor", FilePath = "src/UserAuditor.cls", Kind = SymbolKind.Class };
@@ -73,8 +73,8 @@ public class TemporalCouplingTests
     }
 
     /// <summary>
-    /// Verifica che i commit contenenti troppi file (> 35, tipici di merge massivi o refactoring generici)
-    /// oppure con estensioni non rilevanti vengano scartati per non inquinare la matrice di correlazione.
+    /// Check that commits containing too many files (> 35, typical of massive merges or generic refactorings)
+    /// or with irrelevant extensions are discarded so as not to pollute the correlation matrix.
     /// </summary>
     [Fact]
     public void TemporalCoupling_ShouldIgnoreCommitsWithTooManyOrIrrelevantFiles()
@@ -97,7 +97,7 @@ public class TemporalCouplingTests
     }
 
     /// <summary>
-    /// Verifica che in assenza di cronologia dei commit venga restituito un dataset vuoto coerente.
+    /// Verifies that a consistent empty dataset is returned in the absence of commit history.
     /// </summary>
     [Fact]
     public void TemporalCoupling_ShouldReturnEmptyDataset_WhenNoCommitsProvided()

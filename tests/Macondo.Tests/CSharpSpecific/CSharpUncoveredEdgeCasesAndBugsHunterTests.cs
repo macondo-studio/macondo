@@ -12,8 +12,8 @@ public class CSharpUncoveredEdgeCasesAndBugsHunterTests
     #region Primary Constructors on Classes and Structs
 
     /// <summary>
-    /// Verifica l'estrazione di tipi C# moderni definiti con Primary Constructor (C# 12) sia per classi che per struct,
-    /// e la corretta registrazione dei parametri del costruttore.
+    /// Test extraction of modern C# types defined with Primary Constructor (C# 12) for both classes and structs,
+    /// and the correct registration of the manufacturer's parameters.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractPrimaryConstructors_OnClassesAndStructs()
@@ -65,7 +65,7 @@ public class CSharpUncoveredEdgeCasesAndBugsHunterTests
     #region Collection Expressions and Modern C# 12 Syntax
 
     /// <summary>
-    /// Verifica il parsing di espressioni di collezione C# 12 (bracket syntax con spread operator [..items, x]).
+    /// Tests parsing of C# 12 collection expressions (bracket syntax with spread operator [..items, x]).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractMethodsUsingCollectionExpressionsAndSpreadOperators()
@@ -108,7 +108,7 @@ public class CSharpUncoveredEdgeCasesAndBugsHunterTests
     #region Record Structs and Readonly Record Structs
 
     /// <summary>
-    /// Verifica l'estrazione di tipi 'record struct' e 'readonly record struct'.
+    /// Tests extraction of 'record struct' and 'readonly record struct' types.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractRecordStructsAndReadonlyRecordStructs()
@@ -151,7 +151,7 @@ public class CSharpUncoveredEdgeCasesAndBugsHunterTests
     #region Required Properties and Init-Only Setters
 
     /// <summary>
-    /// Verifica l'estrazione di proprietà con modificatore 'required' e setter 'init'.
+    /// Check property extraction with 'required' modifier and 'init' setter.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractRequiredAndInitOnlyProperties()
@@ -192,8 +192,8 @@ public class CSharpUncoveredEdgeCasesAndBugsHunterTests
     #region Overloaded Method Calls in CallGraph
 
     /// <summary>
-    /// Verifica che chiamate a metodi sovraccaricati (overloaded) con parametri differenti
-    /// vengano correttamente indicizzate e collegate nel CallGraph.
+    /// Check for calls to overloaded methods with different parameters
+    /// are correctly indexed and linked in the CallGraph.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldHandleOverloadedMethodInvocations()
@@ -249,7 +249,7 @@ public class CSharpUncoveredEdgeCasesAndBugsHunterTests
     #region Interface Default Method Implementations (C# 8+)
 
     /// <summary>
-    /// Verifica l'estrazione di interfacce con metodi predefiniti (Default Interface Methods) contenenti corpo di codice.
+    /// Tests the extraction of interfaces with Default Interface Methods containing body of code.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractDefaultInterfaceMethodsWithBodies()
@@ -307,7 +307,7 @@ public class CSharpUncoveredEdgeCasesAndBugsHunterTests
     #region Null-Conditional and Null-Coalescing Invocations
 
     /// <summary>
-    /// Verifica la cattura di chiamate condizionali con operatore null-conditional (?.) e null-coalescing (??).
+    /// Tests the capture of conditional calls with null-conditional (?.) and null-coalescing (??) operators.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldExtractCallsThroughNullConditionalAndCoalescingChains()

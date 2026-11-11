@@ -6,9 +6,9 @@ using Avalonia.Controls;
 namespace Macondo.App.Services;
 
 /// <summary>
-/// Servizio nativo Windows per:
-/// 1. Lampeggio dell'icona del programma nella barra delle applicazioni (Taskbar Flash)
-/// 2. Visualizzazione di notifiche toast / balloon di sistema di Windows
+/// Native Windows service for:
+/// 1. Flashing of the program icon in the taskbar (Taskbar Flash)
+/// 2. Displaying Windows system toast/balloon notifications
 /// </summary>
 public static class WindowsNotificationService
 {
@@ -89,8 +89,8 @@ public static class WindowsNotificationService
         IntPtr lParam);
 
     /// <summary>
-    /// Fa lampeggiare l'icona dell'applicazione sulla barra delle applicazioni di Windows
-    /// finché l'utente non seleziona la finestra portandola in primo piano.
+    /// Flashes the application icon on the Windows taskbar
+    /// until the user selects the window and brings it to the front.
     /// </summary>
     public static void FlashTaskbar(Window? window)
     {
@@ -114,12 +114,12 @@ public static class WindowsNotificationService
         }
         catch
         {
-            // Fallback trasparente in caso di errore Win32
+            // Transparent fallback in case of Win32 error
         }
     }
 
     /// <summary>
-    /// Mostra una notifica popup nativa su Windows (Toast / Balloon) associata alla finestra dell'applicazione.
+    /// Shows a native popup notification on Windows (Toast/Balloon) associated with the application window.
     /// </summary>
     public static void ShowWindowsNotification(Window? window, string title, string message)
     {
@@ -152,11 +152,11 @@ public static class WindowsNotificationService
                 dwInfoFlags = NIIF_INFO | NIIF_LARGE_ICON
             };
 
-            // Rimuove eventuale notifica precedente e registra la nuova
+            // Removes any previous notification and records the new one
             Shell_NotifyIcon(NIM_DELETE, ref nid);
             Shell_NotifyIcon(NIM_ADD, ref nid);
 
-            // Rimuove l'icona di notifica dopo qualche secondo per non sporcare la system tray
+            // Removes the notification icon after a few seconds to avoid dirtying the system tray
             _ = Task.Delay(10000).ContinueWith(_ =>
             {
                 try
@@ -177,13 +177,13 @@ public static class WindowsNotificationService
         }
         catch
         {
-            // Fallback trasparente se non supportato
+            // Transparent fallback if not supported
         }
     }
 
     /// <summary>
-    /// Notifica il completamento dell'analisi: fa lampeggiare l'icona sulla barra delle applicazioni
-    /// e mostra un popup di notifica nativo su Windows.
+    /// Notify that the analysis is complete: flashes the icon in the system tray
+    /// and shows a native notification popup on Windows.
     /// </summary>
     public static void NotifyAnalysisCompleted(Window? window, string title, string message)
     {

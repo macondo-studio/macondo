@@ -1,4 +1,4 @@
-# Script per generare l'eseguibile unico (Single-File Portable Self-Contained) di Macondo per Windows x64
+# Script to generate the single executable (Single-File Portable Self-Contained) of Macondo for Windows x64
 
 $ErrorActionPreference = "Stop"
 

@@ -9,8 +9,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class CohesionAnalysisTests
 {
     /// <summary>
-    /// Verifica che una classe con 2 cluster di metodi completamente disgiunti (che accedono a campi separati)
-    /// produca un LCOM4 = 2 e venga contrassegnata come candidato al refactoring.
+    /// Verify that a class with 2 clusters of completely disjoint methods (accessing separate fields)
+    /// produces an LCOM4 = 2 and is marked as a candidate for refactoring.
     /// </summary>
     [Fact]
     public void Cohesion_ShouldCalculateLcom4_AndDetectMultipleClusters()
@@ -38,11 +38,11 @@ public class CohesionAnalysisTests
         graph.AddContains(cls, mthSendEmail);
         graph.AddContains(cls, mthFormatEmail);
 
-        // Relazioni Cluster 1
+        // Cluster Relationships 1
         graph.AddWrites(mthSaveCust, fldCust);
         graph.AddReads(mthLoadCust, fldCust);
 
-        // Relazioni Cluster 2
+        // Cluster Relationships 2
         graph.AddCalls(mthSendEmail, mthFormatEmail);
         graph.AddReads(mthFormatEmail, fldEmail);
 
@@ -62,7 +62,7 @@ public class CohesionAnalysisTests
     }
 
     /// <summary>
-    /// Verifica l'analisi di coesione su fixture di progetto reali.
+    /// Verify cohesion analysis on real project fixtures.
     /// </summary>
     [Fact]
     public void Cohesion_ShouldAnalyzeProjectFixtures_Successfully()

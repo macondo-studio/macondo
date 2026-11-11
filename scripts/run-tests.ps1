@@ -22,7 +22,7 @@ $startTime = Get-Date
 try {
     Write-Host "`n[1/2] Compilazione ed esecuzione dei test xUnit..." -ForegroundColor Yellow
     
-    # Esegue dotnet test
+    # Runs dotnet tests
     $process = Start-Process -FilePath "dotnet" -ArgumentList "test", "`"$slnPath`"", "--nologo", "-v", "minimal" -NoNewWindow -PassThru -Wait
     
     $elapsed = (Get-Date) - $startTime

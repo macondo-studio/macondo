@@ -10,8 +10,8 @@ public class Vb6ComprehensiveLanguageEdgeCasesTests
     #region Property Get / Property Let / Property Set Triplets
 
     /// <summary>
-    /// Verifica l'estrazione e la risoluzione di proprietà VB6 complete provviste di triplette
-    /// Property Get, Property Let (per tipi primitivi) e Property Set (per riferimenti a oggetti).
+    /// Tests extraction and resolution of complete VB6 properties with triplets
+    /// Property Get, Property Let (for primitive types), and Property Set (for object references).
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldExtractPropertyGetLetSetTriplets()
@@ -55,7 +55,7 @@ public class Vb6ComprehensiveLanguageEdgeCasesTests
     #region Module-Level Const Expressions and Hex Bitmasks
 
     /// <summary>
-    /// Verifica il parsing di costanti a livello di modulo definite tramite espressioni aritmetiche e maschere esadecimali.
+    /// Tests parsing of module-level constants defined via arithmetic expressions and hexadecimal masks.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldExtractModuleConstantsWithExpressions()
@@ -90,8 +90,8 @@ public class Vb6ComprehensiveLanguageEdgeCasesTests
     #region On Error Resume Next and On Error GoTo 0 Scopes
 
     /// <summary>
-    /// Verifica il parsing di pattern di gestione errori locali con 'On Error Resume Next'
-    /// seguito da controllo su 'Err.Number' e ripristino con 'On Error GoTo 0'.
+    /// Test parsing of local error handling patterns with 'On Error Resume Next'
+    /// followed by checking on 'Err.Number' and resetting with 'On Error GoTo 0'.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldHandleInlineErrorHandlingAndResumeNext()
@@ -135,8 +135,8 @@ public class Vb6ComprehensiveLanguageEdgeCasesTests
     #region Line Labels and Colon-Separated Multi-Statements
 
     /// <summary>
-    /// Verifica il parsing di etichette alfanumeriche combinate con istruzioni multiple
-    /// separate da due punti sulla medesima riga.
+    /// Tests parsing of alphanumeric labels combined with multiple instructions
+    /// separated by two dots on the same line.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldSupportLabelsAndInlineMultiStatements()

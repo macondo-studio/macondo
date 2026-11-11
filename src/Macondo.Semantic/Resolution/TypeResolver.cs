@@ -3,24 +3,24 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Resolution;
 
 /// <summary>
-/// Descrittore della classificazione semantica di un tipo di dato in VB6.
-/// Distingue tra tipi primitivi integrati, tipi dinamici (Object/Variant) e tipi definiti dall'utente nel progetto.
+/// Descriptor for the semantic classification of a data type in VB6.
+/// Distinguishes between built-in primitive types, dynamic types (Object/Variant), and user-defined types in the project.
 /// </summary>
 public sealed class TypeInfo
 {
-    /// <summary>Nome pulito del tipo (es. "Long", "Customer", "Variant").</summary>
+    /// <summary>Clean type name (e.g. "Long", "Customer", "Variant").</summary>
     public required string Name { get; init; }
 
-    /// <summary>Indica se è un tipo primitivo standard del linguaggio (Integer, Long, String, Boolean, Double, ecc.).</summary>
+    /// <summary>Indicates whether it is a standard primitive type of the language (Integer, Long, String, Boolean, Double, etc.).</summary>
     public bool IsPrimitive { get; init; }
 
-    /// <summary>Indica se è un tipo non vincolato a compilazione / a tipizzazione dinamica ('Object' o 'Variant').</summary>
+    /// <summary>Indicates whether it is a type that is not bound to compilation / dynamic typing ('Object' or 'Variant').</summary>
     public bool IsDynamicOrVariant { get; init; }
 
-    /// <summary>Il simbolo utente nel CodeGraph corrispondente al tipo (se Class, Form, UserControl, Type o Enum).</summary>
+    /// <summary>The user symbol in the CodeGraph corresponding to the type (whether Class, Form, UserControl, Type, or Enum).</summary>
     public Symbol? UserTypeSymbol { get; init; }
 
-    /// <summary>Indica se il tipo è noto (primitivo o definito dall'utente nel progetto).</summary>
+    /// <summary>Indicates whether the type is known (primitive or user-defined in the project).</summary>
     public bool IsResolved => IsPrimitive || UserTypeSymbol != null;
 
     public override string ToString() =>
@@ -28,17 +28,17 @@ public sealed class TypeInfo
 }
 
 /// <summary>
-/// Motore di risoluzione dei tipi per VB6.
+/// Type resolution engine for VB6.
 /// 
 /// RESPONSABILITÀ:
-/// 1. Mappatura Tipi Primitivi: riconosce i tipi scalari VB6 (Boolean, Byte, Integer, Long, Single, Double, Currency, Date, String, Collection).
-/// 2. Gestione Tipi Dinamici: identifica Variant e Object per instradare la successiva risoluzione verso late binding.
-/// 3. Risoluzione Tipi Utente: mappa clausole "As Customer" verso il corrispondente <see cref="SymbolKind.Class"/> "Customer" nel CodeGraph.
-/// 4. Risoluzione Globale: attraversa tutti i simboli e parametri del grafo popolando i riferimenti <see cref="Symbol.ResolvedTypeSymbolId"/>.
+/// 1. Primitive Type Mapping: recognizes VB6 scalar types (Boolean, Byte, Integer, Long, Single, Double, Currency, Date, String, Collection).
+/// 2. Dynamic Type Management: identify Variant and Object to route subsequent resolution towards late binding.
+/// 3. User Type Resolution: Map "As Customer" clauses to the corresponding <see cref="SymbolKind.Class"/> "Customer" in the CodeGraph.
+/// 4. Global Resolution: traverses all the symbols and parameters of the graph populating the <see cref="Symbol.ResolvedTypeSymbolId"/> references.
 /// </summary>
 public sealed class TypeResolver
 {
-    /// <summary>Insieme dei tipi primitivi VB6, C# e Java predefiniti (case-insensitive).</summary>
+    /// <summary>Set of predefined VB6, C# and Java primitive types (case-insensitive).</summary>
     private static readonly HashSet<string> PrimitiveTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         "Boolean", "Byte", "Integer", "Long", "Single", "Double",
@@ -50,11 +50,11 @@ public sealed class TypeResolver
     };
 
     /// <summary>
-    /// Tipi a binding dinamico / late binding in VB6.
-    /// Include sia i tipi generici non vincolati a tempo di compilazione ('Object', 'Variant', 'dynamic'),
-    /// sia i tipi base di interfaccia utente intrinseci del runtime VB6 ('Form', 'Control', 'MDIForm').
-    /// In VB6, variabili dichiarate 'As Form' o 'As Control' non espongono staticamente i metodi custom
-    /// delle singole form/controlli derivati: le relative chiamate a membro avvengono via IDispatch (late binding).
+    /// Dynamically bound / late bound types in VB6.
+    /// Includes both non-compile-time bound generic types ('Object', 'Variant', 'dynamic'),
+    /// and the basic user interface types intrinsic to the VB6 runtime ('Form', 'Control', 'MDIForm').
+    /// In VB6, variables declared 'As Form' or 'As Control' do not statically expose custom methods
+    /// of the individual derived forms/controls: the related member calls take place via IDispatch (late binding).
     /// </summary>
     private static readonly HashSet<string> DynamicTypes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -63,28 +63,28 @@ public sealed class TypeResolver
 
     private readonly CodeGraph _graph;
 
-    /// <summary>Indice dei tipi definiti nel progetto per nome semplice (es. "Customer" -> Symbol Class Customer).</summary>
+    /// <summary>Index of the types defined in the project by simple name (e.g. "Customer" -> Symbol Class Customer).</summary>
     private readonly Dictionary<string, Symbol> _userTypesByName = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Inizializza il resolver indicizzando tutti i tipi dichiarati nel grafo.
+    /// Initializes the resolver by indexing all types declared in the graph.
     /// </summary>
-    /// <param name="graph">Il CodeGraph contenente tutti i simboli del progetto.</param>
-    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere l'elaborazione.</param>
+    /// <param name="graph">The CodeGraph containing all the symbols of the project.</param>
+    /// <param name="cancellationToken">Optional delete token to stop processing.</param>
     public TypeResolver(CodeGraph graph, CancellationToken cancellationToken = default)
     {
         _graph = graph;
 
-        // Costruisce l'indice dei tipi utente (Class, Form, UserControl, Module .bas, Type UDT, Enum, Interface, Struct, Record) presenti nel grafo.
-        // Include esplicitamente SymbolKind.Module in modo che funzioni e proprietà che restituiscono istanze o riferimenti
-        // a moduli standard .bas possano risolvere correttamente il relativo contenitore semantico.
+        // Constructs the index of the user types (Class, Form, UserControl, Module .bas, Type UDT, Enum, Interface, Struct, Record) present in the graph.
+        // Explicitly includes SymbolKind.Module so that functions and properties that return instances or references
+        // standard .bas modules can correctly resolve the relevant semantic container.
         foreach (var symbol in _graph.Symbols)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.UserControl or SymbolKind.Module or SymbolKind.Type or SymbolKind.Enum
                             or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
             {
-                // I tipi utente sono accessibili per nome semplice o qualificato
+                // User types are accessible by simple or qualified name
                 _userTypesByName[symbol.Name] = symbol;
                 if (!string.IsNullOrEmpty(symbol.QualifiedName) && !symbol.QualifiedName.Equals(symbol.Name, StringComparison.OrdinalIgnoreCase))
                     _userTypesByName[symbol.QualifiedName] = symbol;
@@ -93,14 +93,14 @@ public sealed class TypeResolver
     }
 
     /// <summary>
-    /// Risolve una stringa di tipo (es. "Customer", "Long", "String()", "Object")
-    /// nella relativa classificazione <see cref="TypeInfo"/>.
+    /// Resolves a string of type (e.g. "Customer", "Long", "String()", "Object")
+    /// in the relevant classification <see cref="TypeInfo"/>.
     /// </summary>
-    /// <param name="typeName">Il nome del tipo dichiarato nel sorgente.</param>
-    /// <returns>Le informazioni semantiche del tipo (<see cref="TypeInfo"/>).</returns>
+    /// <param name="typeName">The name of the type declared in the source.</param>
+    /// <returns>The semantic information of the type (<see cref="TypeInfo"/>).</returns>
     public TypeInfo ResolveType(string? typeName)
     {
-        // In VB6, se la clausola 'As Tipo' è omessa, il tipo predefinito è Variant (dinamico)
+        // In VB6, if the 'As Type' clause is omitted, the default type is Variant (dynamic)
         if (string.IsNullOrWhiteSpace(typeName))
             return new TypeInfo
             {
@@ -112,11 +112,11 @@ public sealed class TypeResolver
 
         var cleanName = typeName.Trim();
 
-        // Rimuove la notazione di array se presente (es. "Customer()" o "String()")
+        // Removes array notation if present (e.g. "Customer()" or "String()")
         if (cleanName.EndsWith("()", StringComparison.Ordinal))
             cleanName = cleanName[..^2].Trim();
 
-        // 1. Verifica se è un tipo a tipizzazione dinamica (Object o Variant)
+        // 1. Check if it is a dynamically typed type (Object or Variant)
         if (DynamicTypes.Contains(cleanName))
             return new TypeInfo
             {
@@ -126,7 +126,7 @@ public sealed class TypeResolver
                 UserTypeSymbol = null
             };
 
-        // 2. Verifica se è un tipo primitivo integrato
+        // 2. Check if it is a built-in primitive type
         if (PrimitiveTypes.Contains(cleanName))
             return new TypeInfo
             {
@@ -136,7 +136,7 @@ public sealed class TypeResolver
                 UserTypeSymbol = null
             };
 
-        // 3. Verifica se è un tipo dichiarato dall'utente nel progetto locale per nome semplice o qualificato
+        // 3. Check whether it is a user-declared type in the local project by simple or qualified name
         if (_userTypesByName.TryGetValue(cleanName, out var userSymbol))
             return new TypeInfo
             {
@@ -146,11 +146,11 @@ public sealed class TypeResolver
                 UserTypeSymbol = userSymbol
             };
 
-        // 3b. Fallback per tipi qualificati con prefisso di progetto o libreria (es. "DUE.cntrDestinazione").
-        // Nel designer visivo delle form VB6 (sezioni 'Begin ... End'), le istanze di UserControl del progetto
-        // vengono spesso generate con il nome del progetto anteposto al nome del controllo (es. 'Begin DUE.cntrDestinazione cntrDestinazione').
-        // Poiché il controllo utente è definito nel file sorgente come 'cntrDestinazione.ctl', estraiamo il suffisso non qualificato
-        // dopo l'ultimo punto per risolvere correttamente il simbolo di tipo corrispondente presente nel grafo.
+        // 3b. Fallback for qualified types with project or library prefix (e.g. "DUE.cntrDestination").
+        // In the visual designer of the VB6 forms ('Begin ... End' sections), the project's UserControl instances
+        // they are often generated with the project name prefixed to the control name (e.g. 'Begin DUE.cntrDestination cntrDestination').
+        // Since the user control is defined in the source file as 'cntrDestination.ctl', we extract the unqualified suffix
+        // after the last point to correctly resolve the corresponding type symbol present in the graph.
         var lastDot = cleanName.LastIndexOf('.');
         if (lastDot >= 0 && lastDot < cleanName.Length - 1)
         {
@@ -165,7 +165,7 @@ public sealed class TypeResolver
                 };
         }
 
-        // 4. Tipo esterno non presente nel progetto (es. libreria COM ADODB.Recordset, MSXML2.DOMDocument, ecc.)
+        // 4. External type not present in the project (e.g. COM library ADODB.Recordset, MSXML2.DOMDocument, etc.)
         return new TypeInfo
         {
             Name = cleanName,
@@ -176,32 +176,32 @@ public sealed class TypeResolver
     }
 
     /// <summary>
-    /// Esegue il passaggio globale di type resolution su tutti i simboli e parametri del <see cref="CodeGraph"/>,
-    /// popolando gli ID dei tipi risolti (<see cref="Symbol.ResolvedTypeSymbolId"/>, <see cref="Symbol.ResolvedReturnTypeSymbolId"/>,
+    /// Performs the global type resolution pass on all symbols and parameters of the <see cref="CodeGraph"/>,
+    /// populating the IDs of the resolved types (<see cref="Symbol.ResolvedTypeSymbolId"/>, <see cref="Symbol.ResolvedReturnTypeSymbolId"/>,
     /// <see cref="ParameterSymbol.ResolvedTypeSymbolId"/>).
     /// </summary>
-    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere la risoluzione.</param>
+    /// <param name="cancellationToken">Optional delete token to stop resolution.</param>
     public void ResolveAllTypes(CancellationToken cancellationToken = default)
     {
         foreach (var symbol in _graph.Symbols)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Risolve il tipo dichiarato su campi, costanti, ecc.
+            // Resolves declared type on fields, constants, etc.
             if (symbol.DeclaredTypeName != null)
             {
                 var typeInfo = ResolveType(symbol.DeclaredTypeName);
                 symbol.ResolvedTypeSymbolId = typeInfo.UserTypeSymbol?.Id;
             }
 
-            // Risolve il tipo di ritorno su funzioni e proprietà
+            // Fix return type on functions and properties
             if (symbol.ReturnType != null)
             {
                 var returnTypeInfo = ResolveType(symbol.ReturnType);
                 symbol.ResolvedReturnTypeSymbolId = returnTypeInfo.UserTypeSymbol?.Id;
             }
 
-            // Risolve i tipi dichiarati sui parametri formali
+            // Resolves types declared to formal parameters
             foreach (var param in symbol.Parameters)
             {
                 if (param.DeclaredTypeName != null)

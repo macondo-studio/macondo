@@ -12,25 +12,25 @@ public class AppResilienceAndEdgeCasesTests
     #region LocalizationService Edge Cases
 
     /// <summary>
-    /// Verifica che LocalizationService gestisca stringhe con token di formattazione non corrispondenti
-    /// al numero di argomenti passati (es. troppi o troppo pochi argomenti) in modo sicuro senza eccezioni.
+    /// Verify that LocalizationService handles strings with mismatched formatting tokens
+    /// to the number of arguments passed (e.g. too many or too few arguments) safely without exceptions.
     /// </summary>
     [Fact]
     public void Localization_Get_ShouldHandleMismatchedFormatArgumentsSafely()
     {
         var service = LocalizationService.Instance;
 
-        // Troppi argomenti forniti rispetto ai placeholder
+        // Too many arguments provided with respect to placeholders
         var actTooMany = () => service.Get("Status_StatsFormat", 1, 2, 3, 4, 5, 6, 7);
         actTooMany.Should().NotThrow();
 
-        // Meno argomenti forniti rispetto ai placeholder
+        // Fewer arguments provided than placeholders
         var actTooFew = () => service.Get("Status_StatsFormat", 1);
         actTooFew.Should().NotThrow();
     }
 
     /// <summary>
-    /// Verifica che la lingua di default sia impostata e che il cambio lingua mantenga la coerenza di stato.
+    /// Verify that the default language is set and that the language change maintains state consistency.
     /// </summary>
     [Fact]
     public void Localization_LanguageSwitch_ShouldPersistAcrossCalls()
@@ -48,8 +48,8 @@ public class AppResilienceAndEdgeCasesTests
     #region ProjectCacheService Resilience Edge Cases
 
     /// <summary>
-    /// Verifica che il salvataggio e ripristino di uno snapshot di cache vuoto o minimale
-    /// non generi errori e preservi l'integrità dei dati.
+    /// Verify that saving and restoring an empty or minimal cache snapshot
+    /// does not generate errors and preserves the integrity of the data.
     /// </summary>
     [Fact]
     public void ProjectCacheService_ShouldHandleEmptyGraphSnapshot()
@@ -79,8 +79,8 @@ public class AppResilienceAndEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che percorsi con caratteri speciali (hashtag, parentesi, virgole)
-    /// generino percorsi file di cache deterministici e validi su Windows.
+    /// Check that paths with special characters (hashtags, parentheses, commas)
+    /// generate deterministic and valid cache file paths on Windows.
     /// </summary>
     [Theory]
     [InlineData(@"C:\Projects\Vb6 #1 (Special, Name)\")]
@@ -101,8 +101,8 @@ public class AppResilienceAndEdgeCasesTests
     #region UpdateService & SemVer Semantic Edge Cases
 
     /// <summary>
-    /// Verifica che la logica di comparazione delle versioni gestisca correttamente release successive,
-    /// major upgrades e parità di versione.
+    /// Verify that the version comparison logic correctly handles subsequent releases,
+    /// major upgrades and version parity.
     /// </summary>
     [Theory]
     [InlineData("1.0.0", "1.0.0", false)]

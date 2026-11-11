@@ -8,7 +8,7 @@ namespace Macondo.Tests.Common.Analytics;
 public class MartinMetricsExtendedTests
 {
     /// <summary>
-    /// Verifica che un componente isolato privo di qualsiasi dipendenza in ingresso o uscita (Ca = 0, Ce = 0)
+    /// Verifies that an isolated component without any input or output dependencies (Ca = 0, Ce = 0)
     /// abbia Instabilità = 0.0, Astrattezza = 0.0 e Distanza = 1.0.
     /// </summary>
     [Fact]
@@ -35,13 +35,13 @@ public class MartinMetricsExtendedTests
     }
 
     /// <summary>
-    /// Verifica che un'interfaccia astratta (A = 1.0) verso cui convergono molteplici chiamanti
-    /// senza dipendenze in uscita (Ca > 0, Ce = 0 => I = 0.0) si trovi esattamente sulla sequenza principale (A + I = 1.0 => D = 0.0).
+    /// Verifies that an abstract interface (A = 1.0) to which multiple callers converge
+    /// without output dependencies (Ca > 0, Ce = 0 => I = 0.0) lies exactly on the main sequence (A + I = 1.0 => D = 0.0).
     /// </summary>
     [Fact]
     public void MartinMetrics_ShouldCalculateZeroDistance_ForHighlyDependedInterface()
     {
-        // Arrange: Interfaccia astratta con A = 1.0, usata da 3 moduli (Ca = 3, Ce = 0 => I = 0.0) => D = |1.0 + 0.0 - 1| = 0.0
+        // Arrange: Abstract interface with A = 1.0, used by 3 modules (Ca = 3, Ce = 0 => I = 0.0) => D = |1.0 + 0.0 - 1| = 0.0
         var graph = new CodeGraph();
         var iface = new Symbol { Id = Guid.NewGuid(), Name = "IRepository", QualifiedName = "IRepository", FilePath = "IRepository.cls", Kind = SymbolKind.Interface, LineStart = 1, LineEnd = 20 };
         graph.Symbols.Add(iface);
@@ -67,7 +67,7 @@ public class MartinMetricsExtendedTests
     }
 
     /// <summary>
-    /// Verifica che un CodeGraph vuoto ritorni un dataset vuoto coerente senza generare divisioni per zero.
+    /// Verifies that an empty CodeGraph returns a consistent empty dataset without generating divisions by zero.
     /// </summary>
     [Fact]
     public void MartinMetrics_ShouldHandleEmptyGraph_Safely()

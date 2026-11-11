@@ -4,28 +4,28 @@ using Macondo.App.Models;
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Categoria del risultato di ricerca rapida.
+/// Quick search result category.
 /// </summary>
 public enum SearchResultCategory
 {
-    /// <summary>Simbolo o elemento del codice sorgente (Form, Classe, Modulo, Routine, etc.).</summary>
+    /// <summary>Symbol or element of the source code (Form, Class, Module, Routine, etc.).</summary>
     Symbol,
 
-    /// <summary>Scheda / Vista di visualizzazione centrale (Grafo, DSM, Treemap, Hotspots, ScreenFlow, CFG, Blast Radius).</summary>
+    /// <summary>Tab / Central View View (Graph, DSM, Treemap, Hotspots, ScreenFlow, CFG, Blast Radius).</summary>
     View,
 
-    /// <summary>Schermata di configurazione o preferenze utente (Temi, Lingua, Comportamento, Scorciatoie).</summary>
+    /// <summary>Configuration or user preferences screen (Themes, Language, Behavior, Shortcuts).</summary>
     Settings,
 
-    /// <summary>Sezione della documentazione o guida ai concetti.</summary>
+    /// <summary>Documentation section or concept guide.</summary>
     Help,
 
-    /// <summary>Azione rapida o comando applicativo (Blast Radius, Export, Pulisci Filtri, etc.).</summary>
+    /// <summary>Quick action or application command (Blast Radius, Export, Clean Filters, etc.).</summary>
     Action
 }
 
 /// <summary>
-/// Elemento visualizzato nel menu a discesa della ricerca globale.
+/// Item displayed in the global search drop-down menu.
 /// </summary>
 public sealed class SearchResultItem
 {

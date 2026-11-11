@@ -52,7 +52,7 @@ public class KotlinSymbolExtractionTests
         var dataClassSym = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Class && s.Name == "User");
         dataClassSym.Should().NotBeNull();
 
-        // Verifica che le proprietà val/var del costruttore primario siano state estratte
+        // Verify that the val/var properties of the primary constructor have been extracted
         var idProp = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Property && s.Name == "id" && s.QualifiedName == "com.acme.domain.User.id");
         idProp.Should().NotBeNull();
 

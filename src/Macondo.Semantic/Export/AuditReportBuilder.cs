@@ -17,7 +17,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Export;
 
 /// <summary>
-/// Contenitore dei risultati di tutte le analisi semantiche eseguite su un <see cref="CodeGraph"/>.
+/// Container of the results of all semantic analyzes performed on a <see cref="CodeGraph"/>.
 /// </summary>
 public sealed class AuditReportResult
 {
@@ -48,12 +48,12 @@ public sealed class AuditReportResult
 }
 
 /// <summary>
-/// Motore orchestratore per l'esecuzione batch di tutte le analisi semantiche e la generazione di report completi.
+/// Orchestrator engine for batch execution of all semantic analyzes and generation of comprehensive reports.
 /// </summary>
 public static class AuditReportBuilder
 {
     /// <summary>
-    /// Esegue tutte le analisi sul CodeGraph passato e produce un <see cref="AuditReportResult"/>.
+    /// Performs all analysis on the passed CodeGraph and produces a <see cref="AuditReportResult"/>.
     /// </summary>
     public static AuditReportResult RunAll(CodeGraph graph, IEnumerable<ArchitecturalRule>? customRules = null, Action<string>? progressCallback = null)
     {

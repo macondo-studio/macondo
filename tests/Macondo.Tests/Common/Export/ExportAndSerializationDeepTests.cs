@@ -14,8 +14,8 @@ public class ExportAndSerializationDeepTests
     #region Unicode and Special Characters JSON Serialization
 
     /// <summary>
-    /// Verifica che la serializzazione e deserializzazione JSON gestisca correttamente
-    /// caratteri Unicode, accenti, virgolette e simboli matematici nei nomi dei file e nei metadati dei simboli.
+    /// Verify that JSON serialization and deserialization handles correctly
+    /// Unicode characters, accents, quotation marks, and mathematical symbols in file names and symbol metadata.
     /// </summary>
     [Fact]
     public void JsonExporter_ShouldPreserveUnicodeCharactersAndSpecialSymbols()
@@ -64,8 +64,8 @@ public class ExportAndSerializationDeepTests
     #region Empty Datasets and Boundary Export Scenarios
 
     /// <summary>
-    /// Verifica che gli esportatori Markdown e JSON gestiscano report e dataset analitici vuoti
-    /// (0 violazioni, 0 dead code, 0 cloni) senza sollevare eccezioni e producendo output leggibile.
+    /// Verify that your Markdown and JSON exporters handle empty analytic datasets and reports
+    /// (0 violations, 0 dead code, 0 clones) without raising exceptions and producing readable output.
     /// </summary>
     [Fact]
     public void AnalysisMarkdownExporter_ShouldHandleEmptyDatasets_WithoutErrors()
@@ -97,8 +97,8 @@ public class ExportAndSerializationDeepTests
     #region Deep Hierarchical Slice Exporting
 
     /// <summary>
-    /// Verifica che CodeGraphMarkdownExporter.ExportSlice generi la documentazione
-    /// corretta includendo sia i chiamanti (Upstream) che i chiamati (Downstream) della routine selezionata.
+    /// Verify that CodeGraphMarkdownExporter.ExportSlice generates documentation
+    /// corrected by including both the callers (Upstream) and the called ones (Downstream) of the selected routine.
     /// </summary>
     [Fact]
     public void MarkdownExporter_ShouldGenerateCompleteSliceDocumentation_WithUpstreamAndDownstream()

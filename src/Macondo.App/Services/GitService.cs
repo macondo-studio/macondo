@@ -7,8 +7,8 @@ using Macondo.App.Models;
 namespace Macondo.App.Services;
 
 /// <summary>
-/// Servizio per il rilevamento e la gestione delle operazioni Git di base (branch corrente, lista branch, checkout).
-/// Non richiede librerie terze binarie, sfruttando la lettura diretta di .git e l'interfaccia CLI standard di Git.
+/// Service for tracking and managing basic Git operations (current branch, branch list, checkout).
+/// It does not require third-party binary libraries, taking advantage of direct reading of .git and the standard Git CLI interface.
 /// </summary>
 public sealed class GitService
 {
@@ -18,7 +18,7 @@ public sealed class GitService
     private GitService() { }
 
     /// <summary>
-    /// Trova la cartella radice del repository Git (.git) risalendo la gerarchia a partire dalla cartella data.
+    /// Find the root folder of the Git repository (.git) by going up the hierarchy starting from the given folder.
     /// </summary>
     public string? FindGitRoot(string? folderPath)
     {
@@ -44,27 +44,27 @@ public sealed class GitService
         }
         catch
         {
-            // Ignora errori di permessi o I/O
+            // Ignore permissions or I/O errors
         }
 
         return null;
     }
 
     /// <summary>
-    /// Verifica se la cartella specificata è all'interno di un repository Git.
+    /// Checks whether the specified folder is inside a Git repository.
     /// </summary>
     public bool IsGitRepository(string? folderPath) =>
         FindGitRoot(folderPath) != null;
 
     /// <summary>
-    /// Restituisce il nome del branch Git attivo nel repository associato alla cartella.
+    /// Returns the name of the active Git branch in the repository associated with the folder.
     /// </summary>
     public string? GetCurrentBranch(string? folderPath)
     {
         var root = FindGitRoot(folderPath);
         if (root == null) return null;
 
-        // 1. Lettura ultra-rapida da .git/HEAD
+        // 1. Ultra-fast reading from .git/HEAD
         try
         {
             var headFile = Path.Combine(root, ".git", "HEAD");
@@ -78,10 +78,10 @@ public sealed class GitService
         }
         catch
         {
-            // Fallback su comando CLI se il file .git/HEAD è bloccato o worktree
+            // Fallback to CLI command if .git/HEAD file is locked or worktree
         }
 
-        // 2. Fallback su comando CLI git rev-parse
+        // 2. Fallback to git rev-parse CLI command
         var (exitCode, stdout, _) = RunGitCommand(root, "rev-parse --abbrev-ref HEAD");
         if (exitCode == 0 && !string.IsNullOrWhiteSpace(stdout))
 
@@ -91,7 +91,7 @@ public sealed class GitService
     }
 
     /// <summary>
-    /// Restituisce l'elenco di tutti i branch locali disponibili nel repository.
+    /// Returns the list of all local branches available in the repository.
     /// </summary>
     public List<GitBranchInfo> GetBranches(string? folderPath)
     {
@@ -101,7 +101,7 @@ public sealed class GitService
         var branches = new List<GitBranchInfo>();
         var currentBranch = GetCurrentBranch(folderPath);
 
-        // 1. Esecuzione comando git branch --list
+        // 1. Execute git branch --list command
         var (exitCode, stdout, _) = RunGitCommand(root, "branch --list --no-color");
         if (exitCode == 0 && !string.IsNullOrWhiteSpace(stdout))
         {
@@ -122,7 +122,7 @@ public sealed class GitService
             }
         }
 
-        // 2. Fallback su filesystem .git/refs/heads se git CLI non fosse installato nel PATH
+        // 2. Fallback to .git/refs/heads filesystem if git CLI is not installed in the PATH
         if (branches.Count == 0)
         {
             try
@@ -144,7 +144,7 @@ public sealed class GitService
             }
             catch
             {
-                // Ignora errori di accesso
+                // Ignore login errors
             }
         }
 
@@ -152,7 +152,7 @@ public sealed class GitService
     }
 
     /// <summary>
-    /// Estrae l'elenco dei file modificati per ciascun commit recente (fino a maxCommits) per l'analisi di Temporal Coupling.
+    /// Extracts the list of modified files for each recent commit (up to maxCommits) for Temporal Coupling analysis.
     /// </summary>
     public List<List<string>> GetCommitFileChangelists(string? folderPath, int maxCommits = 300)
     {
@@ -192,7 +192,7 @@ public sealed class GitService
     }
 
     /// <summary>
-    /// Estrae la cronologia dettagliata dei commit per file (Autore, percorso file, data, righe aggiunte/rimosse) per l'analisi Social Code e Bus Factor.
+    /// Extracts detailed commit history by file (Author, file path, date, added/removed lines) for Social Code and Bus Factor analysis.
     /// </summary>
     public List<Macondo.Semantic.Analytics.SocialCode.FileCommitRecord> GetFileCommitHistory(string? folderPath, int maxCommits = 500)
     {
@@ -254,8 +254,8 @@ public sealed class GitService
     }
 
     /// <summary>
-    /// Esegue il checkout asincrono del branch specificato.
-    /// Restituisce Success = true se completato, altrimenti Success = false con il messaggio di errore di Git.
+    /// Performs asynchronous checkout of the specified branch.
+    /// Returns Success = true if successful, otherwise Success = false with Git error message.
     /// </summary>
     public async Task<(bool Success, string? ErrorMessage)> CheckoutBranchAsync(string? folderPath, string branchName)
     {
@@ -277,7 +277,7 @@ public sealed class GitService
     }
 
     /// <summary>
-    /// Esegue un comando CLI 'git' con timeout di sicurezza (5s), catturando stdout e stderr in codifica UTF-8.
+    /// Runs a 'git' CLI command with safe timeout (5s), capturing stdout and stderr in UTF-8 encoding.
     /// </summary>
     private static (int ExitCode, string StdOut, string StdErr) RunGitCommand(string workingDir, string arguments)
     {

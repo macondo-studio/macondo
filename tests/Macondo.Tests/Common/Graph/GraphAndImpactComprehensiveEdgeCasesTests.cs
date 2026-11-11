@@ -11,8 +11,8 @@ public class GraphAndImpactComprehensiveEdgeCasesTests
     #region Impact Analysis Edge Cases
 
     /// <summary>
-    /// Verifica l'analisi d'impatto su un simbolo completamente isolato (0 chiamanti),
-    /// confermando un Blast Radius nullo e un livello di rischio minimo.
+    /// Test impact analysis on a fully isolated symbol (0 callers),
+    /// confirming a zero Blast Radius and a minimal level of risk.
     /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldReportMinimalRisk_ForIsolatedSymbol()
@@ -43,8 +43,8 @@ public class GraphAndImpactComprehensiveEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che ImpactAnalyzer gestisca grafi con cicli di chiamate mutue (A -> B -> C -> A)
-    /// senza entrare in ricorsione infinita o sollevare StackOverflowException.
+    /// Verify that ImpactAnalyzer handles graphs with mutual call loops (A -> B -> C -> A)
+    /// without entering infinite recursion or raising StackOverflowException.
     /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldHandleCyclicCallChains_WithoutInfiniteRecursion()
@@ -79,8 +79,8 @@ public class GraphAndImpactComprehensiveEdgeCasesTests
     #region CallGraphQueries Boundary and Pathing Scenarios
 
     /// <summary>
-    /// Verifica che la ricerca di percorsi di esecuzione tra due nodi non connessi in sotto-grafi disgiunti
-    /// restituisca una lista vuota in modo efficiente.
+    /// Verify that the search for execution paths between two unconnected nodes in disjoint sub-graphs
+    /// returns an empty list efficiently.
     /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldReturnEmptyPaths_ForDisconnectedNodes()
@@ -110,8 +110,8 @@ public class GraphAndImpactComprehensiveEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che la ricerca di percorsi quando la sorgente coincide con la destinazione (source == target)
-    /// gestisca il caso limite senza errori.
+    /// Verify that the search for paths when the source matches the destination (source == target)
+    /// handle the edge case without errors.
     /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldHandleSameSourceAndTarget_Gracefully()

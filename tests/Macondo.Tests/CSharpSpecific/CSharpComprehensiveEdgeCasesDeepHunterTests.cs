@@ -12,7 +12,7 @@ public class CSharpComprehensiveEdgeCasesDeepHunterTests
     #region Generic Type Parameter Constraints and Multi-Type Generics
 
     /// <summary>
-    /// Verifica l'estrazione di classi e interfacce generiche con vincoli multipli (where T : class, new(), where K : struct, IComparable).
+    /// Test extraction of generic classes and interfaces with multiple constraints (where T : class, new(), where K : struct, IComparable).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractGenericClasses_WithComplexConstraints()
@@ -70,7 +70,7 @@ public class CSharpComprehensiveEdgeCasesDeepHunterTests
     #region Operator Overloading and User-Defined Conversions
 
     /// <summary>
-    /// Verifica l'estrazione di operatori sovraccaricati (+, -, ==, !=) e operatori di conversione implicita ed esplicita.
+    /// Tests the extraction of overloaded operators (+, -, ==, !=) and implicit and explicit conversion operators.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractOverloadedOperatorsAndConversionOperators()
@@ -137,7 +137,7 @@ public class CSharpComprehensiveEdgeCasesDeepHunterTests
     #region Default Interface Methods (DIM) and Static Abstract Interface Members
 
     /// <summary>
-    /// Verifica l'estrazione di interfacce con Default Interface Methods (C# 8+) e static abstract members (C# 11+).
+    /// Test interface extraction with Default Interface Methods (C# 8+) and static abstract members (C# 11+).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractDefaultInterfaceMethods_AndStaticAbstractMembers()
@@ -202,7 +202,7 @@ public class CSharpComprehensiveEdgeCasesDeepHunterTests
     #region Explicit Interface Implementation on Multi-Interface Classes
 
     /// <summary>
-    /// Verifica la corretta estrazione e assegnazione dei metodi implementati in modo esplicito per molteplici interfacce.
+    /// Verify correct extraction and assignment of explicitly implemented methods for multiple interfaces.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractExplicitInterfaceImplementations()
@@ -259,7 +259,7 @@ public class CSharpComprehensiveEdgeCasesDeepHunterTests
     #region Nested Generic Classes and Types
 
     /// <summary>
-    /// Verifica l'estrazione di classi generiche annidate all'interno di classi generiche (Outer&lt;T&gt;.Inner&lt;U&gt;).
+    /// Tests extraction of generic classes nested inside generic classes (Outer<T>.Inner<U>).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractNestedGenericClasses_WithCorrectNestingHierarchy()
@@ -313,7 +313,7 @@ public class CSharpComprehensiveEdgeCasesDeepHunterTests
     #region Local Functions with Recursion and Closures
 
     /// <summary>
-    /// Verifica che metodi contenenti local function ricorsive e closure vengano analizzati senza errori di estrazione.
+    /// Verifies that methods containing recursive local functions and closures are parsed without extraction errors.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractMethodsContainingRecursiveLocalFunctions()
@@ -373,7 +373,7 @@ public class CSharpComprehensiveEdgeCasesDeepHunterTests
     #region Init-Only Setters, Required Members, and Expression-Bodied Indexers
 
     /// <summary>
-    /// Verifica l'estrazione di proprietà C# moderne con 'init', modificatore 'required' e indicizzatori expression-bodied.
+    /// Test extraction of modern C# properties with 'init', 'required' modifier, and expression-bodied indexers.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractRequiredPropertiesAndExpressionBodiedIndexers()
@@ -422,7 +422,7 @@ public class CSharpComprehensiveEdgeCasesDeepHunterTests
     #region Primary Constructors Inheritance Chain
 
     /// <summary>
-    /// Verifica la corretta estrazione e risoluzione di classi derivate che invocano il primary constructor della classe base.
+    /// Verifies the correct extraction and resolution of derived classes that invoke the primary constructor of the base class.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractPrimaryConstructors_WithInheritanceChain()

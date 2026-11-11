@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class SocialCodeAndBusFactorExtendedTests
 {
     /// <summary>
-    /// Verifica che un modulo con commit equamente distribuiti tra più autori attivi
-    /// abbia un Bus Factor elevato (>= 2) e non sia considerato orfano.
+    /// Verifies that a module with commits equally distributed among multiple active authors
+    /// has a high Bus Factor (>= 2) and is not considered orphaned.
     /// </summary>
     [Fact]
     public void SocialCode_ShouldCalculateHealthyBusFactor_WhenMultipleAuthorsAreActive()
@@ -41,8 +41,8 @@ public class SocialCodeAndBusFactorExtendedTests
     }
 
     /// <summary>
-    /// Verifica che un modulo gestito interamente da un unico autore attivo
-    /// abbia Bus Factor pari a 1 e 100% di ownership primaria.
+    /// Verifies that a module is managed entirely by a single active author
+    /// has Bus Factor equal to 1 and 100% primary ownership.
     /// </summary>
     [Fact]
     public void SocialCode_ShouldDetectSingleMaintainer_WhenOneAuthorOwnsEntireFile()
@@ -75,8 +75,8 @@ public class SocialCodeAndBusFactorExtendedTests
     }
 
     /// <summary>
-    /// Verifica che l'analizzatore gestisca simultaneamente più file con diversi profili di rischio
-    /// (uno orfano perché l'autore ha lasciato il team, uno con sviluppatore attivo).
+    /// Verify that the analyzer simultaneously handles multiple files with different risk profiles
+    /// (one orphaned because the author left the team, one with active developer).
     /// </summary>
     [Fact]
     public void SocialCode_ShouldClassifyMultipleFilesWithDistinctRiskProfiles()
@@ -90,13 +90,13 @@ public class SocialCodeAndBusFactorExtendedTests
 
         var history = new List<FileCommitRecord>
         {
-            // LegacyMod: modificato da Dave che ha lasciato il team
+            // LegacyMod: Modified by Dave who left the team
             new() { Author = "Dave", FilePath = "src/LegacyMod.bas", LinesAdded = 500, LinesDeleted = 0, Timestamp = DateTime.UtcNow.AddDays(-100) },
 
-            // BillingMod: modificato al 100% da Alice (attiva)
+            // BillingMod: 100% modified by Alice (active)
             new() { Author = "Alice", FilePath = "src/BillingMod.bas", LinesAdded = 250, LinesDeleted = 5, Timestamp = DateTime.UtcNow.AddDays(-10) },
 
-            // CommonMod: modificato equamente da Alice e Bob (entrambi attivi)
+            // CommonMod: Modified equally by Alice and Bob (both active)
             new() { Author = "Alice", FilePath = "src/CommonMod.bas", LinesAdded = 100, LinesDeleted = 5, Timestamp = DateTime.UtcNow.AddDays(-20) },
             new() { Author = "Bob", FilePath = "src/CommonMod.bas", LinesAdded = 100, LinesDeleted = 5, Timestamp = DateTime.UtcNow.AddDays(-5) }
         };
@@ -121,8 +121,8 @@ public class SocialCodeAndBusFactorExtendedTests
     }
 
     /// <summary>
-    /// Verifica che in assenza di cronologia dei commit o con lista vuota,
-    /// SocialCodeAnalyzer restituisca un dataset vuoto senza generare eccezioni.
+    /// Check that in the absence of commit history or with an empty list,
+    /// SocialCodeAnalyzer returns an empty dataset without throwing exceptions.
     /// </summary>
     [Fact]
     public void SocialCode_ShouldHandleEmptyHistoryAndEmptyGraph_Safely()

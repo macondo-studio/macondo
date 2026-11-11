@@ -3,13 +3,13 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.CodeClones;
 
 /// <summary>
-/// Motore di rilevamento cloni e duplicazioni di codice (Copy-Paste Detector / CPD) poliglotto.
+/// Polyglot clone and code duplication detection engine (Copy-Paste Detector / CPD).
 /// 
-/// MODELLO DI RILEVAMENTO:
-/// 1. Cloni di Tipo 1 (Exact Clones): routine o frammenti identici nella firma, lunghezza e sequenza esatta
-///    di chiamate a metodi target nel Call Graph.
-/// 2. Cloni di Tipo 2 (Parameterized / Structural Clones): routine strutturalmente identiche che condividono
-///    lunghezza di righe, numero di parametri formali e densità di chiamate uscenti, ma con identificatori o variabili rinominate.
+/// DETECTION MODEL:
+/// 1. Type 1 Clones (Exact Clones): routines or fragments identical in signature, length and exact sequence
+/// of calls to target methods in the Call Graph.
+/// 2. Type 2 Clones (Parameterized / Structural Clones): structurally identical routines that share
+/// length of lines, number of formal parameters and density of outgoing calls, but with renamed identifiers or variables.
 /// </summary>
 public static class CodeCloneDetector
 {
@@ -20,12 +20,12 @@ public static class CodeCloneDetector
     };
 
     /// <summary>
-    /// Esegue il rilevamento delle duplicazioni su tutte le routine e componenti del CodeGraph.
-    /// Distingue tra cloni esatti (Tipo 1) e cloni strutturali parametrizzati (Tipo 2).
+    /// Performs duplication detection on all CodeGraph routines and components.
+    /// Distinguishes between exact clones (Type 1) and parameterized structural clones (Type 2).
     /// </summary>
-    /// <param name="graph">Il CodeGraph contenente tutti i simboli e le relazioni.</param>
-    /// <param name="minLineCount">Numero minimo di righe di codice richieste per considerare una routine candidato clone (default 3).</param>
-    /// <returns>Il report strutturato <see cref="CodeCloneReport"/> con i gruppi di cloni ordinati per volume di righe ridondanti.</returns>
+    /// <param name="graph">The CodeGraph containing all the symbols and relationships.</param>
+    /// <param name="minLineCount">Minimum number of lines of code required to consider a clone candidate routine (default 3).</param>
+    /// <returns>The structured report <see cref="CodeCloneReport"/> with clone groups sorted by volume of redundant rows.</returns>
     public static CodeCloneReport DetectClones(CodeGraph graph, int minLineCount = 3)
     {
         var report = new CodeCloneReport();
@@ -37,7 +37,7 @@ public static class CodeCloneDetector
             return report;
 
         // ---------------------------------------------------------------------
-        // FASE 1: Raggruppamento e calcolo delle fingerprint per Tipo 1 e Tipo 2
+        // PHASE 1: Grouping and calculation of fingerprints for Type 1 and Type 2
         // ---------------------------------------------------------------------
         var exactGroups = new Dictionary<string, List<Symbol>>();
         var structuralGroups = new Dictionary<string, List<Symbol>>();
@@ -48,7 +48,7 @@ public static class CodeCloneDetector
             if (lines < minLineCount)
                 continue;
 
-            // 1a. Fingerprint per Tipo 1 (Esatto - basato su righe, conteggio parametri e sequenza esatta di chiamate uscenti)
+            // 1a. Fingerprint for Type 1 (Exact - based on rows, parameter count and exact sequence of outgoing calls)
             var outgoingCalls = graph.Relationships
                 .Where(rel => rel.SourceId == r.Id && rel.Kind == RelationshipKind.Calls)
                 .Select(rel => rel.TargetId.ToString())
@@ -64,7 +64,7 @@ public static class CodeCloneDetector
             }
             listExact.Add(r);
 
-            // 1b. Fingerprint per Tipo 2 (Strutturale - basato su lunghezza, conteggio parametri e quantità di chiamate uscenti)
+            // 1b. Fingerprint for Type 2 (Structural - based on length, parameter count and quantity of outgoing calls)
             var structKey = $"{lines}_{r.Parameters.Count}_{outgoingCalls.Count}";
             if (!structuralGroups.TryGetValue(structKey, out var listStruct))
             {
@@ -77,7 +77,7 @@ public static class CodeCloneDetector
         var processedSymbols = new HashSet<Guid>();
 
         // ---------------------------------------------------------------------
-        // FASE 2: Creazione gruppi di cloni di Tipo 1 (Exact Clones)
+        // PHASE 2: Creation of groups of Type 1 clones (Exact Clones)
         // ---------------------------------------------------------------------
         foreach (var (key, group) in exactGroups)
         {
@@ -110,9 +110,9 @@ public static class CodeCloneDetector
         }
 
         // ---------------------------------------------------------------------
-        // FASE 3: Creazione gruppi di cloni di Tipo 2 (Parameterized / Structural)
+        // PHASE 3: Creation of Type 2 clone groups (Parameterized / Structural)
         // ---------------------------------------------------------------------
-        // Include solo i simboli non ancora categorizzati come cloni esatti
+        // Includes only symbols not yet categorized as exact clones
         foreach (var (key, group) in structuralGroups)
         {
             var unassigned = group.Where(s => !processedSymbols.Contains(s.Id)).ToList();
@@ -144,7 +144,7 @@ public static class CodeCloneDetector
         }
 
         // ---------------------------------------------------------------------
-        // FASE 4: Ordinamento per righe ridondanti decrescenti (maggior risparmio di refactoring)
+        // PHASE 4: Sorting by decreasing redundant rows (greater refactoring savings)
         // ---------------------------------------------------------------------
         report.CloneGroups.Sort((a, b) => b.RedundantLines.CompareTo(a.RedundantLines));
         return report;

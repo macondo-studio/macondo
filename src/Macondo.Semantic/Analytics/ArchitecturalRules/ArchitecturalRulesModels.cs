@@ -3,25 +3,25 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.ArchitecturalRules;
 
 /// <summary>
-/// Tipologia di regola o vincolo architetturale.
+/// Type of architectural rule or constraint.
 /// </summary>
 public enum RuleType
 {
-    /// <summary>Dipendenza proibita: i componenti sorgente NON possono dipendere dai componenti target.</summary>
+    /// <summary>Forbidden dependency: Source components may NOT depend on target components.</summary>
     ForbiddenDependency,
 
-    /// <summary>Dipendenza esclusiva: i componenti sorgente possono dipendere SOLO dai componenti target consentiti.</summary>
+    /// <summary>Exclusive dependency: Source components can ONLY depend on allowed target components.</summary>
     AllowedDependenciesOnly,
 
-    /// <summary>Astrazione obbligatoria: l'accoppiamento deve avvenire esclusivamente tramite interfacce.</summary>
+    /// <summary>Mandatory abstraction: coupling must occur exclusively via interfaces.</summary>
     MustDependOnInterfaceOnly,
 
-    /// <summary>Componente isolato: nessun componente esterno può chiamare o accedere a questo componente.</summary>
+    /// <summary>Isolated component: No external component can call or access this component.</summary>
     IsolatedInternalComponent
 }
 
 /// <summary>
-/// Livello di severità della violazione della regola architetturale.
+/// Severity level of violation of the architectural rule.
 /// </summary>
 public enum RuleSeverity
 {
@@ -32,21 +32,21 @@ public enum RuleSeverity
 }
 
 /// <summary>
-/// Definizione di un pattern o selettore di componenti/layer basato su nomi, namespace, tipi o cartelle.
+/// Defining a component/layer pattern or selector based on names, namespaces, types, or folders.
 /// </summary>
 public sealed class ComponentSelector
 {
-    /// <summary>Nome visuale del layer o selettore (es. "Domain", "Presentation", "Data Access", "Moduli Standard").</summary>
+    /// <summary>Visual name of the layer or selector (e.g. "Domain", "Presentation", "Data Access", "Standard Modules").</summary>
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>Pattern di match sul nome o percorso del file (es. "*Domain*", "Services/*", "*.frm", "Repository*").</summary>
+    /// <summary>Match pattern on the file name or path (e.g. "*Domain*", "Services/*", "*.frm", "Repository*").</summary>
     public string Pattern { get; set; } = string.Empty;
 
-    /// <summary>Filtro opzionale sul tipo di simbolo (Form, Class, Module, Interface, ecc.).</summary>
+    /// <summary>Optional filter on symbol type (Form, Class, Module, Interface, etc.).</summary>
     public SymbolKind? KindFilter { get; set; }
 
     /// <summary>
-    /// Verifica se un simbolo soddisfa questo selettore.
+    /// Tests whether a symbol matches this selector.
     /// </summary>
     public bool Matches(Symbol symbol)
     {
@@ -72,7 +72,7 @@ public sealed class ComponentSelector
 }
 
 /// <summary>
-/// Regola architetturale formale da verificare sul CodeGraph.
+/// Formal architectural rule to be verified on the CodeGraph.
 /// </summary>
 public sealed class ArchitecturalRule
 {
@@ -82,18 +82,18 @@ public sealed class ArchitecturalRule
     public RuleType Type { get; set; }
     public RuleSeverity Severity { get; set; } = RuleSeverity.Error;
 
-    /// <summary>Selettore dei componenti sorgente soggetti alla regola.</summary>
+    /// <summary>Selector of source components subject to the rule.</summary>
     public ComponentSelector SourceSelector { get; set; } = new();
 
-    /// <summary>Selettore dei componenti target per la regola.</summary>
+    /// <summary>Target component selector for the rule.</summary>
     public ComponentSelector TargetSelector { get; set; } = new();
 
-    /// <summary>Indica se la regola è attiva nella validazione.</summary>
+    /// <summary>Indicates whether the rule is active in validation.</summary>
     public bool IsEnabled { get; set; } = true;
 }
 
 /// <summary>
-/// Singola violazione di una regola architetturale rilevata nel CodeGraph.
+/// Single architectural rule violation detected in CodeGraph.
 /// </summary>
 public sealed class RuleViolation
 {
@@ -106,7 +106,7 @@ public sealed class RuleViolation
 }
 
 /// <summary>
-/// Risultato complessivo della valutazione delle regole architetturali sul progetto.
+/// Overall result of the evaluation of the architectural rules on the project.
 /// </summary>
 public sealed class ArchitecturalRulesReport
 {

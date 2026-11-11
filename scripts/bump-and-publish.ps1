@@ -78,7 +78,7 @@ Write-Host "==========================================================" -Foregro
 Write-Host "  Macondo - Full Automated Release Pipeline               " -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-# 0. Esecuzione test suite automatizzata (attiva per default)
+# 0. Automated test suite execution (enabled by default)
 if (-not $SkipTests) {
     Write-Host "`n>>> [STEP 1/5] Esecuzione suite di test automatizzati xUnit..." -ForegroundColor Magenta
     if (Test-Path $testsScript) {
@@ -94,7 +94,7 @@ if (-not $SkipTests) {
     Write-Host "`n>>> [STEP 1/5] Esecuzione test saltata (-SkipTests specificato)." -ForegroundColor Gray
 }
 
-# 1. Bump Versione & Sincronizzazione Sito
+# 1. Version Bump & Site Sync
 Write-Host "`n>>> [STEP 2/5] Aggiornamento versione, date e sincronizzazione sito..." -ForegroundColor Magenta
 if (-not (Test-Path $bumpScript)) {
     Write-Host "Errore: Script bump-version.ps1 non trovato in $bumpScript" -ForegroundColor Red
@@ -128,7 +128,7 @@ if ([string]::IsNullOrWhiteSpace($effectiveVersion)) {
     }
 }
 
-# 2. Pubblicazione Singolo Eseguibile Portable
+# 2. Publishing Single Portable Executable
 Write-Host "`n>>> [STEP 3/5] Pubblicazione dell'eseguibile unico (Single-File Windows x64)..." -ForegroundColor Magenta
 if (-not (Test-Path $publishScript)) {
     Write-Host "Errore: Script publish-single-file.ps1 non trovato in $publishScript" -ForegroundColor Red
@@ -155,7 +155,7 @@ if (Test-Path $installerScript) {
     Write-Host "Attenzione: Script build-installer.ps1 non trovato in $installerScript" -ForegroundColor Yellow
 }
 
-# 4. Generazione File Note di Rilascio per GitHub
+# 4. Generate Release Note Files for GitHub
 Write-Host "`n>>> [STEP 5/5] Generazione note di rilascio GitHub..." -ForegroundColor Magenta
 $outputDir = Join-Path $workspaceRoot "publish\win-x64"
 $notesFile = Join-Path $outputDir "RELEASE_NOTES_GITHUB.md"
@@ -173,7 +173,7 @@ $formattedNotesEn
 - Standalone Portable Executable (`Macondo.exe`): zero-dependency single file optimized for Windows x64 and CI/CD pipelines.
 - Complete documentation, release manifests, and web showcases synchronized across English and Italian portals.
 
-### Note di Rilascio (Italiano)
+### Release Notes (Italian)
 $effectiveNotesIt
 "@
 

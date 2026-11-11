@@ -4,37 +4,37 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Export;
 
 /// <summary>
-/// Opzioni di configurazione per l'esportazione di CodeGraph in formato Markdown ottimizzato per LLM.
+/// Configuration options for exporting CodeGraph to LLM-optimized Markdown format.
 /// </summary>
 public sealed class MarkdownExportOptions
 {
-    /// <summary>Include un riepilogo statistico (conteggio moduli, classi, routine, relazioni) in cima al markdown.</summary>
+    /// <summary>Includes a statistical summary (count modules, classes, routines, relationships) at the top of the markdown.</summary>
     public bool IncludeSummary { get; set; } = true;
 
-    /// <summary>Include i numeri di riga delle dichiarazioni.</summary>
+    /// <summary>Includes declaration line numbers.</summary>
     public bool IncludeLineNumbers { get; set; } = true;
 
-    /// <summary>Include i parametri e i tipi di ritorno delle routine.</summary>
+    /// <summary>Includes the parameters and return types of the routines.</summary>
     public bool IncludeSignatures { get; set; } = true;
 
-    /// <summary>Include le chiamate in uscita (<c>Calls</c>) per ciascuna routine.</summary>
+    /// <summary>Includes outgoing calls (<c>Calls</c>) for each routine.</summary>
     public bool IncludeCalls { get; set; } = true;
 
-    /// <summary>Include le classi istanziate (<c>Instantiates</c>) per ciascuna routine.</summary>
+    /// <summary>Includes the instantiated classes (<c>Instantiates</c>) for each routine.</summary>
     public bool IncludeInstantiations { get; set; } = true;
 
-    /// <summary>Include i tipi utilizzati (<c>UsesType</c>) per variabili, parametri e routine.</summary>
+    /// <summary>Includes the types used (<c>UsesType</c>) for variables, parameters, and routines.</summary>
     public bool IncludeTypeUsages { get; set; } = true;
 
-    /// <summary>Include le costanti e i tipi definiti dall'utente (UDT/Enum).</summary>
+    /// <summary>Includes constants and user-defined types (UDT/Enum).</summary>
     public bool IncludeTypesAndEnums { get; set; } = true;
 
-    /// <summary>Include i campi di modulo/classe.</summary>
+    /// <summary>Includes form/class fields.</summary>
     public bool IncludeFields { get; set; } = true;
 }
 
 /// <summary>
-/// DTO radice per la serializzazione JSON dell'intero CodeGraph.
+/// Root DTO for JSON serialization of the entire CodeGraph.
 /// </summary>
 public sealed class CodeGraphDto
 {
@@ -45,7 +45,7 @@ public sealed class CodeGraphDto
 }
 
 /// <summary>
-/// DTO per la serializzazione di un singolo simbolo semantico.
+/// DTO for serialization of a single semantic symbol.
 /// </summary>
 public sealed class SymbolDto
 {
@@ -89,7 +89,7 @@ public sealed class SymbolDto
 }
 
 /// <summary>
-/// DTO per la serializzazione dei parametri di una routine.
+/// DTO for serializing the parameters of a routine.
 /// </summary>
 public sealed class ParameterDto
 {
@@ -120,7 +120,7 @@ public sealed class ParameterDto
 }
 
 /// <summary>
-/// DTO per la serializzazione di una relazione semantica.
+/// DTO for serialization of a semantic relation.
 /// </summary>
 public sealed class RelationshipDto
 {

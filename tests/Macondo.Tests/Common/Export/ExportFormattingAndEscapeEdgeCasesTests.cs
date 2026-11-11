@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.Export;
 public class ExportFormattingAndEscapeEdgeCasesTests
 {
     /// <summary>
-    /// Verifica che CodeGraphJsonExporter gestisca simboli contenenti caratteri speciali,
-    /// virgolette, slash, backslash e tag XML nel nome e nei percorsi senza corrompere il JSON generato.
+    /// Verify that CodeGraphJsonExporter handles symbols containing special characters,
+    /// quotes, slashes, backslashes and XML tags in the name and paths without corrupting the generated JSON.
     /// </summary>
     [Fact]
     public void JsonExporter_ShouldHandleSpecialCharactersAndEscaping()
@@ -54,7 +54,7 @@ public class ExportFormattingAndEscapeEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che CodeGraphMarkdownExporter generi un markdown valido anche per grafi completamente vuoti.
+    /// Verify that CodeGraphMarkdownExporter generates valid markdown even for completely empty graphs.
     /// </summary>
     [Fact]
     public void MarkdownExporter_ShouldHandleEmptyGraphSafely()
@@ -68,8 +68,8 @@ public class ExportFormattingAndEscapeEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che l'esportazione Markdown di un grafo con simboli privi di relazioni
-    /// elenchi correttamente i simboli senza causare NullReferenceException.
+    /// Verify that Markdown exports a graph with relationship-free symbols
+    /// lists symbols correctly without causing NullReferenceException.
     /// </summary>
     [Fact]
     public void MarkdownExporter_ShouldHandleIsolatedSymbols()
@@ -92,7 +92,7 @@ public class ExportFormattingAndEscapeEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica l'esportazione di una slice Markdown per un simbolo orfano privo di chiamanti e chiamati.
+    /// Test exporting a Markdown slice for an orphaned symbol with no callers and callees.
     /// </summary>
     [Fact]
     public void MarkdownExporter_ExportSlice_ShouldHandleOrphanSymbol()

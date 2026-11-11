@@ -1,18 +1,18 @@
 namespace Macondo.Semantic.Analytics.Treemap;
 
 /// <summary>
-/// Algoritmo di layout Squarified Treemap (Bruls, Huizing, van Wijk).
-/// Suddivide un rettangolo in sottomaree con aspect ratio prossimo a 1.0 (quadrati), garantendo la massima leggibilità.
-/// Completamente agnostico da qualsiasi linguaggio o piattaforma UI.
+/// Squarified Treemap layout algorithm (Bruls, Huizing, van Wijk).
+/// Subdivides a rectangle into sub-tides with an aspect ratio close to 1.0 (squares), ensuring maximum readability.
+/// Completely agnostic to any UI language or platform.
 /// </summary>
 public static class TreemapLayoutEngine
 {
     /// <summary>
-    /// Esegue il calcolo geometrico del layout Squarified Treemap per l'elemento radice e tutta la sua gerarchia di figli.
+    /// Performs geometric calculation of the Squarified Treemap layout for the root element and all of its child hierarchy.
     /// </summary>
-    /// <param name="root">L'elemento radice della Treemap.</param>
-    /// <param name="targetBounds">I confini rettangolari disponibili sul canvas.</param>
-    /// <param name="padding">Margine di separazione in pixel tra i nodi e i relativi container.</param>
+    /// <param name="root">The root element of the Treemap.</param>
+    /// <param name="targetBounds">The rectangular borders available on the canvas.</param>
+    /// <param name="padding">Separation margin in pixels between nodes and their containers.</param>
     public static void Layout(TreemapItem root, TreemapRect targetBounds, double padding = 3.0)
     {
         root.Bounds = targetBounds;
@@ -22,10 +22,10 @@ public static class TreemapLayoutEngine
     }
 
     /// <summary>
-    /// Suddivide l'area del nodo contenitore tra i suoi elementi figli diretti.
+    /// Divides the area of the containing node among its direct children.
     /// </summary>
-    /// <param name="parent">Il nodo genitore i cui figli devono essere disposti.</param>
-    /// <param name="bounds">I confini rettangolari assegnati al genitore.</param>
+    /// <param name="parent">The parent node whose children are to be arranged.</param>
+    /// <param name="bounds">The rectangular boundaries assigned to the parent.</param>
     /// <param name="padding">Margine interno.</param>
     private static void LayoutChildren(TreemapItem parent, TreemapRect bounds, double padding)
     {
@@ -55,16 +55,16 @@ public static class TreemapLayoutEngine
     }
 
     /// <summary>
-    /// Funzione ricorsiva di tessellazione Squarified (Bruls, Huizing, van Wijk).
+    /// Recursive tessellation function Squarified (Bruls, Huizing, van Wijk).
     /// </summary>
-    /// <param name="items">Lista ordinata per peso decrescente degli elementi da posizionare.</param>
-    /// <param name="areas">Superfici proporzionali normalizzate corrispondenti a ciascun elemento.</param>
-    /// <param name="startIndex">Indice di partenza per la riga corrente.</param>
-    /// <param name="rect">Rettangolo rimanente da suddividere.</param>
+    /// <param name="items">List ordered by decreasing weight of the elements to be positioned.</param>
+    /// <param name="areas">Normalized proportional surfaces corresponding to each element.</param>
+    /// <param name="startIndex">Starting index for the current row.</param>
+    /// <param name="rect">Remaining rectangle to subdivide.</param>
     /// <remarks>
-    /// L'algoritmo accumula elementi nella riga corrente fintanto che l'aspect ratio peggiore (<see cref="CalculateWorstRatio"/>)
-    /// migliora (si avvicina a 1.0). Quando l'aggiunta di un ulteriore elemento peggiorerebbe l'aspect ratio,
-    /// la riga viene finalizzata con <see cref="LayoutRow"/> e l'algoritmo procede ricorsivamente sul rettangolo residuo.
+    /// The algorithm accumulates elements in the current row until the worst aspect ratio (<see cref="CalculateWorstRatio"/>)
+    /// improves (approaches 1.0). When adding an additional element would worsen the aspect ratio,
+    /// the row is finalized with <see cref="LayoutRow"/> and the algorithm proceeds recursively on the residual rectangle.
     /// </remarks>
     private static void Squarify(
         List<TreemapItem> items,
@@ -74,17 +74,17 @@ public static class TreemapLayoutEngine
     {
         if (startIndex >= items.Count || rect.Width <= 0 || rect.Height <= 0) return;
 
-        // Inizializza la riga corrente con il primo elemento disponibile
+        // Initialize the current row with the first available element
         int rowEnd = startIndex;
         var currentRow = new List<double> { areas[startIndex] };
         double rowSum = areas[startIndex];
-        // Determina il lato corto del rettangolo contenitore lungo cui impilare
+        // Determines the short side of the container rectangle to stack along
         double sideLength = Math.Min(rect.Width, rect.Height);
 
-        // Calcola il peggior aspect ratio della riga iniziale
+        // Calculate the worst aspect ratio of the initial row
         double bestWorstRatio = CalculateWorstRatio(currentRow, rowSum, sideLength);
 
-        // Aggiunge elementi finché l'aspect ratio medio migliora o si avvicina a 1.0 (quadrato)
+        // Adds elements until the average aspect ratio improves or approaches 1.0 (squared)
         for (int i = startIndex + 1; i < items.Count; i++)
         {
             double nextArea = areas[i];
@@ -92,7 +92,7 @@ public static class TreemapLayoutEngine
             double testSum = rowSum + nextArea;
             double testRatio = CalculateWorstRatio(testRow, testSum, sideLength);
 
-            // Se l'aggiunta del nuovo elemento riduce o mantiene l'allungamento dei rettangoli, accettalo nella riga
+            // If adding the new element reduces or maintains the elongation of the rectangles, accept it in the row
             if (testRatio <= bestWorstRatio)
             {
                 currentRow = testRow;
@@ -102,24 +102,24 @@ public static class TreemapLayoutEngine
             }
             else
             {
-                // L'aspect ratio comincia a degradare: chiudi la riga corrente
+                // The aspect ratio begins to degrade: close the current line
                 break;
             }
         }
 
-        // Posiziona geometricamente i rettangoli della riga consolidata e ricava lo spazio rimanente
+        // Geometrically position the rectangles of the consolidated row and obtain the remaining space
         var remainingRect = LayoutRow(items, currentRow, startIndex, rowEnd, rowSum, rect);
-        // Ricorsione per impacchettare i restanti elementi nello spazio residuo
+        // Recursion to pack the remaining elements into the remaining space
         Squarify(items, areas, rowEnd + 1, remainingRect);
     }
 
     /// <summary>
-    /// Calcola il peggior aspect ratio (rapporto base/altezza o altezza/base) tra tutti i rettangoli di una riga di prova.
+    /// Calculates the worst aspect ratio (base/height ratio or height/base ratio) among all the rectangles in a test row.
     /// </summary>
-    /// <param name="row">Superfici dei rettangoli inclusi nella riga.</param>
-    /// <param name="rowSum">Somma totale delle superfici della riga.</param>
-    /// <param name="sideLength">Lunghezza del lato corto del rettangolo contenitore.</param>
-    /// <returns>Il massimo valore di aspect ratio (valori vicini a 1.0 indicano forme quadrate ottimali).</returns>
+    /// <param name="row">Surfaces of the rectangles included in the row.</param>
+    /// <param name="rowSum">Total sum of the surfaces of the row.</param>
+    /// <param name="sideLength">Length of the short side of the container rectangle.</param>
+    /// <returns>The maximum aspect ratio value (values close to 1.0 indicate optimal square shapes).</returns>
     private static double CalculateWorstRatio(List<double> row, double rowSum, double sideLength)
     {
         if (row.Count == 0 || rowSum <= 0 || sideLength <= 0) return double.MaxValue;
@@ -129,20 +129,20 @@ public static class TreemapLayoutEngine
         double maxArea = row.Max();
         double minArea = row.Min();
 
-        // Formula standard di Bruls-Huizing-van Wijk: max( (s^2 * max_area) / sum^2, sum^2 / (s^2 * min_area) )
+        // Standard Bruls-Huizing-van Wijk formula: max( (s^2 * max_area) / sum^2, sum^2 / (s^2 * min_area) )
         return Math.Max((sideSq * maxArea) / sumSq, sumSq / (sideSq * minArea));
     }
 
     /// <summary>
-    /// Posiziona geometricamente i rettangoli della riga consolidata lungo il lato corto e restituisce l'area rimanente.
+    /// Geometrically places the rectangles of the consolidated row along the short side and returns the remaining area.
     /// </summary>
-    /// <param name="items">Lista degli elementi.</param>
-    /// <param name="rowAreas">Aree degli elementi della riga.</param>
+    /// <param name="items">List of elements.</param>
+    /// <param name="rowAreas">Row element areas.</param>
     /// <param name="startIdx">Indice iniziale.</param>
     /// <param name="endIdx">Indice finale.</param>
-    /// <param name="rowSum">Somma delle aree della riga.</param>
-    /// <param name="rect">Rettangolo di riferimento prima dell'inserimento della riga.</param>
-    /// <returns>Il sotto-rettangolo rimanente per le righe successive.</returns>
+    /// <param name="rowSum">Sum of the areas of the row.</param>
+    /// <param name="rect">Reference rectangle before inserting the line.</param>
+    /// <returns>The remaining sub-rectangle for the following rows.</returns>
     private static TreemapRect LayoutRow(
         List<TreemapItem> items,
         List<double> rowAreas,
@@ -152,13 +152,13 @@ public static class TreemapLayoutEngine
         TreemapRect rect)
     {
         bool isHorizontal = rect.Width >= rect.Height;
-        // Calcola lo spessore della riga rispetto al lato lungo del rettangolo disponibile
+        // Calculate the thickness of the line relative to the long side of the available rectangle
         double rowBreadth = (isHorizontal ? rect.Height : rect.Width) > 0 
             ? rowSum / (isHorizontal ? rect.Height : rect.Width) 
             : 0;
 
         double offset = 0;
-        // Assegna le coordinate di ciascun rettangolo all'interno della riga
+        // Assign the coordinates of each rectangle within the row
         for (int i = startIdx; i <= endIdx; i++)
         {
             double area = rowAreas[i - startIdx];
@@ -176,7 +176,7 @@ public static class TreemapLayoutEngine
             }
         }
 
-        // Restituisce l'area rettangolare residua tagliando via la riga appena posizionata
+        // Returns the remaining rectangular area by cutting away the newly placed line
         if (isHorizontal)
 
             return new TreemapRect(rect.X + rowBreadth, rect.Y, Math.Max(0, rect.Width - rowBreadth), rect.Height);

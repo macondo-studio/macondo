@@ -9,7 +9,7 @@ namespace Macondo.Tests.Common.Export;
 public class ExportAndSerializationTests
 {
     /// <summary>
-    /// Verifica che CodeGraphMarkdownExporter generi un documento Markdown formattato non vuoto per l'intero grafo.
+    /// Verify that CodeGraphMarkdownExporter generates a non-empty formatted Markdown document for the entire graph.
     /// </summary>
     [Fact]
     public void MarkdownExporter_ShouldGenerateNonEmptyReport()
@@ -26,7 +26,7 @@ public class ExportAndSerializationTests
     }
 
     /// <summary>
-    /// Verifica l'esportazione Markdown di un sotto-grafo / fetta (Slice) focalizzato su una specifica routine.
+    /// Verify Markdown export of a sub-graph/slice (Slice) focused on a specific routine.
     /// </summary>
     [Fact]
     public void MarkdownExporter_ShouldExportSliceForSymbol()
@@ -45,8 +45,8 @@ public class ExportAndSerializationTests
     }
 
     /// <summary>
-    /// Verifica il round-trip di serializzazione ed esportazione/importazione JSON del CodeGraph,
-    /// confermando la perfetta corrispondenza di simboli, ID, kind e relazioni.
+    /// Check the CodeGraph JSON serialization and export/import round-trip,
+    /// confirming the perfect correspondence of symbols, IDs, kind and relationships.
     /// </summary>
     [Fact]
     public void JsonExporter_ShouldRoundtripSerializeAndDeserializeIdentically()
@@ -76,8 +76,8 @@ public class ExportAndSerializationTests
     }
 
     /// <summary>
-    /// Verifica che la serializzazione JSON conservi integralmente tutti i metadati avanzati dei simboli:
-    /// parametri, ByVal/ByRef, valori di default, accessibilità (es. Friend), flag static e righe di codice.
+    /// Verify that JSON serialization fully preserves all advanced symbol metadata:
+    /// parameters, ByVal/ByRef, default values, accessibility (e.g. Friend), static flags and lines of code.
     /// </summary>
     [Fact]
     public void JsonExporter_ShouldPreserveSymbolMetadata_ParametersAccessibilityFlags()

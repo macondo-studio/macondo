@@ -3,35 +3,35 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.Martin;
 
 /// <summary>
-/// Zona concettuale del diagramma di Martin (Robert C. Martin / Uncle Bob).
+/// Conceptual zone of Martin's diagram (Robert C. Martin / Uncle Bob).
 /// </summary>
 public enum MartinZone
 {
     /// <summary>
-    /// Componenti bilanciati, posizionati lungo la Sequenza Principale (A + I ≈ 1).
+    /// Balanced components, positioned along the Main Sequence (A + I ≈ 1).
     /// </summary>
     MainSequence,
 
     /// <summary>
-    /// Zona di Sofferenza (Zone of Pain): Bassa astrattezza (A basso) e alta stabilità (I basso, molti dipendenti).
-    /// Tipico dei God Object / Moduli monolitici concreti difficilissimi da modificare.
+    /// Zone of Pain: Low abstractness (low A) and high stability (low I, many dependent).
+    /// Typical of God Objects / Concrete monolithic modules that are very difficult to modify.
     /// </summary>
     ZoneOfPain,
 
     /// <summary>
-    /// Zona di Inutilità (Zone of Uselessness): Alta astrattezza (A alto) e alta instabilità (I alto, nessuno ne dipende).
-    /// Astrazioni sovra-ingegnerizzate o interfacce orfane.
+    /// Zone of Uselessness: High abstractness (high A) and high instability (high I, no one depends on it).
+    /// Over-engineered abstractions or orphaned interfaces.
     /// </summary>
     ZoneOfUselessness,
 
     /// <summary>
-    /// Zona intermedia bilanciata non critica.
+    /// Non-critical balanced intermediate zone.
     /// </summary>
     Balanced
 }
 
 /// <summary>
-/// Singolo componente analizzato nel Diagramma di Martin (Modulo, Classe, Form, Interfaccia, Controllo).
+/// Single component analyzed in the Martin Diagram (Module, Class, Form, Interface, Control).
 /// </summary>
 public sealed class MartinMetricItem
 {
@@ -41,39 +41,39 @@ public sealed class MartinMetricItem
     public string FilePath { get; init; } = string.Empty;
     public SymbolKind Kind { get; init; }
 
-    /// <summary>Accoppiamento Afferente (Ca): Numero di componenti esterni che dipendono da questo modulo.</summary>
+    /// <summary>Afferent Coupling (Ca): Number of external components that depend on this module.</summary>
     public int AfferentCoupling { get; set; }
 
-    /// <summary>Accoppiamento Efferente (Ce): Numero di componenti esterni da cui questo modulo dipende.</summary>
+    /// <summary>Efferent Coupling (Ce): Number of external components on which this module depends.</summary>
     public int EfferentCoupling { get; set; }
 
-    /// <summary>Instabilità (I = Ce / (Ca + Ce)): Varia da 0.0 (massima stabilità) a 1.0 (massima instabilità).</summary>
+    /// <summary>Instability (I = Ce / (Ca + Ce)): Varies from 0.0 (maximum stability) to 1.0 (maximum instability).</summary>
     public double Instability { get; set; }
 
-    /// <summary>Numero di elementi astratti (interfacce, metodi astratti, firme vuote/pure).</summary>
+    /// <summary>Number of abstract elements (interfaces, abstract methods, empty/pure signatures).</summary>
     public int AbstractSymbolsCount { get; set; }
 
-    /// <summary>Numero di elementi concreti (metodi implementati, campi, proprietà concrete).</summary>
+    /// <summary>Number of concrete elements (implemented methods, fields, concrete properties).</summary>
     public int ConcreteSymbolsCount { get; set; }
 
-    /// <summary>Astrattezza (A = Na / (Na + Nc)): Varia da 0.0 (puramente concreto) a 1.0 (puramente astratto).</summary>
+    /// <summary>Abstractness (A = Na / (Na + Nc)): Varies from 0.0 (purely concrete) to 1.0 (purely abstract).</summary>
     public double Abstractness { get; set; }
 
-    /// <summary>Distanza normalizzata dalla Sequenza Principale D = |A + I - 1| / sqrt(2) in [0..1].</summary>
+    /// <summary>Normalized distance from the Main Sequence D = |A + I - 1| / sqrt(2) in [0..1].</summary>
     public double NormalizedDistance { get; set; }
 
-    /// <summary>Distanza assoluta D = |A + I - 1|.</summary>
+    /// <summary>Absolute distance D = |A + I - 1|.</summary>
     public double Distance => Math.Abs(Abstractness + Instability - 1.0);
 
     /// <summary>Zona architettonica assegnata.</summary>
     public MartinZone Zone { get; set; }
 
-    /// <summary>Linee di codice stimate o numero membri totali.</summary>
+    /// <summary>Estimated lines of code or total member count.</summary>
     public int LocOrSize { get; set; }
 }
 
 /// <summary>
-/// Dataset completo delle Metriche di Martin per un progetto o workspace.
+/// Complete dataset of Martin Metrics for a project or workspace.
 /// </summary>
 public sealed class MartinMetricsDataset
 {

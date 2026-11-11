@@ -3,28 +3,28 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Risultato strutturato dell'estrazione semantica di un singolo file sorgente Kotlin (.kt o .kts).
+/// Structured result of semantic extraction of a single Kotlin source file (.kt or .kts).
 /// </summary>
 public sealed class KotlinExtractionResult
 {
-    /// <summary>Percorso assoluto o relativo del file sorgente Kotlin analizzato.</summary>
+    /// <summary>Absolute or relative path to the analyzed Kotlin source file.</summary>
     public required string FilePath { get; init; }
 
-    /// <summary>Elenco dei simboli radice (classi, interfacce, object, enum o facciata di file per elementi top-level) dichiarati nel file.</summary>
+    /// <summary>List of root symbols (classes, interfaces, objects, enums or file fronts for top-level elements) declared in the file.</summary>
     public required IReadOnlyList<Symbol> TopLevelSymbols { get; init; }
 
-    /// <summary>Elenco dei call-site di chiamata rilevati nei corpi delle funzioni o proprietà.</summary>
+    /// <summary>List of call call-sites detected in function bodies or properties.</summary>
     public required IReadOnlyList<KotlinCallSite> CallSites { get; init; }
 
-    /// <summary>Elenco delle istanziazioni rilevate nei metodi o nelle inizializzazioni di proprietà.</summary>
+    /// <summary>List of instantiations detected in property methods or initializations.</summary>
     public required IReadOnlyList<KotlinInstantiation> Instantiations { get; init; }
 
-    /// <summary>Elenco delle relazioni di ereditarietà e implementazione di interfacce estratte dalle dichiarazioni di tipo.</summary>
+    /// <summary>List of inheritance relations and interface implementations extracted from type declarations.</summary>
     public required IReadOnlyList<KotlinTypeInheritance> Inheritances { get; init; }
 
-    /// <summary>Elenco degli errori diagnostici di parsing rilevati sul file.</summary>
+    /// <summary>List of diagnostic parsing errors detected on the file.</summary>
     public required IReadOnlyList<string> ParseErrors { get; init; }
 
-    /// <summary>Indica se il file è stato parsato ed estratto con successo senza errori bloccanti.</summary>
+    /// <summary>Indicates whether the file was successfully parsed and extracted without blocking errors.</summary>
     public bool Success => ParseErrors.Count == 0;
 }

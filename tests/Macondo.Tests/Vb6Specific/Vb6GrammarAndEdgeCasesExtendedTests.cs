@@ -12,7 +12,7 @@ namespace Macondo.Tests.Vb6Specific;
 public class Vb6GrammarAndEdgeCasesExtendedTests
 {
     /// <summary>
-    /// Verifica il parsing di blocchi Select Case completi con clausole multiple:
+    /// Test parsing of complete Select Case blocks with multiple clauses:
     /// valori separati da virgola, intervalli 'To', condizioni 'Is &gt;=', e 'Case Else'.
     /// </summary>
     [Fact]
@@ -55,7 +55,7 @@ public class Vb6GrammarAndEdgeCasesExtendedTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione e il parsing di routine con parametri Optional con valori di default e parametri ParamArray.
+    /// Tests extraction and parsing of Optional parameterized routines with default values ​​and ParamArray parameters.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldSupportOptionalDefaultValues_AndParamArray()
@@ -93,7 +93,7 @@ public class Vb6GrammarAndEdgeCasesExtendedTests
     }
 
     /// <summary>
-    /// Verifica la definizione di User-Defined Types (UDT) con stringhe a lunghezza fissa e array statici interni.
+    /// Tests the definition of User-Defined Types (UDTs) with fixed-length strings and internal static arrays.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldExtractUserDefinedTypes_WithFixedStringsAndArrays()
@@ -126,7 +126,7 @@ public class Vb6GrammarAndEdgeCasesExtendedTests
     }
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di costrutti Enum con valori interi espliciti positivi e negativi.
+    /// Tests parsing and extraction of Enum constructs with explicit positive and negative integer values.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldExtractEnumDefinitions_WithExplicitAndNegativeValues()
@@ -157,7 +157,7 @@ public class Vb6GrammarAndEdgeCasesExtendedTests
     }
 
     /// <summary>
-    /// Verifica il supporto per variabili locali Static all'interno di una routine VB6.
+    /// Tests support for Static local variables within a VB6 routine.
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportStaticLocalVariables()
@@ -197,7 +197,7 @@ public class Vb6GrammarAndEdgeCasesExtendedTests
     }
 
     /// <summary>
-    /// Verifica il parsing di istruzioni GoSub ... Return e On Error / On ... GoTo.
+    /// Test parsing of GoSub ... Return and On Error / On ... GoTo statements.
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportGoSubReturnAndOnGoToStatements()
@@ -256,7 +256,7 @@ public class Vb6GrammarAndEdgeCasesExtendedTests
     }
 
     /// <summary>
-    /// Verifica il parsing di tutti i tipi di ciclo VB6: Do While...Loop, Do...Loop Until, While...Wend, For Each...Next, For...Step -1.
+    /// Tests parsing of all VB6 loop types: Do While...Loop, Do...Loop Until, While...Wend, For Each...Next, For...Step -1.
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportAllLoopVariants_AndForStep()
@@ -308,7 +308,7 @@ public class Vb6GrammarAndEdgeCasesExtendedTests
     }
 
     /// <summary>
-    /// Verifica il parsing di Property Get e Property Let con parametri di indicizzazione multipli.
+    /// Test parsing of Property Get and Property Let with multiple indexing parameters.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldExtractIndexedProperties_WithLetAndGet()
@@ -338,7 +338,7 @@ public class Vb6GrammarAndEdgeCasesExtendedTests
     }
 
     /// <summary>
-    /// Verifica il supporto per istruzioni di File I/O VB6 native (Open, Close, Line Input, Print, Put, Get).
+    /// Tests support for native VB6 File I/O instructions (Open, Close, Line Input, Print, Put, Get).
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportFileIOStatements()
@@ -384,7 +384,7 @@ public class Vb6GrammarAndEdgeCasesExtendedTests
     }
 
     /// <summary>
-    /// Verifica la gestione dell'istruzione Mid(...) usata come target di assegnazione (Mid statement).
+    /// Check the management of the Mid(...) instruction used as assignment target (Mid statement).
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportMidStatementAssignment()
@@ -416,7 +416,7 @@ public class Vb6GrammarAndEdgeCasesExtendedTests
     }
 
     /// <summary>
-    /// Verifica il parsing di dichiarazioni con suffissi di tipo (Type Hint Characters: $, %, &, #, @, !).
+    /// Tests parsing of declarations with type suffixes (Type Hint Characters: $, %, &, #, @, !).
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportTypeHintSuffixCharacters()
@@ -458,7 +458,7 @@ public class Vb6GrammarAndEdgeCasesExtendedTests
     }
 
     /// <summary>
-    /// Verifica il parsing di dichiarazioni multiple con New contestuale sulla stessa riga.
+    /// Test parsing of multiple declarations with contextual New on the same line.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldSupportMultiVariableDeclarationWithNew()

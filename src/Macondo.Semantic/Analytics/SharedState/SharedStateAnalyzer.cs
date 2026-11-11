@@ -3,17 +3,17 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.SharedState;
 
 /// <summary>
-/// Analizzatore agnostico dello Stato Globale Condiviso (Global / Shared State Matrix).
-/// Rileva variabili Public nei moduli .bas (VB6) e campi statici mutabili (C#), mappando chi le legge e chi le modifica.
+/// Agnostic Global / Shared State Matrix analyzer.
+/// Detects Public variables in .bas modules (VB6) and mutable static fields (C#), mapping who reads them and who modifies them.
 /// </summary>
 public static class SharedStateAnalyzer
 {
     /// <summary>
-    /// Esegue l'analisi di tutti i campi, variabili globali e stati statici condivisi tra moduli del CodeGraph,
-    /// individuando lettori, scrittori e calcolando il livello di rischio di mutazione concorrente/cross-module.
+    /// Performs analysis of all fields, global variables and static states shared between CodeGraph modules,
+    /// identifying readers, writers and calculating the risk level of concurrent/cross-module mutation.
     /// </summary>
-    /// <param name="graph">Il <see cref="CodeGraph"/> semantico del progetto.</param>
-    /// <returns>Il dataset <see cref="SharedStateDataset"/> con l'elenco delle variabili condivise e dei relativi accessor.</returns>
+    /// <param name="graph">The semantic <see cref="CodeGraph"/> of the project.</param>
+    /// <returns>The <see cref="SharedStateDataset"/> dataset with the list of shared variables and related accessories.</returns>
     public static SharedStateDataset Analyze(CodeGraph graph)
     {
         var dataset = new SharedStateDataset();
@@ -21,8 +21,8 @@ public static class SharedStateAnalyzer
             return dataset;
 
         // =========================================================================
-        // PASSO 1: Identificazione di tutte le variabili / campi a visibilità globale o pubblica
-        // (In VB6: variabili Public/Global dichiarate in moduli .bas o classi; in C#: campi statici/pubblici).
+        // STEP 1: Identify all variables / fields with global or public visibility
+        // (In VB6: Public/Global variables declared in .bas modules or classes; in C#: static/public fields).
         // =========================================================================
         var globalVars = new List<Symbol>();
 
@@ -31,13 +31,13 @@ public static class SharedStateAnalyzer
             if (sym.Kind != SymbolKind.Field)
                 continue;
 
-            // Filtra solo campi con accessibilità Public o Global
+            // Filter only fields with Public or Global accessibility
             if (sym.Accessibility is Accessibility.Public or Accessibility.Global)
             {
                 var parentRel = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.Contains && r.TargetId == sym.Id);
                 var parent = parentRel != null ? graph.FindSymbolById(parentRel.SourceId) : null;
 
-                // Accetta se appartenente a un modulo standard .bas, classe o struttura
+                // Accept if belonging to a standard .bas module, class or structure
                 if (parent != null && parent.Kind is SymbolKind.Module or SymbolKind.Class or SymbolKind.Struct)
 
                     globalVars.Add(sym);
@@ -49,24 +49,24 @@ public static class SharedStateAnalyzer
 
         var globalVarById = globalVars.ToDictionary(v => v.Id);
 
-        // Mappa da ID Variabile -> Elenco degli Accessor (routine che la leggono o modificano)
+        // Map from Variable ID -> List of Accessors (routines that read or modify it)
         var accessorsByVar = globalVars.ToDictionary(v => v.Id, _ => new List<SharedVariableAccessor>());
 
         // =========================================================================
-        // PASSO 2: Ispezione delle relazioni Reads e Writes verso le variabili globali
+        // STEP 2: Inspection of Reads and Writes relationships towards global variables
         // =========================================================================
         foreach (var rel in graph.Relationships)
         {
             if (rel.Kind is not (RelationshipKind.Reads or RelationshipKind.Writes or RelationshipKind.References or RelationshipKind.Calls))
                 continue;
 
-            // Se la destinazione dell'arco è una variabile globale monitorata
+            // If the arc target is a monitored global variable
             if (globalVarById.TryGetValue(rel.TargetId, out var targetVar))
             {
                 var sourceSym = graph.FindSymbolById(rel.SourceId);
                 if (sourceSym == null) continue;
 
-                // Risale ai container di origine e destinazione per determinare se l'accesso attraversa i confini di modulo (Cross-Module)
+                // Traces source and destination containers to determine if access crosses module boundaries (Cross-Module)
                 var parentRel = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.Contains && r.TargetId == sourceSym.Id);
                 var sourceContainer = parentRel != null ? graph.FindSymbolById(parentRel.SourceId) : null;
                 var targetContainerRel = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.Contains && r.TargetId == targetVar.Id);
@@ -106,7 +106,7 @@ public static class SharedStateAnalyzer
         }
 
         // =========================================================================
-        // PASSO 3: Composizione degli elementi del dataset con le informazioni aggregate
+        // STEP 3: Composition of the elements of the dataset with the aggregated information
         // =========================================================================
         foreach (var gv in globalVars)
         {
@@ -131,7 +131,7 @@ public static class SharedStateAnalyzer
         }
 
         // =========================================================================
-        // PASSO 4: Ordinamento per livello di rischio decrescente (Cross-Module Writers multipli in cima)
+        // STEP 4: Sort by decreasing risk level (multiple Cross-Module Writers on top)
         // =========================================================================
         dataset.Items.Sort((a, b) =>
         {

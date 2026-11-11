@@ -3,27 +3,27 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Estrattore semantico per file sorgente Java (.java) con parser AST ricorsivo resiliente a tolleranza d'errore.
+/// Semantic extractor for Java source files (.java) with fault-tolerant recursive resilient AST parser.
 /// 
 /// CARATTERISTICHE E CAPACITÀ SUPPORTATE:
-/// 1. Package &amp; Imports: tracciamento del package gerarchico per generare QualifiedName precisi (es. 'com.acme.service.OrderService').
-/// 2. Annotazioni: supporto ad annotazioni su classi, metodi e campi (@Override, @Entity, @Autowired, @RestController, ecc.).
-/// 3. Dichiarazioni di Tipi: Classi (standard, astratte, finali, statiche, inner), Interfacce, Enum (con costanti), Record (Java 16+) e @interface.
-/// 4. Ereditarietà e Interfacce: clausole 'extends', 'implements' e 'permits' con supporto ai parametri generici (&lt;T, K&gt;).
-/// 5. Routine &amp; Costruttori: metodi statici/istanza, costruttori, parametri tipizzati, tipi di ritorno, clausole throws.
-/// 6. Campi &amp; Costanti: variabili di istanza, campi statici, costanti ('static final' ed enum values).
-/// 7. Analisi Invocazioni (CALLS): rilevamento invocazioni di metodi con ricevitore esplicito (obj.method()), implicito o super/this.
-/// 8. Analisi Creazioni Oggetti (INSTANTIATES): espressioni 'new TypeName(...)'.
+/// 1. Package & Imports: Hierarchical package tracking to generate precise QualifiedNames (e.g. 'com.acme.service.OrderService').
+/// 2. Annotations: support for annotations on classes, methods and fields (@Override, @Entity, @Autowired, @RestController, etc.).
+/// 3. Type Declarations: Classes (standard, abstract, final, static, inner), Interfaces, Enums (with constants), Records (Java 16+) and @interface.
+/// 4. Inheritance and Interfaces: 'extends', 'implements' and 'permits' clauses with support for generic parameters (<T, K>).
+/// 5. Routines & Constructors: static/instance methods, constructors, typed parameters, return types, throws clauses.
+/// 6. Fields & Constants: instance variables, static fields, constants ('static final' and enum values).
+/// 7. Invocation Analysis (CALLS): detection of method invocations with explicit (obj.method()), implicit or super/this receiver.
+/// 8. Object Creation Analysis (INSTANTIATES): 'new TypeName(...)' expressions.
 /// </summary>
 public static class JavaExtractor
 {
     /// <summary>
-    /// Esegue il parsing e l'estrazione semantica di un file Java inserendo direttamente i simboli nel <see cref="CodeGraph"/>.
+    /// Performs parsing and semantic extraction of a Java file by directly inserting symbols into the <see cref="CodeGraph"/>.
     /// </summary>
-    /// <param name="graph">Il CodeGraph condiviso in cui registrare i simboli e le relazioni CONTAINS.</param>
-    /// <param name="filePath">Percorso o nome del file sorgente Java analizzato.</param>
-    /// <param name="sourceText">Il testo del codice sorgente Java completo del file.</param>
-    /// <returns>Il risultato strutturato contenente simboli, call-site, istanziazioni ed ereditarietà.</returns>
+    /// <param name="graph">The shared CodeGraph in which to record symbols and relationships CONTAINS.</param>
+    /// <param name="filePath">Path or name of the analyzed Java source file.</param>
+    /// <param name="sourceText">The complete Java source code text of the file.</param>
+    /// <returns>The structured result containing symbols, call-sites, instantiations and inheritance.</returns>
     public static JavaExtractionResult ExtractJavaFile(CodeGraph graph, string filePath, string sourceText)
     {
         var parser = new JavaFileParser(graph, filePath, sourceText);

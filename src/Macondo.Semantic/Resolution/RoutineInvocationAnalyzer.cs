@@ -5,34 +5,34 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Resolution;
 
 /// <summary>
-/// Rappresenta un call-site (punto di invocazione o accesso a membro) analizzato e risolto nel codice VB6.
+/// Represents a call-site (member invocation or access point) analyzed and resolved in VB6 code.
 /// </summary>
 public sealed class ResolvedCallSite
 {
-    /// <summary>Testo sorgente della chiamata o accesso (es. "Customer.Update", "c.Save", "LogMessage").</summary>
+    /// <summary>Source text of the call or access (e.g. "Customer.Update", "c.Save", "LogMessage").</summary>
     public required string CallText { get; init; }
 
-    /// <summary>Numero di riga nel file sorgente in cui risiede la chiamata.</summary>
+    /// <summary>Line number in the source file where the call resides.</summary>
     public required int Line { get; init; }
 
-    /// <summary>Esito della risoluzione semantica con confidenza (Exact, Unknown, Ambiguous).</summary>
+    /// <summary>Result of semantic resolution with confidence (Exact, Unknown, Ambiguous).</summary>
     public required ResolutionResult Result { get; init; }
 
-    /// <summary>Nome della routine contenitore in cui risiede la chiamata (es. "ProcessOrder").</summary>
+    /// <summary>Name of the container routine in which the call resides (e.g. "ProcessOrder").</summary>
     public string? EnclosingRoutineName { get; init; }
 
-    /// <summary>Indica se la chiamata risiede all'interno di un blocco contestuale 'With'.</summary>
+    /// <summary>Indicates whether the call resides within a 'With' contextual block.</summary>
     public bool IsInWithBlock { get; init; }
 
     /// <summary>
-    /// Nome del membro invocato (se chiamata a membro qualificato o late binding, es. "DoSomething").
-    /// Utilizzato da <see cref="Graph.CallGraphBuilder"/> per il fallback euristico su chiamate a binding dinamico.
+    /// Name of the invoked member (if calling a qualified member or late binding, e.g. "DoSomething").
+    /// Used by <see cref="Graph.CallGraphBuilder"/> for heuristic fallback on dynamically bound calls.
     /// </summary>
     public string? InvokedMemberName { get; init; }
 
     /// <summary>
-    /// Nome del tipo del ricevitore della chiamata (es. "Form", "Control", "Object", "Variant", "Customer").
-    /// Permette di contestualizzare e filtrare i simboli candidati compatibili durante la risoluzione del late binding.
+    /// Name of the call receiver type (e.g. "Form", "Control", "Object", "Variant", "Customer").
+    /// It allows you to contextualize and filter compatible candidate symbols during late binding resolution.
     /// </summary>
     public string? ReceiverTypeName { get; init; }
 
@@ -41,23 +41,23 @@ public sealed class ResolvedCallSite
 }
 
 /// <summary>
-/// Rappresenta un'istanziazione di classe rilevata nel codice (es. "Set c = New Customer" o "New OrderRepository").
+/// Represents a class instantiation found in code (e.g. "Set c = New Customer" or "New OrderRepository").
 /// </summary>
 public sealed class ResolvedInstantiation
 {
-    /// <summary>Nome della classe istanziata (es. "Customer").</summary>
+    /// <summary>Name of the instantiated class (e.g. "Customer").</summary>
     public required string ClassName { get; init; }
 
-    /// <summary>Numero di riga nel file sorgente in cui risiede l'istanziazione.</summary>
+    /// <summary>Line number in the source file where the instantiation resides.</summary>
     public required int Line { get; init; }
 
-    /// <summary>Simbolo della classe istanziata nel CodeGraph (se risolta).</summary>
+    /// <summary>Symbol of the class instantiated in the CodeGraph (if resolved).</summary>
     public Symbol? TargetClassSymbol { get; init; }
 
-    /// <summary>Nome della routine contenitore che esegue l'istanziazione.</summary>
+    /// <summary>Name of the container routine that performs the instantiation.</summary>
     public string? EnclosingRoutineName { get; init; }
 
-    /// <summary>Livello di confidenza della risoluzione della classe.</summary>
+    /// <summary>Class resolution confidence level.</summary>
     public ResolutionConfidence Confidence { get; init; } = ResolutionConfidence.Exact;
 
     public override string ToString() =>
@@ -65,41 +65,41 @@ public sealed class ResolvedInstantiation
 }
 
 /// <summary>
-/// Analizzatore AST per individuare e risolvere tutti i call-site, gli accessi a membro
-/// e le istanziazioni di oggetti all'interno del corpo di un modulo VB6.
+/// AST analyzer to locate and resolve all call-site, member logins
+/// and object instantiations within the body of a VB6 module.
 /// 
-/// Questa classe implementa il pattern Visitor di ANTLR (<see cref="VisualBasic6ParserBaseVisitor{TResult}"/>)
-/// per percorrere le istruzioni all'interno dei corpi di Sub, Function e Property, tracciando lo scope attivo
-/// (inclusi i blocchi 'With') e registrando invocazioni e istanziazioni.
+/// This class implements the ANTLR Visitor pattern (<see cref="VisualBasic6ParserBaseVisitor{TResult}"/>)
+/// to walk through the instructions within the Sub, Function and Property bodies, tracing the active scope
+/// (including 'With' blocks) and recording invocations and instantiations.
 /// </summary>
 public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<object?>
 {
     private readonly SymbolResolver _symbolResolver;
     private readonly Symbol _moduleSymbol;
 
-    /// <summary>Stack degli scope attivi (ModuleScope -> LocalScope -> eventuale WithScope).</summary>
+    /// <summary>Stack of active scopes (ModuleScope -> LocalScope -> possible WithScope).</summary>
     private readonly Stack<IScope> _scopeStack = new();
 
-    /// <summary>Lista dei call-site individuati e risolti durante l'attraversamento.</summary>
+    /// <summary>List of call-sites identified and resolved during the traversal.</summary>
     private readonly List<ResolvedCallSite> _callSites = new();
 
-    /// <summary>Lista delle istanziazioni (New Type) individuate nel modulo.</summary>
+    /// <summary>List of instances (New Type) identified in the module.</summary>
     private readonly List<ResolvedInstantiation> _instantiations = new();
 
-    /// <summary>Nome della routine attualmente in fase di analisi (es. "ProcessOrder").</summary>
+    /// <summary>Name of the routine currently being analyzed (e.g. "ProcessOrder").</summary>
     private string? _currentRoutineName;
 
-    /// <summary>Elenco pubblico di tutti i call-site risolti nel modulo.</summary>
+    /// <summary>Public list of all call-sites resolved in the module.</summary>
     public IReadOnlyList<ResolvedCallSite> CallSites => _callSites;
 
-    /// <summary>Elenco pubblico di tutte le istanziazioni risolte nel modulo.</summary>
+    /// <summary>Public list of all resolved instances in the module.</summary>
     public IReadOnlyList<ResolvedInstantiation> Instantiations => _instantiations;
 
     /// <summary>
-    /// Inizializza l'analizzatore per il modulo specificato.
+    /// Initializes the parser for the specified module.
     /// </summary>
-    /// <param name="symbolResolver">Il resolver dei simboli con gli indici di progetto e tipi.</param>
-    /// <param name="moduleSymbol">Il simbolo del modulo VB6 da analizzare.</param>
+    /// <param name="symbolResolver">The symbol resolver with project indexes and types.</param>
+    /// <param name="moduleSymbol">The symbol of the VB6 module to be analyzed.</param>
     public RoutineInvocationAnalyzer(SymbolResolver symbolResolver, Symbol moduleSymbol)
     {
         _symbolResolver = symbolResolver;
@@ -107,19 +107,19 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
         _scopeStack.Push(symbolResolver.GetModuleScope(moduleSymbol));
     }
 
-    /// <summary>Restituisce lo scope attivo in cima allo stack.</summary>
+    /// <summary>Returns the active scope at the top of the stack.</summary>
     private IScope CurrentScope => _scopeStack.Peek();
 
     // =========================================================================
-    // VISITA DELLE ROUTINE (Sub, Function, Property)
+    // VISIT TO THE ROUTINES (Sub, Function, Property)
     // =========================================================================
 
     /// <summary>
-    /// Entra in una procedura Sub: crea il LocalScope (con parametri e variabili locali) e visita il blocco istruzioni.
+    /// Enter a Sub procedure: create the LocalScope (with local parameters and variables) and visit the statement block.
     /// </summary>
     public override object? VisitSubStmt(VisualBasic6Parser.SubStmtContext context)
     {
-        // 1. Estrae il nome dell'identificatore della Sub
+        // 1. Extracts the Sub identifier name
         var name = context.ambiguousIdentifier()?.GetText();
         if (string.IsNullOrEmpty(name))
             return null;
@@ -128,16 +128,16 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
 
         if (routineSymbol != null)
         {
-            // 2. Crea il LocalScope per isolare parametri e variabili locali della routine
+            // 2. Create the LocalScope to isolate local parameters and variables of the routine
             var localScope = _symbolResolver.CreateLocalScope(routineSymbol, CurrentScope);
             _scopeStack.Push(localScope);
             _currentRoutineName = name;
 
-            // 3. Visita il blocco di istruzioni interne
+            // 3. Visit the internal instruction block
             if (context.block() != null)
                 Visit(context.block());
 
-            // 4. Ripristina lo scope genitore (ModuleScope) al termine della procedura
+            // 4. Restore the parent scope (ModuleScope) when the procedure is finished
             _scopeStack.Pop();
             _currentRoutineName = null;
         }
@@ -145,11 +145,11 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Entra in una Function: crea il LocalScope e visita il blocco istruzioni.
+    /// Enter a Function: create the LocalScope and visit the instruction block.
     /// </summary>
     public override object? VisitFunctionStmt(VisualBasic6Parser.FunctionStmtContext context)
     {
-        // 1. Estrae il nome dell'identificatore della Function
+        // 1. Extracts the name of the Function identifier
         var name = context.ambiguousIdentifier()?.GetText();
         if (string.IsNullOrEmpty(name))
             return null;
@@ -158,16 +158,16 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
 
         if (routineSymbol != null)
         {
-            // 2. Crea il LocalScope contestualizzato alla Function
+            // 2. Create the LocalScope contextualized to the Function
             var localScope = _symbolResolver.CreateLocalScope(routineSymbol, CurrentScope);
             _scopeStack.Push(localScope);
             _currentRoutineName = name;
 
-            // 3. Visita il corpo di istruzioni
+            // 3. Visit the instruction body
             if (context.block() != null)
                 Visit(context.block());
 
-            // 4. Ripristina lo scope
+            // 4. Reset the scope
             _scopeStack.Pop();
             _currentRoutineName = null;
         }
@@ -175,7 +175,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Entra in un blocco Property Get: crea il LocalScope e visita le istruzioni.
+    /// Enter a Property Get block: Create the LocalScope and visit the instructions.
     /// </summary>
     public override object? VisitPropertyGetStmt(VisualBasic6Parser.PropertyGetStmtContext context)
     {
@@ -201,7 +201,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Entra in un blocco Property Let: crea il LocalScope e visita le istruzioni.
+    /// Enter a Property Let block: Create the LocalScope and visit the instructions.
     /// </summary>
     public override object? VisitPropertyLetStmt(VisualBasic6Parser.PropertyLetStmtContext context)
     {
@@ -227,7 +227,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Entra in un blocco Property Set: crea il LocalScope e visita le istruzioni.
+    /// Enter a Property Set block: create the LocalScope and visit the instructions.
     /// </summary>
     public override object? VisitPropertySetStmt(VisualBasic6Parser.PropertySetStmtContext context)
     {
@@ -253,55 +253,55 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     // =========================================================================
-    // VISITA DEI BLOCCHI WITH (Contextual Scope)
+    // VISIT THE BLOCKS WITH (Contextual Scope)
     // =========================================================================
 
     /// <summary>
     /// Visita un blocco "With &lt;expr&gt; ... End With".
-    /// 1. Risolve l'espressione target del With nello scope corrente per individuarne il tipo semantico.
-    /// 2. Spinge un <see cref="WithScope"/> sullo stack per consentire la risoluzione contestuale di accessi relativi '.Member'.
-    /// 3. Visita il blocco di istruzioni interno.
-    /// 4. Rimuove il WithScope al termine del blocco.
+    /// 1. Resolve the target expression of the With in the current scope to find its semantic type.
+    /// 2. Pushes a <see cref="WithScope"/> onto the stack to allow contextual resolution of '.Member' relative accesses.
+    /// 3. Visit the internal instruction block.
+    /// 4. Remove the WithScope at the end of the block.
     /// </summary>
     public override object? VisitWithStmt(VisualBasic6Parser.WithStmtContext context)
     {
         if (context.implicitCallStmt_InStmt() == null)
             return null;
 
-        // 1. Risolve l'oggetto o record bersaglio su cui opera il With
+        // 1. Resolves the target object or record on which the With operates
         var targetText = context.implicitCallStmt_InStmt().GetText();
         var targetResult = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
 
-        // 2. Crea lo scope contestuale e lo spinge sullo stack
+        // 2. Creates the contextual scope and pushes it onto the stack
         var withScope = _symbolResolver.CreateWithScope(CurrentScope, targetResult);
         _scopeStack.Push(withScope);
 
-        // 3. Visita le istruzioni interne al blocco With
+        // 3. Visit the instructions inside the With block
         if (context.block() != null)
 
             Visit(context.block());
 
-        // 4. Ripristina lo scope precedente
+        // 4. Restore the previous scope
         _scopeStack.Pop();
         return null;
     }
 
     // =========================================================================
-    // ISTANZIAZIONI (New TypeName)
+    // INSTANCIATIONS (New TypeName)
     // =========================================================================
 
     /// <summary>
-    /// Visita un'espressione di istanziazione "New &lt;Tipo&gt;" (regola ANTLR 'vsNew').
+    /// Visits a "New <Type>" instantiation expression (ANTLR rule 'vsNew').
     /// Esempi: "Set c = New Customer", "New OrderRepository".
-    /// Risolve il tipo istanziato tramite il ProjectScope e memorizza l'istanziazione.
+    /// Resolves the type instantiated via the ProjectScope and stores the instantiation.
     /// </summary>
     public override object? VisitVsNew(VisualBasic6Parser.VsNewContext context)
     {
-        // 1. Estrae il nome del tipo dalla clausola valueStmt
+        // 1. Extracts the type name from the valueStmt clause
         var typeName = context.valueStmt().GetText();
         var typeSymbol = _symbolResolver.ProjectScope.FindTypeSymbol(typeName);
 
-        // 2. Registra l'istanziazione con livello di confidenza Exact o Unknown
+        // 2. Register the instance with Exact or Unknown confidence level
         _instantiations.Add(new ResolvedInstantiation
         {
             ClassName = typeName,
@@ -315,12 +315,12 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     // =========================================================================
-    // CHIAMATE ESPLICITE (Sintassi con keyword 'Call')
+    // EXPLICIT CALLS (Syntax with keyword 'Call')
     // =========================================================================
 
     /// <summary>
-    /// Chiamata esplicita a procedura semplice (es. "Call Validate()", "Call SaveCustomer(123)").
-    /// Risolve il nome nello scope attivo e registra il call-site.
+    /// Explicit call to a simple procedure (e.g. "Call Validate()", "Call SaveCustomer(123)").
+    /// Resolves the name in the active scope and registers the call-site.
     /// </summary>
     public override object? VisitECS_ProcedureCall(VisualBasic6Parser.ECS_ProcedureCallContext context)
     {
@@ -334,9 +334,9 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Chiamata esplicita a membro qualificato o contestuale (es. "Call Customer.Update()", "Call c.Save()", "Call .Save()").
-    /// Se è presente un target esplicito, risolve prima il target e poi il membro sul target; altrimenti risolve ".membro" nel WithScope.
-    /// Registra sia l'eventuale routine ricevente a catena (es. 'Call getFirstForm().Save()') sia il membro finale invocato.
+    /// Explicit call to qualified or contextual member (e.g. "Call Customer.Update()", "Call c.Save()", "Call .Save()").
+    /// If there is an explicit target, resolve the target first and then the member on the target; otherwise resolves ".member" in the WithScope.
+    /// Records both the eventual cascading receiving routine (e.g. 'Call getFirstForm().Save()') and the final member invoked.
     /// </summary>
     public override object? VisitECS_MemberProcedureCall(VisualBasic6Parser.ECS_MemberProcedureCallContext context)
     {
@@ -348,18 +348,18 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
 
         if (context.implicitCallStmt_InStmt() != null)
         {
-            // 1. Risolve l'espressione target a sinistra del punto (es. "Customer", "c", "getFirstForm()", "modContabilita")
+            // 1. Resolves the target expression to the left of the dot (e.g. "Customer", "c", "getFirstForm()", "accountingmod")
             var targetResult = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
 
-            // 1b. Se l'espressione target stessa è un'invocazione a Function o Property (chiamata a catena),
-            // registriamo il relativo call-site per garantire che la routine ricevente sia tracciata come chiamata attiva
+            // 1b. If the target expression itself is a Function or Property invocation (chain call),
+            // we record the relevant call-site to ensure that the receiving routine is tracked as an active call
             if (targetResult.TargetSymbol != null && targetResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
                 RecordCallSite(targetResult.TargetSymbol.Name, context.Start.Line, targetResult, targetResult.TargetSymbol.Name);
 
-            // 2. Risolve il membro finale sul target ricavato al passo precedente
+            // 2. Resolve the final member on the target obtained in the previous step
             result = _symbolResolver.ResolveMemberOnTarget(targetResult, memberName);
 
-            // 3. Determina il tipo semantico del ricevitore per consentire l'eventuale candidate-matching di late binding
+            // 3. Determine the semantic type of the receiver to allow for possible late binding candidate-matching
             var recType = targetResult.TargetTypeName 
                 ?? (targetResult.TargetSymbol?.Kind is SymbolKind.Method or SymbolKind.Property ? targetResult.TargetSymbol.ReturnType : null)
                 ?? targetResult.TargetSymbol?.DeclaredTypeName;
@@ -367,7 +367,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
         }
         else
         {
-            // Chiamata con punto iniziale dentro un blocco With (es. "Call .Save()")
+            // Call with starting dot inside a With block (e.g. "Call .Save()")
             result = CurrentScope.Resolve($".{memberName}");
             RecordCallSite(context.GetText(), context.Start.Line, result, memberName);
         }
@@ -376,12 +376,12 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     // =========================================================================
-    // CHIAMATE IMPLICITE A LIVELLO DI BLOCCO (Istruzioni senza keyword 'Call')
+    // IMPLICIT BLOCK LEVEL CALLS (Instructions without 'Call' keyword)
     // =========================================================================
 
     /// <summary>
-    /// Invocazione nuda di procedura (es. "LogMessage \"test\"", "Validate", "DoSomething a, b").
-    /// In VB6 è la modalità di chiamata più diffusa per procedure Sub senza valore di ritorno.
+    /// Bare procedure invocation (e.g. "LogMessage \"test\"", "Validate", "DoSomething a, b").
+    /// In VB6 it is the most popular way of calling Sub procedures with no return value.
     /// </summary>
     public override object? VisitICS_B_ProcedureCall(VisualBasic6Parser.ICS_B_ProcedureCallContext context)
     {
@@ -395,8 +395,8 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Invocazione nuda di membro qualificato o contestuale (es. "Customer.Update", "c.Save", "Me.Reset", ".Save").
-    /// Gestisce sia chiamate con target esplicito a catena sia chiamate contestuali '.Member' in blocchi With.
+    /// Bare invocation of qualified or contextual member (e.g. "Customer.Update", "c.Save", "Me.Reset", ".Save").
+    /// It handles both cascading explicitly targeted calls and contextual '.Member' calls in With blocks.
     /// </summary>
     public override object? VisitICS_B_MemberProcedureCall(VisualBasic6Parser.ICS_B_MemberProcedureCallContext context)
     {
@@ -408,18 +408,18 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
 
         if (context.implicitCallStmt_InStmt() != null)
         {
-            // 1. Risolve l'espressione target a sinistra del punto (es. "obj", "cntrDestinazione", "frmContabilizzaFatture")
+            // 1. Resolves the target expression to the left of the dot (e.g. "obj", "cntrDestination", "frmAccountingInvoices")
             var targetResult = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
 
-            // 1b. Se l'espressione target è una Function o Property (chiamata a catena o accessor di modulo),
-            // registra esplicitamente il call-site verso la routine che agisce da ricevitore
+            // 1b. If the target expression is a Function or Property (chain call or module accessor),
+            // explicitly registers the call-site to the routine that acts as the receiver
             if (targetResult.TargetSymbol != null && targetResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
                 RecordCallSite(targetResult.TargetSymbol.Name, context.Start.Line, targetResult, targetResult.TargetSymbol.Name);
 
-            // 2. Risolve il membro sul target
+            // 2. Fixes the member on target
             result = _symbolResolver.ResolveMemberOnTarget(targetResult, memberName);
 
-            // 3. Determina il tipo semantico del ricevitore per supportare il late binding o la tipizzazione statica
+            // 3. Determine the semantic type of the receiver to support late binding or static typing
             var recType = targetResult.TargetTypeName 
                 ?? (targetResult.TargetSymbol?.Kind is SymbolKind.Method or SymbolKind.Property ? targetResult.TargetSymbol.ReturnType : null)
                 ?? targetResult.TargetSymbol?.DeclaredTypeName;
@@ -427,7 +427,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
         }
         else
         {
-            // Chiamata con punto iniziale dentro un blocco With (es. ".Save")
+            // Call with starting point inside a With block (e.g. ".Save")
             result = CurrentScope.Resolve($".{memberName}");
             RecordCallSite(context.GetText().Trim(), context.Start.Line, result, memberName);
         }
@@ -436,12 +436,12 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     // =========================================================================
-    // CHIAMATE IN ESPRESSIONI, ASSEGNAZIONI ED EVENTI
+    // CALLS IN EXPRESSIONS, ASSIGNMENTS AND EVENTS
     // =========================================================================
 
     /// <summary>
-    /// Visita chiamate e accessi a membri all'interno di espressioni generiche ('vsICS' in 'valueStmt').
-    /// Esempi: 'If IsValid() Then', 'x = CalculateTotal(a, b)', 'For i = 1 To GetMax()', argomenti di funzioni.
+    /// Visit member calls and accesses within generic expressions ('vsICS' in 'valueStmt').
+    /// Examples: 'If IsValid() Then', 'x = CalculateTotal(a, b)', 'For i = 1 To GetMax()', function arguments.
     /// </summary>
     public override object? VisitVsICS(VisualBasic6Parser.VsICSContext context)
     {
@@ -450,7 +450,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
             var result = ResolveImplicitCallStmt(context.implicitCallStmt_InStmt());
             if (result.TargetSymbol != null)
             {
-                // Registra sia chiamate a routine (Method, Property) sia letture di costanti, campi ed enum
+                // Records both calls to routines (Method, Property) and readings of constants, fields and enums
                 if (result.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Constant or SymbolKind.Field or SymbolKind.Enum)
 
                     RecordCallSite(context.GetText().Trim(), context.Start.Line, result);
@@ -460,8 +460,8 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Visita istruzioni di assegnazione 'Let' (o implicite 'a = b').
-    /// Rileva eventuali chiamate a Property Let sul lato sinistro (LHS).
+    /// Visit 'Let' assignment statements (or implicit 'a = b').
+    /// Detects any calls to Property Let on the left side (LHS).
     /// </summary>
     public override object? VisitLetStmt(VisualBasic6Parser.LetStmtContext context)
     {
@@ -476,8 +476,8 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Visita istruzioni di assegnazione 'Set obj = expr'.
-    /// Rileva eventuali chiamate a Property Set sul lato sinistro (LHS).
+    /// Visit 'Set obj = expr' assignment statements.
+    /// Detects any calls to Property Set on the left side (LHS).
     /// </summary>
     public override object? VisitSetStmt(VisualBasic6Parser.SetStmtContext context)
     {
@@ -492,7 +492,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Visita istruzioni 'RaiseEvent NomeEvento(args)' per registrare le chiamate a eventi.
+    /// Visit 'RaiseEventEventName(args)' instructions to log event calls.
     /// </summary>
     public override object? VisitRaiseEventStmt(VisualBasic6Parser.RaiseEventStmtContext context)
     {
@@ -510,13 +510,13 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     // =========================================================================
 
     /// <summary>
-    /// Risolve un'espressione di chiamata implicita ANTLR (<see cref="VisualBasic6Parser.ImplicitCallStmt_InStmtContext"/>),
-    /// gestendo identificatori semplici, chiamate con argomenti e accessi a catena (es. "a.b.c").
+    /// Resolves an implicit ANTLR call expression (<see cref="VisualBasic6Parser.ImplicitCallStmt_InStmtContext"/>),
+    /// handling simple identifiers, argument calls and chain accesses (e.g. "a.b.c").
     /// </summary>
     private ResolutionResult ResolveImplicitCallStmt(VisualBasic6Parser.ImplicitCallStmt_InStmtContext context)
     {
         // ---------------------------------------------------------------------
-        // CASO 1: Identificatore semplice o variabile/funzione diretta (es. "ProcessData", "m_Count")
+        // CASE 1: Simple identifier or direct variable/function (e.g. "ProcessData", "m_Count")
         // ---------------------------------------------------------------------
         if (context.iCS_S_VariableOrProcedureCall() != null)
         {
@@ -528,7 +528,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
         }
 
         // ---------------------------------------------------------------------
-        // CASO 2: Chiamata con parentesi o argomenti (es. "GetCustomer(id, True)")
+        // CASE 2: Call with parentheses or arguments (e.g. "GetCustomer(id, True)")
         // ---------------------------------------------------------------------
         if (context.iCS_S_ProcedureOrArrayCall() != null)
         {
@@ -541,14 +541,14 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
         }
 
         // ---------------------------------------------------------------------
-        // CASO 3: Accesso a membri qualificati a catena (es. "rs.Fields", "obj.Service.Execute()")
+        // CASE 3: Chain access to qualified members (e.g. "rs.Fields", "obj.Service.Execute()")
         // ---------------------------------------------------------------------
         if (context.iCS_S_MembersCall() != null)
         {
             var membersCall = context.iCS_S_MembersCall();
             ResolutionResult currentResult;
 
-            // 3a. Risoluzione della radice della catena
+            // 3a. Chain root resolution
             if (membersCall.iCS_S_VariableOrProcedureCall() != null)
             {
                 var baseName = membersCall.iCS_S_VariableOrProcedureCall().ambiguousIdentifier()?.GetText() ?? "";
@@ -566,20 +566,20 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
             }
             else
             {
-                // Accesso relativo con punto iniziale (es. ".Name" all'interno di un blocco "With oggetto")
+                // Relative access with starting point (e.g. ".Name" inside a "With object" block)
                 currentResult = CurrentScope.Resolve(".");
             }
 
-            // Se la radice stessa è una chiamata a routine (es. 'getFirstForm().Member'), registra il relativo call-site
+            // If the root itself is a routine call (e.g. 'getFirstForm().Member'), register its call-site
             if (currentResult.TargetSymbol != null && currentResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
                 RecordCallSite(currentResult.TargetSymbol.Name, context.Start.Line, currentResult, currentResult.TargetSymbol.Name);
 
-            // 3b. Risoluzione progressiva di ciascun membro successivo della catena (.Member1.Member2...)
-            // Per ogni membro conserviamo il tipo del ricevitore precedente (prevTargetType):
-            // se il membro è risolto staticamente, viene registrato con confidenza Exact;
-            // se invece il ricevitore precedente è un tipo dinamico o base UI (Form, Object, Variant),
-            // registriamo comunque il call-site con TargetSymbol nullo per consentire a CallGraphBuilder
-            // di applicare l'euristica di late binding collegando i metodi pubblici compatibili per nome.
+            // 3b. Progressive resolution of each subsequent member of the chain (.Member1.Member2...)
+            // For each member we keep the type of the previous receiver (prevTargetType):
+            // if the member is statically resolved, it is recorded with Exact confidence;
+            // if instead the previous receiver is a dynamic or basic UI type (Form, Object, Variant),
+            // we still register the call-site with null TargetSymbol to allow CallGraphBuilder
+            // to apply the late binding heuristic by binding compatible public methods by name.
             foreach (var memberCall in membersCall.iCS_S_MemberCall())
             {
                 var memberName = memberCall.iCS_S_VariableOrProcedureCall()?.ambiguousIdentifier()?.GetText()
@@ -592,7 +592,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
                         ?? (currentResult.TargetSymbol?.Kind is SymbolKind.Method or SymbolKind.Property ? currentResult.TargetSymbol.ReturnType : null)
                         ?? currentResult.TargetSymbol?.DeclaredTypeName;
 
-                    // Risolve il membro 'memberName' sul tipo semantico ricavato dal risultato precedente
+                    // Resolves member 'memberName' to the semantic type taken from the previous result
                     currentResult = _symbolResolver.ResolveMemberOnTarget(currentResult, memberName);
                     if (currentResult.TargetSymbol != null && currentResult.TargetSymbol.Kind is SymbolKind.Method or SymbolKind.Property)
                         RecordCallSite(memberName, context.Start.Line, currentResult, memberName, prevTargetType);
@@ -604,7 +604,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
             return currentResult;
         }
 
-        // Fallback: se la regola sintattica non rientra nei 3 casi noti, ritorna Unknown
+        // Fallback: if the syntactic rule does not fit into the 3 known cases, returns Unknown
         return new ResolutionResult
         {
             Confidence = ResolutionConfidence.Unknown,
@@ -613,7 +613,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Cerca una routine dichiarata all'interno del modulo corrente.
+    /// Searches for a procedure declared within the current module.
     /// </summary>
     private Symbol? FindChildSymbol(string name, SymbolKind kind)
     {
@@ -622,18 +622,18 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Registra un call-site nella lista dei risultati del modulo, evitando duplicazioni identiche sulla stessa riga.
-    /// Supporta sia chiamate risolte staticamente (con TargetSymbol valorizzato) sia chiamate late-binding
-    /// (con TargetSymbol nullo ma InvokedMemberName e ReceiverTypeName valorizzati).
+    /// Registers a call-site in the form results list, avoiding identical duplications on the same line.
+    /// It supports both statically resolved calls (with TargetSymbol valued) and late-binding calls
+    /// (with TargetSymbol null but InvokedMemberName and ReceiverTypeName valued).
     /// </summary>
-    /// <param name="callText">Testo sorgente dell'invocazione (es. "Customer.Save", "ActiveForm.Refresh").</param>
-    /// <param name="line">Numero di riga nel codice sorgente.</param>
-    /// <param name="result">Esito semantico della risoluzione.</param>
-    /// <param name="invokedMemberName">Nome del metodo o proprietà invocato.</param>
-    /// <param name="receiverTypeName">Nome del tipo dichiarato o inferito del ricevitore.</param>
+    /// <param name="callText">Source text of the invocation (e.g. "Customer.Save", "ActiveForm.Refresh").</param>
+    /// <param name="line">Line number in source code.</param>
+    /// <param name="result">Semantic outcome of the resolution.</param>
+    /// <param name="invokedMemberName">Name of the invoked method or property.</param>
+    /// <param name="receiverTypeName">Name of the declared or inferred type of the receiver.</param>
     private void RecordCallSite(string callText, int line, ResolutionResult result, string? invokedMemberName = null, string? receiverTypeName = null)
     {
-        // Evita registrazioni duplicate dello stesso simbolo bersaglio sulla medesima riga di codice
+        // Avoid duplicate registrations of the same target symbol on the same line of code
         if (result.TargetSymbol != null)
         {
             if (_callSites.Any(c => c.Line == line &&
@@ -643,7 +643,7 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
         }
         else if (!string.IsNullOrEmpty(invokedMemberName))
         {
-            // Per chiamate late-binding prive di TargetSymbol, de-duplica per nome del membro invocato sulla stessa riga
+            // For late-binding calls without TargetSymbol, de-duplicate by name of the member invoked on the same line
             if (_callSites.Any(c => c.Line == line &&
                                    c.EnclosingRoutineName == _currentRoutineName &&
                                    string.Equals(c.InvokedMemberName, invokedMemberName, StringComparison.OrdinalIgnoreCase)))
@@ -663,13 +663,13 @@ public sealed class RoutineInvocationAnalyzer : VisualBasic6ParserBaseVisitor<ob
     }
 
     /// <summary>
-    /// Determina se il nome del tipo corrisponde a un tipo a binding dinamico o a una classe base UI di VB6
+    /// Determines whether the type name is a dynamically bound type or a VB6 UI base class
     /// ('Form', 'MDIForm', 'Control', 'Object', 'Variant', 'dynamic').
-    /// In tali contesti le invocazioni a membro non sono risolvibili staticamente a tempo di parsing
-    /// e devono essere tracciate per consentire a <see cref="Graph.CallGraphBuilder"/> di collegare le routine candidate.
+    /// In such contexts, member invocations are not statically solvable in parsing time
+    /// and must be drawn to allow <see cref="Graph.CallGraphBuilder"/> to attach candidate routines.
     /// </summary>
-    /// <param name="typeName">Il nome del tipo da verificare.</param>
-    /// <returns><c>true</c> se è un tipo dinamico o base UI; in caso contrario <c>false</c>.</returns>
+    /// <param name="typeName">The name of the type to test.</param>
+    /// <returns><c>true</c> if it is a dynamic or UI base type; otherwise <c>false</c>.</returns>
     private static bool IsDynamicOrUiType(string? typeName)
     {
         if (string.IsNullOrEmpty(typeName))

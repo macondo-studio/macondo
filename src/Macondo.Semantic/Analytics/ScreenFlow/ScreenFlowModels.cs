@@ -3,28 +3,28 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.ScreenFlow;
 
 /// <summary>
-/// Tipologia di transizione tra schermate / form / finestre UI.
+/// Type of transition between screens / forms / UI windows.
 /// </summary>
 public enum ScreenTransitionKind
 {
-    /// <summary>Apertura standard / non modale (es. Form.Show).</summary>
+    /// <summary>Standard opening / non-modal (e.g. Form.Show).</summary>
     OpenModeless,
 
-    /// <summary>Apertura modale / bloccante (es. Form.Show vbModal, ShowDialog).</summary>
+    /// <summary>Modal opening / blocking (e.g. Form.Show vbModal, ShowDialog).</summary>
     OpenModal,
 
-    /// <summary>Chiusura o scaricamento (es. Unload Me, Form.Close).</summary>
+    /// <summary>Close or download (e.g. Unload Me, Form.Close).</summary>
     Close,
 
-    /// <summary>Navigazione di pagina (Page navigation, Tab switch).</summary>
+    /// <summary>Page navigation (Tab switch).</summary>
     Navigate,
 
-    /// <summary>Inclusione o hosting di UserControl / Componente visivo.</summary>
+    /// <summary>Including or hosting UserControl / Visual Component.</summary>
     EmbedControl
 }
 
 /// <summary>
-/// Nodo che rappresenta una Schermata, Form, Finestra o Dialogo UI.
+/// Node representing a Screen, Form, Window, or Dialog UI.
 /// </summary>
 public sealed class ScreenFlowNode
 {
@@ -45,7 +45,7 @@ public sealed class ScreenFlowNode
 }
 
 /// <summary>
-/// Transizione o collegamento orientato tra due schermate UI.
+/// Transition or oriented link between two UI screens.
 /// </summary>
 public sealed class ScreenFlowTransition
 {
@@ -59,7 +59,7 @@ public sealed class ScreenFlowTransition
 }
 
 /// <summary>
-/// Modello completo del grafo di navigazione UI.
+/// Complete UI navigation graph template.
 /// </summary>
 public sealed class ScreenFlowGraph
 {

@@ -9,8 +9,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class DsmMatrixTests
 {
     /// <summary>
-    /// Verifica la costruzione della matrice di struttura delle dipendenze (Design Structure Matrix - DSM)
-    /// a partire dai nodi e relazioni del CodeGraph.
+    /// Check the construction of the dependency structure matrix (Design Structure Matrix - DSM)
+    /// starting from the nodes and relations of the CodeGraph.
     /// </summary>
     [Fact]
     public void DsmMatrix_ShouldBuildCorrectMatrix_FromGraph()
@@ -29,8 +29,8 @@ public class DsmMatrixTests
     }
 
     /// <summary>
-    /// Verifica che l'algoritmo di Tarjan per le Componenti Fortemente Connesse (SCC) identifichi
-    /// accuratamente i cicli di dipendenza tra moduli e contrassegni il flag HasCircularDependencies.
+    /// Verify that Tarjan's algorithm for Strongly Connected Components (SCC) identifies
+    /// carefully loop dependencies between modules and mark the HasCircularDependencies flag.
     /// </summary>
     [Fact]
     public void DsmMatrix_ShouldDetectTarjanStronglyConnectedComponents_AndMarkCycles()
@@ -67,8 +67,8 @@ public class DsmMatrixTests
     }
 
     /// <summary>
-    /// Verifica che qualsiasi ordinamento applicato alla matrice DSM (alfabetico, per tipo o topologico)
-    /// conservi inalterata la somma totale dei pesi di dipendenza tra le celle.
+    /// Verifies that any sorting applied to the DSM matrix (alphabetical, by type, or topological)
+    /// keeps the total sum of the dependency weights between cells unchanged.
     /// </summary>
     [Theory]
     [InlineData(DsmOrdering.Alphabetical)]

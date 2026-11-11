@@ -8,12 +8,12 @@ using Macondo.Semantic.Resolution;
 namespace Macondo.App.Services;
 
 /// <summary>
-/// Servizio di analisi e pipeline per caricare e analizzare progetti VB6 reali in memoria (M5).
+/// Analysis and pipeline service to load and analyze real VB6 projects in memory (M5).
 /// </summary>
 public static class ProjectAnalysisService
 {
     /// <summary>
-    /// Analizza molteplici cartelle, file .vbp o file .vbg all'interno di un unico workspace semantico.
+    /// Parse multiple folders, .vbp files or .vbg files within a single semantic workspace.
     /// </summary>
     public static VisualCodeGraph AnalyzePaths(
         IReadOnlyList<string> paths,
@@ -32,32 +32,32 @@ public static class ProjectAnalysisService
     }
 
     /// <summary>
-    /// Calcola la durata stimata in secondi per la scansione, il parsing AST, la risoluzione semantica
-    /// e la generazione del CodeGraph in base al numero di file sorgente e progetti del workspace.
+    /// Calculate the estimated duration in seconds for scanning, AST parsing, semantic resolution
+    /// and CodeGraph generation based on the number of source files and projects in the workspace.
     /// </summary>
     public static double GetEstimatedProjectAnalysisSeconds(int totalFiles, int projectCount = 1)
     {
         if (totalFiles <= 0) return 0.5;
 
         var cpuCores = Math.Max(1, Environment.ProcessorCount);
-        // Fattore di parallelismo reale (scaling sub-lineare per saturazione I/O e thread contention con Antlr)
+        // Real parallelism factor (sub-linear scaling for I/O saturation and thread contention with Antlr)
         var parallelFactor = Math.Max(1.0, Math.Min(cpuCores * 0.7, 8.0));
 
-        // 1. Parsing AST parallelo (~220ms di CPU time per file sorgente VB6/C# reale)
+        // 1. Parallel AST parsing (~220ms CPU time for real VB6/C# source file)
         var parseTime = (totalFiles * 0.22) / parallelFactor;
 
-        // 2. Risoluzione semantica globale dei tipi e costruzione del Call Graph (~25ms per file)
+        // 2. Global semantic type resolution and Call Graph construction (~25ms per file)
         var resolutionTime = 0.5 + (totalFiles * 0.025);
 
-        // 3. Overhead fisso di allocazione memoria e adattatore visuale per Avalonia
+        // 3. Fixed memory allocation and visual adapter overhead for Avalonia
         var totalEstimated = 0.5 + parseTime + resolutionTime;
 
         return Math.Max(0.5, Math.Round(totalEstimated, 1));
     }
 
     /// <summary>
-    /// Esegue l'analisi completa di una lista di progetti VB6 creando un unico CodeGraph unificato
-    /// con risoluzione cross-project di tipi, chiamate e istanziazioni.
+    /// Performs complete analysis of a list of VB6 projects creating a single, unified CodeGraph
+    /// with cross-project resolution of types, calls and instantiations.
     /// </summary>
     public static VisualCodeGraph AnalyzeProjects(
         IReadOnlyList<ProjectDescriptor> projects,
@@ -73,7 +73,7 @@ public static class ProjectAnalysisService
         var csharpResults = new List<CSharpExtractionResult>(totalFiles);
         var projectSymbols = new Dictionary<Guid, Symbol>();
 
-        // 1. Registra i simboli radice di ciascun Progetto
+        // 1. Record the root symbols of each Project
         foreach (var proj in projects)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -99,7 +99,7 @@ public static class ProjectAnalysisService
             projectSymbols[proj.Id] = projSymbol;
         }
 
-        // Segnalazione iniziale
+        // Initial reporting
         var firstFile = projects.SelectMany(p => p.SourceFiles).FirstOrDefault();
         progress?.Report(new ProjectAnalysisProgress
         {
@@ -114,13 +114,13 @@ public static class ProjectAnalysisService
                 : LocalizationService.Instance["Loading_ResolvingTypes"]
         });
 
-        // 2. Estrazione AST e simboli multi-core (Parallel.ForEach)
-        // Raccoglie tutti i file con il rispettivo descrittore di progetto
+        // 2. AST extraction and multi-core symbols (Parallel.ForEach)
+        // Collects all files with their respective project descriptor
         var fileWorkItems = projects
             .SelectMany(p => p.SourceFiles.Select(f => (Project: p, ProjSymbol: projectSymbols[p.Id], FilePath: f)))
             .ToList();
 
-        // Strutture concorrenti per raccogliere i risultati dai vari worker thread
+        // Concurrent structures to collect results from various worker threads
         var concurrentVbResults = new System.Collections.Concurrent.ConcurrentBag<(ModuleExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
         var concurrentCsResults = new System.Collections.Concurrent.ConcurrentBag<(CSharpExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
         var concurrentJavaResults = new System.Collections.Concurrent.ConcurrentBag<(JavaExtractionResult Result, Semantic.Model.CodeGraph LocalGraph, ProjectDescriptor Proj, Symbol ProjSymbol)>();
@@ -183,7 +183,7 @@ public static class ProjectAnalysisService
 
             var currentDone = Interlocked.Increment(ref processedFiles);
 
-            // Throttling del progresso per non saturare il dispatcher UI (ogni ~80ms o sull'ultimo file)
+            // Progress throttling to not saturate the UI dispatcher (every ~80ms or on the last file)
             var nowTicks = Environment.TickCount64;
             if (currentDone == totalFiles || (nowTicks - Interlocked.Read(ref lastReportTicks)) > 80)
             {
@@ -197,12 +197,12 @@ public static class ProjectAnalysisService
                     var measuredRatePerFile = elapsedSec / currentDone;
                     var remainingFiles = totalFiles - currentDone;
                     var remainingParseSec = remainingFiles * measuredRatePerFile;
-                    // Il post-processing (TypeResolver, CallGraph, VisualGraph) richiede circa il 25% del tempo di parsing dell'intero workspace
+                    // Post-processing (TypeResolver, CallGraph, VisualGraph) takes approximately 25% of the parsing time of the entire workspace
                     var estimatedPostProcessSec = Math.Max(0.4, (totalFiles * measuredRatePerFile) * 0.25);
 
                     var dynamicRemaining = remainingParseSec + estimatedPostProcessSec;
 
-                    // Per i primi file, esegue un blending morbido con la stima euristica iniziale per evitare picchi
+                    // For the first few files, it performs soft blending with the initial heuristic estimate to avoid spikes
                     if (currentDone < 6)
                     {
                         var weight = currentDone / 6.0;
@@ -236,18 +236,18 @@ public static class ProjectAnalysisService
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 2b. Unione batch ad altissime prestazioni dei grafi locali nel CodeGraph globale del Workspace
-        // Per evitare ricalcoli O(N^2) degli indici di contenimento (che causavano spike di 8GB di RAM e minuti di blocco GC),
-        // aggreghiamo prima tutti i simboli e le relazioni senza toccare RegisterRelationship,
-        // aggiungiamo le relazioni di contenimento progetto-modulo in blocco nella lista delle relazioni,
-        // ed eseguiamo una sola sincronizzazione atomica degli indici al termine del merge.
+        // 2b. Ultra-high-performance batch merging of local graphs into the Workspace's global CodeGraph
+        // To avoid O(N^2) containment index recalculations (which caused 8GB RAM spikes and GC block minutes),
+        // we first aggregate all the symbols and relations without touching RegisterRelationship,
+        // we add project-module containment relations in bulk to the relations list,
+        // and we perform a single atomic synchronization of the indexes at the end of the merge.
         foreach (var (vbResult, localGraph, proj, projSymbol) in concurrentVbResults)
         {
             extractionResults.Add(vbResult);
             semanticGraph.Symbols.AddRange(localGraph.Symbols);
             semanticGraph.Relationships.AddRange(localGraph.Relationships);
 
-            // Relazione di contenimento tra il simbolo Progetto e il modulo di primo livello
+            // Containment relationship between the Project symbol and the top-level module
             semanticGraph.Relationships.Add(new Relationship
             {
                 SourceId = projSymbol.Id,
@@ -256,7 +256,7 @@ public static class ProjectAnalysisService
                 Confidence = ResolutionConfidence.Exact
             });
 
-            // Imposta il QualifiedName con il prefisso del progetto se workspace multi-progetto
+            // Set the QualifiedName with the project prefix if multi-project workspace
             if (projects.Count > 1)
                 vbResult.ModuleSymbol.QualifiedName = $"{proj.Name}.{vbResult.ModuleSymbol.Name}";
         }
@@ -326,21 +326,21 @@ public static class ProjectAnalysisService
             }
         }
 
-        // Dereferenzia e svuota le collezioni temporanee del parsing per liberare immediatamente la RAM
+        // Dereference and empty parsing temporary collections to immediately free RAM
         concurrentVbResults.Clear();
         concurrentCsResults.Clear();
         concurrentJavaResults.Clear();
         concurrentKotlinResults.Clear();
 
-        // Ricostruisce gli indici del CodeGraph una sola volta in modo globale e atomico
+        // Rebuilds the CodeGraph indices only once in a global and atomic way
         semanticGraph.BuildIndices();
 
-        // Invoca una raccolta garbage collection esplicita di Generazione 2 per liberare immediatamente
-        // decine di migliaia di oggetti effimeri creati durante la fase di parsing parallelo
+        // Invokes explicit Generation 2 garbage collection to immediately free
+        // tens of thousands of ephemeral objects created during the parallel parsing phase
         GC.Collect(2, GCCollectionMode.Aggressive, blocking: true);
         GC.WaitForPendingFinalizers();
 
-        // 3. Risoluzione globale dei tipi (TypeResolver) su tutto il Workspace
+        // 3. Global type resolution (TypeResolver) across the entire Workspace
         cancellationToken.ThrowIfCancellationRequested();
         progress?.Report(new ProjectAnalysisProgress
         {
@@ -356,7 +356,7 @@ public static class ProjectAnalysisService
         var typeResolver = new TypeResolver(semanticGraph, cancellationToken);
         typeResolver.ResolveAllTypes(cancellationToken);
 
-        // 4. Risoluzione simboli e costruzione del Call Graph cross-project
+        // 4. Symbol resolution and construction of the cross-project Call Graph
         cancellationToken.ThrowIfCancellationRequested();
         progress?.Report(new ProjectAnalysisProgress
         {
@@ -373,14 +373,14 @@ public static class ProjectAnalysisService
         var callGraphBuilder = new CallGraphBuilder(semanticGraph, symbolResolver);
         callGraphBuilder.BuildGraph(extractionResults, csharpResults, javaResults, kotlinResults, cancellationToken);
 
-        // Dereferenzia e svuota le collezioni di estrazione non appena il Call Graph è generato
-        // per liberare memoria prima di procedere con il grafo visuale e il relativo layout
+        // Dereference and empty extraction collections as soon as the Call Graph is generated
+        // to free up memory before proceeding with the visual graph and its layout
         extractionResults.Clear();
         csharpResults.Clear();
         javaResults.Clear();
         kotlinResults.Clear();
 
-        // 5. Adattamento al modello visuale per Avalonia
+        // 5. Adaptation to the visual model for Avalonia
         cancellationToken.ThrowIfCancellationRequested();
         progress?.Report(new ProjectAnalysisProgress
         {
@@ -393,7 +393,7 @@ public static class ProjectAnalysisService
             PhaseMessage = LocalizationService.Instance["Loading_GeneratingVisualGraph"]
         });
 
-        // Raccolta garbage collection prima del rendering/layout visuale
+        // Garbage collection before visual rendering/layout
         GC.Collect(2, GCCollectionMode.Aggressive, blocking: true);
         GC.WaitForPendingFinalizers();
 
@@ -403,10 +403,10 @@ public static class ProjectAnalysisService
     }
 
     /// <summary>
-    /// Carica e analizza la suite integrata di fixture VB6.
+    /// Loads and analyzes the integrated suite of VB6 fixtures.
     /// </summary>
-    /// <param name="progress">Oggetto opzionale per la segnalazione dell'avanzamento in tempo reale.</param>
-    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere l'analisi in corso.</param>
+    /// <param name="progress">Optional object for reporting real-time progress.</param>
+    /// <param name="cancellationToken">Optional delete token to stop ongoing analysis.</param>
     public static VisualCodeGraph LoadDefaultFixtures(IProgress<ProjectAnalysisProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -429,7 +429,7 @@ public static class ProjectAnalysisService
             }
         }
 
-        // Fallback minimale se nessuna cartella fixture è presente su disco
+        // Minimal fallback if no fixture folder is present on disk
         var emptySemanticGraph = new Semantic.Model.CodeGraph();
         return GraphVisualAdapter.FromSemanticGraph(emptySemanticGraph, "Empty Project");
     }

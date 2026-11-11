@@ -3,7 +3,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.ArchitecturalFlow;
 
 /// <summary>
-/// Livello o strato architetturale inferito dal grafo o dai tipi di file.
+/// Architectural level or layer inferred from the graph or file types.
 /// </summary>
 public enum ArchitecturalLayerKind
 {
@@ -14,7 +14,7 @@ public enum ArchitecturalLayerKind
 }
 
 /// <summary>
-/// Nodo rappresentante un componente, modulo o entità di raggruppamento nel diagramma dei flussi.
+/// Node representing a component, module, or grouping entity in the flow diagram.
 /// </summary>
 public sealed class FlowNode
 {
@@ -27,25 +27,25 @@ public sealed class FlowNode
     public int MemberCount { get; init; }
     public double CyclomaticComplexity { get; init; }
 
-    /// <summary>Volume totale di chiamate/dipendenze in uscita.</summary>
+    /// <summary>Total volume of outgoing calls/dependencies.</summary>
     public int OutflowVolume { get; set; }
 
-    /// <summary>Volume totale di chiamate/dipendenze in entrata.</summary>
+    /// <summary>Total volume of incoming calls/dependencies.</summary>
     public int InflowVolume { get; set; }
 
     /// <summary>Volume complessivo (Inflow + Outflow).</summary>
     public int TotalVolume => InflowVolume + OutflowVolume;
 
-    /// <summary>Angolo di partenza per il layout a diagramma Chord (in radianti).</summary>
+    /// <summary>Starting angle for Chord diagram layout (in radians).</summary>
     public double StartAngle { get; set; }
 
-    /// <summary>Angolo di arrivo per il layout a diagramma Chord (in radianti).</summary>
+    /// <summary>Angle of arrival for the Chord diagram layout (in radians).</summary>
     public double EndAngle { get; set; }
 
-    /// <summary>Angolo centrale dell'arco.</summary>
+    /// <summary>Central angle of the arc.</summary>
     public double MidAngle => (StartAngle + EndAngle) / 2.0;
 
-    /// <summary>Ampiezza angolare dell'arco (in radianti).</summary>
+    /// <summary>Angular amplitude of the arc (in radians).</summary>
     public double SweepAngle => EndAngle - StartAngle;
 
     public string LayerName => Layer switch
@@ -68,7 +68,7 @@ public sealed class FlowNode
 }
 
 /// <summary>
-/// Collegamento di flusso tra due nodi (sorgente e destinazione) con intensità/volume.
+/// Flow connection between two nodes (source and destination) with intensity/volume.
 /// </summary>
 public sealed class FlowLink
 {
@@ -79,21 +79,21 @@ public sealed class FlowLink
     public int Volume { get; set; }
 
     /// <summary>
-    /// Indica se questo flusso rappresenta una violazione di layer architetturale (es. Data Access che chiama UI).
+    /// Indicates whether this flow represents an architectural layer violation (e.g. Data Access calling UI).
     /// </summary>
     public bool IsLayerViolation { get; set; }
 
-    /// <summary>Angolo di partenza sorgente per il nastro Chord.</summary>
+    /// <summary>Source starting angle for the Chord tape.</summary>
     public double SourceStartAngle { get; set; }
     public double SourceEndAngle { get; set; }
 
-    /// <summary>Angolo di arrivo target per il nastro Chord.</summary>
+    /// <summary>Target arrival angle for the Chord tape.</summary>
     public double TargetStartAngle { get; set; }
     public double TargetEndAngle { get; set; }
 }
 
 /// <summary>
-/// Dataset completo per il visualizzatore dei Flussi Architetturali (Chord / Sankey / Layered Flow).
+/// Complete dataset for the Architectural Flow viewer (Chord / Sankey / Layered Flow).
 /// </summary>
 public sealed class ArchitecturalFlowDataset
 {

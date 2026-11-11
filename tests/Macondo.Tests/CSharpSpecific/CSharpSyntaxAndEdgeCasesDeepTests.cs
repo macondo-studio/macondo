@@ -12,8 +12,8 @@ public class CSharpSyntaxAndEdgeCasesDeepTests
     #region Modern C# 11 & 12 Syntax Constructs
 
     /// <summary>
-    /// Verifica l'estrazione corretta di Primary Constructor con parametri di default,
-    /// parametri opzionali e costruttori secondari espliciti concatenati con : this(...).
+    /// Verify correct extraction of Primary Constructor with default parameters,
+    /// optional parameters and explicit subconstructors concatenated with : this(...).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractPrimaryConstructors_WithDefaultsAndChainedConstructors()
@@ -59,8 +59,8 @@ public class CSharpSyntaxAndEdgeCasesDeepTests
     }
 
     /// <summary>
-    /// Verifica il parsing di tipi C# con modificatori ref struct, readonly ref struct,
-    /// parametri in / out / ref readonly e pattern matching su intervalli relazionali.
+    /// Test parsing of C# types with ref struct, readonly ref struct, modifiers
+    /// in / out / ref readonly parameters and pattern matching on relational ranges.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldHandleRefStructsAndAdvancedParameterModifiers()
@@ -121,8 +121,8 @@ public class CSharpSyntaxAndEdgeCasesDeepTests
     }
 
     /// <summary>
-    /// Verifica la gestione di raw string literals multi-linea con formattazione complessa
-    /// e interpolazioni multiple ($$"""...""").
+    /// Tests handling of multi-line raw string literals with complex formatting
+    /// and multiple interpolations ($$"""...""").
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldHandleRawStringLiteralsAndMultiInterpolation()
@@ -167,8 +167,8 @@ public class CSharpSyntaxAndEdgeCasesDeepTests
     #region Local Functions and Nested Call Linking
 
     /// <summary>
-    /// Verifica che funzioni locali annidate multiple (local functions) e le reciproche chiamate
-    /// vengano analizzate correttamente nel CallGraph senza generare disallineamenti di visibilità.
+    /// Verify multiple nested local functions and their calls to each other
+    /// are analyzed correctly in the CallGraph without generating visibility misalignments.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractNestedLocalFunctionsAndCallGraphLinks()
@@ -241,8 +241,8 @@ public class CSharpSyntaxAndEdgeCasesDeepTests
     #region Multi-Namespace and File-Scoped Namespaces with Partial Types
 
     /// <summary>
-    /// Verifica l'estrazione da file multipli contenenti classi parziali (partial classes)
-    /// definite con file-scoped namespace, fondendo i simboli nello stesso contenitore logico.
+    /// Tests extraction from multiple files containing partial classes
+    /// defined with file-scoped namespace, merging the symbols into the same logical container.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldMergePartialClasses_AcrossMultipleFiles()

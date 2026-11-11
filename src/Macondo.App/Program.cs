@@ -5,8 +5,8 @@ using Macondo.App.Services;
 namespace Macondo.App;
 
 /// <summary>
-/// Punto di ingresso principale dell'applicazione Macondo (VB6 & C# Architecture & Code Analyzer).
-/// Gestisce l'avvio in modalità Desktop GUI con Avalonia o l'instradamento alla modalità CLI.
+/// Main entry point of the Macondo application (VB6 & C# Architecture & Code Analyzer).
+/// Handles booting into Desktop GUI mode with Avalonia or routing to CLI mode.
 /// </summary>
 internal static class Program
 {
@@ -15,12 +15,12 @@ internal static class Program
     private const uint ATTACH_PARENT_PROCESS = unchecked((uint)-1);
 
     /// <summary>
-    /// Metodo Main di avvio. Se gli argomenti specificano comandi o parametri CLI,
-    /// aggancia la console del processo chiamante ed esegue il <see cref="CliRunner"/>.
-    /// In caso contrario avvia la GUI Desktop Avalonia.
+    /// Main boot method. If the arguments specify CLI commands or parameters,
+    /// hooks the console of the calling process and executes the <see cref="CliRunner"/>.
+    /// Otherwise launch the Avalonia Desktop GUI.
     /// </summary>
-    /// <param name="args">Argomenti da riga di comando passati all'applicazione.</param>
-    /// <returns>Codice di uscita del processo.</returns>
+    /// <param name="args">Command line arguments passed to the application.</param>
+    /// <returns>Process exit code.</returns>
     [STAThread]
     public static int Main(string[] args)
     {
@@ -28,8 +28,8 @@ internal static class Program
         {
             if (OperatingSystem.IsWindows() && AttachConsole(ATTACH_PARENT_PROCESS))
             {
-                // In un'applicazione WinExe, .NET inizializza Console.Out come NullStream;
-                // dopo aver eseguito AttachConsole occorre reinizializzare gli stream standard collegandoli alla console padre.
+                // In a WinExe application, .NET initializes Console.Out as NullStream;
+                // after running AttachConsole you need to reinitialize the standard streams by connecting them to the parent console.
                 var stdout = Console.OpenStandardOutput();
                 Console.SetOut(new StreamWriter(stdout, new System.Text.UTF8Encoding(false)) { AutoFlush = true });
 
@@ -44,7 +44,7 @@ internal static class Program
             }
             catch
             {
-                // Ignora nel caso l'ambiente host o la console non consentano l'override della codepage
+                // Ignore if the host environment or console does not allow code page overriding
             }
 
             return CliRunner.Run(args);
@@ -55,7 +55,7 @@ internal static class Program
     }
 
     /// <summary>
-    /// Configura il framework Avalonia per l'esecuzione della GUI desktop.
+    /// Configure the Avalonia framework to run the desktop GUI.
     /// </summary>
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>()
         .UsePlatformDetect()

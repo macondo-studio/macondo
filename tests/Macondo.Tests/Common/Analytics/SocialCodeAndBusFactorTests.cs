@@ -8,7 +8,7 @@ namespace Macondo.Tests.Common.Analytics;
 public class SocialCodeAndBusFactorTests
 {
     /// <summary>
-    /// Verifica il calcolo del Bus Factor e l'identificazione di codice orfano o ad alto rischio.
+    /// Verifies the Bus Factor calculation and the identification of orphaned or high-risk code.
     /// </summary>
     [Fact]
     public void SocialCode_ShouldCalculateBusFactorAndDetectOrphanCode()

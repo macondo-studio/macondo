@@ -49,7 +49,7 @@ $siteRoot = Join-Path $workspaceRoot "docs"
 $macondoPublicRoot = Join-Path $progettiRoot "macondo"
 $csprojPath = Join-Path $workspaceRoot "src\Macondo.App\Macondo.App.csproj"
 
-# 1. Determinazione versione attuale
+# 1. Determine current version
 $currentVersion = "1.0.0"
 if (Test-Path $csprojPath) {
     $csprojContent = Get-Content $csprojPath -Raw -Encoding UTF8
@@ -58,7 +58,7 @@ if (Test-Path $csprojPath) {
     }
 }
 
-# 2. Calcolo nuova versione se non passata esplicitamente
+# 2. Calculate new version if not passed explicitly
 if ([string]::IsNullOrWhiteSpace($NewVersion)) {
     if ([string]::IsNullOrWhiteSpace($BumpType)) {
         $BumpType = "Patch"
@@ -90,7 +90,7 @@ Write-Host "==========================================================" -Foregro
 Write-Host "  Macondo Version Bump Tool -> $currentVersion => $NewVersion" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-# 3. Estrazione automatica note di rilascio da Git se non specificate
+# 3. Automatically extract release notes from Git if not specified
 if ([string]::IsNullOrWhiteSpace($NotesEn) -or [string]::IsNullOrWhiteSpace($NotesIt)) {
     try {
         $gitLines = git log --pretty=format:"%H|%s" -n 50 2>$null
@@ -135,7 +135,7 @@ if ([string]::IsNullOrWhiteSpace($NotesEn) -or [string]::IsNullOrWhiteSpace($Not
     }
 }
 
-# 4. Aggiornamento Macondo.App.csproj
+# 4. Update Macondo.App.csproj
 if (Test-Path $csprojPath) {
     Write-Host "[1/5] Aggiornamento $csprojPath..." -ForegroundColor Yellow
     $csprojContent = Get-Content $csprojPath -Raw -Encoding UTF8
@@ -149,7 +149,7 @@ if (Test-Path $csprojPath) {
     Write-Host "      -> Version: $NewVersion, AssemblyVersion: $assemblyVer" -ForegroundColor Green
 }
 
-# 5. Aggiornamento UpdateService.cs
+# 5. Update UpdateService.cs
 $updateServicePath = Join-Path $workspaceRoot "src\Macondo.App\Services\UpdateService.cs"
 if (Test-Path $updateServicePath) {
     Write-Host "[2/5] Aggiornamento $updateServicePath..." -ForegroundColor Yellow
@@ -167,7 +167,7 @@ if (Test-Path $updateServicePath) {
     Write-Host "      -> CurrentVersion: ($major, $minor, $patch), CurrentVersionString: `"$NewVersion`"" -ForegroundColor Green
 }
 
-# 6. Aggiornamento site/version.json (Sito Web / Manifesto - Repo Privata)
+# 6. Update site/version.json (Website / Poster - Private Repo)
 $versionJsonPath = Join-Path $siteRoot "version.json"
 if (Test-Path $versionJsonPath) {
     Write-Host "[3/5] Aggiornamento $versionJsonPath..." -ForegroundColor Yellow
@@ -190,7 +190,7 @@ if (Test-Path $versionJsonPath) {
     Write-Host "      -> version.json impostato a v$NewVersion con timestamp UTC" -ForegroundColor Green
 }
 
-# 7. Aggiornamento automatico file HTML del sito (versioni + date formattate)
+# 7. Automatic update of the site's HTML file (versions + formatted dates)
 $now = Get-Date
 $itMonths = @("", "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre")
 $itDateStr = "$($now.Day) $($itMonths[$now.Month]) $($now.Year)"
@@ -201,7 +201,7 @@ $htmlFiles = Get-ChildItem -Path $siteRoot -Filter "*.html"
 foreach ($htmlItem in $htmlFiles) {
     $html = Get-Content $htmlItem.FullName -Raw -Encoding UTF8
     
-    # Versioni
+    # Versions
     $html = [regex]::Replace($html, '"softwareVersion":\s*"[^"]+"', "`"softwareVersion`": `"$NewVersion`"")
     $html = [regex]::Replace($html, 'Macondo v\d+\.\d+\.\d+', "Macondo v$NewVersion")
     $html = [regex]::Replace($html, '<span class="nav-version-tag">v\d+\.\d+\.\d+</span>', "<span class=`"nav-version-tag`">v$NewVersion</span>")
@@ -218,7 +218,7 @@ foreach ($htmlItem in $htmlFiles) {
 }
 Write-Host "      -> Pagine del sito web in $siteRoot allineate a v$NewVersion con date aggiornate" -ForegroundColor Green
 
-# 8. Sincronizzazione automatica file da site/ alla cartella della repo pubblica macondo
+# 8. Automatic file synchronization from site/ to the macondo public repository folder
 if (Test-Path $macondoPublicRoot) {
     Write-Host "[5/5] Sincronizzazione file da $siteRoot verso $macondoPublicRoot (repo pubblica)..." -ForegroundColor Yellow
     robocopy $siteRoot $macondoPublicRoot /E /XD .git /NFL /NDL /NJH /NJS /nc /ns /np | Out-Null
@@ -234,7 +234,7 @@ if (Test-Path $macondoPublicRoot) {
 
 Write-Host "`nTutti i file sono stati aggiornati con successo alla versione $NewVersion!" -ForegroundColor Green
 
-# Esporta variabili utili per script chiamanti
+# Export useful variables for calling scripts
 $global:MACONDO_VERSION = $NewVersion
 $global:MACONDO_NOTES_EN = $NotesEn
 $global:MACONDO_NOTES_IT = $NotesIt

@@ -7,24 +7,24 @@ using Macondo.App.Services;
 namespace Macondo.App.Views;
 
 /// <summary>
-/// Finestra modale per la notifica e il download dei nuovi aggiornamenti software.
+/// Modal window for notification and download of new software updates.
 /// </summary>
 public partial class UpdateModalView : UserControl
 {
     private AppUpdateInfo? _availableUpdate;
 
     /// <summary>
-    /// Evento scatenato quando l'utente sceglie di scaricare/installare l'aggiornamento.
+    /// Event triggered when user chooses to download/install update.
     /// </summary>
     public event EventHandler<AppUpdateInfo>? UpdateNowRequested;
 
     /// <summary>
-    /// Evento scatenato quando l'utente sceglie di posticipare l'aggiornamento.
+    /// Event triggered when user chooses to postpone update.
     /// </summary>
     public event EventHandler? UpdateLaterRequested;
 
     /// <summary>
-    /// Inizializza una nuova istanza di <see cref="UpdateModalView"/>.
+    /// Initializes a new instance of <see cref="UpdateModalView"/>.
     /// </summary>
     public UpdateModalView()
     {
@@ -32,7 +32,7 @@ public partial class UpdateModalView : UserControl
     }
 
     /// <summary>
-    /// Mostra la modale popolandola con le informazioni della release disponibile.
+    /// Show the modal by populating it with the available release information.
     /// </summary>
     public void Show(AppUpdateInfo updateInfo)
     {
@@ -42,7 +42,7 @@ public partial class UpdateModalView : UserControl
     }
 
     /// <summary>
-    /// Nasconde la modale di aggiornamento.
+    /// Hides the update modal.
     /// </summary>
     public void Hide()
     {
@@ -51,7 +51,7 @@ public partial class UpdateModalView : UserControl
     }
 
     /// <summary>
-    /// Aggiorna i testi localizzati della modale.
+    /// Update localized modal texts.
     /// </summary>
     public void UpdateLocalizedUI()
     {

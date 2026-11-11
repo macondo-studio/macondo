@@ -41,13 +41,13 @@ using Macondo.Semantic.Model;
 namespace Macondo.App;
 
 /// <summary>
-/// Finestra principale dell'applicazione VB6 Analyzer.
-/// Gestisce l'interazione tra Toolbar, Project Explorer (TreeView),
-/// Canvas del Grafo (<see cref="Controls.GraphControl"/>), Symbol Inspector e Blast Radius Engine.
+/// Main window of the VB6 Analyzer application.
+/// Manages the interaction between Toolbar, Project Explorer (TreeView),
+/// Graph Canvas (<see cref="Controls.GraphControl"/>), Symbol Inspector and Blast Radius Engine.
 /// </summary>
 public partial class MainWindow : Window
 {
-    #region Campi e Stato
+    #region Fields and State
 
     private VisualCodeGraph? _graph;
     private GraphNode? _selectedNode;
@@ -67,34 +67,34 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _loadingCts;
     private CodeGraph? _apiDiffBaselineGraph;
     private string? _apiDiffBaselineName;
-    // --- Gestione Drag & Drop e Ordinamento Schede di Analisi (CentralTabControl) ---
-    /// <summary>Elenco ordinato immutabile dei TabItem nell'ordine predefinito originario definito nel file XAML.</summary>
+    // --- Drag & Drop Management and Analysis Card Sorting (CentralTabControl) ---
+    /// <summary>Immutable ordered list of TabItems in the original default order defined in the XAML file.</summary>
     private readonly List<TabItem> _defaultCentralTabOrder = new();
 
-    /// <summary>Riferimento al TabItem attualmente afferrato e trascinato dall'utente.</summary>
+    /// <summary>Reference to the TabItem currently grabbed and dragged by the user.</summary>
     private TabItem? _draggedTabItem;
 
-    /// <summary>Coordinate relative alla finestra al momento del PointerPressed iniziale.</summary>
+    /// <summary>Coordinates relative to the window at the time of the initial PointerPressed.</summary>
     private Point _tabDragStartPos;
 
-    /// <summary>Offset relativo tra il punto di clic del mouse e l'angolo superiore sinistro dell'intestazione del tab trascinato.</summary>
+    /// <summary>Relative offset between the mouse click point and the upper left corner of the dragged tab header.</summary>
     private Point _tabDragOffsetWithinTab;
 
-    /// <summary>Flag booleano che indica se è attualmente in corso un'operazione di trascinamento attivo (superata la deadzone).</summary>
+    /// <summary>Boolean flag indicating whether an active drag operation is currently in progress (deadzone exceeded).</summary>
     private bool _isTabDragging;
 
-    /// <summary>Indice di destinazione calcolato nel CentralTabControl dove inserire la scheda al rilascio del mouse.</summary>
+    /// <summary>Destination index calculated in the CentralTabControl where to insert the tab when the mouse is released.</summary>
     private int _targetDropIndex = -1;
 
-    /// <summary>Trasformazione di traslazione applicata alla scheda fluttuante ghost per seguirne il movimento sotto al cursore.</summary>
+    /// <summary>Translation transformation applied to the floating ghost card to follow its movement under the cursor.</summary>
     private readonly TranslateTransform _tabGhostTransform = new();
 
-    /// <summary>Trasformazione di traslazione applicata all'indicatore verticale di drop per posizionarlo dinamicamente tra i tab.</summary>
+    /// <summary>Translation transformation applied to the vertical drop indicator to dynamically position it between tabs.</summary>
     private readonly TranslateTransform _tabDropIndicatorTransform = new();
 
     #endregion
 
-    #region Costruttore & Inizializzazione
+    #region Constructor & Initialization
 
     public MainWindow()
     {
@@ -115,31 +115,31 @@ public partial class MainWindow : Window
         // VCS (Git & SVN) Branch Button
         GitBranchButton.Click += (_, _) => OpenGitBranchPopup();
 
-        // Canvas del Grafo: menu contestuale su clic destro sopra i nodi e tracking movimenti
+        // Graph Canvas: right-click context menu over nodes and movement tracking
         Graph.AddHandler(Control.ContextRequestedEvent, OnGraphContextRequested, RoutingStrategies.Tunnel);
         Graph.NodeMoved += (_, _) => OnGraphNodeMoved();
 
-        // Schede di Analisi e Pannello Destro: menu contestuale su clic destro per nascondere o gestire i tab
+        // Analysis Tabs and Right Panel: right-click context menu to hide or manage tabs
         CentralTabControl.AddHandler(Control.ContextRequestedEvent, OnCentralTabControlContextRequested, RoutingStrategies.Tunnel);
         RightTabControl.AddHandler(Control.ContextRequestedEvent, OnRightTabControlContextRequested, RoutingStrategies.Tunnel);
 
-        // Click sui pulsanti di chiusura schede e Drag & Drop per riordinare le schede di analisi con il mouse.
-        // NOTA CRITICA: Gli handler registrati con RoutingStrategies.Tunnel su CentralTabControl intercettano TUTTI
-        // gli eventi puntatore dell'intera area centrale (inclusi i canvas di analisi, i pulsanti dell'HUD, controlli e form).
-        // Per evitare regressioni in cui i pulsanti interni (es. Blast Radius, Esporta MD) perdono il click,
-        // gli handler sottostanti (OnCentralTabPointerPressed/Released) NON devono mai azzerare la cattura del puntatore
-        // né gestire gli eventi se il clic non proviene specificamente dall'header di un TabItem o se non è in corso un drag.
+        // Click on the close tab and Drag & Drop buttons to reorder the analysis tabs with the mouse.
+        // CRITICAL NOTE: Handlers registered with RoutingStrategies.Tunnel on CentralTabControl intercept ALL
+        // the pointer events of the entire central area (including analysis canvases, HUD buttons, controls and forms).
+        // To avoid regressions where internal buttons (e.g. Blast Radius, Export MD) lose their click,
+        // the underlying handlers (OnCentralTabPointerPressed/Released) must NEVER reset the pointer capture
+        // nor handle events if the click does not specifically come from the header of a TabItem or if a drag is not in progress.
         RightTabControl.AddHandler(InputElement.PointerPressedEvent, OnRightTabPointerPressed, RoutingStrategies.Tunnel);
         CentralTabControl.AddHandler(InputElement.PointerPressedEvent, OnCentralTabPointerPressed, RoutingStrategies.Tunnel);
         CentralTabControl.AddHandler(InputElement.PointerMovedEvent, OnCentralTabPointerMoved, RoutingStrategies.Tunnel);
         CentralTabControl.AddHandler(InputElement.PointerReleasedEvent, OnCentralTabPointerReleased, RoutingStrategies.Tunnel);
         CentralTabControl.AddHandler(InputElement.PointerCaptureLostEvent, OnCentralTabPointerCaptureLost, RoutingStrategies.Tunnel);
 
-        // Memorizza l'ordine predefinito originale e applica l'ordinamento personalizzato
+        // Stores the original default sorting and applies custom sorting
         _defaultCentralTabOrder.AddRange(CentralTabControl.Items.OfType<TabItem>());
         ApplySavedTabOrder();
 
-        // Menu Bar Superiore - File (Command + Click per massima affidabilità)
+        // Upper Bar Menu - File (Command + Click for maximum reliability)
         OpenProjectFilesMenuItem.Command = new ActionCommand(async () => await OpenProjectFilesAsync());
         OpenFolderMenuItem.Command = new ActionCommand(async () => await OpenFolderAsync());
         RefreshProjectMenuItem.Command = new ActionCommand(async () => await RefreshCurrentProjectAsync());
@@ -162,7 +162,7 @@ public partial class MainWindow : Window
         OpenProjectFilesMenuItem.Click += async (_, _) => await OpenProjectFilesAsync();
         OpenFolderMenuItem.Click += async (_, _) => await OpenFolderAsync();
 
-        // Drag & Drop di file e cartelle direttamente sull'intera finestra
+        // Drag & Drop files and folders directly across the entire window
         AddHandler(DragDrop.DropEvent, OnWindowDrop);
         AddHandler(DragDrop.DragOverEvent, OnWindowDragOver);
 
@@ -243,7 +243,7 @@ public partial class MainWindow : Window
         ExportJsonButton.Click += async (_, _) => await ExportJsonAsync();
         ImportJsonButton.Click += async (_, _) => await ImportJsonAsync();
 
-        // Pulsante Mostra/Nascondi Contenuto Legenda Grafo
+        // Show/Hide Contents Button Graph Legend
         ToggleLegendButton.Click += (_, _) =>
         {
             LegendContentPanel.IsVisible = !LegendContentPanel.IsVisible;
@@ -256,7 +256,7 @@ public partial class MainWindow : Window
             }
         };
 
-        // Controlli Finestra Stile IDE (Impostazioni, Riduci a icona, Ingrandisci/Ripristina, Chiudi)
+        // IDE Style Window Controls (Settings, Minimize, Maximize/Restore, Close)
         SettingsButton.Click += (_, _) => OpenSettings();
         MinimizeButton.Click += (_, _) => WindowState = WindowState.Minimized;
         MaximizeButton.Click += (_, _) => ToggleMaximize();
@@ -281,7 +281,7 @@ public partial class MainWindow : Window
                 SearchResultsPopup.IsOpen = true;
         };
 
-        // Scorciatoie da tastiera globali (Ctrl + F, Ctrl + O, Ctrl + ,, F5)
+        // Global keyboard shortcuts (Ctrl+F, Ctrl+O, Ctrl+,,F5)
         AddHandler(KeyDownEvent, (sender, e) =>
         {
             if (e.KeyModifiers == KeyModifiers.Control && e.Key == Key.F)
@@ -337,10 +337,10 @@ public partial class MainWindow : Window
             }
         }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
 
-        // Sincronizzazione selezione tra Tab Grafo e Tab Griglia Blast Radius / Analytics
+        // Selection synchronization between Graph Tab and Grid Tab Blast Radius / Analytics
         CentralTabControl.SelectionChanged += OnCentralTabSelectionChanged;
 
-        // Eventi di selezione e sincronizzazione per le nuove visualizzazioni analitiche
+        // Selection and synchronization events for new analytic views
         Dsm.ItemSelected += (_, item) =>
         {
             if (item != null && _graph != null)
@@ -467,15 +467,15 @@ public partial class MainWindow : Window
                 OpenOriginalFile(b.FilePath, 1);
         };
 
-        // Eventi di gestione Baseline per il tab API Diff & SemVer
+        // Baseline handling events for the Diff & SemVer API tab
         ApiDiff.SetCurrentAsBaselineRequested += (_, _) => OnApiDiffSetCurrentAsBaseline();
         ApiDiff.LoadBaselineRequested += async (_, _) => await OnApiDiffLoadBaselineAsync();
         ApiDiff.ClearBaselineRequested += (_, _) => OnApiDiffClearBaseline();
 
-        // Inizializzazione Impostazioni e Preferenze Utente (%APPDATA%\Macondo\settings.json)
+        // Initializing User Settings and Preferences (%APPDATA%\Macondo\settings.json)
         var settings = SettingsService.Instance.Settings;
 
-        // Ripristino Geometria Finestra e Larghezza Pannelli
+        // Restoring Window Geometry and Panel Width
         if (settings.WindowWidth >= 600 && settings.WindowHeight >= 400)
         {
             Width = settings.WindowWidth;
@@ -517,10 +517,10 @@ public partial class MainWindow : Window
         _currentLayoutMode = settings.PreferredLayout;
         LayoutComboBox.SelectedIndex = (int)_currentLayoutMode;
 
-        // Inizializzazione Filtri per Livello e Categoria di Simbolo
+        // Initialization of Filters by Symbol Level and Category
         InitFilterControls();
 
-        // Salvataggio Geometria Finestra, Larghezza e Visibilità Pannelli alla chiusura
+        // Saving Window Geometry, Width and Panel Visibility when closing
         Closing += (_, _) =>
         {
             SettingsService.Instance.Update(s =>
@@ -548,14 +548,14 @@ public partial class MainWindow : Window
                 s.ShowTypesAndEnums = Graph.ShowTypesAndEnums;
             });
 
-            // Salvataggio sincrono immediato di eventuali modifiche pendenti al layout dei nodi e dello snapshot di cache
+            // Immediate synchronous saving of any pending node and cache snapshot layout changes
             FlushPendingLayoutChangesSync();
             if (!string.IsNullOrEmpty(_currentFolderPath) && _graph != null)
 
                 ProjectCacheService.Instance.SaveSnapshot(_currentFolderPath, _graph, BlastRadiusGridControl.AllRows, _hasUserMovedNodes, _enabledAnalyticsTabs);
         };
 
-        // Servizi Reattivi: Localizzazione & Temi con Auto-Save
+        // Responsive Services: Localization & Theming with Auto-Save
         LocalizationService.Instance.LanguageChanged += (_, lang) =>
         {
             UpdateLocalizedUI();
@@ -579,14 +579,14 @@ public partial class MainWindow : Window
 
         InitializeAnalyticsPlaceholders();
 
-        // Inizializza le dimensioni persistite dei pannelli laterali (Explorer e Inspector)
+        // Initialize persisted size of side panels (Explorer and Inspector)
         if (settings.ExplorerWidth >= 160)
             _savedExplorerWidth = settings.ExplorerWidth;
 
         if (settings.InspectorWidth >= 200)
             _savedInspectorWidth = settings.InspectorWidth;
 
-        // Traccia in tempo reale il ridimensionamento manuale del pannello destro tramite GridSplitter
+        // Track manual resizing of the right panel in real time via GridSplitter
         RightPanelContainer.PropertyChanged += (_, e) =>
         {
             if (e.Property == BoundsProperty && _isInspectorVisible && RightPanelContainer.Bounds.Width >= 200)
@@ -596,7 +596,7 @@ public partial class MainWindow : Window
             }
         };
 
-        // Traccia in tempo reale il ridimensionamento manuale del pannello sinistro tramite GridSplitter
+        // Track manual resizing of the left panel in real time via GridSplitter
         ProjectExplorerControl.PropertyChanged += (_, e) =>
         {
             if (e.Property == BoundsProperty && _isExplorerVisible && ProjectExplorerControl.Bounds.Width >= 160)
@@ -606,7 +606,7 @@ public partial class MainWindow : Window
             }
         };
 
-        // Applica i valori salvati prima del rendering iniziale
+        // Apply saved values before initial rendering
         ThemeService.Instance.ApplyTheme(settings.Theme);
         LocalizationService.Instance.SetLanguage(settings.Language);
         Graph.EnableHoverSelection = settings.EnableHoverSelection;
@@ -616,7 +616,7 @@ public partial class MainWindow : Window
         ApplyTabsVisibility(settings);
         UpdateLocalizedUI();
 
-        // Connessione esplicita eventi modali e overlay
+        // Explicit connection of modal events and overlays
         LoadingOverlayControl.CancelRequested += OnLoadingCancelRequested;
         UpdateModalControl.UpdateNowRequested += OnUpdateModalNowRequested;
         UpdateModalControl.UpdateLaterRequested += OnUpdateModalLaterRequested;
@@ -624,12 +624,12 @@ public partial class MainWindow : Window
         LayoutConfirmModalControl.Confirmed += OnLayoutConfirmModalConfirmed;
 
         // ------------------------------------------------------------------------------------------------
-        // Caricamento del Progetto all'Avvio: Gestione Intelligente in base a StartupMode e Cronologia Recenti
+        // Project Loading at Startup: Intelligent Management based on StartupMode and Recent History
         // ------------------------------------------------------------------------------------------------
         var startupMode = settings.StartupMode;
 
-        // Recupera il target più recente prioritariamente dal primo elemento della cronologia RecentProjects.
-        // Se la cronologia è vuota, ricade sulla proprietà LastOpenedFolder memorizzata nelle impostazioni.
+        // Retrieves the most recent target in priority from the first RecentProjects history item.
+        // If the history is empty, it falls to the LastOpenedFolder property stored in the settings.
         string? lastTarget = null;
         if (settings.RecentProjects.Count > 0)
 
@@ -638,7 +638,7 @@ public partial class MainWindow : Window
 
             lastTarget = settings.LastOpenedFolder;
 
-        // Determina la cartella effettiva del progetto (directory diretta oppure directory padre se il target è un file .csproj/.vbp/.sln)
+        // Determines the actual project folder (direct directory or parent directory if the target is a .csproj/.vbp/.sln file)
         var targetFolder = !string.IsNullOrEmpty(lastTarget)
             ? (Directory.Exists(lastTarget) ? lastTarget : (File.Exists(lastTarget) ? Path.GetDirectoryName(lastTarget) : null))
             : null;
@@ -649,13 +649,13 @@ public partial class MainWindow : Window
             var isCached = ProjectCacheService.Instance.HasCache(targetFolder);
             if (isCached)
             {
-                // Caricamento istantaneo del progetto e del grafo direttamente dallo snapshot in cache
+                // Instant loading of the project and graph directly from the cached snapshot
                 var targetPaths = settings.RecentProjects.Count > 0 ? settings.RecentProjects[0].Paths : new List<string> { lastTarget! };
                 _ = AnalyzeAndLoadPathsAsync(targetPaths);
             }
             else
             {
-                // Nessuna cache disponibile: predispone la schermata di benvenuto mostrando la card del progetto in sospeso per l'analisi
+                // No cache available: prepares the welcome screen showing the card of the project pending for analysis
                 _currentFolderPath = targetFolder;
                 _currentPaths = new List<string> { lastTarget! };
                 UpdateVcsBranchStatus(targetFolder);
@@ -665,27 +665,27 @@ public partial class MainWindow : Window
         }
         else if (startupMode == StartupLoadMode.AlwaysAnalyze && hasValidTarget)
         {
-            // Modalità sempre analizza: avvia l'analisi completa all'avvio indipendentemente dalla cache
+            // Always scan mode: Starts full scan at startup regardless of cache
             var targetPaths = settings.RecentProjects.Count > 0 ? settings.RecentProjects[0].Paths : new List<string> { lastTarget! };
             _ = AnalyzeAndLoadPathsAsync(targetPaths);
         }
         else
         {
-            // Modalità EmptyWorkspace o nessun percorso valido precedente: mostra la schermata iniziale di benvenuto
+            // EmptyWorkspace mode or no previous valid path: Shows the initial welcome screen
             ShowWelcomeScreen();
             StatusText.Text = LocalizationService.Instance["Status_StartupEmptyReady"];
         }
 
-        // Controllo automatico aggiornamenti in background all'avvio
+        // Automatically check for updates in the background at startup
         _ = CheckForUpdatesOnStartupAsync();
     }
 
     #endregion
 
-    #region Gestione Finestra & Barra del Titolo
+    #region Window Management & Title Bar
 
     /// <summary>
-    /// Consente il trascinamento della finestra dall'area centrale libera della barra del titolo.
+    /// Allows you to drag the window from the free central area of the title bar.
     /// </summary>
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -695,7 +695,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Doppio click sull'area centrale libera della barra del titolo per massimizzare o ripristinare.
+    /// Double click on the free central area of the title bar to maximize or restore.
     /// </summary>
     private void OnTitleBarDoubleTapped(object? sender, TappedEventArgs e)
     {
@@ -703,7 +703,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Alterna lo stato della finestra principale tra massimizzato (<see cref="WindowState.Maximized"/>) e normale (<see cref="WindowState.Normal"/>).
+    /// Toggles the state of the main window between maximized (<see cref="WindowState.Maximized"/>) and normal (<see cref="WindowState.Normal"/>).
     /// </summary>
     private void ToggleMaximize()
     {
@@ -712,10 +712,10 @@ public partial class MainWindow : Window
 
     #endregion
 
-    #region Overlay di Caricamento & Progresso
+    #region Loading & Progress Overlay
 
     /// <summary>
-    /// Mostra l'overlay modale di caricamento centrato a tutto schermo con opzioni per la barra di avanzamento e statistiche.
+    /// Shows full-screen centered loading modal overlay with progress bar and statistics options.
     /// </summary>
     private void ShowLoading(
         string title,
@@ -739,7 +739,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Aggiorna l'avanzamento dettagliato e lo stato testuale dell'overlay di caricamento.
+    /// Updates the detailed progress and textual status of the loading overlay.
     /// </summary>
     private void UpdateLoadingProgress(
         double current,
@@ -756,7 +756,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Gestisce il click sul pulsante Annulla all'interno del popup di caricamento / analisi.
+    /// Handles clicking on the Cancel button within the upload/analysis popup.
     /// </summary>
     private void OnLoadingCancelRequested(object? sender, EventArgs e)
     {
@@ -768,7 +768,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Nasconde l'overlay di caricamento e reimposta lo stato della barra di avanzamento.
+    /// Hides the loading overlay and resets the progress bar state.
     /// </summary>
     private void HideLoading()
     {
@@ -779,17 +779,17 @@ public partial class MainWindow : Window
 
     #endregion
 
-    #region Caricamento Dati, Workspace & Fixture
+    #region Data Loading, Workspace & Fixtures
 
     /// <summary>
-    /// Genera e carica un grafo sintetico di ~5000 nodi tramite FakeGraphGenerator per benchmark e test.
+    /// Generate and upload a synthetic graph of ~5000 nodes via FakeGraphGenerator for benchmarking and testing.
     /// </summary>
     private async void LoadSyntheticGraph()
     {
         var localizationService = LocalizationService.Instance;
         ShowLoading(
-            "Generazione del grafo sintetico...",
-            "Creazione di ~5000 nodi e calcolo del layout radiale...",
+            localizationService["Status_FakeGraphGenerating"],
+            "Creating ~5000 nodes and computing radial layout...",
             canCancel: true);
         var token = _loadingCts?.Token ?? CancellationToken.None;
         try
@@ -826,7 +826,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Carica e analizza la suite di fixture VB6 reali integrate nel progetto con aggiornamento del progresso in tempo reale.
+    /// Load and analyze the suite of real VB6 fixtures integrated into the project with real-time progress updating.
     /// </summary>
     private async void LoadDefaultFixtures()
     {
@@ -869,7 +869,7 @@ public partial class MainWindow : Window
             ApplyGraphToUI();
             StatusText.Text = localizationService["Status_FixturesLoaded"];
 
-            // Lampeggio icona sulla barra di Windows e notifica di sistema
+            // Flashing icon on the Windows bar and system notification
             WindowsNotificationService.NotifyAnalysisCompleted(
                 this,
                 localizationService["Notification_AnalysisCompleted_Title"],
@@ -892,7 +892,7 @@ public partial class MainWindow : Window
 
 
     /// <summary>
-    /// Gestione Drag & Drop: Accetta file o cartelle trascinate sulla finestra.
+    /// Drag & Drop Management: Accept files or folders dragged onto the window.
     /// </summary>
     private void OnWindowDragOver(object? sender, DragEventArgs e)
     {
@@ -904,7 +904,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Gestione Drag & Drop: Riceve i file/cartelle rilasciati ed avvia l'analisi immediata.
+    /// Drag & Drop Management: Receives dropped files/folders and starts immediate analysis.
     /// </summary>
     private async void OnWindowDrop(object? sender, DragEventArgs e)
     {
@@ -925,7 +925,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Apre un selettore di cartelle per analizzare uno o più progetti VB6 contemporaneamente.
+    /// Opens a folder chooser to analyze one or more VB6 projects at once.
     /// </summary>
     private async Task OpenFolderAsync()
     {
@@ -943,7 +943,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Apre un selettore di file per aprire direttamente uno o più file progetto (.vbp) o gruppi (.vbg).
+    /// Opens a file chooser to directly open one or more project (.vbp) or group (.vbg) files.
     /// </summary>
     private async Task OpenProjectFilesAsync()
     {
@@ -996,7 +996,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Ricarica forzatamente il progetto o i progetti correnti da disco, ri-eseguendo parsing e analisi.
+    /// Forcibly reloads the current project(s) from disk, re-parsing and analyzing.
     /// </summary>
     private async Task RefreshCurrentProjectAsync()
     {
@@ -1023,7 +1023,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Esegue o ripristina da cache l'analisi di una cartella.
+    /// Runs or restores a folder scan from cache.
     /// </summary>
     private async Task AnalyzeAndLoadFolderAsync(string folderPath, bool forceReanalyze = false)
     {
@@ -1031,7 +1031,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Esegue o ripristina l'analisi di uno o più percorsi (cartelle, .vbp, .vbg) creando un workspace integrato.
+    /// Performs or restores scanning of one or more paths (folders, .vbp, .vbg) creating an integrated workspace.
     /// </summary>
     private async Task AnalyzeAndLoadPathsAsync(IReadOnlyList<string> paths, bool forceReanalyze = false)
     {
@@ -1044,7 +1044,7 @@ public partial class MainWindow : Window
             ? Path.GetFileName(firstPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) 
             : $"Workspace ({paths.Count} percorsi)";
 
-        // Mostra subito l'overlay di caricamento per dare feedback immediato all'utente
+        // Show the loading overlay immediately to give immediate feedback to the user
         ShowLoading(localizationService["Loading_AnalyzeProjectTitle"], localizationService.Get("Loading_AnalyzeProjectSub", titleName), canCancel: true);
         var token = _loadingCts?.Token ?? CancellationToken.None;
 
@@ -1052,12 +1052,12 @@ public partial class MainWindow : Window
         {
             await Task.Delay(16, token);
 
-            // Risolve la directory effettiva di riferimento sia per singola cartella che per file di progetto (.vbp, .csproj, .sln)
+            // Resolves the actual reference directory for both single folder and project files (.vbp, .csproj, .sln)
             var targetFolder = Directory.Exists(firstPath)
                 ? firstPath
                 : (File.Exists(firstPath) ? Path.GetDirectoryName(firstPath) : null);
 
-            // 1. Tenta il ripristino ultra-rapido dalla cache solo se non forzato e se esiste uno snapshot valido su disco
+            // 1. Attempt ultra-fast restore from cache only if not forced and if a valid snapshot exists on disk
             if (!forceReanalyze && paths.Count == 1 && !string.IsNullOrEmpty(targetFolder) && Directory.Exists(targetFolder))
             {
                 var cachedSnapshot = await ProjectCacheService.Instance.TryLoadSnapshotAsync(targetFolder, token);
@@ -1089,10 +1089,10 @@ public partial class MainWindow : Window
                     ApplyGraphToUI(cachedRows, applyAutomaticLayout: false);
                     _hasUserMovedNodes = cachedSnapshot.HasCustomUserLayout;
 
-                    // Registra l'apertura nella cronologia recenti e aggiorna LastOpenedFolder
+                    // Record the open in recent history and update LastOpenedFolder
                     AddToRecentProjects(paths);
 
-                    // Rileva eventuali modifiche ai sorgenti intervenute dopo il salvataggio della cache
+                    // Detects any source changes that occurred after saving the cache
                     var isStale = ProjectCacheService.Instance.CheckStaleness(cachedSnapshot, targetFolder);
                     if (isStale)
                         StatusText.Text = localizationService.Get("Status_CacheStale", cachedSnapshot.ProjectName);
@@ -1104,7 +1104,7 @@ public partial class MainWindow : Window
                 }
             }
 
-            // 2. Analisi completa da sorgenti su disco con barra di avanzamento determinata
+            // 2. Complete analysis from disk sources with determined progress bar
             var progress = new Progress<ProjectAnalysisProgress>(p =>
             {
                 var countStr = localizationService.Get("Loading_FilesProgressFormat", p.CurrentFileIndex, p.TotalFiles, (int)p.Percentage);
@@ -1145,7 +1145,7 @@ public partial class MainWindow : Window
             }
             SettingsService.Instance.Update(s => s.LastEnabledAnalyticsTabs = _enabledAnalyticsTabs.ToList());
 
-            // Costruzione dell'albero dell'esploratore su thread in background per evitare blocchi dell'UI Dispatcher su grafi estesi (40k+ nodi)
+            // Building explorer tree on background thread to avoid UI Dispatcher crashes on large graphs (40k+ nodes)
             ExplorerTreeItem? precalculatedExplorerTree = null;
             if (_graph != null)
             {
@@ -1154,14 +1154,14 @@ public partial class MainWindow : Window
                     token);
             }
 
-            // Chiude il modal di caricamento prima di applicare gli elementi alla UI
+            // Closes the loading modal before applying elements to the UI
             HideLoading();
             await Task.Yield();
 
-            // Il layout è già stato calcolato in background durante FromSemanticGraph in ProjectAnalysisService
+            // The layout has already been calculated in the background during FromSemanticGraph in ProjectAnalysisService
             ApplyGraphToUI(precalculatedTree: precalculatedExplorerTree, applyAutomaticLayout: false); // Avvierà PopulateBlastRadiusGridAsync che poi aggiornerà la cache con i calcoli
 
-            // Salva immediatamente lo snapshot iniziale del grafo su cache su thread in background
+            // Immediately saves the initial snapshot of the graph to cache on background threads
             if (!string.IsNullOrEmpty(_currentFolderPath) && _graph != null)
                 _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _graph, BlastRadiusGridControl.AllRows, _hasUserMovedNodes, _enabledAnalyticsTabs);
 
@@ -1177,10 +1177,10 @@ public partial class MainWindow : Window
                 StatusText.Text = localizationService.Get("Status_Refreshed", titleName, nodeCount);
             }
 
-            // Registra l'apertura nella cronologia recenti e aggiorna LastOpenedFolder
+            // Record the open in recent history and update LastOpenedFolder
             AddToRecentProjects(paths);
 
-            // Lampeggio icona sulla barra di Windows e notifica di sistema
+            // Flashing icon on the Windows bar and system notification
             WindowsNotificationService.NotifyAnalysisCompleted(
                 this,
                 localizationService["Notification_AnalysisCompleted_Title"],
@@ -1201,9 +1201,9 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Aggiunge un progetto, file o cartella alla lista dei progetti recenti, aggiorna la cartella dell'ultimo progetto aperto nelle impostazioni e ricostruisce i menu e la schermata di benvenuto.
+    /// Adds a project, file or folder to the recent projects list, updates the last opened project folder in settings, and rebuilds the menus and welcome screen.
     /// </summary>
-    /// <param name="paths">Elenco dei percorsi aperti (cartella, file di progetto o file multipli).</param>
+    /// <param name="paths">List of open paths (folder, project file or multiple files).</param>
     private void AddToRecentProjects(IReadOnlyList<string> paths)
     {
         if (paths.Count == 0) return;
@@ -1224,15 +1224,15 @@ public partial class MainWindow : Window
 
         SettingsService.Instance.Update(settings =>
         {
-            // Salva atomicamente l'ultima cartella valida per l'avvio e la card di analisi
+            // Atomically saves the last valid folder for startup and analysis card
             if (!string.IsNullOrEmpty(targetFolder) && Directory.Exists(targetFolder))
 
                 settings.LastOpenedFolder = targetFolder;
 
-            // Rimuovi se già presente per evitare duplicati
+            // Remove if already present to avoid duplicates
             settings.RecentProjects.RemoveAll(r => r.Paths.SequenceEqual(paths, StringComparer.OrdinalIgnoreCase));
 
-            // Inserisci in cima alla cronologia
+            // Insert at top of history
             settings.RecentProjects.Insert(0, new RecentProjectItem
             {
                 Paths = paths.ToList(),
@@ -1241,7 +1241,7 @@ public partial class MainWindow : Window
                 LastOpenedUtc = DateTime.UtcNow
             });
 
-            // Tieni solo gli ultimi 10 elementi
+            // Keep only the last 10 items
             if (settings.RecentProjects.Count > 10)
 
                 settings.RecentProjects = settings.RecentProjects.Take(10).ToList();
@@ -1252,7 +1252,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Ricostruisce dinamicamente il sottomenu "Recenti" nel menu File con gli ultimi 10 elementi.
+    /// Dynamically rebuilds the "Recent" submenu in the File menu with the latest 10 items.
     /// </summary>
     private void UpdateRecentProjectsMenu() 
     {
@@ -1330,16 +1330,16 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Aggiorna tutti i componenti della UI (Grafo, Explorer, Status) con il nuovo CodeGraph.
-    /// Se precalculatedRows è fornito (es. da cache), la griglia Blast Radius viene popolata istantaneamente
-    /// e le coordinate personalizzate salvate non vengono sovrascritte se applyAutomaticLayout è false.
-    /// Se precalculatedTree è fornito, evita di ricostruire l'albero dell'esploratore sul thread UI.
+    /// Update all UI components (Graph, Explorer, Status) with the new CodeGraph.
+    /// If precalculatedRows is provided (e.g. from cache), the Blast Radius grid is populated instantly
+    /// and saved custom coordinates are not overwritten if applyAutomaticLayout is false.
+    /// If precalculatedTree is provided, avoid rebuilding the explorer tree on the UI thread.
     /// </summary>
     private void ApplyGraphToUI(List<BlastRadiusGridRow>? precalculatedRows = null, bool applyAutomaticLayout = true, ExplorerTreeItem? precalculatedTree = null)
     {
         if (_graph is null) return;
 
-        // Mostra i Tab centrali di analisi e nasconde la Welcome View
+        // Shows the central analysis tabs and hides the Welcome View
         WelcomeControl.IsVisible = false;
         CentralTabControl.IsVisible = true;
 
@@ -1348,7 +1348,7 @@ public partial class MainWindow : Window
         _hasUserMovedNodes = false;
         Graph.ClearHiddenProjects();
 
-        // Se sono presenti più progetti, pre-seleziona solo il primo progetto (nascondendo tutti gli altri)
+        // If there are multiple projects, pre-select only the first project (hiding all others)
         var projectNodes = _graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
         if (projectNodes.Count > 1)
         {
@@ -1385,9 +1385,9 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Espande o comprime tutti i nodi container (classi, moduli, form) presenti nel grafo visuale.
+    /// Expands or collapses all container nodes (classes, modules, forms) present in the visual graph.
     /// </summary>
-    /// <param name="expanded"><c>true</c> per espandere tutti i container; <c>false</c> per comprimerli.</param>
+    /// <param name="expanded"><c>true</c> to expand all containers; <c>false</c> to compress them.</param>
     private void SetAllExpanded(bool expanded)
     {
         if (_graph is null) return;
@@ -1401,11 +1401,11 @@ public partial class MainWindow : Window
 
     #endregion
 
-    #region Filtri Simboli, Livelli di Dettaglio & Progetti Multipli
+    #region Symbol Filters, Levels of Detail & Multiple Projects
 
     /// <summary>
-    /// Inizializza i controlli di filtro dei simboli, registrando i gestori di eventi per checkbox, menu e pulsanti della legenda.
-    /// Ripristina inoltre lo stato dei filtri salvato nelle impostazioni utente.
+    /// Initializes symbol filter controls, registering event handlers for checkboxes, menus, and legend buttons.
+    /// It also restores the filter state saved in user settings.
     /// </summary>
     private void InitFilterControls()
     {
@@ -1446,9 +1446,9 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Applica un preset di livello di dettaglio predefinito (0 = Completo, 1 = Metodi &amp; Proprietà, 2 = Solo Moduli).
+    /// Applies a default level of detail preset (0 = Full, 1 = Methods & Properties, 2 = Forms Only).
     /// </summary>
-    /// <param name="index">Indice del preset selezionato nel ComboBox o MenuItem.</param>
+    /// <param name="index">Index of the preset selected in the ComboBox or MenuItem.</param>
     private void SetDetailPreset(int index)
     {
         if (index == 0) // Completo: tutti i membri visibili
@@ -1466,7 +1466,7 @@ else if (index == 2) // Solo Moduli: nasconde tutti i membri interni
     }
 
     /// <summary>
-    /// Gestisce il cambio di selezione nel ComboBox del livello di dettaglio dei simboli.
+    /// Manages the change of selection in the symbol detail level ComboBox.
     /// </summary>
     private void OnDetailLevelComboBoxSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
@@ -1475,7 +1475,7 @@ else if (index == 2) // Solo Moduli: nasconde tutti i membri interni
     }
 
     /// <summary>
-    /// Gestisce la variazione dello stato di spunta di uno dei CheckBox dei filtri di tipo simbolo.
+    /// Manages changing the check status of one of the symbol type filter CheckBoxes.
     /// </summary>
     private void OnFilterCheckBoxChanged()
     {
@@ -1489,9 +1489,9 @@ else if (index == 2) // Solo Moduli: nasconde tutti i membri interni
     }
 
     /// <summary>
-    /// Inverte la visibilità nel grafo per la specifica categoria di simboli (<see cref="SymbolKind"/>).
+    /// Reverses the visibility in the graph for the specific symbol category (<see cref="SymbolKind"/>).
     /// </summary>
-    /// <param name="kind">Il tipo di simbolo da alternare (Method, Property, Field, Constant, Type/Enum).</param>
+    /// <param name="kind">The symbol type to toggle (Method, Property, Field, Constant, Type/Enum).</param>
     private void ToggleFilterCategory(SymbolKind kind)
     {
         switch (kind)
@@ -1516,7 +1516,7 @@ else if (index == 2) // Solo Moduli: nasconde tutti i membri interni
     }
 
     /// <summary>
-    /// Salva le impostazioni correnti di filtro dei simboli nella configurazione persistente dell'applicazione.
+    /// Saves the current symbol filter settings to the application's persistent configuration.
     /// </summary>
     private void SaveFilterSettings()
     {
@@ -1531,8 +1531,8 @@ else if (index == 2) // Solo Moduli: nasconde tutti i membri interni
     }
 
     /// <summary>
-    /// Sincronizza lo stato visivo di tutti i controlli UI di filtro (checkbox, opacità elementi legenda, icone di spunta menu, combo preset)
-    /// con lo stato effettivo delle proprietà di filtro del <see cref="Controls.GraphControl"/>.
+    /// Synchronize the visual state of all filter UI controls (checkboxes, legend element opacity, menu check icons, preset combos)
+    /// with the actual state of the filter properties of the <see cref="Controls.GraphControl"/>.
     /// </summary>
     private void SyncFilterUiState()
     {
@@ -1550,7 +1550,7 @@ else if (index == 2) // Solo Moduli: nasconde tutti i membri interni
             LegendFieldPanel.Opacity = Graph.ShowFields ? 1.0 : 0.35;
             LegendTypePanel.Opacity = Graph.ShowTypesAndEnums ? 1.0 : 0.35;
 
-            // Aggiorna indicatori di spunta nelle voci del menu Visualizza
+            // Update checkmarks in View menu items
             if (Application.Current != null && Application.Current.TryFindResource("IconCheck", out var res) && res is StreamGeometry checkGeo)
             {
                 FilterMethodsMenuItem.Icon = Graph.ShowMethods ? new PathIcon { Data = checkGeo, Width = 12, Height = 12 } : null;
@@ -1592,15 +1592,15 @@ else
         }
     }
 
-    // Insieme dei Tab analitici i cui dataset necessitano di ricalcolo lazy o in background
+    // Set of analytical tabs whose datasets require lazy or background recalculation
     private readonly HashSet<object> _dirtyAnalyticsTabs = new();
     private CancellationTokenSource? _analyticsCts;
 
-    // Insieme delle schede di analisi avviate o abilitate dall'utente per il workspace corrente
+    // Set of analysis cards launched or enabled by the user for the current workspace
     private readonly HashSet<string> _enabledAnalyticsTabs = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Restituisce la chiave identificativa univoca associata a ciascuna scheda di analisi.
+    /// Returns the unique identifying key associated with each analysis card.
     /// </summary>
     private string? GetTabKey(object? tabItem)
     {
@@ -1628,7 +1628,7 @@ else
     }
 
     /// <summary>
-    /// Marca una scheda di analisi come abilitata per il progetto corrente e aggiorna la cache su disco e le preferenze globali.
+    /// Marks an analysis tab as enabled for the current project and updates disk cache and global preferences.
     /// </summary>
     private void MarkAnalyticsTabEnabled(string tabKey)
     {
@@ -1642,7 +1642,7 @@ else
     }
 
     /// <summary>
-    /// Marca tutte le 19 schede di analisi come abilitate per il progetto corrente e aggiorna la cache su disco e le preferenze globali.
+    /// Mark all 19 analysis tabs as enabled for the current project and update disk cache and global preferences.
     /// </summary>
     private void MarkAllAnalyticsTabsEnabled()
     {
@@ -1668,7 +1668,7 @@ else
     }
 
     /// <summary>
-    /// Restituisce il grafo semantico target tenendo conto dei soli progetti attualmente visibili nel workspace.
+    /// Returns the target semantic graph taking into account only the projects currently visible in the workspace.
     /// </summary>
     private CodeGraph GetTargetSemanticGraph()
     {
@@ -1702,13 +1702,13 @@ else
     }
 
     /// <summary>
-    /// Marca tutte le viste analitiche secondarie come non aggiornate (dirty) e avvia
-    /// la pre-elaborazione in background per tutte le schede se abilitata globalmente,
-    /// oppure solo per le schede precedentemente abilitate/avviate per il progetto corrente.
+    /// Mark all secondary analytic views as dirty and launch
+    /// background preprocessing for all tabs if enabled globally,
+    /// or only for tabs previously enabled/started for the current project.
     /// </summary>
     private void InvalidateAnalyticsViews()
     {
-        // Cancella eventuali elaborazioni in background ancora in corso per il workspace precedente
+        // Clears any background processing still in progress for the previous workspace
         _analyticsCts?.Cancel();
         _analyticsCts?.Dispose();
         _analyticsCts = new CancellationTokenSource();
@@ -1741,10 +1741,10 @@ else
 
         if (hasAnyToCompute)
         {
-            // Se l'utente si trova già su un tab analitico secondario abilitato, calcolalo subito
+            // If the user is already on an enabled secondary analytic tab, calculate it now
             EnsureActiveTabAnalyticsLoaded();
 
-            // Avvia la pipeline di pre-calcolo in background per i tab abilitati
+            // Start the background precalculation pipeline for enabled tabs
             StartBackgroundAnalyticsPrecomputation(_analyticsCts.Token);
         }
         else
@@ -1755,8 +1755,8 @@ else
     }
 
     /// <summary>
-    /// Imposta lo stato iniziale sui placeholder delle schede analitiche in base alle impostazioni
-    /// globali e alle schede precedentemente abilitate/avviate per il progetto corrente.
+    /// Sets the initial state on analytic card placeholders based on your settings
+    /// global settings and tabs previously enabled/launched for the current project.
     /// </summary>
     private void SetAllAnalyticsPlaceholdersPending()
     {
@@ -1793,8 +1793,8 @@ else
     }
 
     /// <summary>
-    /// Pipeline in background per pre-calcolare i dataset dei tab analitici abilitati senza bloccare l'interfaccia,
-    /// aggiornando in tempo reale la barra di avanzamento visibile nella barra di stato in basso a destra.
+    /// Background pipeline to pre-calculate the datasets of the enabled analytical tabs without blocking the interface,
+    /// updating the progress bar visible in the status bar at the bottom right in real time.
     /// </summary>
     private void StartBackgroundAnalyticsPrecomputation(CancellationToken token)
     {
@@ -1856,7 +1856,7 @@ else
             return;
         }
 
-        // Inizializza e mostra la barra di avanzamento nella status bar
+        // Initialize and show the progress bar in the status bar
         if (BackgroundAnalyticsPanel != null)
         {
             BackgroundAnalyticsPanel.IsVisible = true;
@@ -1892,7 +1892,7 @@ else
                     BackgroundAnalyticsText.Text = LocalizationService.Instance.Get(
                         "Status_BackgroundAnalyticsProgress", done, totalAnalyticsSteps, remEst);
 
-                    // Al completamento di tutti i tab, visualizza brevemente lo stato completato e poi nasconde la barra
+                    // When all tabs are completed, it briefly displays the completed status and then hides the bar
                     if (done >= totalAnalyticsSteps)
                     {
                         BackgroundAnalyticsText.Text = LocalizationService.Instance["Status_BackgroundAnalyticsCompleted"];
@@ -1943,7 +1943,7 @@ else
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(TreemapTabItem, nodeCount));
             }
 
-            // 3. Hotspots di Rischio
+            // 3. Risk Hotspots
             if (!token.IsCancellationRequested && ShouldPrecompute(HotspotTabItem, s.ShowTabHotspot, "Hotspots"))
             {
                 var hotspot = HotspotAnalyzer.Analyze(targetGraph);
@@ -2011,7 +2011,7 @@ else
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(ScreenFlowTabItem, nodeCount));
             }
 
-            // 7. Stato Globale Condiviso
+            // 7. Shared Global State
             if (!token.IsCancellationRequested && ShouldPrecompute(SharedStateTabItem, s.ShowTabSharedState, "SharedState"))
             {
                 var sharedState = SharedStateAnalyzer.Analyze(targetGraph);
@@ -2062,7 +2062,7 @@ else
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(CodeCityTabItem, nodeCount));
             }
 
-            // 10. Temporal Coupling (Analisi Cronologia Git su Disco)
+            // 10. Temporal Coupling (Analyzing Git History on Disk)
             if (!token.IsCancellationRequested && ShouldPrecompute(TemporalCouplingTabItem, s.ShowTabTemporalCoupling, "TemporalCoupling"))
             {
                 var commitChangelists = GitService.Instance.GetCommitFileChangelists(folder);
@@ -2080,7 +2080,7 @@ else
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(TemporalCouplingTabItem, nodeCount));
             }
 
-            // 11. Coesione & LCOM
+            // 11. Cohesion & LCOM
             if (!token.IsCancellationRequested && ShouldPrecompute(CohesionTabItem, s.ShowTabCohesion, "Cohesion"))
             {
                 var cohesion = CohesionCalculator.Analyze(targetGraph);
@@ -2131,7 +2131,7 @@ else
                 ReportStepCompletion(GetEstimatedAnalysisSeconds(ArchitecturalRulesTabItem, nodeCount));
             }
 
-            // 14. Duplicazioni e Cloni (CPD)
+            // 14. Duplications and Clones (CPD)
             if (!token.IsCancellationRequested && ShouldPrecompute(CodeCloneTabItem, s.ShowTabCodeClone, "CodeClone"))
             {
                 var cloneReport = CodeCloneDetector.DetectClones(targetGraph);
@@ -2238,7 +2238,7 @@ else
     }
 
     /// <summary>
-    /// Inizializza gli ascoltatori degli eventi per tutti i placeholder delle schede analitiche.
+    /// Initialize event listeners for all analytic card placeholders.
     /// </summary>
     private void InitializeAnalyticsPlaceholders()
     {
@@ -2276,7 +2276,7 @@ else
     }
 
     /// <summary>
-    /// Avvia la pre-elaborazione per tutte le schede analitiche attualmente pendenti.
+    /// Start preprocessing for all currently pending analytics cards.
     /// </summary>
     private void StartAllPendingAnalytics()
     {
@@ -2290,7 +2290,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce il click sul pulsante di arresto delle analisi in background nella barra di stato inferiore.
+    /// Handles clicking on the stop background scans button in the lower status bar.
     /// </summary>
     private void OnBackgroundAnalyticsStopButtonClicked(object? sender, RoutedEventArgs e)
     {
@@ -2298,7 +2298,7 @@ else
     }
 
     /// <summary>
-    /// Interrompe l'elaborazione delle analisi in background e reimposta i placeholder delle schede non ancora completate in attesa.
+    /// Stops analysis processing in the background and resets the placeholders of pending uncompleted tabs.
     /// </summary>
     private void StopBackgroundAnalytics()
     {
@@ -2307,7 +2307,7 @@ else
 
             BackgroundAnalyticsPanel.IsVisible = false;
 
-        // Reimposta lo stato dei placeholder per tutte le schede ancora dirty (non calcolate)
+        // Reset the state of placeholders for all tabs that are still dirty (not calculated)
         void ResetIfDirty(AnalyticsPlaceholderControl? placeholder, TabItem? tabItem)
         {
             if (placeholder != null && tabItem != null && _dirtyAnalyticsTabs.Contains(tabItem))
@@ -2339,8 +2339,8 @@ else
     }
 
     /// <summary>
-    /// Esegue il calcolo asincrono on-demand (Lazy) per il tab analitico correntemente selezionato
-    /// qualora sia contrassegnato come dirty e l'elaborazione in background sia abilitata.
+    /// Performs on-demand asynchronous (Lazy) computation for the currently selected analytic tab
+    /// if it is marked dirty and background processing is enabled.
     /// </summary>
     private void EnsureActiveTabAnalyticsLoaded()
     {
@@ -2360,7 +2360,7 @@ else
     }
 
     /// <summary>
-    /// Esegue il calcolo analitico on-demand per il singolo tab specificato.
+    /// Performs on-demand analytical calculation for the specified single tab.
     /// </summary>
     private void RunAnalyticsForTab(object? selectedItem)
     {
@@ -2646,7 +2646,7 @@ else
     }
 
     /// <summary>
-    /// Calcola la durata stimata in secondi per l'analisi di una specifica scheda in base al numero di nodi del workspace.
+    /// Calculates the estimated duration in seconds for scanning a specific tab based on the number of nodes in the workspace.
     /// </summary>
     private static double GetEstimatedAnalysisSeconds(TabItem tabItem, int nodeCount)
     {
@@ -2666,7 +2666,7 @@ else
     }
 
     /// <summary>
-    /// Restituisce il titolo dinamico localizzato da visualizzare durante il calcolo dell'analisi per la scheda specificata.
+    /// Returns the localized dynamic title to display when calculating the analysis for the specified tab.
     /// </summary>
     private string GetComputingTabTitle(TabItem tabItem)
     {
@@ -2678,8 +2678,8 @@ else
     }
 
     /// <summary>
-    /// Popola dinamicamente i selettori di visibilità dei singoli progetti (Project Explorer e Menu Visualizza)
-    /// quando sono presenti progetti multipli nel workspace corrente.
+    /// Dynamically populate individual project visibility selectors (Project Explorer and View Menu)
+    /// when there are multiple projects in the current workspace.
     /// </summary>
     private void UpdateProjectsFilterUI()
     {
@@ -2702,7 +2702,7 @@ else
 
         FilterProjectsMenuItem.IsVisible = true;
 
-        // Popola le voci del menu a discesa Visualizza -> Filtra Progetti
+        // Populate the View -> Filter Projects drop-down menu items
         FilterProjectsMenuItem.Items.Clear();
         foreach (var projNode in projectNodes)
         {
@@ -2727,10 +2727,10 @@ else
     }
 
     /// <summary>
-    /// Aggiorna l'icona di spunta (checkmark) per una voce di menu (<see cref="MenuItem"/>) in base al valore booleano specificato.
+    /// Updates the checkmark icon for a menu item (<see cref="MenuItem"/>) based on the specified Boolean value.
     /// </summary>
-    /// <param name="mi">L'elemento di menu da aggiornare.</param>
-    /// <param name="isChecked"><c>true</c> per mostrare l'icona di spunta; <c>false</c> per rimuoverla.</param>
+    /// <param name="mi">The menu item to update.</param>
+    /// <param name="isChecked"><c>true</c> to show the check icon; <c>false</c> to remove it.</param>
     private void UpdateMenuItemCheck(MenuItem mi, bool isChecked)
     {
         if (isChecked)
@@ -2752,7 +2752,7 @@ else
     }
 
     /// <summary>
-    /// Aggiorna il testo informativo del badge dei progetti (es. "Progetti: 2/3 visibili") e abilita/disabilita il pulsante "Tutti".
+    /// Update the information text of the projects badge (e.g. "Projects: 2/3 visible") and enable/disable the "All" button.
     /// </summary>
     private void UpdateProjectsBadgeText()
     {
@@ -2761,7 +2761,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di selezione di tutti i progetti inviata dal Project Explorer.
+    /// Manages the selection request for all projects sent by the Project Explorer.
     /// </summary>
     private void OnExplorerSelectAllProjectsRequested(object? sender, EventArgs e)
     {
@@ -2769,7 +2769,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la variazione di visibilità di un progetto proveniente dalla casella di controllo nel Project Explorer.
+    /// Manages the visibility change of a project coming from the checkbox in the Project Explorer.
     /// </summary>
     private void OnExplorerProjectVisibilityChanged(object? sender, ExplorerTreeItem item)
     {
@@ -2779,14 +2779,14 @@ else
     }
 
     /// <summary>
-    /// Invocato quando la visibilità di un progetto cambia nel grafo.
-    /// Sincronizza lo stato degli elementi nel Project Explorer, le voci di menu, le statistiche e invalida le viste analitiche.
+    /// Invoked when the visibility of a project changes in the graph.
+    /// Synchronize the state of items in the Project Explorer, menu items, statistics and invalidate analytical views.
     /// </summary>
-    /// <param name="sender">La sorgente dell'evento.</param>
-    /// <param name="projectId">L'identificatore univoco del progetto la cui visibilità è cambiata.</param>
+    /// <param name="sender">The source of the event.</param>
+    /// <param name="projectId">The unique identifier of the project whose visibility has changed.</param>
     private void OnGraphProjectVisibilityChanged(object? sender, Guid projectId)
     {
-        // Sincronizza lo stato dei nodi nell'ExplorerTree
+        // Synchronize the state of nodes in the ExplorerTree
         if (ProjectExplorerControl.ItemsSource is IEnumerable<ExplorerTreeItem> rootItems)
         {
             void SyncTreeItemVisibility(ExplorerTreeItem item)
@@ -2806,7 +2806,7 @@ else
             }
         }
 
-        // Sincronizza le icone di spunta nei MenuItem
+        // Synchronize check icons in MenuItems
         foreach (var item in FilterProjectsMenuItem.Items)
         {
             if (item is MenuItem mi && mi.Tag is Guid pId)
@@ -2823,7 +2823,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce il click sul pulsante "Tutti" nella barra progetti dell'Explorer, ripristinando la visibilità di tutti i progetti nel workspace.
+    /// Manages clicking on the "All" button in the Explorer project bar, restoring the visibility of all projects in the workspace.
     /// </summary>
     private void OnProjectsSelectAllClicked(object? sender, RoutedEventArgs e)
     {
@@ -2832,11 +2832,11 @@ else
 
     #endregion
 
-    #region Azioni Grafo & Analisi Impatto
+    #region Stock Graph & Impact Analysis
 
     /// <summary>
-    /// Calcola ed evidenzia il Blast Radius per il nodo selezionato in modo asincrono con loading overlay.
-    /// Se il risultato è già in cache, viene applicato all'istante senza mostrare l'overlay.
+    /// Calculate and highlight the Blast Radius for the selected node asynchronously with loading overlay.
+    /// If the result is already in cache, it is applied instantly without showing the overlay.
     /// </summary>
     private async void OnBlastRadiusClicked(object? sender = null, RoutedEventArgs? e = null)
     {
@@ -2850,7 +2850,7 @@ else
         var node = _selectedNode;
         var sym = node.SemanticSymbol;
 
-        // Se già calcolato e presente in cache, applica all'istante (0 ms)
+        // If already calculated and present in cache, apply instantly (0 ms)
         if (_graph.Queries.TryGetCachedImpactReport(sym, 10, out var cachedReport) && cachedReport != null)
         {
             Graph.HighlightBlastRadius(cachedReport);
@@ -2894,7 +2894,7 @@ else
     }
 
     /// <summary>
-    /// Evidenzia sul grafo tutte le routine e classi chiamate dalla routine/container selezionato (callees).
+    /// Highlights on the graph all the routines and classes called by the selected routine/container (callees).
     /// </summary>
     private void OnShowCalleesClicked(object? sender = null, RoutedEventArgs? e = null)
     {
@@ -2919,7 +2919,7 @@ else
     }
 
     /// <summary>
-    /// Evidenzia sul grafo tutti i chiamanti della routine/container selezionato (callers).
+    /// Highlights all the callers of the selected routine/container (callers) on the graph.
     /// </summary>
     private void OnShowCallersClicked(object? sender = null, RoutedEventArgs? e = null)
     {
@@ -2944,11 +2944,11 @@ else
     }
 
     /// <summary>
-    /// Gestisce l'evento di cambio selezione di un nodo nel controllo del grafo (<see cref="Controls.GraphControl"/>).
-    /// Aggiorna il nodo selezionato corrente, sincronizza la riga nella griglia Blast Radius e avvia l'ispezione nel Symbol Inspector.
+    /// Handles the selection change event of a node in the graph control (<see cref="Controls.GraphControl"/>).
+    /// Updates the current selected node, synchronizes the row in the Blast Radius grid, and starts inspection in the Symbol Inspector.
     /// </summary>
-    /// <param name="sender">La sorgente dell'evento.</param>
-    /// <param name="node">Il nodo selezionato nel grafo, oppure <c>null</c> se la selezione è stata azzerata.</param>
+    /// <param name="sender">The source of the event.</param>
+    /// <param name="node">The node selected in the graph, or <c>null</c> if the selection has been reset.</param>
     private void OnGraphSelectionChanged(object? sender, GraphNode? node)
     {
         _selectedNode = node;
@@ -2971,15 +2971,15 @@ else
     }
 
     /// <summary>
-    /// Seleziona un nodo, espande il container padre se necessario, centra la vista del grafo su di esso
-    /// e sincronizza la vista ScreenFlow se il nodo corrisponde a un form.
+    /// Select a node, expand the parent container if necessary, center the graph view on it
+    /// and synchronizes the ScreenFlow view if the node corresponds to a form.
     /// </summary>
-    /// <param name="node">Il nodo del grafo da selezionare e mettere a fuoco.</param>
+    /// <param name="node">The graph node to select and focus on.</param>
     private void SelectAndFocusGraphNode(GraphNode node)
     {
         if (_graph is null) return;
 
-        // Se è un membro interno, assicurati che il container padre sia espanso
+        // If it is an internal member, make sure the parent container is expanded
         if (node.ParentId.HasValue)
         {
             var parent = _graph.GetNode(node.ParentId.Value);
@@ -2990,7 +2990,7 @@ else
         Graph.FocusOnNode(node.Id);
         Graph.SelectNode(node);
 
-        // Seleziona e inquadra la schermata se presente nel grafo ScreenFlow
+        // Select and frame the screen if present in the ScreenFlow graph
         var screenId = node.Id;
         if (ScreenFlow.Graph?.FindScreen(screenId) is null && node.ParentId.HasValue)
 
@@ -3006,10 +3006,10 @@ else
 
     #endregion
 
-    #region Project Explorer & Interazione File e Cartelle
+    #region Project Explorer & File and Folder Interaction
 
     /// <summary>
-    /// Gestisce la variazione di selezione nella vista ad albero del Project Explorer, selezionando e centrando il nodo corrispondente nel grafo.
+    /// Manages the selection variation in the Project Explorer tree view, selecting and centering the corresponding node in the graph.
     /// </summary>
     private void OnExplorerSelectionChanged(object? sender, ExplorerTreeItem? item)
     {
@@ -3020,7 +3020,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce il doppio click su un elemento dell'albero Project Explorer.
+    /// Manages double clicking on an element of the Project Explorer tree.
     /// </summary>
     private void OnExplorerItemDoubleTapped(object? sender, ExplorerTreeItem item)
     {
@@ -3044,7 +3044,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di apertura del file originale dall'Explorer.
+    /// Handles the request to open the original file from Explorer.
     /// </summary>
     private void OnExplorerOpenFileRequested(object? sender, ExplorerTreeItem item)
     {
@@ -3054,7 +3054,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di apertura della cartella contenitrice dall'Explorer.
+    /// Manages the request to open the containing folder from the Explorer.
     /// </summary>
     private void OnExplorerOpenFolderRequested(object? sender, ExplorerTreeItem item)
     {
@@ -3064,7 +3064,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di copia percorso file negli appunti dall'Explorer.
+    /// Handles the request to copy file path to clipboard from Explorer.
     /// </summary>
     private void OnExplorerCopyPathRequested(object? sender, ExplorerTreeItem item)
     {
@@ -3074,7 +3074,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di apertura file originale dall'Inspector.
+    /// Handles the original file open request from the Inspector.
     /// </summary>
     private void OnInspectorOpenFileRequested(object? sender, EventArgs e)
     {
@@ -3084,7 +3084,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di apertura cartella contenitrice dall'Inspector.
+    /// Manages the request to open the containing folder from the Inspector.
     /// </summary>
     private void OnInspectorOpenFolderRequested(object? sender, EventArgs e)
     {
@@ -3093,7 +3093,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di copia del Context Slice negli appunti dall'Inspector.
+    /// Handles the request to copy the Context Slice to the clipboard from the Inspector.
     /// </summary>
     private async void OnInspectorCopySliceRequested(object? sender, EventArgs e)
     {
@@ -3101,7 +3101,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di esportazione del Context Slice in formato Markdown dall'Inspector.
+    /// Handles the request to export the Context Slice in Markdown format from the Inspector.
     /// </summary>
     private async void OnInspectorSaveSliceRequested(object? sender, EventArgs e)
     {
@@ -3109,7 +3109,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la notifica di copia del frammento di codice sorgente dall'Inspector.
+    /// Handles source code snippet copy notification from the Inspector.
     /// </summary>
     private void OnInspectorCopyCodeRequested(object? sender, string code)
     {
@@ -3120,11 +3120,11 @@ else
 
     #endregion
 
-    #region Menu Contestuale Nodi del Grafo
+    #region Graph Nodes Contextual Menu
 
     /// <summary>
-    /// Gestisce la richiesta di apertura del menu contestuale sul canvas del grafo (<see cref="Controls.GraphControl"/>).
-    /// Seleziona il nodo sottostante al cursore e mostra le relative azioni di analisi ed esportazione.
+    /// Manages the request to open the context menu on the graph canvas (<see cref="Controls.GraphControl"/>).
+    /// Select the node below the cursor and show the related analysis and export actions.
     /// </summary>
     private void OnGraphContextRequested(object? sender, ContextRequestedEventArgs e)
     {
@@ -3132,14 +3132,14 @@ else
             ? Graph.GetNodeAtScreenPos(screenPos)
             : Graph.SelectedNode ?? _selectedNode;
 
-        // Se nessun nodo è presente sotto il cursore del mouse, non aprire il menu contestuale
+        // If no node is present under the mouse cursor, do not open the context menu
         if (hitNode == null)
         {
             e.Handled = true;
             return;
         }
 
-        // Seleziona esplicitamente il nodo su cui è stato fatto clic destro
+        // Explicitly select the node that was right-clicked
         Graph.SelectNode(hitNode);
 
         if (GraphContainerGrid.Resources.TryGetResource("GraphNodeContextMenu", null, out var res) && res is ContextMenu menu)
@@ -3152,17 +3152,17 @@ else
     }
 
     /// <summary>
-    /// Gestisce il comando "Esporta Context Slice LLM (Markdown)" dal menu contestuale del nodo del grafo.
+    /// Handles the "Export Context Slice LLM (Markdown)" command from the graph node context menu.
     /// </summary>
     private async void OnNodeExportMarkdownClicked(object? sender, RoutedEventArgs e) => await ExportLlmSliceAsync();
 
     /// <summary>
-    /// Gestisce il comando "Esporta Dati Nodo (JSON)" dal menu contestuale del nodo del grafo.
+    /// Handles the "Export Node Data (JSON)" command from the graph node context menu.
     /// </summary>
     private async void OnNodeExportJsonClicked(object? sender, RoutedEventArgs e) => await ExportNodeJsonAsync();
 
     /// <summary>
-    /// Esporta i dettagli del nodo e delle sue relazioni inbound/outbound in formato JSON (.json).
+    /// Export the details of the node and its inbound/outbound relationships in JSON (.json) format.
     /// </summary>
     private async Task ExportNodeJsonAsync(GraphNode? node = null)
     {
@@ -3248,10 +3248,10 @@ else
     #endregion
 
     /// <summary>
-    /// Apre il file sorgente specificato utilizzando l'applicazione o l'IDE predefinito del sistema operativo.
+    /// Opens the specified source file using the operating system's default application or IDE.
     /// </summary>
-    /// <param name="filePath">Il percorso relativo o assoluto del file sorgente da aprire.</param>
-    /// <param name="line">La riga iniziale a cui posizionarsi (opzionale).</param>
+    /// <param name="filePath">The relative or absolute path of the source file to open.</param>
+    /// <param name="line">The initial line to position at (optional).</param>
     private void OpenOriginalFile(string? filePath, int line = 0)
     {
         var localizationService = LocalizationService.Instance;
@@ -3286,10 +3286,10 @@ else
     }
 
     /// <summary>
-    /// Apre la cartella contenitrice del percorso specificato in Esplora File (Windows Explorer).
-    /// Se <paramref name="filePath"/> è un file, il file viene pre-selezionato automaticamente.
+    /// Opens the folder containing the specified path in File Explorer (Windows Explorer).
+    /// If <paramref name="filePath"/> is a file, the file is automatically pre-selected.
     /// </summary>
-    /// <param name="filePath">Il percorso del file o della cartella da rivelare nel file manager.</param>
+    /// <param name="filePath">The path to the file or folder to reveal in the file manager.</param>
     private void OpenContainingFolder(string? filePath)
     {
         var localizationService = LocalizationService.Instance;
@@ -3330,9 +3330,9 @@ else
     }
 
     /// <summary>
-    /// Copia il percorso assoluto risolto del file specificato negli Appunti di sistema.
+    /// Copies the resolved absolute path of the specified file to the system clipboard.
     /// </summary>
-    /// <param name="filePath">Il percorso relativo o assoluto del file da copiare.</param>
+    /// <param name="filePath">The relative or absolute path of the file to copy.</param>
     private async void CopyFilePathToClipboard(string? filePath)
     {
         var localizationService = LocalizationService.Instance;
@@ -3354,10 +3354,10 @@ else
     }
 
     /// <summary>
-    /// Risolve un percorso file relativo trasformandolo nel percorso assoluto su disco, utilizzando la cartella di progetto corrente come base.
+    /// Resolves a relative file path to the absolute path on disk, using the current project folder as the base.
     /// </summary>
-    /// <param name="filePath">Il percorso relativo o assoluto da risolvere.</param>
-    /// <returns>Il percorso assoluto normalizzato, oppure <c>null</c> se non risolvibile.</returns>
+    /// <param name="filePath">The relative or absolute path to resolve.</param>
+    /// <returns>The normalized absolute path, or <c>null</c> if not resolvable.</returns>
     private string? ResolveEffectiveFilePath(string? filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
@@ -3390,10 +3390,10 @@ else
         Action Action);
 
     /// <summary>
-    /// Costruisce e restituisce l'elenco completo delle destinazioni di ricerca applicative (Impostazioni, Viste analitiche, Guida, Azioni rapide)
-    /// localizzate nella lingua corrente per la Command Palette globale.
+    /// Constructs and returns the complete list of application search targets (Settings, Analytical Views, Help, Quick Actions)
+    /// localized to the current language for the global Command Palette.
     /// </summary>
-    /// <returns>La lista degli <see cref="AppSearchTarget"/> registrati.</returns>
+    /// <returns>The list of registered <see cref="AppSearchTarget"/>.</returns>
     private List<AppSearchTarget> GetAppSearchTargets()
     {
         var localizationService = LocalizationService.Instance;
@@ -3401,7 +3401,7 @@ else
 
         return new List<AppSearchTarget>
         {
-            // --- SCHERMATE DI IMPOSTAZIONI ---
+            // --- SETTINGS SCREENS ---
             new AppSearchTarget(
                 isEn ? "Settings" : "Impostazioni",
                 isEn ? "Open application settings and preferences (Ctrl+,)" : "Apri il pannello delle impostazioni e preferenze (Ctrl+,)",
@@ -3611,7 +3611,7 @@ else
                 new[] { "blast radius", "impatto", "griglia", "tabella", "modifiche", "impact" },
                 () => CentralTabControl.SelectedItem = GridTabItem),
 
-            // --- GUIDA & INFORMAZIONI ---
+            // --- GUIDE & INFORMATION ---
             new AppSearchTarget(
                 isEn ? "Help: Concepts & Guide" : "Guida: Concetti & Documentazione",
                 isEn ? "Open architecture and analysis concepts manual (F1)" : "Consulta la guida completa e i concetti architettonici (F1)",
@@ -3636,7 +3636,7 @@ else
                 new[] { "guida metriche", "guida hotspot", "complessita spiegazione" },
                 () => OpenInfo(5)),
 
-            // --- AZIONI E STRUMENTI RAPIDI ---
+            // --- QUICK ACTIONS AND TOOLS ---
             new AppSearchTarget(
                 isEn ? "Action: Calculate Blast Radius" : "Azione: Calcola Blast Radius",
                 isEn ? "Calculate change impact radius for selected symbol (F5)" : "Calcola il raggio d'impatto del simbolo attualmente selezionato (F5)",
@@ -3704,8 +3704,8 @@ else
     }
 
     /// <summary>
-    /// Gestisce la variazione del testo digitato nella casella di ricerca globale (SearchBox).
-    /// Esegue la ricerca in tempo reale sia sui comandi/viste applicative sia sui simboli del grafo di codice.
+    /// Manages the variation of the text typed in the global search box (SearchBox).
+    /// Performs real-time searches on both commands/application views and symbols in the code graph.
     /// </summary>
     private void OnSearchTextChanged(object? sender, TextChangedEventArgs e)
     {
@@ -3720,7 +3720,7 @@ else
 
         var results = new List<SearchResultItem>();
 
-        // 1. Cerca tra le schermate e comandi dell'applicazione (Impostazioni, Viste, Guida, Azioni)
+        // 1. Search the application screens and commands (Settings, Views, Help, Actions)
         var appTargets = GetAppSearchTargets();
         var matchingAppTargets = appTargets
             .Where(t => t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
@@ -3738,7 +3738,7 @@ else
 
         results.AddRange(matchingAppTargets);
 
-        // 2. Cerca tra i simboli del grafo di codice (se presente un progetto caricato)
+        // 2. Search among the symbols of the code graph (if there is a loaded project)
         List<GraphNode> matchedNodes = new();
         if (_graph != null)
         {
@@ -3762,7 +3762,7 @@ else
 
             results.AddRange(symbolItems);
 
-            // Evidenzia le schermate corrispondenti nel controllo ScreenFlow
+            // Highlights matching screens in the ScreenFlow control
             var matchedScreenIds = matchedNodes
                 .Select(m => m.Id)
                 .Concat(matchedNodes.Where(m => m.ParentId.HasValue).Select(m => m.ParentId!.Value));
@@ -3786,9 +3786,9 @@ else
     }
 
     /// <summary>
-    /// Esegue l'azione associata a un risultato di ricerca (navigazione al simbolo nel grafo o esecuzione del comando/schermata).
+    /// Performs the action associated with a search result (navigate to the symbol in the graph or execute the command/screen).
     /// </summary>
-    /// <param name="item">L'elemento di ricerca selezionato.</param>
+    /// <param name="item">The selected search item.</param>
     private void ExecuteSearchResult(SearchResultItem item)
     {
         SearchResultsPopup.IsOpen = false;
@@ -3804,7 +3804,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce l'evento di selezione di un elemento dall'elenco a comparsa dei risultati di ricerca.
+    /// Handles the event of selecting an item from the search results pop-up list.
     /// </summary>
     private void OnSearchResultSelected(object? sender, SelectionChangedEventArgs e)
     {
@@ -3816,7 +3816,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce i tasti speciali (Invio, Freccia Giù, Esc) premuti nella casella di testo della ricerca globale.
+    /// Handles special keys (Enter, Down Arrow, Esc) pressed in the global search text box.
     /// </summary>
     private void OnSearchBoxKeyDown(object? sender, KeyEventArgs e)
     {
@@ -3851,7 +3851,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce i tasti speciali (Invio per eseguire, Esc per chiudere) quando il focus si trova nell'elenco dei risultati di ricerca.
+    /// Handles special keys (Enter to execute, Esc to close) when the focus is in the search results list.
     /// </summary>
     private void OnSearchResultsListKeyDown(object? sender, KeyEventArgs e)
     {
@@ -3877,7 +3877,7 @@ else
     #region Symbol Inspector & Dettagli Semantici
 
     /// <summary>
-    /// Mostra il pannello informativo segnaposto dell'Inspector quando nessun nodo o simbolo è selezionato nel grafo.
+    /// Show the Inspector placeholder information panel when no node or symbol is selected in the graph.
     /// </summary>
     private void ShowEmptyInspector()
     {
@@ -3887,39 +3887,39 @@ else
     }
 
     /// <summary>
-    /// Ispeziona asincronamente il nodo selezionato, aggiornando sia i metadati statici immediati (nome, tipo, parametri, file)
-    /// sia i calcoli semantici pesanti in background (CFG, Blast Radius, chiamanti diretti e classi istanziate).
+    /// Asynchronously inspects the selected node, updating both immediate static metadata (name, type, parameters, file)
+    /// and heavy semantic computations in the background (CFG, Blast Radius, direct callers and instantiated classes).
     /// </summary>
-    /// <param name="node">Il nodo del grafo da ispezionare.</param>
+    /// <param name="node">The node of the graph to be inspected.</param>
     private async void SelectAndInspectNodeAsync(GraphNode node)
     {
-        // Annulla ogni analisi precedente ancora in corso
+        // Cancels any previous analysis still in progress
         _selectionCts?.Cancel();
         _selectionCts?.Dispose();
         _selectionCts = new CancellationTokenSource();
         var ct = _selectionCts.Token;
 
-        // 1. Mostra istantaneamente i metadati statici del simbolo e l'anteprima del codice sorgente
+        // 1. Instantly show static symbol metadata and source code preview
         SymbolInspectorControl.ShowSymbolMetadata(node);
         SourceCodePreviewControl.ShowSourceCode(node);
 
         var sym = node.SemanticSymbol;
 
-        // Costruisci il Control Flow Graph (CFG) se è una routine
+        // Build the Control Flow Graph (CFG) if it is routine
         if (sym != null && _graph?.SemanticGraph != null && (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property))
 
             ControlFlow.Graph = ControlFlowBuilder.BuildForSymbol(sym, _graph.SemanticGraph);
 
         UpdateStatusLanguage(node.Language);
 
-        // Se non abbiamo simboli o query, svuota i pannelli dinamici
+        // If we don't have any symbols or queries, clear the dynamic panels
         if (_graph?.Queries is null || sym is null)
         {
             SymbolInspectorControl.ClearDynamicSections();
             return;
         }
 
-        // Se il simbolo è già presente in cache, aggiorna immediatamente a 0ms (nessun overlay, nessun task ritardato)
+        // If the symbol is already present in cache, immediately update to 0ms (no overlay, no delayed tasks)
         if (_graph.Queries.TryGetCachedImpactReport(sym, 10, out var cachedImpact) && cachedImpact != null)
         {
             var cachedCallees = _graph.Queries.GetDirectCallees(sym);
@@ -3928,14 +3928,14 @@ else
             return;
         }
 
-        // 2. Imposta lo stato di caricamento nell'Inspector per Blast Radius e chiamanti
+        // 2. Set the loading state in the Inspector for Blast Radius and callers
         var localizationService = LocalizationService.Instance;
         SymbolInspectorControl.SetCalculatingState();
 
         var targetId = node.Id;
         bool isCompleted = false;
 
-        // Se il calcolo richiede più di 80ms (tipico per nodi complessi), mostra il loading overlay centrato
+        // If the calculation takes more than 80ms (typical for complex nodes), show the centered loading overlay
         _ = Task.Run(async () =>
         {
             await Task.Delay(80, ct);
@@ -3951,7 +3951,7 @@ else
 
         try
         {
-            // 3. Esegue i calcoli pesanti su un thread in background
+            // 3. Performs heavy calculations on a background thread
             var impact = await Task.Run(() => _graph.Queries.GetImpactReport(sym, cancellationToken: ct), ct);
             var callees = await Task.Run(() => _graph.Queries.GetDirectCallees(sym), ct);
             var instantiations = await Task.Run(() => _graph.Queries.GetInstantiatedClasses(sym), ct);
@@ -3959,12 +3959,12 @@ else
             if (ct.IsCancellationRequested || _selectedNode?.Id != targetId)
                 return;
 
-            // 4. Popola l'Inspector con i risultati completi
+            // 4. Populate the Inspector with the complete results
             SymbolInspectorControl.UpdateImpactDetails(impact, callees, instantiations);
         }
         catch (OperationCanceledException)
         {
-            // Analisi annullata da una nuova selezione: operazione normale
+            // Analysis canceled by a new selection: normal operation
         }
         catch (Exception ex)
         {
@@ -3983,10 +3983,10 @@ else
 
     #endregion
 
-    #region Griglia Blast Radius, Navigazione Tab & Statistiche
+    #region Blast Radius Grid, Tab Navigation & Statistics
 
     /// <summary>
-    /// Cambia ciclicamente la scheda di visualizzazione centrale tra quelle attualmente visibili e abilitate.
+    /// Cyclically switches the central display tab between those currently visible and enabled.
     /// </summary>
     private void CycleCentralTab(bool forward = true)
     {
@@ -4005,14 +4005,14 @@ else
     }
 
     /// <summary>
-    /// Gestisce la variazione della scheda selezionata nel TabControl centrale.
-    /// Avvia il caricamento analitico Lazy per la vista attivata e sincronizza la selezione con la griglia Blast Radius.
+    /// Manages the variation of the selected tab in the central TabControl.
+    /// Initiates Lazy analytical loading for the activated view and synchronizes the selection with the Blast Radius grid.
     /// </summary>
     private void OnCentralTabSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (e.Source != CentralTabControl) return;
 
-        // Calcola e carica i dati del tab solo quando l'utente vi accede per la prima volta (Lazy Analytics)
+        // Calculate and load tab data only when the user accesses it for the first time (Lazy Analytics)
         EnsureActiveTabAnalyticsLoaded();
 
         if (CentralTabControl.SelectedItem == GridTabItem)
@@ -4023,7 +4023,7 @@ else
     }
 
     /// <summary>
-    /// Calcola in background l'impatto semantico e il Blast Radius per tutte le routine del workspace tramite <see cref="BlastRadiusGridView"/>.
+    /// Calculate semantic impact and blast radius for all workspace routines in the background via <see cref="BlastRadiusGridView"/>.
     /// </summary>
     private async Task PopulateBlastRadiusGridAsync()
     {
@@ -4033,7 +4033,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la selezione di una riga all'interno della griglia Blast Radius, selezionando e ispezionando il relativo nodo nel grafo.
+    /// Manages the selection of a row within the Blast Radius grid, selecting and inspecting the relevant node in the graph.
     /// </summary>
     private void OnGridControlRowSelected(object? sender, BlastRadiusGridRow row)
     {
@@ -4063,7 +4063,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di navigazione verso un nodo del grafo proveniente dalla griglia Blast Radius.
+    /// Handles the navigation request to a graph node coming from the Blast Radius grid.
     /// </summary>
     private void OnGridControlNavigateToNodeRequested(object? sender, Guid nodeId)
     {
@@ -4071,7 +4071,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di ricalcolo dell'audit completo dalla griglia Blast Radius.
+    /// Handles the full audit recalculation request from the Blast Radius grid.
     /// </summary>
     private async void OnGridControlRecalculateAuditRequested(object? sender, EventArgs e)
     {
@@ -4081,27 +4081,27 @@ else
     }
 
     /// <summary>
-    /// Passa alla scheda del Grafo, espande il container genitore, centra la vista e calcola graficamente l'impatto Blast Radius per il nodo specificato.
+    /// Switch to the Graph tab, expand the parent container, center the view, and graphically calculate the Blast Radius impact for the specified node.
     /// </summary>
-    /// <param name="nodeId">L'identificatore univoco del nodo a cui navigare.</param>
+    /// <param name="nodeId">The unique identifier of the node to navigate to.</param>
     private void NavigateToNodeInGraph(Guid nodeId)
     {
         if (_graph == null) return;
         var node = _graph.GetNode(nodeId);
         if (node == null) return;
 
-        // 1. Passa alla scheda Vista Grafo
+        // 1. Switch to the Graph View tab
         CentralTabControl.SelectedItem = GraphTabItem;
 
-        // 2. Seleziona, espande il container genitore se necessario e centra la visuale sul nodo
+        // 2. Select, expand the parent container if necessary, and center the view on the node
         SelectAndFocusGraphNode(node);
 
-        // 3. Calcola ed evidenzia il Blast Radius grafico
+        // 3. Calculate and highlight the Blast Radius graph
         OnBlastRadiusClicked();
     }
 
     /// <summary>
-    /// Calcola e aggiorna le metriche generali del workspace (conteggio progetti, nodi, relazioni, chiamate, istanziazioni) visualizzate nella barra di stato inferiore.
+    /// Calculate and update overall workspace metrics (project count, nodes, relationships, calls, instantiations) displayed in the bottom status bar.
     /// </summary>
     private void UpdateStatsBar()
     {
@@ -4140,10 +4140,10 @@ else
     }
 
     /// <summary>
-    /// Aggiorna il badge del linguaggio sorgente (VB6, C#, ecc.) nella barra di stato in basso a destra,
-    /// basandosi sul nodo correntemente selezionato o sui linguaggi complessivi rilevati nel workspace.
+    /// Update the source language (VB6, C#, etc.) badge in the status bar at the bottom right,
+    /// based on the currently selected node or overall languages detected in the workspace.
     /// </summary>
-    /// <param name="selectedNodeLang">Il linguaggio del nodo selezionato, o <c>null</c> per usare i linguaggi complessivi del grafo.</param>
+    /// <param name="selectedNodeLang">The language of the selected node, or <c>null</c> to use the overall graph languages.</param>
     private void UpdateStatusLanguage(SourceLanguage? selectedNodeLang = null)
     {
         if (selectedNodeLang.HasValue && selectedNodeLang.Value != SourceLanguage.Unknown)
@@ -4160,7 +4160,7 @@ else
             }
         }
 
-        // Altrimenti mostra i linguaggi del grafo/workspace complessivo
+        // Otherwise it shows the languages of the overall graph/workspace
         if (_graph?.Nodes != null && _graph.Nodes.Count > 0)
         {
             var realNodes = _graph.Nodes.Where(n => n.Kind != SymbolKind.Project).ToList();
@@ -4208,12 +4208,12 @@ else
 
     #endregion
 
-    #region Impostazioni, Informazioni & Temi
+    #region Settings, About & Themes
 
     /// <summary>
-    /// Apre la finestra di dialogo modale delle Impostazioni (<see cref="SettingsWindow"/>) posizionandosi sulla scheda specificata.
+    /// Opens the modal Settings dialog box (<see cref="SettingsWindow"/>) by hovering over the specified tab.
     /// </summary>
-    /// <param name="initialTab">L'indice della scheda iniziale da selezionare (0 = Aspetto, 1 = Lingua, 2 = Comportamento, 3 = Scorciatoie).</param>
+    /// <param name="initialTab">The index of the initial tab to select (0 = Appearance, 1 = Language, 2 = Behavior, 3 = Shortcuts).</param>
     private void OpenSettings(int initialTab = 0)
     {
         var settingsWin = new SettingsWindow(initialTab);
@@ -4221,9 +4221,9 @@ else
     }
 
     /// <summary>
-    /// Apre la finestra di dialogo modale della Guida e Informazioni (<see cref="InfoWindow"/>) posizionandosi sulla scheda specificata.
+    /// Opens the modal Help and Information dialog box (<see cref="InfoWindow"/>) by hovering over the specified tab.
     /// </summary>
-    /// <param name="initialTab">L'indice della scheda iniziale da selezionare.</param>
+    /// <param name="initialTab">The index of the initial card to select.</param>
     private void OpenInfo(int initialTab = 0)
     {
         var infoWin = new Views.InfoWindow(initialTab);
@@ -4231,9 +4231,9 @@ else
     }
 
     /// <summary>
-    /// Applica i pennelli e colori della definizione del tema a tutti i bordi della finestra principale e ai controlli di visualizzazione analitica.
+    /// Applies the theme definition's brushes and colors to all main window borders and analytic view controls.
     /// </summary>
-    /// <param name="theme">La definizione del tema contenente i codici esadecimali dei colori.</param>
+    /// <param name="theme">The theme definition containing the hexadecimal color codes.</param>
     private void ApplyTheme(ThemeDefinition theme)
     {
         if (Color.TryParse(theme.BackgroundPrimary, out var bgPrimary))
@@ -4296,10 +4296,10 @@ else
 
     #endregion
 
-    #region Esportazione & Importazione Dati
+    #region Data Export & Import
 
     /// <summary>
-    /// Esporta l'intero grafo in formato Markdown compatto (Repo Map) per LLM tramite selettore di file.
+    /// Export the entire graph in compact Markdown format (Repo Map) for LLM via file chooser.
     /// </summary>
     private async Task ExportMarkdownAsync()
     {
@@ -4353,7 +4353,7 @@ else
     }
 
     /// <summary>
-    /// Esporta l'intero grafo in formato JSON strutturato tramite selettore di file.
+    /// Export the entire graph in structured JSON format via file selector.
     /// </summary>
     private async Task ExportJsonAsync()
     {
@@ -4407,7 +4407,7 @@ else
     }
 
     /// <summary>
-    /// Importa un CodeGraph da file JSON precedentemente salvato e lo visualizza istantaneamente.
+    /// Import a CodeGraph from previously saved JSON file and display it instantly.
     /// </summary>
     private async Task ImportJsonAsync()
     {
@@ -4450,7 +4450,7 @@ else
             }
             ApplyGraphToUI();
 
-            // Calcola ed esporta istantaneamente la griglia di Blast Radius per il grafo importato
+            // Instantly calculate and export the Blast Radius grid for the imported graph
             await PopulateBlastRadiusGridAsync();
 
             StatusText.Text = LocalizationService.Instance.Get("Status_ImportSuccess", file.Name, importedGraph.Symbols.Count, importedGraph.Relationships.Count);
@@ -4466,7 +4466,7 @@ else
     }
 
     /// <summary>
-    /// Copia negli appunti di sistema il Context Slice semantico per il simbolo selezionato.
+    /// Copies the semantic Context Slice for the selected symbol to the system clipboard.
     /// </summary>
     private async Task CopyLlmSliceToClipboardAsync()
     {
@@ -4496,7 +4496,7 @@ else
     }
 
     /// <summary>
-    /// Salva su file Markdown (.md) il Context Slice per il simbolo/nodo selezionato.
+    /// Save the Context Slice for the selected symbol/node to a Markdown (.md) file.
     /// </summary>
     private async Task ExportLlmSliceAsync(GraphNode? targetNode = null)
     {
@@ -4574,7 +4574,7 @@ else
     }
 
     /// <summary>
-    /// Mostra il popup modale di conferma per l'esportazione completata con successo.
+    /// Show confirmation modal popup for successful export.
     /// </summary>
     private void ShowExportSuccessModal(string fileName, string fullPath)
     {
@@ -4590,13 +4590,13 @@ else
 
     #endregion
 
-    #region Gestione Layout Grafo & Interazione Hover
+    #region Graph Layout Management & Hover Interaction
 
     private bool _hasUserMovedNodes;
     private Layout.GraphLayoutMode? _pendingLayoutMode;
 
     /// <summary>
-    /// Invocato quando l'utente sposta/trascina manualmente un nodo nel canvas del grafo con il mouse.
+    /// Invoked when the user manually moves/drag a node in the graph canvas with the mouse.
     /// </summary>
     private void OnGraphNodeMoved()
     {
@@ -4605,8 +4605,8 @@ else
     }
 
     /// <summary>
-    /// Richiede il cambio di layout del grafo. Se l'utente ha spostato almeno un nodo manualmente,
-    /// mostra prima una modale di conferma per avvertire che le posizioni dei nodi spostati andranno perse.
+    /// Requires changing graph layout. If the user moved at least one node manually,
+    /// first shows a confirmation modal to warn that the positions of the moved nodes will be lost.
     /// </summary>
     private void RequestSetLayoutMode(Layout.GraphLayoutMode mode, bool resetView = true)
     {
@@ -4627,8 +4627,8 @@ else
     }
 
     /// <summary>
-    /// Mostra l'overlay modale di avviso prima di riorganizzare automaticamente il layout del grafo
-    /// se l'utente ha spostato manualmente dei nodi.
+    /// Show warning modal overlay before automatically rearranging the graph layout
+    /// if the user manually moved nodes.
     /// </summary>
     private void ShowLayoutConfirmModal()
     {
@@ -4645,7 +4645,7 @@ else
     }
 
     /// <summary>
-    /// Imposta la modalità di layout attiva, ricalcola le coordinate di tutti i nodi e aggiorna il canvas del grafo.
+    /// Set the active layout mode, recalculate the coordinates of all nodes and update the graph canvas.
     /// </summary>
     private void SetLayoutMode(Layout.GraphLayoutMode mode, bool resetView = true)
     {
@@ -4675,7 +4675,7 @@ else
     private bool _hasUnsavedLayoutChanges;
 
     /// <summary>
-    /// Pianifica il salvataggio asincrono debounced delle coordinate dei nodi in cache (1.5s di inattività).
+    /// Schedule debounced asynchronous saving of node coordinates in cache (1.5s of inactivity).
     /// </summary>
     private void ScheduleLayoutAutoSave()
     {
@@ -4698,7 +4698,7 @@ else
     }
 
     /// <summary>
-    /// Gestore scatenato allo scadere del timer di debounce per persistere su disco le posizioni aggiornate dei nodi.
+    /// Unleashed handler when debounce timer expires to persist updated node positions to disk.
     /// </summary>
     private void OnLayoutSaveDebounceTick(object? sender, EventArgs e)
     {
@@ -4707,7 +4707,7 @@ else
     }
 
     /// <summary>
-    /// Esegue il salvataggio asincrono in background delle modifiche geometriche al layout su disco.
+    /// Performs asynchronous background saving of geometric layout changes to disk.
     /// </summary>
     private void FlushPendingLayoutChanges()
     {
@@ -4722,7 +4722,7 @@ else
     }
 
     /// <summary>
-    /// Salva immediatamente e in modo sincrono le coordinate geometriche dei nodi su disco (es. alla chiusura o cambio progetto).
+    /// Save the geometric coordinates of the nodes on disk immediately and synchronously (e.g. when closing or changing the project).
     /// </summary>
     private void FlushPendingLayoutChangesSync()
     {
@@ -4735,8 +4735,8 @@ else
     }
 
     /// <summary>
-    /// Ripristina la visualizzazione del grafo impostando lo zoom al 100% e centrando la vista
-    /// sul primo sottoprogetto visibile/selezionato (oppure al centro del canvas se non presente).
+    /// Restore the graph display by setting the zoom to 100% and centering the view
+    /// on the first visible/selected subproject (or in the center of the canvas if not present).
     /// </summary>
     private void ResetGraphView()
     {
@@ -4752,7 +4752,7 @@ else
     }
 
     /// <summary>
-    /// Restituisce la stringa descrittiva localizzata corrispondente all'algoritmo di layout specificato.
+    /// Returns the localized descriptive string corresponding to the specified layout algorithm.
     /// </summary>
     private string GetLocalizedLayoutName(Layout.GraphLayoutMode mode) => mode switch
     {
@@ -4764,7 +4764,7 @@ else
     };
 
     /// <summary>
-    /// Gestisce il cambio di selezione nel ComboBox del layout per richiedere l'applicazione del nuovo algoritmo.
+    /// Manages the selection change in the layout ComboBox to request the application of the new algorithm.
     /// </summary>
     private void OnLayoutComboBoxSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
@@ -4776,7 +4776,7 @@ else
     }
 
     /// <summary>
-    /// Attiva o disattiva la selezione e ispezione dei nodi al passaggio del cursore del mouse (Hover).
+    /// Enable or disable node selection and inspection when hovering the mouse cursor (Hover).
     /// </summary>
     private void OnToggleHoverSelectionClicked(object? sender, RoutedEventArgs e)
     {
@@ -4787,7 +4787,7 @@ else
     }
 
     /// <summary>
-    /// Attiva o disattiva la visualizzazione delle etichette testuali nelle schede di visualizzazione centrali.
+    /// Toggle the display of text labels in the central display tabs.
     /// </summary>
     private void OnToggleTabLabelsClicked(object? sender, RoutedEventArgs e)
     {
@@ -4795,7 +4795,7 @@ else
     }
 
     /// <summary>
-    /// Alterna lo stato di visibilità delle etichette dei tab centrali e aggiorna le impostazioni utente.
+    /// Toggle the visibility state of central tab labels and update user settings.
     /// </summary>
     private void ToggleTabLabels()
     {
@@ -4805,9 +4805,9 @@ else
     }
 
     /// <summary>
-    /// Applica la visibilità visiva alle intestazioni testuali di tutte le schede del controllo a schede centrale.
+    /// Applies visual visibility to the text headings of all tabs in the central tabbed control.
     /// </summary>
-    /// <param name="showLabels"><c>true</c> per mostrare le etichette con il testo; <c>false</c> per mostrare solo le icone.</param>
+    /// <param name="showLabels"><c>true</c> to show labels with text; <c>false</c> to show only the icons.</param>
     private void ApplyTabLabelsVisibility(bool showLabels)
     {
         GraphTabHeader.IsVisible = showLabels;
@@ -4837,8 +4837,8 @@ else
     }
 
     /// <summary>
-    /// Applica la visibilità configurata dall'utente per ciascuna scheda di analisi nella barra centrale
-    /// e aggiorna contestualmente i segni di spunta nel menu Visualizza.
+    /// Applies user-configured visibility for each analysis tab in the center bar
+    /// and contextually updates the checkmarks in the View menu.
     /// </summary>
     private void ApplyTabsVisibility(AppSettings s)
     {
@@ -4891,7 +4891,7 @@ else
         if (TabSourceCodeCheckIcon != null) TabSourceCodeCheckIcon.IsVisible = s.ShowTabSourceCode;
         if (BackgroundAnalyticsCheckIcon != null) BackgroundAnalyticsCheckIcon.IsVisible = s.EnableBackgroundAnalytics;
 
-        // Se la scheda attualmente attiva viene nascosta, ripiega in sicurezza sulla prima scheda visibile
+        // If the currently active tab becomes hidden, fall back safely to the first visible tab
         if (CentralTabControl?.SelectedItem is TabItem currentTab && !currentTab.IsVisible)
         {
             var firstVisible = CentralTabControl.Items.OfType<TabItem>().FirstOrDefault(t => t.IsVisible);
@@ -4900,7 +4900,7 @@ else
                 CentralTabControl.SelectedItem = firstVisible;
         }
 
-        // Se la scheda del pannello destro attualmente attiva viene nascosta, ripiega in sicurezza sulla prima visibile
+        // If the currently active right panel tab becomes hidden, it safely falls back to the first visible one
         if (RightTabControl?.SelectedItem is TabItem currentRightTab && !currentRightTab.IsVisible)
         {
             var firstVisibleRight = RightTabControl.Items.OfType<TabItem>().FirstOrDefault(t => t.IsVisible);
@@ -4909,7 +4909,7 @@ else
                 RightTabControl.SelectedItem = firstVisibleRight;
         }
 
-        // Se entrambe le schede del pannello destro sono nascoste, chiudi e comprimi il pannello solo se attualmente visibile
+        // If both tabs in the right panel are hidden, close and collapse the panel only if it is currently visible
         if (!s.ShowTabInspector && !s.ShowTabSourceCode)
         {
             if (_isInspectorVisible)
@@ -4927,7 +4927,7 @@ else
         }
     }
 
-    /// <summary>Alterna l'esecuzione automatica delle analisi in background nelle impostazioni.</summary>
+    /// <summary>Toggle whether background scans should run automatically in settings.</summary>
     private void OnToggleBackgroundAnalyticsMenuClicked(object? sender, RoutedEventArgs e)
     {
         var newValue = !SettingsService.Instance.Settings.EnableBackgroundAnalytics;
@@ -4937,97 +4937,97 @@ else
             StartAllPendingAnalytics();
     }
 
-    /// <summary>Avvia il calcolo di tutte le schede analitiche in sospeso dal menu Analisi.</summary>
+    /// <summary>Start the calculation of all pending analytical cards from the Analysis menu.</summary>
     private void OnRunAllAnalyticsMenuClicked(object? sender, RoutedEventArgs e)
     {
         StartAllPendingAnalytics();
     }
 
-    /// <summary>Alterna la visibilità del tab Grafo delle Dipendenze nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Dependency Graph tab in settings.</summary>
     private void OnToggleTabGraphMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabGraph = !s.ShowTabGraph);
 
-    /// <summary>Alterna la visibilità del tab Matrice DSM nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the DSM Matrix tab in settings.</summary>
     private void OnToggleTabDsmMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabDsm = !s.ShowTabDsm);
 
-    /// <summary>Alterna la visibilità del tab Treemap Gerarchica nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Hierarchical Treemap tab in the settings.</summary>
     private void OnToggleTabTreemapMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabTreemap = !s.ShowTabTreemap);
 
-    /// <summary>Alterna la visibilità del tab Matrice Hotspot nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Hotspot Matrix tab in settings.</summary>
     private void OnToggleTabHotspotMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabHotspot = !s.ShowTabHotspot);
 
-    /// <summary>Alterna la visibilità del tab Flusso Schermate nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Screen Flow tab in settings.</summary>
     private void OnToggleTabScreenFlowMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabScreenFlow = !s.ShowTabScreenFlow);
 
-    /// <summary>Alterna la visibilità del tab Control Flow Graph (CFG) nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Control Flow Graph (CFG) tab in settings.</summary>
     private void OnToggleTabControlFlowMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabControlFlow = !s.ShowTabControlFlow);
 
-    /// <summary>Alterna la visibilità del tab Metriche Martin nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Martin Metrics tab in settings.</summary>
     private void OnToggleTabMartinMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabMartin = !s.ShowTabMartin);
 
-    /// <summary>Alterna la visibilità del tab Dead Code &amp; Orfani nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Dead Code & Orphans tab in settings.</summary>
     private void OnToggleTabDeadCodeMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabDeadCode = !s.ShowTabDeadCode);
 
-    /// <summary>Alterna la visibilità del tab Stato Globale Condiviso nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Global Shared Status tab in settings.</summary>
     private void OnToggleTabSharedStateMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabSharedState = !s.ShowTabSharedState);
 
-    /// <summary>Alterna la visibilità del tab Temporal Coupling (Git Co-change) nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Temporal Coupling (Git Co-change) tab in the settings.</summary>
     private void OnToggleTabTemporalCouplingMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabTemporalCoupling = !s.ShowTabTemporalCoupling);
 
-    /// <summary>Alterna la visibilità del tab Flussi Architetturali (Chord) nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Architectural Flows (Chord) tab in the settings.</summary>
     private void OnToggleTabArchitecturalFlowMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabArchitecturalFlow = !s.ShowTabArchitecturalFlow);
 
-    /// <summary>Alterna la visibilità del tab CodeCity 3D nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the CodeCity 3D tab in the settings.</summary>
     private void OnToggleTabCodeCityMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabCodeCity = !s.ShowTabCodeCity);
 
-    /// <summary>Alterna la visibilità del tab Coesione &amp; LCOM nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Cohesion & LCOM tab in settings.</summary>
     private void OnToggleTabCohesionMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabCohesion = !s.ShowTabCohesion);
 
-    /// <summary>Alterna la visibilità del tab Maintainability Index nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Maintainability Index tab in the settings.</summary>
     private void OnToggleTabMaintainabilityMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabMaintainability = !s.ShowTabMaintainability);
 
-    /// <summary>Alterna la visibilità del tab Regole Architetturali nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Architectural Rules tab in the settings.</summary>
     private void OnToggleTabArchitecturalRulesMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabArchitecturalRules = !s.ShowTabArchitecturalRules);
 
-    /// <summary>Alterna la visibilità del tab Cloni e Duplicazioni (CPD) nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Clones and Duplications (CPD) tab in the settings.</summary>
     private void OnToggleTabCodeCloneMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabCodeClone = !s.ShowTabCodeClone);
 
-    /// <summary>Alterna la visibilità del tab Social Code &amp; Bus Factor nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Social Code & Bus Factor tab in the settings.</summary>
     private void OnToggleTabSocialCodeMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabSocialCode = !s.ShowTabSocialCode);
 
-    /// <summary>Alterna la visibilità del tab Data Flow &amp; Taint Tracking nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Data Flow & Taint Tracking tab in settings.</summary>
     private void OnToggleTabDataFlowMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabDataFlow = !s.ShowTabDataFlow);
 
-    /// <summary>Alterna la visibilità del tab API Diff &amp; SemVer nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Diff & SemVer API tab in the settings.</summary>
     private void OnToggleTabApiDiffMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabApiDiff = !s.ShowTabApiDiff);
 
-    /// <summary>Alterna la visibilità del tab Matrice CRUD nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the CRUD Matrix tab in the settings.</summary>
     private void OnToggleTabCrudMatrixMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabCrudMatrix = !s.ShowTabCrudMatrix);
 
-    /// <summary>Alterna la visibilità del tab Griglia Blast Radius nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Blast Radius Grid tab in settings.</summary>
     private void OnToggleTabBlastRadiusGridMenuClicked(object? sender, RoutedEventArgs e) =>
         SettingsService.Instance.Update(s => s.ShowTabBlastRadiusGrid = !s.ShowTabBlastRadiusGrid);
 
-    /// <summary>Alterna la visibilità del tab Symbol Inspector nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Symbol Inspector tab in the settings.</summary>
     private void OnToggleTabInspectorMenuClicked(object? sender, RoutedEventArgs e)
     {
         var newValue = !SettingsService.Instance.Settings.ShowTabInspector;
@@ -5038,7 +5038,7 @@ else
         });
     }
 
-    /// <summary>Alterna la visibilità del tab Anteprima Codice Sorgente nelle impostazioni.</summary>
+    /// <summary>Toggle the visibility of the Source Code Preview tab in settings.</summary>
     private void OnToggleTabSourceCodeMenuClicked(object? sender, RoutedEventArgs e)
     {
         var newValue = !SettingsService.Instance.Settings.ShowTabSourceCode;
@@ -5051,20 +5051,20 @@ else
 
     #endregion
 
-    #region Menu Contestuale Schede di Analisi (TabControl)
+    #region Analysis Tabs Contextual Menu (TabControl)
 
     private TabItem? _contextMenuTargetTabItem;
 
     /// <summary>
-    /// Gestisce la richiesta di apertura del menu contestuale sulle intestazioni delle schede di analisi.
-    /// Mostra le opzioni per nascondere la scheda specifica, mostrare tutte le schede o aprire la personalizzazione.
+    /// Manages the request to open the context menu on the headers of the analysis sheets.
+    /// Show options to hide the specific tab, show all tabs, or open customization.
     /// </summary>
     private void OnCentralTabControlContextRequested(object? sender, ContextRequestedEventArgs e)
     {
         var visual = e.Source as Visual;
         var tabItem = FindTabItemFromHeaderVisual(visual, CentralTabControl);
 
-        // Se il clic non è avvenuto su un'intestazione TabItem appartenente al TabControl principale, ignora
+        // If the click was not on a TabItem header belonging to the main TabControl, ignore
         if (tabItem == null || CentralTabControl == null)
             return;
 
@@ -5086,15 +5086,15 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di apertura del menu contestuale sulle intestazioni delle schede del pannello destro (Inspector / Codice Sorgente).
-    /// Mostra le opzioni per nascondere la scheda specifica, mostrare tutte le schede o aprire la personalizzazione.
+    /// Handles the request to open the context menu on the right panel tab headers (Inspector / Source Code).
+    /// Show options to hide the specific tab, show all tabs, or open customization.
     /// </summary>
     private void OnRightTabControlContextRequested(object? sender, ContextRequestedEventArgs e)
     {
         var visual = e.Source as Visual;
         var tabItem = FindTabItemFromHeaderVisual(visual, RightTabControl);
 
-        // Se il clic non è avvenuto su un'intestazione TabItem appartenente al TabControl destro, ignora
+        // If the click was not on a TabItem header belonging to the right TabControl, ignore
         if (tabItem == null || RightTabControl == null)
             return;
 
@@ -5116,7 +5116,7 @@ else
     }
 
     /// <summary>
-    /// Recupera il testo dell'intestazione del TabItem specificato per la formattazione dinamica del menu.
+    /// Retrieves the header text of the specified TabItem for dynamic menu formatting.
     /// </summary>
     private static string GetTabTitle(TabItem tabItem)
     {
@@ -5135,7 +5135,7 @@ else
     }
 
     /// <summary>
-    /// Nasconde la scheda analitica specifica salvando la preferenza nella configurazione utente.
+    /// Hides the specific analytic tab by saving the preference in the user configuration.
     /// </summary>
     private void OnTabContextMenuHideClicked(object? sender, RoutedEventArgs e)
     {
@@ -5146,7 +5146,7 @@ else
     }
 
     /// <summary>
-    /// Ripristina la visibilità di tutte le schede di analisi salvando la configurazione utente.
+    /// Restore visibility of all analysis tabs by saving user configuration.
     /// </summary>
     private void OnTabContextMenuShowAllClicked(object? sender, RoutedEventArgs e)
     {
@@ -5179,7 +5179,7 @@ else
     }
 
     /// <summary>
-    /// Apre la finestra di dialogo Impostazioni posizionandosi direttamente sulla sezione "Schede Analitiche".
+    /// Opens the Settings dialog box by positioning yourself directly on the "Analytical Tabs" section.
     /// </summary>
     private void OnTabContextMenuManageClicked(object? sender, RoutedEventArgs e)
     {
@@ -5187,7 +5187,7 @@ else
     }
 
     /// <summary>
-    /// Disabilita la visualizzazione del TabItem specificato nelle impostazioni persistite.
+    /// Disables display of the TabItem specified in the persisted settings.
     /// </summary>
     private void HideTab(TabItem tabItem)
     {
@@ -5240,8 +5240,8 @@ else
     }
 
     /// <summary>
-    /// Gestisce il click o pointer pressed sul pulsante di chiusura (X) presente in ciascuna intestazione di scheda.
-    /// Nasconde la scheda corrispondente salvando la preferenza nelle impostazioni utente.
+    /// Manages the click or pointer pressed on the close button (X) present in each tab header.
+    /// Hides the corresponding tab by saving the preference in the user settings.
     /// </summary>
     private void OnTabCloseButtonClicked(object? sender, RoutedEventArgs e)
     {
@@ -5257,18 +5257,18 @@ else
     }
 
     /// <summary>
-    /// Individua il TabItem proprietario del pulsante di chiusura (X) e ne richiede la disattivazione.
+    /// Locates the TabItem that owns the close button (X) and requests its deactivation.
     /// </summary>
     private void CloseTabFromButton(Button closeBtn)
     {
-        // 1. Verifica se il Tag contiene un riferimento diretto al TabItem
+        // 1. Check if the Tag contains a direct reference to the TabItem
         if (closeBtn.Tag is TabItem tabItemTag)
         {
             HideTab(tabItemTag);
             return;
         }
 
-        // 2. Ricerca nel TabControl centrale
+        // 2. Search in the central TabControl
         if (CentralTabControl != null)
         {
             foreach (var tab in CentralTabControl.Items.OfType<TabItem>())
@@ -5281,7 +5281,7 @@ else
             }
         }
 
-        // 3. Ricerca nel TabControl destro
+        // 3. Search in the right TabControl
         if (RightTabControl != null)
         {
             foreach (var tab in RightTabControl.Items.OfType<TabItem>())
@@ -5294,14 +5294,14 @@ else
             }
         }
 
-        // 4. Fallback tramite risalita dell'albero visuale
+        // 4. Fallback by moving up the visual tree
         var ancestorTab = closeBtn.FindAncestorOfType<TabItem>();
         if (ancestorTab != null)
             HideTab(ancestorTab);
     }
 
     /// <summary>
-    /// Intercetta gli eventi PointerPressed sul pannello destro per gestire la chiusura immediata delle schede (X).
+    /// Intercept PointerPressed events on the right panel to handle immediate closing of tabs (X).
     /// </summary>
     private void OnRightTabPointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -5333,15 +5333,15 @@ else
     }
 
     /// <summary>
-    /// Individua il TabItem appartenente a un TabControl risalendo l'albero visuale esclusivamente
-    /// a partire dall'intestazione della scheda (TabStrip / TabItem header), ignorando il contenuto interno del tab.
+    /// Locate the TabItem belonging to a TabControl by going up the visual tree exclusively
+    /// starting from the tab header (TabStrip / TabItem header), ignoring the internal content of the tab.
     /// 
     /// REGOLA ARCHITETTURALE CRITICA:
-    /// CentralTabControl ospita sia gli header delle schede sia il corpo dell'intera vista attiva (Canvas del Grafo,
-    /// HUD comandi flottante, Matrici, ecc.). Questa funzione DEVE restituire un TabItem SOLO SE il punto di click
-    /// si trova fisicamente all'interno dell'header visuale (titolo, icona o pulsante di chiusura).
-    /// Se il clic avviene all'interno del contenuto/canvas del tab (es. pulsanti dell'HUD come Blast Radius o Esporta MD),
-    /// DEVE restituire null per non intercettare o bloccare gli eventi utente destinati ai controlli della vista.
+    /// CentralTabControl hosts both the tab headers and the body of the entire active view (Graph Canvas,
+    /// HUD commands floating, Matrices, etc.). This function MUST return a TabItem ONLY IF the click point
+    /// it is physically located within the visual header (title, icon or close button).
+    /// If the click occurs within the tab content/canvas (e.g. HUD buttons such as Blast Radius or Export MD),
+    /// MUST return null to not trap or block user events intended for view controls.
     /// </summary>
     private static TabItem? FindTabItemFromHeaderVisual(Visual? visual, TabControl? tabControl)
     {
@@ -5353,11 +5353,11 @@ else
         {
             if (current is TabItem tabItem && tabControl.Items.OfType<TabItem>().Contains(tabItem))
             {
-                // Verifica che il punto di click sia all'interno dell'header visuale e non nel corpo del tab
+                // Check that the click point is inside the visual header and not in the body of the tab
                 if (tabItem.Header is Visual headerVisual && (visual == headerVisual || IsVisualDescendantOf(visual, headerVisual)))
                     return tabItem;
 
-                // Fallback: se l'header non è un Visual (es. stringa) o è avvolto nel ContentPresenter di template del TabItem
+                // Fallback: if the header is not a Visual (e.g. string) or is wrapped in the ContentPresenter of the TabItem template
                 var headerPresenter = tabItem.FindDescendantOfType<Avalonia.Controls.Presenters.ContentPresenter>();
                 if (headerPresenter != null && (visual == headerPresenter || IsVisualDescendantOf(visual, headerPresenter)))
                     return tabItem;
@@ -5384,27 +5384,27 @@ else
 
     #endregion
 
-    #region Ordinamento Schede di Analisi con Drag & Drop (CentralTabControl)
+    #region Sorting Analysis Tabs with Drag & Drop (CentralTabControl)
 
     /// <summary>
-    /// Gestisce l'evento di pressione del puntatore (mouse down) sulle schede di analisi.
-    /// Inizializza le coordinate di partenza e rileva il TabItem di origine senza avviare
-    /// immediatamente il trascinamento, consentendo il normale cambio di selezione al clic singolo.
-    /// Intercetta con priorità assoluta il click sul pulsante di chiusura (X) per chiudere la scheda all'istante.
+    /// Handles the pointer pressure (mouse down) event on analysis cards.
+    /// Initialize the starting coordinates and detect the source TabItem without starting
+    /// immediately drag, allowing normal selection changes with a single click.
+    /// Intercepts the click on the close button (X) with absolute priority to close the tab instantly.
     /// 
-    /// NOTA: Ignora tassativamente qualsiasi clic originato all'interno del corpo del tab (canvas del grafo,
-    /// pulsanti dell'HUD, controlli delle matrici), lasciando fluire l'evento verso i rispettivi gestori.
+    /// NOTE: Strictly ignore any click originating within the body of the tab (graph canvas,
+    /// HUD buttons, matrix controls), letting the event flow to their respective handlers.
     /// </summary>
     /// <param name="sender">Sorgente dell'evento (CentralTabControl).</param>
-    /// <param name="e">Argomenti del puntatore contenenti coordinate e stato dei tasti.</param>
+    /// <param name="e">Pointer arguments containing coordinates and key states.</param>
     private void OnCentralTabPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        // Considera esclusivamente il tasto sinistro del mouse
+        // Consider only the left mouse button
         var currentPoint = e.GetCurrentPoint(this);
         if (!currentPoint.Properties.IsLeftButtonPressed)
             return;
 
-        // Se il clic è avvenuto sul pulsante di chiusura della scheda (X), esegui la chiusura immediata
+        // If the tab's close button (X) was clicked, close it immediately
         var visual = e.Source as Visual;
         var closeBtn = visual as Button ?? visual?.FindAncestorOfType<Button>();
         if (closeBtn != null && (closeBtn.Classes.Contains("tab-close-btn") || closeBtn.Name?.Contains("Close") == true))
@@ -5414,14 +5414,14 @@ else
             return;
         }
 
-        // Risale l'albero visuale esclusivamente all'interno dell'intestazione della scheda (ignora il corpo/canvas del tab)
+        // Goes up the visual tree exclusively within the tab header (ignores the tab body/canvas)
         var tabItem = FindTabItemFromHeaderVisual(visual, CentralTabControl);
 
-        // Ignora clic al di fuori delle intestazioni delle schede del TabControl centrale
+        // Ignores clicks outside the tab headers of the central TabControl
         if (tabItem == null || CentralTabControl == null)
             return;
 
-        // Memorizza i dati iniziali per il calcolo della soglia di movimento (deadzone)
+        // Stores the initial data for calculating the movement threshold (deadzone)
         _draggedTabItem = tabItem;
         _tabDragStartPos = e.GetPosition(this);
         _tabDragOffsetWithinTab = e.GetPosition(tabItem);
@@ -5430,20 +5430,20 @@ else
     }
 
     /// <summary>
-    /// Gestisce il movimento del cursore durante la pressione del tasto sinistro.
-    /// Superata la deadzone di 4px, attiva la modalità di trascinamento stile Visual Studio:
-    /// 1. Visualizza la scheda ghost fluttuante sotto al puntatore del mouse.
-    /// 2. Attenua la trasparenza della scheda originale (35% opacity).
-    /// 3. Calcola in tempo reale lo slot di inserimento e vi posiziona la barra verticale di drop.
+    /// Manages cursor movement when pressing the left button.
+    /// Once past the 4px deadzone, activate Visual Studio style drag mode:
+    /// 1. Display the ghost card floating under the mouse pointer.
+    /// 2. Dim the transparency of the original card (35% opacity).
+    /// 3. Calculates the insertion slot in real time and positions the vertical drop bar there.
     /// </summary>
     /// <param name="sender">Sorgente dell'evento (CentralTabControl).</param>
-    /// <param name="e">Argomenti del puntatore contenenti la posizione corrente.</param>
+    /// <param name="e">Pointer arguments containing the current position.</param>
     private void OnCentralTabPointerMoved(object? sender, PointerEventArgs e)
     {
         if (_draggedTabItem == null || CentralTabControl == null || CentralTabPanel == null)
             return;
 
-        // Se il tasto sinistro non è più premuto (es. rilascio fuori finestra), termina il drag
+        // If the left button is no longer pressed (e.g. release outside the window), the drag ends
         var currentPoint = e.GetCurrentPoint(this);
         if (!currentPoint.Properties.IsLeftButtonPressed)
         {
@@ -5453,7 +5453,7 @@ else
 
         var currentPos = e.GetPosition(this);
 
-        // Fase 1: Verifica del superamento della soglia di movimento minima (deadzone 4px)
+        // Phase 1: Checking that the minimum movement threshold has been exceeded (4px deadzone)
         if (!_isTabDragging)
         {
             var diffX = Math.Abs(currentPos.X - _tabDragStartPos.X);
@@ -5465,7 +5465,7 @@ else
                 CentralTabControl.SelectedItem = _draggedTabItem;
                 _draggedTabItem.Opacity = 0.35;
 
-                // Configura e visualizza la scheda ghost fluttuante clonando icona e testo del tab
+                // Configure and view the floating ghost tab by cloning the tab's icon and text
                 if (TabDragGhostBorder != null && TabDragGhostText != null)
                 {
                     if (_draggedTabItem.Header is StackPanel sp)
@@ -5495,18 +5495,18 @@ else
             }
         }
 
-        // Fase 2: Aggiornamento continuo della posizione ghost e calcolo dell'indicatore di inserimento
+        // Phase 2: Continuously updating the ghost position and calculating the insertion indicator
         if (_isTabDragging)
         {
             var posInPanel = e.GetPosition(CentralTabPanel);
 
-            // 1. Sposta la scheda ghost fluttuante in tempo reale seguendo liberamente il puntatore (X e Y)
+            // 1. Move the floating ghost board in real time freely following the pointer (X and Y)
             var ghostX = posInPanel.X - _tabDragOffsetWithinTab.X;
             var ghostY = posInPanel.Y - _tabDragOffsetWithinTab.Y;
             _tabGhostTransform.X = ghostX;
             _tabGhostTransform.Y = ghostY;
 
-            // 2. Rileva tutte le schede visibili con relative coordinate per supportare il layout multi-riga
+            // 2. Detect all visible tabs with their coordinates to support multi-row layout
             var tabBoundsList = new List<(TabItem Tab, Rect Bounds, int Index)>();
             foreach (var tab in CentralTabControl.Items.OfType<TabItem>())
             {
@@ -5523,7 +5523,7 @@ else
 
             if (tabBoundsList.Count > 0)
             {
-                // Raggruppa i tab in righe visive basandosi sulla vicinanza verticale del Top (tolleranza 8px)
+                // Group tabs into visual rows based on vertical proximity of the Top (8px tolerance)
                 var rows = new List<List<(TabItem Tab, Rect Bounds, int Index)>>();
                 foreach (var item in tabBoundsList.OrderBy(t => t.Bounds.Top).ThenBy(t => t.Bounds.Left))
                 {
@@ -5538,14 +5538,14 @@ else
                     }
                 }
 
-                // Ordina i tab di ciascuna riga da sinistra a destra e le righe dall'alto verso il basso
+                // Sort each row's tabs from left to right and rows from top to bottom
                 foreach (var row in rows)
                 {
                     row.Sort((a, b) => a.Bounds.Left.CompareTo(b.Bounds.Left));
                 }
                 rows.Sort((a, b) => a[0].Bounds.Top.CompareTo(b[0].Bounds.Top));
 
-                // Individua la riga visiva bersaglio su cui si trova il puntatore del mouse (coordinate Y)
+                // Locates the target line of sight where the mouse pointer is located (Y coordinates)
                 List<(TabItem Tab, Rect Bounds, int Index)> targetRow;
                 if (posInPanel.Y <= rows[0].Min(t => t.Bounds.Bottom))
                 {
@@ -5557,7 +5557,7 @@ else
                 }
                 else
                 {
-                    // Trova la riga con la distanza verticale minima dal cursore o che contiene posInPanel.Y
+                    // Find the row with the smallest vertical distance from the cursor or that contains posInPanel.Y
                     targetRow = rows.OrderBy(r =>
                     {
                         var top = r.Min(t => t.Bounds.Top);
@@ -5568,7 +5568,7 @@ else
                     }).First();
                 }
 
-                // All'interno della riga individuata, calcola lo slot di drop orizzontale in base al punto medio (midpoint)
+                // Within the identified row, calculate the horizontal drop slot based on the midpoint
                 _targetDropIndex = -1;
                 double indicatorX = 0;
                 double indicatorY = targetRow[0].Bounds.Top + 2;
@@ -5579,7 +5579,7 @@ else
 
                 if (posInPanel.X < (firstTab.Bounds.Left + (firstTab.Bounds.Width / 2.0)))
                 {
-                    // Prima del primo elemento della riga
+                    // Before the first element of the line
                     _targetDropIndex = firstTab.Index;
                     indicatorX = firstTab.Bounds.Left - 1;
                     indicatorY = firstTab.Bounds.Top + 2;
@@ -5587,7 +5587,7 @@ else
                 }
                 else if (posInPanel.X >= (lastTab.Bounds.Left + (lastTab.Bounds.Width / 2.0)))
                 {
-                    // Dopo l'ultimo elemento della riga
+                    // After the last element of the line
                     _targetDropIndex = lastTab.Index + 1;
                     indicatorX = lastTab.Bounds.Right + 1;
                     indicatorY = lastTab.Bounds.Top + 2;
@@ -5595,7 +5595,7 @@ else
                 }
                 else
                 {
-                    // Tra due schede all'interno della riga
+                    // Between two tabs within the row
                     for (int i = 0; i < targetRow.Count; i++)
                     {
                         var item = targetRow[i];
@@ -5611,7 +5611,7 @@ else
                     }
                 }
 
-                // Posiziona e rende visibile la barra verticale di drop sulla riga e colonna corrette
+                // Positions and makes visible the vertical drop bar on the correct row and column
                 if (_targetDropIndex >= 0 && TabDropIndicator != null)
                 {
                     _tabDropIndicatorTransform.X = indicatorX;
@@ -5626,26 +5626,26 @@ else
     }
 
     /// <summary>
-    /// Conclude l'operazione di trascinamento al rilascio del tasto del mouse:
-    /// sposta la scheda nella destinazione calcolata, ne ripristina la visualizzazione normale
-    /// e salva il nuovo ordinamento nelle preferenze persistenti.
+    /// Concludes the drag operation when the mouse button is released:
+    /// moves the card to the calculated destination, restores its normal display
+    /// and save the new sorting in persistent preferences.
     /// 
-    /// ATTENZIONE CRITICA (REGRESSIONE CLICK & POINTER CAPTURE IN AVALONIA):
-    /// Questo metodo è registrato come Tunnel Handler su CentralTabControl. Poiché CentralTabControl
-    /// fa da radice a tutti i contenuti visualizzati (tra cui FloatingHudBorder, GraphControl, Button, ecc.),
-    /// QUALSIASI rilascio del puntatore all'interno dell'area centrale scatena questo handler PRIMA dei controlli figli.
-    /// In Avalonia, quando un pulsante viene premuto, assume la cattura del puntatore (pointer.Capture).
-    /// Se questo handler invocasse incondizionatamente EndCentralTabDrag() e pointer.Capture(null) ad ogni PointerReleased,
-    /// sottrarrebbe la cattura del mouse al pulsante mentre questo attende il rilascio, generando l'evento
-    /// PointerCaptureLost sul pulsante e ANNULLANDO completamente il suo evento Click!
-    /// Pertanto la guard clause (_draggedTabItem == null && !_isTabDragging) è INDISPENSABILE e non deve MAI essere rimossa.
+    /// CRITICAL ATTENTION (CLICK & POINTER CAPTURE REGRESSION IN AVALONIA):
+    /// This method is registered as Tunnel Handler on CentralTabControl. Since CentralTabControl
+    /// roots all displayed content (including FloatingHudBorder, GraphControl, Button, etc.),
+    /// ANY release of the pointer inside the central area triggers this handler BEFORE the child controls.
+    /// In Avalonia, when a button is pressed, it takes over pointer capture (pointer.Capture).
+    /// If this handler unconditionally invoked EndCentralTabDrag() and pointer.Capture(null) on every PointerReleased,
+    /// would take the mouse capture away from the button while it waits for release, generating the event
+    /// PointerCaptureLost on the button and CANCELING its Click event completely!
+    /// Therefore the guard clause (_draggedTabItem == null && !_isTabDragging) is ESSENTIAL and must NEVER be removed.
     /// </summary>
     /// <param name="sender">Sorgente dell'evento.</param>
-    /// <param name="e">Argomenti del rilascio del puntatore.</param>
+    /// <param name="e">Pointer release arguments.</param>
     private void OnCentralTabPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        // Se non è in corso alcuna operazione o preparazione di trascinamento tab, ignora tassativamente
-        // per non interferire con il ciclo di vita degli eventi di click dei controlli figli (es. pulsanti HUD)
+        // If there is no tab drag operation or preparation in progress, please ignore
+        // so as not to interfere with the life cycle of the click events of the child controls (e.g. HUD buttons)
         if (_draggedTabItem == null && !_isTabDragging)
             return;
 
@@ -5656,11 +5656,11 @@ else
 
             if (fromIndex >= 0 && toIndex >= 0)
             {
-                // Se la destinazione è successiva all'indice di partenza, compensa la rimozione dell'elemento
+                // If the destination is later than the starting index, it compensates for the removal of the element
                 if (toIndex > fromIndex)
                     toIndex--;
 
-                // Esegue lo spostamento atomico nella collezione e seleziona il tab
+                // Performs atomic shift in the collection and selects the tab
                 if (toIndex >= 0 && toIndex < CentralTabControl.Items.Count && toIndex != fromIndex)
                 {
                     CentralTabControl.Items.RemoveAt(fromIndex);
@@ -5677,15 +5677,15 @@ else
     }
 
     /// <summary>
-    /// Gestisce la perdita improvvisa di cattura del puntatore (es. cambio finestra o popup modale)
-    /// salvando lo stato se applicabile e ripulendo gli elementi visuali del drag.
-    /// Come per PointerReleased, ignora l'evento se non riguarda una scheda trascinata.
+    /// Handles sudden loss of pointer capture (e.g. window change or modal popup)
+    /// saving the state if applicable and cleaning up the visual elements of the drag.
+    /// As with PointerReleased, ignore the event if it doesn't involve a dragged tab.
     /// </summary>
     /// <param name="sender">Sorgente dell'evento.</param>
-    /// <param name="e">Argomenti di perdita cattura.</param>
+    /// <param name="e">Capture loss topics.</param>
     private void OnCentralTabPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
     {
-        // Ignora se non è in corso alcuna operazione di trascinamento tab
+        // Ignore if no tab drag operation is in progress
         if (_draggedTabItem == null && !_isTabDragging)
             return;
 
@@ -5713,17 +5713,17 @@ else
     }
 
     /// <summary>
-    /// Rilascia la cattura del puntatore, nasconde la scheda ghost e la barra di drop,
-    /// e ripristina la piena opacità della scheda di origine.
+    /// Release pointer capture, hide ghost tab and drop bar,
+    /// and restores the full opacity of the source card.
     /// 
-    /// NOTA DI SICUREZZA: Rilascia la cattura del puntatore (pointer.Capture(null)) ESCLUSIVAMENTE
-    /// se _isTabDragging era true (ovvero se la cattura era stata acquisita da CentralTabControl durante il drag).
-    /// Non rilasciare mai la cattura se _isTabDragging è false per non azzerare la cattura di controlli terzi.
+    /// SECURITY NOTE: Release pointer capture (pointer.Capture(null)) ONLY
+    /// if _isTabDragging was true (i.e. if the capture was taken by CentralTabControl during the drag).
+    /// Never release the capture if _isTabDragging is false to avoid resetting the capture of third-party controls.
     /// </summary>
-    /// <param name="pointer">Puntatore da rilasciare se disponibile.</param>
+    /// <param name="pointer">Pointer to release if available.</param>
     private void EndCentralTabDrag(IPointer? pointer)
     {
-        // Rilascia la cattura solo se era stata effettivamente acquisita da CentralTabControl
+        // Release the capture only if it was actually captured by CentralTabControl
         if (_isTabDragging)
             pointer?.Capture(null);
 
@@ -5742,8 +5742,8 @@ else
     }
 
     /// <summary>
-    /// Salva la sequenza corrente dei nomi dei TabItem del pannello centrale nelle impostazioni dell'utente.
-    /// Verifica preventivamente se l'ordinamento è effettivamente cambiato per evitare scritture ridondanti.
+    /// Saves the current sequence of central panel TabItem names in the user settings.
+    /// Check in advance whether the ordering has actually changed to avoid redundant writing.
     /// </summary>
     private void SaveCurrentTabOrder()
     {
@@ -5765,9 +5765,9 @@ else
     }
 
     /// <summary>
-    /// Applica l'ordinamento personalizzato salvato alle schede del TabControl centrale.
-    /// Gestisce in modo sicuro l'eventuale presenza di nuove schede introdotte in versioni successive
-    /// dell'applicazione, aggiungendole in coda all'ordinamento memorizzato.
+    /// Applies the saved custom sorting to the tabs of the central TabControl.
+    /// Securely manages the possible presence of new cards introduced in subsequent versions
+    /// of the application, adding them to the end of the stored ordering.
     /// </summary>
     private void ApplySavedTabOrder()
     {
@@ -5796,14 +5796,14 @@ else
             }
         }
 
-        // Aggiungi in coda eventuali tab non presenti nella sequenza salvata (es. nuove feature)
+        // Add any tabs not present in the saved sequence to the queue (e.g. new features)
         foreach (var tab in allTabs)
         {
             if (tab.Name != null && tabMap.ContainsKey(tab.Name))
                 newOrder.Add(tab);
         }
 
-        // Se l'ordinamento coincide già perfettamente, non alterare la collezione
+        // If the sorting already matches perfectly, do not alter the collection
         if (newOrder.Count != allTabs.Count || newOrder.SequenceEqual(allTabs))
             return;
 
@@ -5817,8 +5817,8 @@ else
     }
 
     /// <summary>
-    /// Ripristina l'ordinamento originale di fabbrica delle schede di analisi definito nel file XAML,
-    /// azzerando la sequenza memorizzata nelle impostazioni utente.
+    /// Restores the original factory sorting of the analysis cards defined in the XAML file,
+    /// resetting the sequence stored in the user settings.
     /// </summary>
     private void RestoreDefaultTabOrder()
     {
@@ -5838,10 +5838,10 @@ else
 
     #endregion
 
-    #region Gestione Baseline API Diff & SemVer
+    #region Diff & SemVer API Baseline Management
 
     /// <summary>
-    /// Fissa lo snapshot del grafo corrente del workspace come baseline per il confronto API e SemVer.
+    /// Sets the current workspace graph snapshot as the baseline for API and SemVer comparison.
     /// </summary>
     private void OnApiDiffSetCurrentAsBaseline()
     {
@@ -5867,7 +5867,7 @@ else
     }
 
     /// <summary>
-    /// Apre un selettore di cartelle per caricare una versione o release precedente come baseline di confronto API.
+    /// Opens a folder selector to load a previous version or release as the API comparison baseline.
     /// </summary>
     private async Task OnApiDiffLoadBaselineAsync()
     {
@@ -5913,7 +5913,7 @@ else
     }
 
     /// <summary>
-    /// Rimuove la baseline di riferimento corrente ripristinando lo stato di attesa iniziale del tab API Diff.
+    /// Removes the current reference baseline restoring the initial wait state of the Diff API tab.
     /// </summary>
     private void OnApiDiffClearBaseline()
     {
@@ -5925,7 +5925,7 @@ else
     }
 
     /// <summary>
-    /// Conta i simboli pubblici esportati da un grafo per la baseline.
+    /// Counts public symbols exported from a graph for the baseline.
     /// </summary>
     private static int CountPublicSymbols(CodeGraph? graph)
     {
@@ -5937,10 +5937,10 @@ else
 
     #endregion
 
-    #region Integrazione VCS (Git & SVN)
+    #region VCS integration (Git & SVN)
 
     /// <summary>
-    /// Aggiorna la visibilità, icona e testo dell'indicatore del branch VCS (Git o SVN) nella barra di stato.
+    /// Updates the visibility, icon, and text of the VCS (Git or SVN) branch indicator in the status bar.
     /// </summary>
     private void UpdateVcsBranchStatus(string? folderPath)
     {
@@ -5952,7 +5952,7 @@ else
                 GitBranchText.Text = branch;
                 GitBranchPanel.IsVisible = true;
 
-                // Aggiorna l'icona vettoriale in base al provider VCS
+                // Updates vector icon based on VCS provider
                 var iconKey = vcsType == VcsType.Svn ? "IconSvn" : "IconGitBranch";
                 if (this.TryFindResource(iconKey, out var res) && res is Geometry geo)
 
@@ -5968,7 +5968,7 @@ else
     }
 
     /// <summary>
-    /// Apre il popup di selezione e cambio branch per il repository Git o SVN attivo.
+    /// Opens the branch selection and switching popup for the active Git or SVN repository.
     /// </summary>
     private void OpenGitBranchPopup()
     {
@@ -5997,7 +5997,7 @@ else
     }
 
     /// <summary>
-    /// Filtra i branch visualizzati nel popup in base al testo digitato nella casella di ricerca.
+    /// Filter the branches displayed in the popup based on the text you type in the search box.
     /// </summary>
     private void OnGitBranchSearchTextChanged(object? sender, TextChangedEventArgs e)
     {
@@ -6016,14 +6016,14 @@ else
     }
 
     /// <summary>
-    /// Gestisce il cambio di branch selezionato dall'utente (Git checkout o SVN switch),
-    /// invocando l'operazione in background e re-analizzando l'intero progetto.
+    /// Manages user-selected branch switching (Git checkout or SVN switch),
+    /// invoking the background operation and re-analyzing the entire project.
     /// </summary>
     private async void OnGitBranchSelected(object? sender, SelectionChangedEventArgs e)
     {
         if (GitBranchListBox.SelectedItem is not VcsBranchInfo selectedBranch) return;
 
-        // Reset della selezione per evitare trigger multipli
+        // Reset selection to avoid multiple triggers
         GitBranchListBox.SelectedItem = null;
         GitBranchPopup.IsOpen = false;
 
@@ -6068,14 +6068,14 @@ else
 
     #endregion
 
-    #region Sistema di Aggiornamento Software
+    #region Software Update System
 
     /// <summary>
-    /// Esegue il controllo automatico degli aggiornamenti software in background all'avvio dell'applicazione.
+    /// Automatically checks for software updates in the background when the application starts.
     /// </summary>
     private async Task CheckForUpdatesOnStartupAsync()
     {
-        // Ritardo iniziale per consentire il completamento del rendering e del caricamento del progetto
+        // Initial delay to allow project rendering and loading to complete
         await Task.Delay(2500);
 
         try
@@ -6087,12 +6087,12 @@ else
         }
         catch
         {
-            // Silenzioso all'avvio in caso di errori di rete o endpoint assente
+            // Silent on startup in case of network errors or missing endpoint
         }
     }
 
     /// <summary>
-    /// Esegue il controllo manuale degli aggiornamenti (da menu Aiuto -> Verifica Aggiornamenti).
+    /// Performs manual checks for updates (from the Help -> Check for Updates menu).
     /// </summary>
     private async Task CheckForUpdatesManualAsync()
     {
@@ -6118,7 +6118,7 @@ else
     }
 
     /// <summary>
-    /// Mostra l'overlay modale di notifica aggiornamento con le opzioni "Scarica dopo" e "Aggiorna ora".
+    /// Shows the update notification modal overlay with "Download later" and "Update now" options.
     /// </summary>
     private void ShowUpdateModal(AppUpdateInfo update)
     {
@@ -6127,7 +6127,7 @@ else
     }
 
     /// <summary>
-    /// Chiude il modal di aggiornamento su richiesta dell'utente ("Scarica dopo").
+    /// Closes the update modal upon user request ("Download after").
     /// </summary>
     private void DismissUpdateModal()
     {
@@ -6149,13 +6149,13 @@ else
 
     #endregion
 
-    #region Visibilità Pannelli, Scorciatoie da Tastiera & Manutenzione
+    #region Panel Visibility, Keyboard Shortcuts & Maintenance
 
     /// <summary>
-    /// Gestisce le scorciatoie da tastiera globali della finestra principale (es. Ctrl+B per Project Explorer, Ctrl+I per Symbol Inspector).
+    /// Manages global keyboard shortcuts of the main window (e.g. Ctrl+B for Project Explorer, Ctrl+I for Symbol Inspector).
     /// </summary>
-    /// <param name="sender">Sorgente dell'evento di pressione tasto.</param>
-    /// <param name="e">Argomenti dell'evento contenenti i modificatori e il tasto premuto.</param>
+    /// <param name="sender">Source of key press event.</param>
+    /// <param name="e">Event arguments containing modifiers and the pressed key.</param>
     private void OnMainWindowKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Escape && _isTabDragging)
@@ -6181,33 +6181,33 @@ else
     }
 
     /// <summary>
-    /// Alterna la visibilità del pannello laterale sinistro Project Explorer o imposta uno stato forzato.
+    /// Toggle the visibility of the Project Explorer left side panel or set a forced state.
     /// </summary>
-    /// <param name="forceState">Stato di visibilità desiderato (true per mostrare, false per nascondere, null per alternare).</param>
+    /// <param name="forceState">Desired visibility state (true to show, false to hide, null to toggle).</param>
     public void ToggleExplorer(bool? forceState = null)
     {
         SetExplorerVisibility(forceState ?? !_isExplorerVisible);
     }
 
     /// <summary>
-    /// Imposta la visibilità e le dimensioni della colonna di layout del Project Explorer nella griglia centrale, salvando lo stato se richiesto.
-    /// Preserva accuratamente la larghezza personalizzata impostata dall'utente tramite GridSplitter.
+    /// Sets the visibility and size of the Project Explorer layout column in the central grid, saving the state if required.
+    /// Accurately preserves the custom width set by the user via GridSplitter.
     /// </summary>
-    /// <param name="isVisible">Indica se il pannello Project Explorer deve essere visibile.</param>
-    /// <param name="updateSettings">Indica se persistere la preferenza nelle impostazioni utente.</param>
+    /// <param name="isVisible">Indicates whether the Project Explorer panel should be visible.</param>
+    /// <param name="updateSettings">Indicates whether to persist the preference in user settings.</param>
     public void SetExplorerVisibility(bool isVisible, bool updateSettings = true)
     {
         _isExplorerVisible = isVisible;
         if (isVisible)
         {
-            // Se il pannello è già visibile, aggiorna solo la larghezza memorizzata senza sovrascrivere il layout
+            // If the panel is already visible, update only the stored width without overwriting the layout
             if (ProjectExplorerControl.IsVisible && CentralGrid.ColumnDefinitions[0].ActualWidth >= 160)
             {
                 _savedExplorerWidth = CentralGrid.ColumnDefinitions[0].ActualWidth;
             }
             else
             {
-                // Determina la larghezza ottimale dalle preferenze salvate o dal valore di default (280px)
+                // Determine optimal width from saved preferences or default value (280px)
                 var w = _savedExplorerWidth >= 160
                     ? _savedExplorerWidth
                     : (SettingsService.Instance.Settings.ExplorerWidth >= 160 ? SettingsService.Instance.Settings.ExplorerWidth : 280);
@@ -6222,7 +6222,7 @@ else
         }
         else
         {
-            // Prima di nascondere, salva la larghezza effettiva corrente del pannello per il successivo ripristino
+            // Before hiding, save the current effective width of the panel for later restoration
             if (ProjectExplorerControl.Bounds.Width >= 160)
                 _savedExplorerWidth = ProjectExplorerControl.Bounds.Width;
 
@@ -6247,26 +6247,26 @@ else
     }
 
     /// <summary>
-    /// Alterna la visibilità del pannello laterale destro Symbol Inspector o imposta uno stato forzato.
+    /// Toggle the visibility of the Symbol Inspector right side panel or set a forced state.
     /// </summary>
-    /// <param name="forceState">Stato di visibilità desiderato (true per mostrare, false per nascondere, null per alternare).</param>
+    /// <param name="forceState">Desired visibility state (true to show, false to hide, null to toggle).</param>
     public void ToggleInspector(bool? forceState = null)
     {
         SetInspectorVisibility(forceState ?? !_isInspectorVisible);
     }
 
     /// <summary>
-    /// Imposta la visibilità e le dimensioni della colonna di layout del Symbol Inspector nella griglia centrale, salvando lo stato se richiesto.
-    /// Preserva accuratamente la larghezza personalizzata impostata dall'utente tramite GridSplitter senza ripristinare valori di default.
+    /// Sets the visibility and size of the Symbol Inspector layout column in the central grid, saving the state if required.
+    /// Accurately preserves the custom width set by the user via GridSplitter without restoring default values.
     /// </summary>
-    /// <param name="isVisible">Indica se il pannello Symbol Inspector deve essere visibile.</param>
-    /// <param name="updateSettings">Indica se persistere la preferenza nelle impostazioni utente.</param>
+    /// <param name="isVisible">Indicates whether the Symbol Inspector panel should be visible.</param>
+    /// <param name="updateSettings">Indicates whether to persist the preference in user settings.</param>
     public void SetInspectorVisibility(bool isVisible, bool updateSettings = true)
     {
         _isInspectorVisible = isVisible;
         if (isVisible)
         {
-            // Riattiva automaticamente le schede se entrambe erano state disattivate
+            // Automatically reactivate tabs if both were deactivated
             if (!SettingsService.Instance.Settings.ShowTabInspector && !SettingsService.Instance.Settings.ShowTabSourceCode)
             {
                 SettingsService.Instance.Update(s =>
@@ -6276,14 +6276,14 @@ else
                 });
             }
 
-            // Se il pannello è già visibile, memorizza la larghezza attuale senza forzare un reset delle colonne
+            // If the panel is already visible, it stores the current width without forcing a reset of the columns
             if (RightPanelContainer.IsVisible && CentralGrid.ColumnDefinitions[4].ActualWidth >= 200)
             {
                 _savedInspectorWidth = CentralGrid.ColumnDefinitions[4].ActualWidth;
             }
             else
             {
-                // Determina la larghezza ottimale dalle preferenze salvate o dal valore di default (360px)
+                // Determine optimal width from saved preferences or default value (360px)
                 var w = _savedInspectorWidth >= 200
                     ? _savedInspectorWidth
                     : (SettingsService.Instance.Settings.InspectorWidth >= 200 ? SettingsService.Instance.Settings.InspectorWidth : 360);
@@ -6298,7 +6298,7 @@ else
         }
         else
         {
-            // Prima di nascondere, salva la larghezza effettiva corrente del pannello per il successivo ripristino
+            // Before hiding, save the current effective width of the panel for later restoration
             if (RightPanelContainer.Bounds.Width >= 200)
                 _savedInspectorWidth = RightPanelContainer.Bounds.Width;
             else if (SymbolInspectorControl.Bounds.Width >= 200)
@@ -6325,7 +6325,7 @@ else
     }
 
     /// <summary>
-    /// Aggiorna lo stile visivo attivo/inattivo dei pulsanti di toggle dei pannelli Explorer e Inspector nella barra superiore.
+    /// Updates the active/inactive visual style of the Explorer and Inspector panel toggle buttons in the top bar.
     /// </summary>
     private void UpdatePanelToggleVisuals()
     {
@@ -6334,7 +6334,7 @@ else
     }
 
     /// <summary>
-    /// Ripristina tutte le impostazioni dell'applicazione ai valori predefiniti, aggiornando tema, lingua, layout e visibilità dei pannelli.
+    /// Resets all application settings to default values, updating the theme, language, layout and visibility of panels.
     /// </summary>
     private void ResetSettingsToDefaults()
     {
@@ -6351,7 +6351,7 @@ else
     }
 
     /// <summary>
-    /// Svuota completamente la cache locale dei progetti (%APPDATA%\Macondo\cache\) e invalida le query del grafo in memoria.
+    /// Completely clears the local project cache (%APPDATA%\Macondo\cache\) and invalidates in-memory graph queries.
     /// </summary>
     private void ClearProjectCache()
     {
@@ -6363,10 +6363,10 @@ else
 
     #endregion
 
-    #region Schermata di Benvenuto (Welcome View)
+    #region Welcome Screen (Welcome View)
 
     /// <summary>
-    /// Mostra la schermata iniziale di benvenuto nascondendo i tab di analisi del grafo.
+    /// Show the initial welcome screen by hiding the graph analysis tabs.
     /// </summary>
     private void ShowWelcomeScreen(string? pendingFolder = null)
     {
@@ -6380,7 +6380,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di analisi rapida dalla card di progetto in sospeso della vista di benvenuto.
+    /// Handles the quick analysis request from the pending project card of the welcome view.
     /// </summary>
     private async void OnWelcomePendingAnalyzeRequested(object? sender, string folderPath)
     {
@@ -6388,7 +6388,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di apertura file progetto dalla vista di benvenuto.
+    /// Handles the project file open request from the welcome view.
     /// </summary>
     private async void OnWelcomeOpenProjectRequested(object? sender, EventArgs e)
     {
@@ -6396,7 +6396,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di apertura cartella dalla vista di benvenuto.
+    /// Handles the folder open request from the welcome view.
     /// </summary>
     private async void OnWelcomeOpenFolderRequested(object? sender, EventArgs e)
     {
@@ -6404,7 +6404,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la richiesta di caricamento fixture demo dalla vista di benvenuto.
+    /// Manages the demo fixture loading request from the welcome view.
     /// </summary>
     private void OnWelcomeLoadFixturesRequested(object? sender, EventArgs e)
     {
@@ -6412,7 +6412,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce la selezione di un elemento recente dalla vista di benvenuto.
+    /// Handles the selection of a recent item from the welcome view.
     /// </summary>
     private async void OnWelcomeRecentItemClicked(object? sender, IReadOnlyList<string> paths)
     {
@@ -6421,16 +6421,16 @@ else
 
     #endregion
 
-    #region Localizzazione & Aggiornamento UI
+    #region Localization & UI Update
 
     /// <summary>
-    /// Aggiorna tutte le etichette, tooltip, intestazioni di menu, colonne e testi dell'interfaccia utente in base alla lingua correntemente selezionata nel <see cref="LocalizationService"/>.
+    /// Updates all labels, tooltips, menu headers, columns and user interface texts to the language currently selected in the <see cref="LocalizationService"/>.
     /// </summary>
     private void UpdateLocalizedUI()
     {
         var localizationService = LocalizationService.Instance;
 
-        // Schermata di Benvenuto
+        // Welcome Screen
         WelcomeControl.UpdateLocalizedUI();
 
         // Menu File
@@ -6601,7 +6601,7 @@ else
         ToolTip.SetTip(CrudMatrixTabItem, localizationService["Tab_CrudMatrix_Tip"]);
         ToolTip.SetTip(GridTabItem, localizationService["Tab_BlastRadiusGrid_Tip"]);
 
-        // Tooltip pulsanti di chiusura schede (X)
+        // Tab Close Buttons Tooltip (X)
         void UpdateTabCloseButtonsTips(TabControl? tc)
         {
             if (tc == null) return;
@@ -6650,7 +6650,7 @@ else
         ToolTip.SetTip(LegendFieldButton, localizationService["Tooltip_LegendToggle"]);
         ToolTip.SetTip(LegendTypeButton, localizationService["Tooltip_LegendToggle"]);
 
-        // Legenda Grafo
+        // Graph legend
         LegendTitleText.Text = localizationService["Legend_Title"];
         LegendFormText.Text = localizationService["Legend_Forms"];
         LegendModuleText.Text = localizationService["Legend_Modules"];
@@ -6740,7 +6740,7 @@ else
 }
 
 /// <summary>
-/// Implementazione compatta di ICommand per eseguire azioni delegate dai menu e controlli UI.
+/// Compact implementation of ICommand for performing delegated actions from menus and UI controls.
 /// </summary>
 public sealed class ActionCommand : System.Windows.Input.ICommand
 {

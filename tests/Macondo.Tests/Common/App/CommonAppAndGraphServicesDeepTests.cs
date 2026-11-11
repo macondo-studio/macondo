@@ -14,8 +14,8 @@ public class CommonAppAndGraphServicesDeepTests
     #region Graph Layout Engine Topology Tests
 
     /// <summary>
-    /// Verifica che i motori di layout calcolino coordinate valide e non degenerate per una topologia a stella (Hub &amp; Spoke)
-    /// con un nodo centrale collegato a 25 nodi periferici.
+    /// Verify that layout engines calculate valid, non-degenerate coordinates for a star topology (Hub & Spoke)
+    /// with a central node connected to 25 peripheral nodes.
     /// </summary>
     [Theory]
     [InlineData(GraphLayoutMode.StandardRadial)]
@@ -52,7 +52,7 @@ public class CommonAppAndGraphServicesDeepTests
     }
 
     /// <summary>
-    /// Verifica che i motori di layout gestiscano una catena lineare profonda di nodi (A -&gt; B -&gt; C -&gt; ... -&gt; N).
+    /// Verify that layout engines handle a deep linear chain of nodes (A -> B -> C -> ... -> N).
     /// </summary>
     [Theory]
     [InlineData(GraphLayoutMode.StandardRadial)]
@@ -89,7 +89,7 @@ public class CommonAppAndGraphServicesDeepTests
     }
 
     /// <summary>
-    /// Verifica che una nuvola di nodi disconnessi (senza alcun arco) venga posizionata senza errori.
+    /// Verify that a cloud of disconnected nodes (without any edges) is placed without errors.
     /// </summary>
     [Theory]
     [InlineData(GraphLayoutMode.StandardRadial)]
@@ -121,7 +121,7 @@ public class CommonAppAndGraphServicesDeepTests
     #region Export & Serialization Tests
 
     /// <summary>
-    /// Verifica che CodeGraphMarkdownExporter.ExportSlice gestisca simboli isolati senza chiamanti o chiamati senza lanciare eccezioni.
+    /// Verify that CodeGraphMarkdownExporter.ExportSlice handles isolated symbols without callers or called without throwing exceptions.
     /// </summary>
     [Fact]
     public void MarkdownExporter_ShouldExportSliceForIsolatedSymbol_Gracefully()
@@ -147,7 +147,7 @@ public class CommonAppAndGraphServicesDeepTests
     }
 
     /// <summary>
-    /// Verifica che la serializzazione/deserializzazione JSON gestisca grafi complessi con cicli e tutti i tipi di SymbolKind
+    /// Verify that JSON serialization/deserialization handles complex graphs with loops and all SymbolKind types
     /// (Class, Interface, Struct, Enum, Form, Module, Method, Property, Field, Constant).
     /// </summary>
     [Fact]
@@ -186,7 +186,7 @@ public class CommonAppAndGraphServicesDeepTests
             graph.Symbols.Add(sym);
         }
 
-        // Aggiungi un ciclo di relazioni
+        // Add a relationship cycle
         graph.AddCalls(symbols[6], symbols[7]);
         graph.AddCalls(symbols[7], symbols[6]);
 
@@ -213,7 +213,7 @@ public class CommonAppAndGraphServicesDeepTests
     #region Cache and Shortcuts Parity Tests
 
     /// <summary>
-    /// Verifica che il ripristino di uno snapshot di cache vuoto (0 simboli e 0 righe) avvenga senza errori.
+    /// Verify that restoring an empty cache snapshot (0 symbols and 0 lines) occurs without errors.
     /// </summary>
     [Fact]
     public void ProjectCacheService_ShouldRestoreEmptySnapshot_WithoutErrors()
@@ -240,7 +240,7 @@ public class CommonAppAndGraphServicesDeepTests
     }
 
     /// <summary>
-    /// Verifica che il catalogo delle scorciatoie da tastiera mantenga una perfetta parità di conteggio tra Italiano e Inglese.
+    /// Check that the catalog of keyboard shortcuts maintains perfect parity between Italian and English.
     /// </summary>
     [Fact]
     public void KeyboardShortcutsCatalog_ShouldMaintainParityBetweenItalianAndEnglish()

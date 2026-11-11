@@ -7,24 +7,24 @@ using Macondo.App.Services;
 namespace Macondo.App.Views;
 
 /// <summary>
-/// Finestra modale di avviso e conferma prima del cambio algoritmo di layout del grafo quando l'utente ha spostato nodi manualmente.
+/// Warning and confirmation modal window before graph layout algorithm change when the user has moved nodes manually.
 /// </summary>
 public partial class LayoutConfirmModalView : UserControl
 {
     private GraphLayoutMode _pendingLayoutMode;
 
     /// <summary>
-    /// Evento scatenato quando l'utente conferma il cambio di layout.
+    /// Event triggered when the user confirms the layout change.
     /// </summary>
     public event EventHandler<GraphLayoutMode>? Confirmed;
 
     /// <summary>
-    /// Evento scatenato quando l'utente annulla il cambio di layout.
+    /// Event triggered when user cancels layout change.
     /// </summary>
     public event EventHandler? Cancelled;
 
     /// <summary>
-    /// Inizializza una nuova istanza di <see cref="LayoutConfirmModalView"/>.
+    /// Initializes a new instance of <see cref="LayoutConfirmModalView"/>.
     /// </summary>
     public LayoutConfirmModalView()
     {
@@ -32,7 +32,7 @@ public partial class LayoutConfirmModalView : UserControl
     }
 
     /// <summary>
-    /// Mostra la modale di conferma layout salvando la modalità richiesta.
+    /// Show layout confirmation modal by saving the requested mode.
     /// </summary>
     public void Show(GraphLayoutMode mode)
     {
@@ -42,7 +42,7 @@ public partial class LayoutConfirmModalView : UserControl
     }
 
     /// <summary>
-    /// Nasconde la modale di conferma layout.
+    /// Hides the layout confirmation modal.
     /// </summary>
     public void Hide()
     {
@@ -50,7 +50,7 @@ public partial class LayoutConfirmModalView : UserControl
     }
 
     /// <summary>
-    /// Aggiorna i testi localizzati della modale.
+    /// Update localized modal texts.
     /// </summary>
     public void UpdateLocalizedUI()
     {

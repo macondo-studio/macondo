@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class DataFlowAndTaintTests
 {
     /// <summary>
-    /// Verifica che un percorso da una sorgente non controllata (txtUserInput) verso un sink critico (ExecuteSql)
-    /// venga rilevato come TaintPath con la corretta catena di propagazione.
+    /// Verifies that a path from an uncontrolled source (txtUserInput) to a critical sink (ExecuteSql)
+    /// is detected as TaintPath with the correct propagation chain.
     /// </summary>
     [Fact]
     public void DataFlow_ShouldDetectTaintPathFromSourceToSink()
@@ -43,7 +43,7 @@ public class DataFlowAndTaintTests
     }
 
     /// <summary>
-    /// Verifica il rilevamento di variabili con anomalie Dead Store (scritte ma mai lette).
+    /// Verifies the detection of variables with Dead Store anomalies (written but never read).
     /// </summary>
     [Fact]
     public void DataFlow_ShouldDetectDeadStoreAnomaly()

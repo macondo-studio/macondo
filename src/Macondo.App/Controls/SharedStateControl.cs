@@ -16,7 +16,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Controls;
 
 /// <summary>
-/// Riga per la griglia principale delle variabili condivise.
+/// Row for the main grid of shared variables.
 /// </summary>
 public sealed class SharedVariableGridRow
 {
@@ -68,7 +68,7 @@ public sealed class SharedVariableGridRow
 }
 
 /// <summary>
-/// Riga per la griglia di dettaglio degli accessor (routine che leggono o scrivono sulla variabile).
+/// Row for the detail grid of the accessories (routines that read or write to the variable).
 /// </summary>
 public sealed class SharedAccessorGridRow
 {
@@ -101,8 +101,8 @@ public sealed class SharedAccessorGridRow
 }
 
 /// <summary>
-/// Controllo visuale completo per la Matrice di Stato Condiviso (Global &amp; Shared State Matrix).
-/// Mostra variabili globali / statiche, chi le legge/modifica e il rischio di effetti collaterali mutazionali.
+/// Complete visual control for the Global & Shared State Matrix.
+/// Shows global/static variables, who reads/modifies them, and the risk of mutational side effects.
 /// </summary>
 public sealed class SharedStateControl : UserControl
 {
@@ -193,7 +193,7 @@ public sealed class SharedStateControl : UserControl
             ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,*,Auto")
         };
 
-        // Filtro di ricerca
+        // Search filter
         var searchPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -219,7 +219,7 @@ public sealed class SharedStateControl : UserControl
         Grid.SetColumn(searchPanel, 0);
         toolbarGrid.Children.Add(searchPanel);
 
-        // Filtro Livello di Rischio
+        // Risk Level Filter
         var riskPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -263,7 +263,7 @@ public sealed class SharedStateControl : UserControl
         Grid.SetColumn(_crossModuleOnlyCheck, 2);
         toolbarGrid.Children.Add(_crossModuleOnlyCheck);
 
-        // Statistiche raggruppate a destra
+        // Statistics grouped on the right
         _statsTextBlock = new TextBlock
         {
             FontSize = 11,
@@ -279,14 +279,14 @@ public sealed class SharedStateControl : UserControl
         rootGrid.Children.Add(toolbarBorder);
 
         // ==========================================
-        // 3. CONTENUTO CENTRALE (GRIGLIA VARIABILI + DETTAGLIO ACCESSOR)
+        // 3. CENTRAL CONTENT (VARIABLES GRID + ACCESSORY DETAIL)
         // ==========================================
         _mainContentGrid = new Grid
         {
             RowDefinitions = new RowDefinitions("3*,Auto,2*")
         };
 
-        // Griglia Superiore: Variabili Condivise
+        // Upper Grid: Shared Variables
         _variablesDataGrid = new DataGrid
         {
             AutoGenerateColumns = false,
@@ -316,7 +316,7 @@ public sealed class SharedStateControl : UserControl
         Grid.SetRow(gridSplitter, 1);
         _mainContentGrid.Children.Add(gridSplitter);
 
-        // Pannello Inferiore: Dettaglio Accessor della variabile selezionata
+        // Lower panel: Accessor detail of the selected variable
         var accessorDetailPanel = new Grid
         {
             RowDefinitions = new RowDefinitions("Auto,*")
@@ -628,7 +628,7 @@ else
 
     private static void ConfigureVariablesColumns(DataGrid grid)
     {
-        // Rischio Mutazione (Badge)
+        // Mutation Risk (Badge)
         grid.Columns.Add(new DataGridTemplateColumn
         {
             Header = "Rischio Mutazione",
@@ -665,7 +665,7 @@ else
             Width = new DataGridLength(1.5, DataGridLengthUnitType.Star)
         });
 
-        // Nome Variabile
+        // Variable Name
         grid.Columns.Add(new DataGridTextColumn
         {
             Header = "Nome Variabile Globale",
@@ -701,7 +701,7 @@ else
             })
         });
 
-        // Lettori
+        // Readers
         grid.Columns.Add(new DataGridTextColumn
         {
             Header = "Lettori",
@@ -709,7 +709,7 @@ else
             Width = new DataGridLength(80)
         });
 
-        // Scrittori
+        // Writers
         grid.Columns.Add(new DataGridTextColumn
         {
             Header = "Scrittori",
@@ -717,7 +717,7 @@ else
             Width = new DataGridLength(85)
         });
 
-        // Scrittori Cross-Module
+        // Cross-Module Writers
         grid.Columns.Add(new DataGridTextColumn
         {
             Header = "Scrittori Cross-Mod",
@@ -728,7 +728,7 @@ else
 
     private static void ConfigureAccessorsColumns(DataGrid grid)
     {
-        // Tipo di Accesso (Lettura vs Scrittura)
+        // Access Type (Read vs Write)
         grid.Columns.Add(new DataGridTemplateColumn
         {
             Header = "Tipo Accesso",

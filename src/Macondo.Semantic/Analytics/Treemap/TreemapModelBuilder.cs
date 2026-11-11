@@ -3,18 +3,18 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.Treemap;
 
 /// <summary>
-/// Costruttore del modello Treemap a partire da qualsiasi CodeGraph semantico.
+/// Treemap model builder from any semantic CodeGraph.
 /// </summary>
 public static class TreemapModelBuilder
 {
     /// <summary>
-    /// Costruisce l'albero gerarchico <see cref="TreemapItem"/> a due livelli (Progetto -&gt; Moduli -&gt; Membri) aggregando LOC e complessità.
+    /// Builds the <see cref="TreemapItem"/> hierarchical tree at two levels (Project -> Modules -> Members) by aggregating LOC and complexity.
     /// </summary>
-    /// <param name="graph">Il CodeGraph da cui estrarre i simboli.</param>
-    /// <returns>Il nodo radice della Treemap pronto per il calcolo del layout.</returns>
+    /// <param name="graph">The CodeGraph from which to extract the symbols.</param>
+    /// <returns>The root node of the Treemap ready for layout calculation.</returns>
     public static TreemapItem Build(CodeGraph graph)
     {
-        // 1. Nodo radice globale dell'intero progetto
+        // 1. Global root node of the entire project
         var root = new TreemapItem
         {
             Id = Guid.Empty,
@@ -24,7 +24,7 @@ public static class TreemapModelBuilder
             Depth = 0
         };
 
-        // 2. Raccoglie tutti i container primari (Classi, Form, Moduli, UserControl, UDT, Interfacce, Strutture, Record)
+        // 2. Collects all primary containers (Classes, Forms, Modules, UserControl, UDT, Interfaces, Structures, Records)
         var containers = graph.Symbols
             .Where(s => s.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
             .OrderBy(c => c.Name)
@@ -34,7 +34,7 @@ public static class TreemapModelBuilder
 
             containers = graph.Symbols.Where(s => s.Kind != SymbolKind.Project).ToList();
 
-        // Indicizzazione O(1) delle chiamate uscenti per ogni simbolo sorgente per evitare scansioni O(R) nel loop
+        // O(1) indexing of outgoing calls for each source symbol to avoid O(R) scans in the loop
         var outgoingCallsCount = new Dictionary<Guid, int>();
         foreach (var r in graph.Relationships)
         {
@@ -43,7 +43,7 @@ public static class TreemapModelBuilder
                 outgoingCallsCount[r.SourceId] = outgoingCallsCount.GetValueOrDefault(r.SourceId) + 1;
         }
 
-        // 3. Costruisce l'albero dei figli e calcola le metriche di peso (LOC stimate) e complessità
+        // 3. Constructs the child tree and calculates the weight (estimated LOC) and complexity metrics
         foreach (var container in containers)
         {
             var containerItem = new TreemapItem
@@ -64,7 +64,7 @@ public static class TreemapModelBuilder
             {
                 foreach (var child in children)
                 {
-                    // Calcolo LOC o peso basato sulle righe di codice o complessità delle chiamate in O(1)
+                    // LOC calculation or weight based on lines of code or call complexity in O(1)
                     int lineCount = Math.Max(1, child.LineEnd - child.LineStart + 1);
                     outgoingCallsCount.TryGetValue(child.Id, out int callees);
                     double complexityScore = 1.0 + (callees * 1.5) + (child.Parameters.Count * 0.8);
@@ -97,7 +97,7 @@ public static class TreemapModelBuilder
             root.Children.Add(containerItem);
         }
 
-        // Aggrega i totali sulla radice
+        // Aggregate the totals over the root
         root.Value = root.Children.Sum(c => c.Value);
         root.MetricScore = root.Children.Count > 0 ? root.Children.Average(c => c.MetricScore) : 1.0;
 

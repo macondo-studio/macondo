@@ -10,7 +10,7 @@ public class CSharpModernLanguageAndEdgeCasesTests
     #region File-Scoped Namespaces (C# 10+)
 
     /// <summary>
-    /// Verifica l'estrazione di classi e interfacce dichiarate con file-scoped namespace ('namespace MyApp.Services;').
+    /// Check extraction of classes and interfaces declared with file-scoped namespaces ('namespace MyApp.Services;').
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractSymbols_WithFileScopedNamespace()
@@ -51,7 +51,7 @@ public class CSharpModernLanguageAndEdgeCasesTests
     #region Pattern Matching and Switch Expressions
 
     /// <summary>
-    /// Verifica il parsing di switch expression con pattern relazionali ('> 0 and <= 100') e pattern matching su tipi.
+    /// Test parsing of switch expressions with relational patterns ('> 0 and <= 100') and pattern matching on types.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractMethodsUsingSwitchExpressionsAndRelationalPatterns()
@@ -103,7 +103,7 @@ public class CSharpModernLanguageAndEdgeCasesTests
     #region Extension Methods
 
     /// <summary>
-    /// Verifica l'estrazione di metodi di estensione (extension methods) definiti in classi statiche.
+    /// Tests the extraction of extension methods defined in static classes.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractExtensionMethods_InStaticClasses()
@@ -152,8 +152,8 @@ public class CSharpModernLanguageAndEdgeCasesTests
     #region Generic Constraints and Static Abstract Members (C# 11+)
 
     /// <summary>
-    /// Verifica l'estrazione di vincoli generici multipli ('where T : class, new()', 'where T : unmanaged')
-    /// e membri statici astratti nelle interfacce.
+    /// Test extraction of multiple generic constraints ('where T : class, new()', 'where T : unmanaged')
+    /// and abstract static members in interfaces.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractGenericConstraints_AndStaticAbstractMembers()
@@ -193,7 +193,7 @@ public class CSharpModernLanguageAndEdgeCasesTests
     #region Raw String Literals and Index/Range Expressions
 
     /// <summary>
-    /// Verifica il parsing di raw string literals multilinea con doppi apici multipli e slicing con indici da fine array (^1).
+    /// Tests parsing of multiline raw string literals with multiple double quotes and slicing with indices from end of array (^1).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractRawStringLiteralsAndIndexRangeExpressions()

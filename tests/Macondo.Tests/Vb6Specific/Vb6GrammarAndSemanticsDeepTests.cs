@@ -13,7 +13,7 @@ public class Vb6GrammarAndSemanticsDeepTests
     #region Complex User-Defined Types (UDT) and Multi-Dimensional Arrays
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di strutture UDT complesse con stringhe a lunghezza fissa,
+    /// Verify parsing and extraction of complex UDT structures with fixed-length strings,
     /// matrici multi-dimensionali a limiti espliciti (1 To 4, 1 To 4) e tipi definiti dall'utente nidificati.
     /// </summary>
     [Fact]
@@ -69,8 +69,8 @@ public class Vb6GrammarAndSemanticsDeepTests
     #region Multi-Parameter Property Get / Let Indexers
 
     /// <summary>
-    /// Verifica che le procedure Property Get e Property Let con molteplici parametri indice
-    /// (es. accesso a griglie matriciali a due dimensioni) vengano estratte con tutti i parametri posizionali.
+    /// Verify that Property Get and Property Let procedures with multiple index parameters
+    /// (e.g. access to two-dimensional matrix grids) are extracted with all positional parameters.
     /// </summary>
     [Fact]
     public void Vb6Extractor_ShouldExtractMultiParameterPropertyIndexers()
@@ -114,8 +114,8 @@ public class Vb6GrammarAndSemanticsDeepTests
     #region Line Continuations with Interleaved Comments and Multi-Statements
 
     /// <summary>
-    /// Verifica la tolleranza del parser a costrutti complessi con continuazioni di riga '_'
-    /// intervallate da commenti e statement multipli su una singola riga separati da due punti ':'.
+    /// Tests the parser's tolerance for complex constructs with '_' line continuations
+    /// interspersed with multiple comments and statements on a single line separated by colons ':'.
     /// </summary>
     [Fact]
     public void Vb6Extractor_ShouldParseComplexLineContinuationsAndColonSeparatedStatements()
@@ -155,8 +155,8 @@ public class Vb6GrammarAndSemanticsDeepTests
     #region Multiple Interface Implementation via Implements
 
     /// <summary>
-    /// Verifica che una classe VB6 che implementa molteplici interfacce tramite la keyword Implements
-    /// registri correttamente sia le interfacce implementate che i metodi di interfaccia espliciti.
+    /// Verify that a VB6 class that implements multiple interfaces via the Implements keyword
+    /// You correctly register both implemented interfaces and explicit interface methods.
     /// </summary>
     [Fact]
     public void Vb6Extractor_ShouldHandleMultipleImplementsInterfacesInSingleClass()
@@ -226,8 +226,8 @@ public class Vb6GrammarAndSemanticsDeepTests
     #region Enums with Negative and Hexadecimal Values
 
     /// <summary>
-    /// Verifica che enumerazioni con costanti esadecimali (&H...) e negative (-1)
-    /// vengano analizzate senza errori e i singoli membri vengano estratti.
+    /// Check that enumerations with hexadecimal (&H...) and negative (-1) constants
+    /// are analyzed without errors and individual members are extracted.
     /// </summary>
     [Fact]
     public void Vb6Extractor_ShouldExtractEnumsWithHexAndNegativeConstants()

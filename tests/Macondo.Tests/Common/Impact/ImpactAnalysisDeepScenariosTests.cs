@@ -9,9 +9,9 @@ namespace Macondo.Tests.Common.Impact;
 public class ImpactAnalysisDeepScenariosTests
 {
     /// <summary>
-    /// Verifica che in presenza di percorsi multipli sia diretti che indiretti verso lo stesso target
-    /// (es. A chiama Target sia direttamente che tramite B -> Target),
-    /// il chiamante diretto A venga classificato in DirectCallers e non venga duplicato negli IndirectCallers.
+    /// Verify that there are multiple paths both direct and indirect to the same target
+    /// (e.g. A calls Target either directly or via B -> Target),
+    /// direct caller A is classified in DirectCallers and is not duplicated in IndirectCallers.
     /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldNotDuplicateDirectCallerInIndirectCallers_WhenMultiplePathsExist()
@@ -40,14 +40,14 @@ public class ImpactAnalysisDeepScenariosTests
         impact.DirectCallers.Should().HaveCount(2);
         impact.DirectCallers.Select(s => s.Id).Should().Contain(new[] { symA.Id, symB.Id });
 
-        // symA non deve comparire negli indirect callers perché è già un direct caller
+        // symA must not appear in indirect callers because it is already a direct caller
         impact.IndirectCallers.Should().BeEmpty();
         impact.TotalImpactedSymbolsCount.Should().Be(2);
     }
 
     /// <summary>
-    /// Verifica che l'analisi di impatto gestisca un ciclo di chiamate tra i chiamanti a monte (A &lt;-&gt; B)
-    /// che invocano il target senza entrare in loop infinito e deduplicando i risultati.
+    /// Verify that impact analysis handles a call loop between upstream callers (A <-> B)
+    /// which invoke the target without entering an infinite loop and deduplicating the results.
     /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldHandleCyclicCallerGraph_WithoutInfiniteLoop()
@@ -81,8 +81,8 @@ public class ImpactAnalysisDeepScenariosTests
     }
 
     /// <summary>
-    /// Verifica che una routine di utilità invocata diffusamente da molti moduli (elevato Fan-In &gt;= 10)
-    /// riceva una classificazione di rischio elevata (High o Critical).
+    /// Verifies that a utility routine is invoked widely by many modules (high Fan-In >= 10)
+    /// receives a high risk classification (High or Critical).
     /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldAssignHighOrCriticalRisk_ForWidespreadUtilityRoutines()
@@ -92,7 +92,7 @@ public class ImpactAnalysisDeepScenariosTests
         var targetHelper = new Symbol { Id = Guid.NewGuid(), Name = "FormatString", QualifiedName = "Utils.FormatString", FilePath = "Utils.bas", Kind = SymbolKind.Method };
         graph.Symbols.Add(targetHelper);
 
-        // 12 moduli differenti che chiamano targetHelper
+        // 12 different modules calling targetHelper
         for (int i = 1; i <= 12; i++)
         {
             var callerMod = new Symbol { Id = Guid.NewGuid(), Name = $"Mod_{i}", QualifiedName = $"Mod_{i}", FilePath = $"Mod_{i}.bas", Kind = SymbolKind.Module };
@@ -115,7 +115,7 @@ public class ImpactAnalysisDeepScenariosTests
     }
 
     /// <summary>
-    /// Verifica che l'analisi di impatto tracci le Form impattate anche attraverso catene indirette multilivello
+    /// Verify that the impact analysis tracks the impacted Forms also through multilevel indirect chains
     /// (es. Form -> Service -> Repository -> TargetHelper).
     /// </summary>
     [Fact]
@@ -152,8 +152,8 @@ public class ImpactAnalysisDeepScenariosTests
     }
 
     /// <summary>
-    /// Verifica che l'analisi di impatto eseguita su un'interfaccia o su una classe astratta
-    /// individui le classi derivate e gli implementatori come dipendenti di tipo (TypeDependents).
+    /// Verify that the impact analysis performed on an interface or abstract class
+    /// identifies derived classes and implementers as type dependents (TypeDependents).
     /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldIdentifyImplementersAndConsumers_ForInterfaceSymbols()
@@ -186,8 +186,8 @@ public class ImpactAnalysisDeepScenariosTests
     }
 
     /// <summary>
-    /// Verifica che relazioni penzolanti (dangling relationships verso ID non presenti nei simboli)
-    /// non provochino NullReferenceException durante la scansione BFS dei chiamanti.
+    /// Check for dangling relationships (dangling relationships towards IDs not present in the symbols)
+    /// do not cause NullReferenceException during BFS scan of callers.
     /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldBeResilientToDanglingRelationships()
@@ -200,7 +200,7 @@ public class ImpactAnalysisDeepScenariosTests
         graph.Symbols.AddRange(new[] { target, validCaller });
         graph.AddCalls(validCaller, target);
 
-        // Arco verso un target o sorgente inesistente
+        // Arc towards a non-existent target or source
         graph.Relationships.Add(new Relationship
         {
             SourceId = Guid.NewGuid(), // Non esiste nei Symbols

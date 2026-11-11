@@ -4,13 +4,13 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Export;
 
 /// <summary>
-/// Esportatore del <see cref="CodeGraph"/> in formato Markdown ottimizzato per la comprensione da parte di modelli LLM (es. Antigravity).
-/// Riduce il consumo di token condensando l'albero di chiamate, istanziazioni e tipi utilizzati.
+/// Exporter of the <see cref="CodeGraph"/> in Markdown format optimized for understanding by LLM models (e.g. Antigravity).
+/// Reduces token consumption by condensing the tree of calls, instantiations, and types used.
 /// </summary>
 public static class CodeGraphMarkdownExporter
 {
     /// <summary>
-    /// Esporta l'intero grafo in formato Markdown compatto gerarchico (Repo Map).
+    /// Export the entire graph in hierarchical compact Markdown format (Repo Map).
     /// </summary>
     public static string Export(CodeGraph graph, MarkdownExportOptions? options = null)
     {
@@ -21,7 +21,7 @@ public static class CodeGraphMarkdownExporter
 
             AppendSummary(sb, graph);
 
-        // Raggruppa i simboli di primo livello per file sorgente
+        // Groups top-level symbols by source file
         var topLevelKinds = new HashSet<SymbolKind>
         {
             SymbolKind.Module,
@@ -37,16 +37,16 @@ public static class CodeGraphMarkdownExporter
             .ThenBy(s => s.Name)
             .ToList();
 
-        // Mappa veloce degli ID simboli per lookup immediato
+        // Quick map of symbol IDs for instant lookup
         var symbolLookup = graph.Symbols.ToDictionary(s => s.Id);
 
-        // Mappa delle relazioni di contenimento
+        // Containment relationship map
         var childrenLookup = graph.Relationships
             .Where(r => r.Kind == RelationshipKind.Contains)
             .GroupBy(r => r.SourceId)
             .ToDictionary(g => g.Key, g => g.Select(r => r.TargetId).ToList());
 
-        // Mappa delle relazioni in uscita (Calls, Instantiates, UsesType)
+        // Outgoing relationship map (Calls, Instantiates, UsesType)
         var outgoingRels = graph.Relationships
             .Where(r => r.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.UsesType)
             .GroupBy(r => r.SourceId)
@@ -77,7 +77,7 @@ public static class CodeGraphMarkdownExporter
             sb.AppendLine();
         }
 
-        // Simboli orfani o isolati non contenuti in simboli top-level
+        // Orphan or isolated symbols not contained in top-level symbols
         var remainingSymbols = graph.Symbols
             .Where(s => !renderedSymbolIds.Contains(s.Id))
             .OrderBy(s => s.FilePath)
@@ -131,7 +131,7 @@ public static class CodeGraphMarkdownExporter
                     var typeDetail = typeSym.DeclaredTypeName != null ? $" As {typeSym.DeclaredTypeName}" : "";
                     sb.AppendLine($"- **{typeSym.Accessibility} {typeSym.Kind}** `{typeSym.Name}`{typeDetail}{lineInfo}");
 
-                    // Se è un Type o Enum, elenca i campi/costanti contenuti
+                    // If it is a Type or Enum, list the fields/constants contained
                     var childMembers = childrenLookup.GetValueOrDefault(typeSym.Id, new List<Guid>())
                         .Select(id => symbolLookup.GetValueOrDefault(id))
                         .Where(m => m != null);
@@ -179,7 +179,7 @@ public static class CodeGraphMarkdownExporter
                     : "";
                 sb.AppendLine($"- **{routine.Accessibility} {routine.Kind}** `{sig}`{lineInfo}");
 
-                // Dettagli relazioni in uscita
+                // Outgoing relationship details
                 if (outgoingRels.TryGetValue(routine.Id, out var rels))
                 {
                     // Chiamate effettuate
@@ -236,8 +236,8 @@ public static class CodeGraphMarkdownExporter
     }
 
     /// <summary>
-    /// Esporta un subgrafo focalizzato su un singolo simbolo (Impact Slice / Call Slice),
-    /// ideale da includere come contesto minimo in un prompt di refactoring o modifica per un LLM.
+    /// Export a subgraph focused on a single symbol (Impact Slice / Call Slice),
+    /// ideal to include as minimal context in a refactoring or modification prompt for an LLM.
     /// </summary>
     public static string ExportSlice(CodeGraph graph, Symbol rootSymbol, int maxDepth = 2)
     {
@@ -252,7 +252,7 @@ public static class CodeGraphMarkdownExporter
 
         var symbolLookup = graph.Symbols.ToDictionary(s => s.Id);
 
-        // 1. UPSTREAM: Chi chiama questo simbolo? (Direct and transitive callers)
+        // 1. UPSTREAM: Who calls this symbol? (Direct and transitive callers)
         sb.AppendLine("## Inbound Impact (Who calls / uses this symbol)");
         var incomingCalls = graph.Relationships
             .Where(r => r.TargetId == rootSymbol.Id && r.Kind is RelationshipKind.Calls or RelationshipKind.UsesType or RelationshipKind.Instantiates)
@@ -275,7 +275,7 @@ public static class CodeGraphMarkdownExporter
         }
         sb.AppendLine();
 
-        // 2. DOWNSTREAM: Cosa chiama questo simbolo? (Direct callees, instantiations, types)
+        // 2. DOWNSTREAM: What do you call this symbol? (Direct calls, instances, types)
         sb.AppendLine("## Outbound Dependencies (What this symbol calls / instantiates / uses)");
         var outgoing = graph.Relationships
             .Where(r => r.SourceId == rootSymbol.Id && r.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.UsesType)

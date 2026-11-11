@@ -11,8 +11,8 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Controls;
 
 /// <summary>
-/// Controllo custom Avalonia Skia ad alte prestazioni per il rendering e l'interazione con la Treemap Gerarchica di metriche.
-/// Supporta layout Squarified, color coding per complessità/rischio, hover, selezione e drill-down.
+/// High performance Avalonia Skia custom control for rendering and interacting with the Hierarchical Treemap of metrics.
+/// Supports Squarified layout, color coding for complexity/risk, hover, selection and drill-down.
 /// </summary>
 public sealed class TreemapControl : Control
 {
@@ -162,10 +162,10 @@ public sealed class TreemapControl : Control
             _currentRoot?.Parent != null ? _accentTextBrush : _textMutedBrush);
         context.DrawText(breadcrumbFmt, new Point(16, 12));
 
-        // Renderizza ricorsivamente tutti i nodi
+        // Recursively render all nodes
         RenderItemRecursive(context, root);
 
-        // Disegna tooltip/card flottante in basso a sinistra per l'elemento hovered
+        // Draw floating tooltip/card at bottom left for hovered element
         if (_hoveredItem != null && _hoveredItem != root)
 
             DrawHoverCard(context, _hoveredItem);
@@ -192,13 +192,13 @@ public sealed class TreemapControl : Control
 
         if (!item.IsLeaf)
         {
-            // Container (Modulo / Classe)
+            // Container (Module / Class)
             if (item.Depth > 0)
             {
                 context.FillRectangle(_containerHeaderBrush, rect);
                 context.DrawRectangle(_containerBorderPen, rect);
 
-                // Titolo del modulo se visibile e leggibile
+                // Title of the form if visible and legible
                 if (rect.Width > 50 && rect.Height > 18)
                 {
                     string header = $"{item.Name} ({LocalizationService.Instance.Get("Treemap_MembersCount", item.Children.Count)})";
@@ -220,7 +220,7 @@ public sealed class TreemapControl : Control
         }
         else
         {
-            // Foglia (Metodo, Proprietà o Modulo foglia)
+            // Leaf (Method, Property or Leaf Module)
             var fillBrush = GetComplexityBrush(item.MetricScore);
             context.FillRectangle(fillBrush, rect);
 
@@ -237,7 +237,7 @@ else
                 context.DrawRectangle(_leafBorderPen, rect);
             }
 
-            // Testo etichetta se lo spazio è sufficiente
+            // Label text if there is enough space
             if (rect.Width > 45 && rect.Height > 22)
             {
                 string label = item.Name;
@@ -268,7 +268,7 @@ else
     }
 
     /// <summary>
-    /// Restituisce il pennello cromatico in base al punteggio di complessità:
+    /// Returns the color brush based on complexity score:
     /// &lt;= 2.0: Verde scuro (Bassa)
     /// &lt;= 4.5: Verde medio
     /// &lt;= 7.0: Giallo ambra (Media)
@@ -285,7 +285,7 @@ else
     }
 
     /// <summary>
-    /// Disegna la scheda informativa fluttuante (Hover Card) con il nome del nodo, il punteggio di metrica e le linee di codice / peso.
+    /// Draw the floating information card (Hover Card) with the node name, metric score and code/weight lines.
     /// </summary>
     private void DrawHoverCard(DrawingContext context, TreemapItem item)
     {
@@ -364,7 +364,7 @@ else
     }
 
     /// <summary>
-    /// Gestisce il doppio clic su un elemento non foglia (modulo o classe) per eseguire il drill-down gerarchico.
+    /// Handles double-clicking a non-leaf item (module or class) to drill down hierarchically.
     /// </summary>
     private void OnDoubleTapped(object? sender, TappedEventArgs e)
     {
@@ -379,13 +379,13 @@ else
     }
 
     /// <summary>
-    /// Ricerca ricorsiva dell'elemento treemap foglia o container le cui coordinate racchiudono il punto (px, py).
+    /// Recursive search for the leaf or container treemap element whose coordinates enclose the point (px, py).
     /// </summary>
     private TreemapItem? FindItemAt(TreemapItem? current, double px, double py)
     {
         if (current == null || !current.Bounds.Contains(px, py)) return null;
 
-        // Cerca prima nei figli
+        // Look first in your children
         foreach (var child in current.Children)
         {
             var found = FindItemAt(child, px, py);

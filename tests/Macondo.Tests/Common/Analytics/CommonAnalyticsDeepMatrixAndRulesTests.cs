@@ -14,8 +14,8 @@ public class CommonAnalyticsDeepMatrixAndRulesTests
     #region ApiDiff Parameter Mutations and Signatures
 
     /// <summary>
-    /// Verifica che l'aggiunta di un nuovo parametro obbligatorio a un metodo pubblico
-    /// venga classificata come Breaking Change (Major), mentre un parametro opzionale no.
+    /// Verify that adding a new required parameter to a public method
+    /// is classified as Breaking Change (Major), while an optional parameter is not.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDistinguishBetweenMandatoryAndOptionalParameterAdditions()
@@ -37,7 +37,7 @@ public class CommonAnalyticsDeepMatrixAndRulesTests
         oldMethod.Parameters.Add(new ParameterSymbol { Name = "query", DeclaredTypeName = "String" });
         oldGraph.Symbols.Add(oldMethod);
 
-        // Versione con nuovo parametro obbligatorio
+        // Version with new mandatory parameter
         var newMethodMandatory = new Symbol
         {
             Id = Guid.NewGuid(),
@@ -51,7 +51,7 @@ public class CommonAnalyticsDeepMatrixAndRulesTests
         newMethodMandatory.Parameters.Add(new ParameterSymbol { Name = "authContext", DeclaredTypeName = "Context", IsOptional = false });
         newGraphMandatory.Symbols.Add(newMethodMandatory);
 
-        // Versione con nuovo parametro opzionale
+        // Version with new optional parameter
         var newMethodOptional = new Symbol
         {
             Id = Guid.NewGuid(),
@@ -83,8 +83,8 @@ public class CommonAnalyticsDeepMatrixAndRulesTests
     #region Architectural Rules Multi-Layer Enforcement
 
     /// <summary>
-    /// Verifica che l'ArchitecturalRulesEngine rilevi correttamente violazioni architetturali multi-tier,
-    /// come la violazione del principio di inversione delle dipendenze (Infrastructure che chiama Presentation).
+    /// Verify that the ArchitecturalRulesEngine correctly detects multi-tier architectural violations,
+    /// such as violating the dependency inversion principle (Infrastructure calling Presentation).
     /// </summary>
     [Fact]
     public void ArchitecturalRules_ShouldDetectMultiTierLayerViolations()
@@ -98,7 +98,7 @@ public class CommonAnalyticsDeepMatrixAndRulesTests
 
         graph.Symbols.AddRange(new[] { uiController, repo, helper });
 
-        // Violazione: Data -> UI
+        // Violation: Data -> UI
         graph.AddCalls(repo, helper);
 
         var rule = new ArchitecturalRule
@@ -125,9 +125,9 @@ public class CommonAnalyticsDeepMatrixAndRulesTests
     #region Dead Code Isolated Recursive Cycles Detection
 
     /// <summary>
-    /// Verifica che un cluster ciclico e ricorsivo di metodi isolati (A -> B -> A),
-    /// ma non raggiungibile da alcun entry point dell'applicazione (Main, Form Load, ecc.),
-    /// venga correttamente classificato nella sua interezza come Dead Code.
+    /// Verify that a cyclic, recursive cluster of isolated methods (A -> B -> A),
+    /// but not reachable from any application entry point (Main, Form Load, etc.),
+    /// is correctly classified in its entirety as Dead Code.
     /// </summary>
     [Fact]
     public void DeadCodeAnalyzer_ShouldClassifyIsolatedMutualRecursiveCycle_AsDeadCode()
@@ -168,8 +168,8 @@ public class CommonAnalyticsDeepMatrixAndRulesTests
     #region Cohesion High Disconnected Cluster LCOM4 Calculation
 
     /// <summary>
-    /// Verifica che una classe con 3 gruppi di metodi totalmente disgiunti
-    /// che accedono a campi separati produca un indice di coesione LCOM4 = 3 (Bassa coesione / Responsabilità multiple).
+    /// Verify that a class with 3 totally disjoint groups of methods
+    /// who access separate fields produces a cohesion index LCOM4 = 3 (Low cohesion / Multiple responsibilities).
     /// </summary>
     [Fact]
     public void CohesionCalculator_ShouldCalculateHighLCOM4_ForDisjointMethodClusters()

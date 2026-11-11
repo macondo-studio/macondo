@@ -1,7 +1,7 @@
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Singolo token lessicale Kotlin con coordinate di riga e colonna (1-indexed).
+/// Single Kotlin lexical token with row and column coordinates (1-indexed).
 /// </summary>
 internal sealed class KotlinToken
 {

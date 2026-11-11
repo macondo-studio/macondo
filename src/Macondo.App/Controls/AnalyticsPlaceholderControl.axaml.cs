@@ -8,10 +8,10 @@ using Macondo.App.Services;
 namespace Macondo.App.Controls;
 
 /// <summary>
-/// Controllo placeholder visualizzato all'interno delle schede analitiche quando la
-/// pre-elaborazione automatica in background è disabilitata e l'analisi non è ancora stata eseguita.
-/// Permette all'utente di avviare l'analisi on-demand per la singola scheda o per tutte le schede rimanenti,
-/// fornendo durante il calcolo un feedback visivo accurato con barra di progresso e stima temporale.
+/// Placeholder control displayed within analytic cards when the
+/// automatic preprocessing in the background is disabled and the analysis has not yet been performed.
+/// Allows the user to start analysis on-demand for the single card or for all remaining cards,
+/// providing accurate visual feedback with progress bar and time estimate during the calculation.
 /// </summary>
 public partial class AnalyticsPlaceholderControl : UserControl
 {
@@ -48,12 +48,12 @@ public partial class AnalyticsPlaceholderControl : UserControl
     }
 
     /// <summary>
-    /// Imposta lo stato visivo del controllo placeholder (In attesa di avvio, In elaborazione con stima, o Completato).
+    /// Sets the visual state of the placeholder control (Waiting to Start, Processing with Estimation, or Completed).
     /// </summary>
-    /// <param name="isPending">True se l'analisi non è ancora stata eseguita.</param>
-    /// <param name="isComputing">True se l'elaborazione è attivamente in corso in background.</param>
-    /// <param name="estimatedSeconds">Durata stimata dell'analisi in secondi (opzionale, predefinita 1.0s).</param>
-    /// <param name="customTitle">Titolo personalizzato per l'elaborazione (es. "Analisi Matrice DSM in corso...").</param>
+    /// <param name="isPending">True if the analysis has not yet been performed.</param>
+    /// <param name="isComputing">True if processing is actively occurring in the background.</param>
+    /// <param name="estimatedSeconds">Estimated analysis duration in seconds (optional, default 1.0s).</param>
+    /// <param name="customTitle">Custom title for processing (e.g. "DSM Matrix Analysis in progress...").</param>
     public void SetState(bool isPending, bool isComputing, double estimatedSeconds = 1.0, string? customTitle = null)
     {
         if (!isPending && !isComputing)
@@ -119,7 +119,7 @@ public partial class AnalyticsPlaceholderControl : UserControl
         var elapsedSeconds = _stopwatch.Elapsed.TotalSeconds;
         var est = Math.Max(0.2, _estimatedDurationSeconds);
 
-        // Curva progressiva asintotica fluida: raggiunge ~90% al tempo stimato e rallenta fino al 98% se richiede più tempo
+        // Smooth asymptotic progressive curve: reaches ~90% at the estimated time and slows down to 98% if it takes longer
         var ratio = elapsedSeconds / est;
         double progressPercent;
 
@@ -129,7 +129,7 @@ public partial class AnalyticsPlaceholderControl : UserControl
 
         else
         {
-            // Asintoto morbido verso il 98% in caso di computazioni più lunghe del previsto
+            // Soft asymptote towards 98% in case of longer than expected computations
             var overflow = ratio - 1.0;
             progressPercent = 90.0 + 8.0 * (1.0 - Math.Exp(-overflow * 1.5));
         }
@@ -185,6 +185,6 @@ public partial class AnalyticsPlaceholderControl : UserControl
 
     public void ApplyTheme(AppTheme theme)
     {
-        // I pennelli del tema sono collegati dinamicamente nel markup AXAML tramite DynamicResource
+        // Theme brushes are dynamically linked in AXAML markup via DynamicResource
     }
 }

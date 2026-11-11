@@ -8,8 +8,8 @@ namespace Macondo.Tests.CSharpSpecific;
 public class CSharpAdvancedSyntaxAndCallGraphExtendedTests
 {
     /// <summary>
-    /// Verifica che interfacce C# che ereditano da molteplici interfacce base
-    /// generino le corrispondenti relazioni INHERITS verso tutte le interfacce genitore.
+    /// Check that C# interfaces inherit from multiple base interfaces
+    /// generate the corresponding INHERITS relations towards all parent interfaces.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractMultipleInterfaceInheritance()
@@ -57,7 +57,7 @@ public class CSharpAdvancedSyntaxAndCallGraphExtendedTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione e il tracciamento di implementazioni esplicite di interfaccia ('void IDisposable.Dispose()').
+    /// Test extraction and tracking of explicit interface implementations ('void IDisposable.Dispose()').
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractExplicitInterfaceImplementations()
@@ -108,7 +108,7 @@ public class CSharpAdvancedSyntaxAndCallGraphExtendedTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di classi statiche con metodi di estensione (extension methods con parametro 'this').
+    /// Test extraction of static classes with extension methods (extension methods with 'this' parameter).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractExtensionMethodsAndStaticClasses()
@@ -150,7 +150,7 @@ public class CSharpAdvancedSyntaxAndCallGraphExtendedTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di struct di tipo readonly record struct e relative proprietà.
+    /// Verifies the extraction of structs of type readonly record struct and related properties.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractReadonlyRecordStructs()
@@ -183,7 +183,7 @@ public class CSharpAdvancedSyntaxAndCallGraphExtendedTests
     }
 
     /// <summary>
-    /// Verifica che chiamate a metodi statici tra classi distinte vengano tracciate correttamente nel CallGraph.
+    /// Verify that static method calls between distinct classes are tracked correctly in the CallGraph.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldWireStaticMethodInvocationsAcrossClasses()

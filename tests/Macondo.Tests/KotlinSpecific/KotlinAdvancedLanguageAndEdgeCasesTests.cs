@@ -11,7 +11,7 @@ public class KotlinAdvancedLanguageAndEdgeCasesTests
     [Fact]
     public void KotlinParser_ShouldHandleNestedBlockComments()
     {
-        // Arrange: In Kotlin i commenti a blocchi possono essere annidati
+        // Arrange: In Kotlin block comments can be nested
         var code = """
             package com.acme.comments
 
@@ -39,7 +39,7 @@ public class KotlinAdvancedLanguageAndEdgeCasesTests
     [Fact]
     public void KotlinParser_ShouldHandleBacktickIdentifiers()
     {
-        // Arrange: In Kotlin gli identificatori possono contenere spazi o keyword tra backtick
+        // Arrange: In Kotlin identifiers can contain spaces or keywords between backticks
         var code = """
             package com.acme.test
 

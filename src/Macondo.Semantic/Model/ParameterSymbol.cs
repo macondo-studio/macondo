@@ -1,42 +1,42 @@
 ﻿namespace Macondo.Semantic.Model;
 
 /// <summary>
-/// Rappresenta un parametro formale nella firma di una routine (Sub, Function, Property) in VB6.
+/// Represents a formal parameter in the signature of a procedure (Sub, Function, Property) in VB6.
 /// 
 /// CARATTERISTICHE VB6:
-/// - Modalità di passaggio: 'ByRef' è il default in VB6 se omesso; 'ByVal' crea una copia.
-/// - Parametri opzionali: 'Optional' con eventuale valore di default.
-/// - Parametri variabili: 'ParamArray' (array di Variant).
+/// - Pass mode: 'ByRef' is the default in VB6 if omitted; 'ByVal' creates a copy.
+/// - Optional parameters: 'Optional' with possible default value.
+/// - Variable parameters: 'ParamArray' (Variant array).
 /// </summary>
 public sealed class ParameterSymbol
 {
-    /// <summary>Nome dell'argomento formale (es. "cust", "taxRate").</summary>
+    /// <summary>Formal argument name (e.g. "cust", "taxRate").</summary>
     public required string Name { get; init; }
 
-    /// <summary>Nome del tipo dichiarato (es. "Customer", "Double", "Single").</summary>
+    /// <summary>Name of the type declared (e.g. "Customer", "Double", "Single").</summary>
     public string? DeclaredTypeName { get; set; }
 
     /// <summary>
-    /// ID del simbolo corrispondente nel CodeGraph se si tratta di un tipo definito dall'utente/progetto.
+    /// ID of the corresponding symbol in the CodeGraph if it is a user/project defined type.
     /// </summary>
     public Guid? ResolvedTypeSymbolId { get; set; }
 
-    /// <summary>Indica se il parametro è passato per riferimento (default in VB6).</summary>
+    /// <summary>Indicates whether the parameter is passed by reference (default in VB6).</summary>
     public bool IsByRef { get; init; } = true;
 
-    /// <summary>Indica se il parametro è passato esplicitamente per valore ('ByVal').</summary>
+    /// <summary>Indicates whether the parameter is explicitly passed by value ('ByVal').</summary>
     public bool IsByVal { get; init; }
 
-    /// <summary>Indica se il parametro è opzionale ('Optional').</summary>
+    /// <summary>Indicates whether the parameter is optional ('Optional').</summary>
     public bool IsOptional { get; init; }
 
-    /// <summary>Indica se il parametro accetta una lista variabile di argomenti ('ParamArray').</summary>
+    /// <summary>Indicates whether the parameter accepts a variable list of arguments ('ParamArray').</summary>
     public bool IsParamArray { get; init; }
 
-    /// <summary>Espressione del valore di default testuale per parametri opzionali (es. "0#", "\"default\"").</summary>
+    /// <summary>Expression of the textual default value for optional parameters (e.g. "0#", "\"default\"").</summary>
     public string? DefaultValue { get; init; }
 
-    /// <summary>Riga del file sorgente in cui è dichiarato il parametro.</summary>
+    /// <summary>Line of the source file in which the parameter is declared.</summary>
     public int Line { get; init; }
 
     public override string ToString() =>

@@ -16,8 +16,8 @@ public class CommonAnalyticsExhaustiveEdgeCasesTests
     #region Hotspots with Zero-Churn and High-Churn Disparities
 
     /// <summary>
-    /// Verifica che HotspotAnalyzer gestisca grafi con disparità estrema di churn
-    /// (alcuni moduli con 0 churn e altri con centinaia di modifiche VCS).
+    /// Verify that HotspotAnalyzer handles graphs with extreme churn disparity
+    /// (some modules with 0 churn and others with hundreds of VCS changes).
     /// </summary>
     [Fact]
     public void HotspotAnalyzer_ShouldHandleExtremeChurnDisparity()
@@ -54,13 +54,13 @@ public class CommonAnalyticsExhaustiveEdgeCasesTests
     #region Temporal Coupling with Multi-File Clustering and High Confidence
 
     /// <summary>
-    /// Verifica che TemporalCouplingAnalyzer calcoli correttamente metriche per gruppi di file modificati congiuntamente
-    /// e rispetti la confidenza asimmetrica A->B e B->A.
+    /// Verify that TemporalCouplingAnalyzer correctly calculates metrics for groups of co-edited files
+    /// and respect the asymmetric confidence A->B and B->A.
     /// </summary>
     [Fact]
     public void TemporalCoupling_ShouldCalculateAsymmetricConfidence()
     {
-        // Arrange: FileA modificato in 4 commit; FileB modificato in 2 commit (sempre insieme ad A)
+        // Arrange: FileA changed in 4 commits; FileB modified in 2 commits (always together with A)
         var changelists = new List<List<string>>
         {
             new() { "src/FileA.cs", "src/FileB.cs" },
@@ -81,9 +81,9 @@ public class CommonAnalyticsExhaustiveEdgeCasesTests
         pair.TotalCommitsA.Should().Be(4);
         pair.TotalCommitsB.Should().Be(2);
 
-        // Confidenza da B verso A è 100% (quando B cambia, A cambia sempre)
+        // Confidence from B to A is 100% (when B changes, A always changes)
         pair.ConfidenceBToA.Should().Be(1.0);
-        // Confidenza da A verso B è 50% (2 su 4)
+        // Confidence from A to B is 50% (2 out of 4)
         pair.ConfidenceAToB.Should().Be(0.5);
     }
 
@@ -92,8 +92,8 @@ public class CommonAnalyticsExhaustiveEdgeCasesTests
     #region Social Code with 100% Departed Authors (Complete Orphan Risk)
 
     /// <summary>
-    /// Verifica che SocialCodeAnalyzer rilevi il massimo rischio di abbandono (Orphan)
-    /// quando tutti gli sviluppatori storici hanno lasciato l'organizzazione.
+    /// Verify that SocialCodeAnalyzer detects the highest risk of churn (Orphan)
+    /// when all incumbent developers left the organization.
     /// </summary>
     [Fact]
     public void SocialCode_ShouldFlagAllFilesAsOrphan_WhenAllAuthorsHaveDeparted()
@@ -110,7 +110,7 @@ public class CommonAnalyticsExhaustiveEdgeCasesTests
             new() { Author = "OldDev2", FilePath = "src/PaymentGateway.cs", LinesAdded = 400, LinesDeleted = 10, Timestamp = DateTime.UtcNow.AddDays(-180) }
         };
 
-        // Nessuno degli autori passati è presente nel team attivo attuale
+        // None of the past authors are present in the current active team
         var activeAuthors = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "NewDevA", "NewDevB" };
 
         // Act
@@ -132,9 +132,9 @@ public class CommonAnalyticsExhaustiveEdgeCasesTests
     #region Martin Metrics: Zone of Pain and Zone of Uselessness
 
     /// <summary>
-    /// Verifica il calcolo dei punti estremi della metrica di Martin:
-    /// - Zona di Sofferenza (A=0, I=0 => D=1.0)
-    /// - Zona di Inutilità (A=1.0, I=1.0 => D=1.0)
+    /// Check the calculation of the extreme points of the Martin metric:
+    /// - Zone of Suffering (A=0, I=0 => D=1.0)
+    /// - Zone of Uselessness (A=1.0, I=1.0 => D=1.0)
     /// </summary>
     [Fact]
     public void MartinMetrics_ShouldIdentifyZoneOfPainAndZoneOfUselessness()
@@ -179,7 +179,7 @@ public class CommonAnalyticsExhaustiveEdgeCasesTests
     #region Cohesion LCOM4: Multiple Disjoint Responsibility Clusters
 
     /// <summary>
-    /// Verifica che una classe con 3 cluster disgiunti di metodi/campi ottenga LCOM4 = 3.
+    /// Verify that a class with 3 disjoint clusters of methods/fields gets LCOM4 = 3.
     /// </summary>
     [Fact]
     public void Cohesion_ShouldDetectThreeDisjointClusters()
@@ -216,8 +216,8 @@ public class CommonAnalyticsExhaustiveEdgeCasesTests
     #region Architectural Rules Clean Pass Verification
 
     /// <summary>
-    /// Verifica che un'architettura perfettamente conforme non generi alcuna violazione
-    /// quando valutata contro un set di regole rigide.
+    /// Verify that a fully compliant architecture does not generate any violations
+    /// when evaluated against a set of rigid rules.
     /// </summary>
     [Fact]
     public void ArchitecturalRules_ShouldReportZeroViolations_WhenCodebaseIsCompliant()

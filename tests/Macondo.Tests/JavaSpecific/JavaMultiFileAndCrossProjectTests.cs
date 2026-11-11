@@ -11,8 +11,8 @@ namespace Macondo.Tests.JavaSpecific;
 public class JavaMultiFileAndCrossProjectTests
 {
     /// <summary>
-    /// Verifica che CallGraphBuilder risolva correttamente le relazioni di chiamata CALLS e istanziazione INSTANTIATES
-    /// tra classi e metodi definiti in file sorgente Java (.java) distinti.
+    /// Verify that CallGraphBuilder correctly resolves CALLS and INSTANTIATES instantiation relationships
+    /// between classes and methods defined in separate Java (.java) source files.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldResolveCallsAcrossMultipleJavaFiles()
@@ -69,7 +69,7 @@ public class JavaMultiFileAndCrossProjectTests
     }
 
     /// <summary>
-    /// Verifica che BlastRadiusEngine calcoli correttamente l'impatto a cascata su chiamate cross-file Java.
+    /// Verify that BlastRadiusEngine correctly calculates the cascading impact on Java cross-file calls.
     /// </summary>
     [Fact]
     public void BlastRadiusEngine_ShouldCalculateImpactOnMultiFileJavaProjects()
@@ -123,7 +123,7 @@ public class JavaMultiFileAndCrossProjectTests
     }
 
     /// <summary>
-    /// Verifica l'analisi poliglota di un grafo combinato contenente sia file Java che file C#.
+    /// Test polyglot analysis of a combined graph containing both Java and C# files.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldSupportMixedPolyglotJavaAndCSharp()

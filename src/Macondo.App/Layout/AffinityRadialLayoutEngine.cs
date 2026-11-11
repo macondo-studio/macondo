@@ -4,10 +4,10 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Layout;
 
 /// <summary>
-/// Motore di layout radiale per affinità semantica.
-/// Mantiene la forma circolare pulita, ma ordina angolarmente i container lungo la circonferenza
-/// in base al peso delle interazioni reciproche (Calls, Instantiates, UsesType) per minimizzare
-/// i cavi di connessione che attraversano il centro del grafo.
+/// Radial layout engine for semantic affinity.
+/// Keeps the clean circular shape, but arranges the containers angularly around the circumference
+/// based on the weight of mutual interactions (Calls, Instantiates, UsesType) to minimize
+/// the connecting wires that run through the center of the graph.
 /// </summary>
 public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
 {
@@ -16,35 +16,35 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
     void IGraphLayoutEngine.Apply(VisualCodeGraph graph) => Apply(graph);
 
     /// <summary>
-    /// Calcola e applica le coordinate (X, Y) a tutti i nodi del grafo visuale disponendo i moduli su una circonferenza
-    /// ordinata per affinità di interazione reciproca (minimizzazione degli incroci centrali).
+    /// Calculate and apply the coordinates (X, Y) to all the nodes of the visual graph by arranging the modules on a circle
+    /// ordered by mutual interaction affinity (minimization of central intersections).
     /// </summary>
-    /// <param name="graph">Il grafo visuale da posizionare.</param>
-    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
+    /// <param name="graph">The visual graph to position.</param>
+    /// <param name="cancellationToken">Optional deletion token.</param>
     public static void Apply(VisualCodeGraph graph, CancellationToken cancellationToken = default)
     {
-        // 1. Recupero dei progetti presenti nel grafo visuale
+        // 1. Retrieval of the projects present in the visual graph
         var projects = graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
         if (projects.Count == 0) return;
 
         var isMultiProject = projects.Count > 1;
         var projectMacroRadius = Math.Max(1200.0, projects.Count * 700.0);
 
-        // 2. Elaborazione di ciascun progetto in modo indipendente
+        // 2. Processing each project independently
         for (var pIdx = 0; pIdx < projects.Count; pIdx++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var project = projects[pIdx];
             if (isMultiProject)
             {
-                // Dispone i diversi progetti su una macro-circonferenza
+                // Arranges the different projects on a macro-circumference
                 var projAngle = 2 * Math.PI * pIdx / projects.Count;
                 project.X = Math.Cos(projAngle) * projectMacroRadius;
                 project.Y = Math.Sin(projAngle) * projectMacroRadius;
             }
             else
             {
-                // Progetto singolo posizionato al centro assoluto (0, 0)
+                // Single project positioned at the absolute center (0, 0)
                 project.X = 0;
                 project.Y = 0;
             }
@@ -53,9 +53,9 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
             if (containers.Count == 0) continue;
 
             // =========================================================================
-            // PASSO 1: Mappa di appartenenza nodo -> container genitore
-            // Permette di ricondurre qualsiasi arco che parte/arriva da un membro interno
-            // (es. un metodo o una proprietà) al modulo o classe container che lo racchiude.
+            // STEP 1: Node membership map -> parent container
+            // It allows you to trace any arc that starts/arrives from an internal member
+            // (e.g. a method or a property) to the module or container class that encloses it.
             // =========================================================================
             var nodeToContainerMap = new Dictionary<Guid, Guid>();
             foreach (var c in containers)
@@ -68,12 +68,12 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
             }
 
             // =========================================================================
-            // PASSO 2: Calcolo della matrice di affinità pesata tra coppie di container
-            // Assegna pesi differenziati alla semantica delle relazioni per riflettere
-            // l'intensità dell'accoppiamento strutturale:
-            // - Calls (3.0): accoppiamento comportamentale diretto
-            // - Instantiates (2.5): dipendenza di creazione
-            // - UsesType (1.5): dipendenza da tipo di dato
+            // STEP 2: Calculation of the weighted affinity matrix between pairs of containers
+            // Assign differentiated weights to the semantics of relationships for reflection
+            // the intensity of the structural coupling:
+            // - Calls (3.0): direct behavioral pairing
+            // - Instantiates (2.5): creation dependency
+            // - UsesType (1.5): data type dependency
             // =========================================================================
             var affinity = new Dictionary<(Guid, Guid), double>();
             void AddAffinity(Guid c1, Guid c2, double weight)
@@ -99,7 +99,7 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
                 }
             }
 
-            // Calcola il punteggio di affinità totale per ciascun container e prepara le liste di adiacenza in O(M)
+            // Calculate the total affinity score for each container and prepare adjacency lists in O(M)
             var totalAffinityByContainer = containers.ToDictionary(c => c.Id, _ => 0.0);
             var adjacency = containers.ToDictionary(c => c.Id, _ => new List<(Guid NeighborId, double Weight)>());
 
@@ -116,14 +116,14 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
                     list2.Add((key.Item1, weight));
             }
 
-            // Pre-ordina le liste di adiacenza una sola volta per peso decrescente per lookup istantaneo O(1)
+            // Pre-sort adjacency lists once by decreasing weight for instant lookup O(1)
             foreach (var list in adjacency.Values)
                 list.Sort((a, b) => b.Weight.CompareTo(a.Weight));
 
             // =========================================================================
-            // PASSO 3: Ordinamento greedy per contiguità di affinità (Nearest Neighbor / TSP euristico)
-            // L'obiettivo è posizionare moduli che interagiscono frequentemente in slot angolari
-            // adiacenti lungo la circonferenza, riducendo drasticamente i cavi che attraversano il centro.
+            // STEP 3: Greedy sorting by affinity contiguity (Nearest Neighbor / TSP heuristic)
+            // The goal is to place frequently interacting modules in corner slots
+            // adjacent along the circumference, drastically reducing the cables that pass through the center.
             // =========================================================================
             var unvisited = new HashSet<Guid>(containers.Select(c => c.Id));
             var orderedContainers = new List<GraphNode>();
@@ -136,7 +136,7 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
                 unvisited.Remove(currentId);
                 orderedContainers.Add(containerById[currentId]);
 
-                // Percorre la catena collegando di volta in volta il vicino non visitato con la massima affinità tramite lista di adiacenza
+                // It runs through the chain connecting each time the unvisited neighbor with the highest affinity via the adjacency list
                 while (unvisited.Count > 0)
                 {
                     Guid? bestNeighbor = null;
@@ -152,7 +152,7 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
                         }
                     }
 
-                    // Se nessun nodo rimasto ha affinità diretta con il nodo corrente, interrompe il sotto-cammino
+                    // If no remaining node has direct affinity with the current node, it stops the sub-path
                     if (bestNeighbor == null)
                         break;
 
@@ -163,7 +163,7 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
             }
 
             // =========================================================================
-            // PASSO 4: Posizionamento geometrico circolare con la sequenza ottimizzata
+            // STEP 4: Circular geometric positioning with the optimized sequence
             // =========================================================================
             var containerCount = orderedContainers.Count;
             var containerRingRadius = Math.Max(380.0, containerCount * 35.0);
@@ -175,7 +175,7 @@ public sealed class AffinityRadialLayoutEngine : IGraphLayoutEngine
                 container.X = project.X + Math.Cos(angle) * containerRingRadius;
                 container.Y = project.Y + Math.Sin(angle) * containerRingRadius;
 
-                // Dispone i membri figli (routine, proprietà, campi) su orbite satellitari attorno al container
+                // Arranges child members (routines, properties, fields) on satellite orbits around the container
                 var members = graph.GetChildren(container.Id).ToList();
                 var memberCount = Math.Max(members.Count, 1);
                 var memberRingRadius = Math.Max(85.0, memberCount * 14.0);

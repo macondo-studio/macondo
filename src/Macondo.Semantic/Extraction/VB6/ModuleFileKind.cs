@@ -3,23 +3,23 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Helper per determinare la categoria di modulo (<see cref="SymbolKind"/>)
-/// a partire dall'estensione del file sorgente VB6.
+/// Helper for determining the module category (<see cref="SymbolKind"/>)
+/// starting from the source file extension VB6.
 /// 
-/// MAPPATURA:
-/// - .cls -> <see cref="SymbolKind.Class"/> (Classe VB6)
-/// - .frm -> <see cref="SymbolKind.Form"/> (Form / Finestra utente VB6)
-/// - .bas -> <see cref="SymbolKind.Module"/> (Modulo di codice standard VB6)
-/// - .ctl -> <see cref="SymbolKind.UserControl"/> (Controllo utente ActiveX VB6)
+/// MAPPING:
+/// - .cls -> <see cref="SymbolKind.Class"/> (Class VB6)
+/// - .frm -> <see cref="SymbolKind.Form"/> (VB6 User Form/Window)
+/// - .bas -> <see cref="SymbolKind.Module"/> (VB6 Standard Code Module)
+/// - .ctl -> <see cref="SymbolKind.UserControl"/> (VB6 ActiveX User Control)
 /// </summary>
 public static class ModuleFileKind
 {
     /// <summary>
-    /// Restituisce il <see cref="SymbolKind"/> corrispondente all'estensione del file specificato.
+    /// Returns the <see cref="SymbolKind"/> corresponding to the specified file extension.
     /// </summary>
-    /// <param name="filePath">Percorso o nome del file da analizzare.</param>
-    /// <returns>Il <see cref="SymbolKind"/> associato.</returns>
-    /// <exception cref="NotSupportedException">Lanciata se l'estensione del file non è tra quelle supportate.</exception>
+    /// <param name="filePath">Path or name of the file to analyze.</param>
+    /// <returns>The associated <see cref="SymbolKind"/>.</returns>
+    /// <exception cref="NotSupportedException">Launched if the file extension is not among those supported.</exception>
     public static SymbolKind FromExtension(string filePath)
     {
         var ext = Path.GetExtension(filePath).ToLowerInvariant();

@@ -10,8 +10,8 @@ namespace Macondo.Tests.CSharpSpecific;
 public class CSharpMultiFileAndCrossProjectTests
 {
     /// <summary>
-    /// Verifica che CallGraphBuilder risolva correttamente le relazioni di chiamata CALLS tra routine
-    /// definite in file sorgente C# (.cs) distinti all'interno dello stesso grafo semantico.
+    /// Verify that CallGraphBuilder correctly resolves CALLS call relationships between procedures
+    /// defined in separate C# source (.cs) files within the same semantic graph.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldResolveCallsAcrossMultipleCSharpFiles()
@@ -64,8 +64,8 @@ public class CSharpMultiFileAndCrossProjectTests
     }
 
     /// <summary>
-    /// Verifica che le gerarchie di tipi (classi base astratte e interfacce) definite su file sorgente
-    /// separati vengano collegate correttamente con relazioni INHERITS e IMPLEMENTS.
+    /// Verifies that type hierarchies (abstract base classes and interfaces) are defined on source files
+    /// separate are connected correctly with INHERITS and IMPLEMENTS relationships.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldResolveInheritanceAcrossMultipleFiles()
@@ -133,8 +133,8 @@ public class CSharpMultiFileAndCrossProjectTests
     }
 
     /// <summary>
-    /// Verifica che l'algoritmo di Impact Analysis calcoli l'effetto a catena (Blast Radius) propagandosi
-    /// attraverso livelli applicativi distinti distribuiti su file separati (Controller -> Service -> Repository).
+    /// Verify that the Impact Analysis algorithm calculates the ripple effect (Blast Radius) propagating
+    /// through distinct application layers distributed on separate files (Controller -> Service -> Repository).
     /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldCalculateBlastRadiusAcrossMultipleCSharpFiles()

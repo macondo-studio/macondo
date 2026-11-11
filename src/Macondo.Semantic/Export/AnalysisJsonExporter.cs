@@ -18,7 +18,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Export;
 
 /// <summary>
-/// DTO completo del report di audit per l'esportazione in formato JSON strutturato.
+/// Full audit report DTO for export in structured JSON format.
 /// </summary>
 public sealed class AuditReportDto
 {
@@ -109,7 +109,7 @@ public sealed class DsmMatrixDto
 }
 
 /// <summary>
-/// Esportatore JSON per i dataset di analisi e per il report di audit aggregato.
+/// JSON exporter for analytics datasets and aggregate audit report.
 /// </summary>
 public static class AnalysisJsonExporter
 {
@@ -130,7 +130,7 @@ public static class AnalysisJsonExporter
     };
 
     /// <summary>
-    /// Serializza un qualsiasi oggetto o dataset di analisi in stringa JSON.
+    /// Serialize any object or analytics dataset into JSON string.
     /// </summary>
     public static string ExportToJson<T>(T data, bool indented = true)
     {
@@ -142,7 +142,7 @@ public static class AnalysisJsonExporter
     }
 
     /// <summary>
-    /// Serializza la matrice DSM convertendola in un DTO privo di array multidimensionali non supportati.
+    /// Serializes the DSM array by converting it to a DTO without unsupported multidimensional arrays.
     /// </summary>
     public static string ExportDsmToJson(DsmMatrix dsm, bool indented = true)
     {
@@ -151,7 +151,7 @@ public static class AnalysisJsonExporter
     }
 
     /// <summary>
-    /// Costruisce e serializza il report di audit completo aggregato in JSON.
+    /// Builds and serializes the aggregated full audit report into JSON.
     /// </summary>
     public static string ExportAuditReportToJson(
         CodeGraph graph,

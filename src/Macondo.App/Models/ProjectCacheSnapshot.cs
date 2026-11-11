@@ -6,51 +6,51 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Snapshot completo del progetto analizzato salvato nella cache locale (%APPDATA%\Macondo\cache\).
-/// Permette l'avvio a freddo istantaneo (sub-50ms) ripristinando il CodeGraph semantico,
-/// il layout geometrico del grafo visuale e l'intera matrice del Blast Radius.
+/// Complete snapshot of the analyzed project saved in the local cache (%APPDATA%\Macondo\cache\).
+/// Allows instant cold start (sub-50ms) by restoring the semantic CodeGraph,
+/// the geometric layout of the visual graph and the entire Blast Radius matrix.
 /// </summary>
 public sealed class ProjectCacheSnapshot
 {
-    /// <summary>Versione dello schema dello snapshot per invalidazione in caso di evoluzione del modello.</summary>
+    /// <summary>Snapshot schema version for invalidation in case of model evolution.</summary>
     public int SchemaVersion { get; set; } = 1;
 
-    /// <summary>Percorso assoluto della cartella analizzata.</summary>
+    /// <summary>Absolute path of the analyzed folder.</summary>
     public string FolderPath { get; set; } = string.Empty;
 
-    /// <summary>Nome visualizzato del progetto.</summary>
+    /// <summary>Project display name.</summary>
     public string ProjectName { get; set; } = string.Empty;
 
-    /// <summary>Data e ora UTC di creazione dell'analisi.</summary>
+    /// <summary>UTC date and time the analysis was created.</summary>
     public DateTime AnalyzedAtUtc { get; set; } = DateTime.UtcNow;
 
-    /// <summary>Timestamp UTC del file sorgente VB6 modificato più di recente al momento dell'analisi.</summary>
+    /// <summary>UTC timestamp of the most recently modified VB6 source file at the time of analysis.</summary>
     public DateTime LastFileWriteTimeUtc { get; set; }
 
-    /// <summary>Numero complessivo di file sorgente VB6 (.cls, .bas, .frm, .ctl) inclusi.</summary>
+    /// <summary>Total number of VB6 source files (.cls, .bas, .frm, .ctl) included.</summary>
     public int FileCount { get; set; }
 
-    /// <summary>Elenco completo dei simboli semantici estratti dal CodeGraph.</summary>
+    /// <summary>Complete list of semantic symbols extracted from CodeGraph.</summary>
     public List<Symbol> Symbols { get; set; } = new();
 
-    /// <summary>Elenco completo delle relazioni semantiche tra i simboli.</summary>
+    /// <summary>Complete list of semantic relationships between symbols.</summary>
     public List<Relationship> Relationships { get; set; } = new();
 
-    /// <summary>Coordinate geometriche (X, Y) e stato di espansione per ogni nodo del grafo visuale.</summary>
+    /// <summary>Geometric coordinates (X, Y) and expansion state for each node of the visual graph.</summary>
     public List<NodeLayoutSnapshot> LayoutNodes { get; set; } = new();
 
-    /// <summary>Indica se l'utente ha personalizzato manualmente la posizione dei nodi con il mouse.</summary>
+    /// <summary>Indicates whether the user has manually customized the position of the nodes with the mouse.</summary>
     public bool HasCustomUserLayout { get; set; }
 
-    /// <summary>Righe precalcolate per la tabella del Blast Radius.</summary>
+    /// <summary>Precomputed rows for the Blast Radius table.</summary>
     public List<BlastRadiusRowSnapshot> BlastRadiusRows { get; set; } = new();
 
-    /// <summary>Identificatori delle schede di analisi avviate o abilitate dall'utente per questo progetto.</summary>
+    /// <summary>Identifiers of analysis cards started or enabled by the user for this project.</summary>
     public List<string> EnabledAnalyticsTabs { get; set; } = new();
 }
 
 /// <summary>
-/// Snapshot delle coordinate di rendering e stato per un singolo nodo del grafo visuale.
+/// Snapshot of rendering coordinates and state for a single visual graph node.
 /// </summary>
 public sealed class NodeLayoutSnapshot
 {
@@ -61,7 +61,7 @@ public sealed class NodeLayoutSnapshot
 }
 
 /// <summary>
-/// Snapshot serializzabile di una riga della tabella Blast Radius.
+/// Serializable snapshot of a Blast Radius table row.
 /// </summary>
 public sealed class BlastRadiusRowSnapshot
 {

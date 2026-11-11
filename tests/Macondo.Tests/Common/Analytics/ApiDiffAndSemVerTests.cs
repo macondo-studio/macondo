@@ -8,7 +8,7 @@ namespace Macondo.Tests.Common.Analytics;
 public class ApiDiffAndSemVerTests
 {
     /// <summary>
-    /// Verifica che la rimozione di un metodo pubblico venga classificata come Major / Breaking Change.
+    /// Verify that removing a public method is classified as a Major / Breaking Change.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectBreakingChange_WhenPublicMethodIsRemoved()
@@ -28,7 +28,7 @@ public class ApiDiffAndSemVerTests
         };
         oldGraph.Symbols.Add(publicMethodOld);
 
-        // Nel newGraph il metodo pubblico è stato rimosso
+        // In newGraph the public method has been removed
 
         // Act
         var report = ApiDiffAnalyzer.Compare(oldGraph, newGraph);
@@ -41,7 +41,7 @@ public class ApiDiffAndSemVerTests
     }
 
     /// <summary>
-    /// Verifica che l'aggiunta di una nuova interfaccia/metodo pubblico venga classificata come Minor.
+    /// Verify that adding a new public interface/method is classified as Minor.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectMinorAddition_WhenNewPublicApiIsAdded()
@@ -72,8 +72,8 @@ public class ApiDiffAndSemVerTests
     }
 
     /// <summary>
-    /// Regression Test: Verifica che la presenza di sovraccarichi (overloads) di metodi o costruttori
-    /// con lo stesso identico QualifiedName non sollevi System.ArgumentException su chiavi duplicate.
+    /// Regression Test: Verifies the presence of overloads of methods or constructors
+    /// with the exact same QualifiedName you don't raise System.ArgumentException on duplicate keys.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldHandle_OverloadedMethodsAndConstructors_WithoutThrowing()
@@ -82,7 +82,7 @@ public class ApiDiffAndSemVerTests
         var oldGraph = new CodeGraph();
         var newGraph = new CodeGraph();
 
-        // 1. Costruttore senza argomenti
+        // 1. Constructor without arguments
         var ctorParameterless = new Symbol
         {
             Id = Guid.NewGuid(),
@@ -93,7 +93,7 @@ public class ApiDiffAndSemVerTests
             Accessibility = Accessibility.Public
         };
 
-        // 2. Costruttore sovraccaricato con argomento int
+        // 2. Constructor overloaded with int argument
         var ctorWithInt = new Symbol
         {
             Id = Guid.NewGuid(),
@@ -105,7 +105,7 @@ public class ApiDiffAndSemVerTests
         };
         ctorWithInt.Parameters.Add(new ParameterSymbol { Name = "capacity", DeclaredTypeName = "int" });
 
-        // 3. Metodo sovraccaricato 1: Add(TItem)
+        // 3. Overloaded Method 1: Add(TItem)
         var methodAdd1 = new Symbol
         {
             Id = Guid.NewGuid(),
@@ -117,7 +117,7 @@ public class ApiDiffAndSemVerTests
         };
         methodAdd1.Parameters.Add(new ParameterSymbol { Name = "item", DeclaredTypeName = "TItem" });
 
-        // 4. Metodo sovraccaricato 2: Add(TKey, TItem)
+        // 4. Overloaded Method 2: Add(TKey, TItem)
         var methodAdd2 = new Symbol
         {
             Id = Guid.NewGuid(),
@@ -130,11 +130,11 @@ public class ApiDiffAndSemVerTests
         methodAdd2.Parameters.Add(new ParameterSymbol { Name = "key", DeclaredTypeName = "TKey" });
         methodAdd2.Parameters.Add(new ParameterSymbol { Name = "item", DeclaredTypeName = "TItem" });
 
-        // Popola sia baseline che current con tutti i sovraccarichi
+        // Populates both baseline and current with all overloads
         oldGraph.Symbols.AddRange(new[] { ctorParameterless, ctorWithInt, methodAdd1, methodAdd2 });
         newGraph.Symbols.AddRange(new[] { ctorParameterless, ctorWithInt, methodAdd1, methodAdd2 });
 
-        // Act & Assert (non deve lanciare eccezioni e deve rilevare 0 differenze per grafi identici)
+        // Act & Assert (must not throw exceptions and must detect 0 differences for identical graphs)
         var act = () => ApiDiffAnalyzer.Compare(oldGraph, newGraph);
         act.Should().NotThrow<System.ArgumentException>();
 
@@ -146,7 +146,7 @@ public class ApiDiffAndSemVerTests
     }
 
     /// <summary>
-    /// Verifica che la rimozione di un singolo overload specifico su tre sia identificata come Breaking Change.
+    /// Verify that the removal of a single specific overload out of three is identified as a Breaking Change.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectBreakingChange_WhenSingleOverloadIsRemoved()
@@ -176,10 +176,10 @@ public class ApiDiffAndSemVerTests
         };
         overload2.Parameters.Add(new ParameterSymbol { Name = "context", DeclaredTypeName = "RenderContext" });
 
-        // Baseline ha entrambi gli overload
+        // Baseline has both overloads
         oldGraph.Symbols.AddRange(new[] { overload1, overload2 });
 
-        // Nuova versione mantiene solo overload1; overload2 è stato rimosso
+        // New version only keeps overload1; overload2 has been removed
         newGraph.Symbols.Add(overload1);
 
         // Act
@@ -193,7 +193,7 @@ public class ApiDiffAndSemVerTests
     }
 
     /// <summary>
-    /// Verifica che l'aggiunta di un nuovo overload sia classificata come Minor Feature retrocompatibile.
+    /// Verify that adding a new overload is classified as a backwards compatible Minor Feature.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectMinorAddition_WhenNewOverloadIsAdded()
@@ -240,8 +240,8 @@ public class ApiDiffAndSemVerTests
     }
 
     /// <summary>
-    /// Verifica che simboli duplicati nello stesso grafo (es. classi parziali o definizioni multiple)
-    /// vengano gestiti in modo resiliente senza duplicare errori o lanciare eccezioni.
+    /// Check for duplicate symbols in the same graph (e.g. partial classes or multiple definitions)
+    /// are handled resiliently without duplicating errors or throwing exceptions.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldHandle_DuplicateIdenticalSymbols_Resiliently()
@@ -283,7 +283,7 @@ public class ApiDiffAndSemVerTests
     }
 
     /// <summary>
-    /// Verifica il comportamento delle proprietà VB6 con Property Get e Property Let con medesimo QualifiedName.
+    /// Check the behavior of VB6 properties with Property Get and Property Let with the same QualifiedName.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldHandle_VB6PropertyAccessors_WithSameQualifiedName()
@@ -326,7 +326,7 @@ public class ApiDiffAndSemVerTests
     }
 
     /// <summary>
-    /// Verifica che la modifica del tipo di ritorno di un metodo pubblico venga identificata come Breaking Change.
+    /// Verifies that changing the return type of a public method is identified as a Breaking Change.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectBreakingChange_WhenMethodReturnTypeChanges()
@@ -369,7 +369,7 @@ public class ApiDiffAndSemVerTests
     }
 
     /// <summary>
-    /// Verifica che la modifica del tipo di un parametro di un metodo pubblico venga identificata come Breaking Change.
+    /// Verifies that changing the type of a public method parameter is identified as a Breaking Change.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectBreakingChange_WhenParameterTypeChanges()
@@ -413,7 +413,7 @@ public class ApiDiffAndSemVerTests
     }
 
     /// <summary>
-    /// Verifica che la modifica del tipo di simbolo (es. da Class a Interface) venga identificata come Breaking Change.
+    /// Verify that the symbol type change (e.g. from Class to Interface) is identified as a Breaking Change.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectBreakingChange_WhenSymbolKindChanges()

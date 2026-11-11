@@ -54,7 +54,7 @@ public partial class InfoWindow : Window
     }
 
     // =========================================================================
-    // Navigazione Sidebar
+    // Sidebar navigation
     // =========================================================================
 
     private int _currentTabIndex = 0;

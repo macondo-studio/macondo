@@ -9,8 +9,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class MartinMetricsTests
 {
     /// <summary>
-    /// Verifica il calcolo del dataset delle metriche di Robert C. Martin sull'intero set di fixture di progetto,
-    /// accertando che tutti i componenti container vengano analizzati e che le distanze normalizzate siano coerenti [0..1].
+    /// Verify the calculation of the Robert C. Martin metrics dataset on the entire set of project fixtures,
+    /// ensuring that all container components are analyzed and that normalized distances are consistent [0..1].
     /// </summary>
     [Fact]
     public void MartinMetrics_ShouldCalculateMetricsForFixtures_AndProduceValidDataset()
@@ -37,13 +37,13 @@ public class MartinMetricsTests
     }
 
     /// <summary>
-    /// Verifica che un componente puramente concreto (A = 0.0) verso cui convergono molteplici moduli esterni
-    /// (Ca elevato, Ce = 0 => I = 0.0) venga classificato correttamente nella "Zone of Pain" (Zona di Sofferenza).
+    /// Verifies that a purely concrete component (A = 0.0) towards which multiple external modules converge
+    /// (elevated Ca, Ce = 0 => I = 0.0) is correctly classified in the "Zone of Pain".
     /// </summary>
     [Fact]
     public void MartinMetrics_ShouldIdentifyZoneOfPain_ForConcreteHighlyCoupledModule()
     {
-        // Arrange: Modulo concreto GodObject con 5 chiamanti esterni e 0 dipendenze in uscita
+        // Arrange: GodObject concrete module with 5 external callers and 0 outgoing dependencies
         var graph = new CodeGraph();
 
         var godModule = new Symbol { Id = Guid.NewGuid(), Name = "GodModule", QualifiedName = "GodModule", FilePath = "GodModule.bas", Kind = SymbolKind.Module, LineStart = 1, LineEnd = 500 };
@@ -74,13 +74,13 @@ public class MartinMetricsTests
     }
 
     /// <summary>
-    /// Verifica che un'interfaccia puramente astratta (A = 1.0) orfana da cui nessuno dipende
-    /// (Ca = 0, Ce > 0 => I = 1.0) venga classificata nella "Zone of Uselessness" (Zona di Inutilità).
+    /// Verify that an orphaned purely abstract interface (A = 1.0) that no one depends on
+    /// (Ca = 0, Ce > 0 => I = 1.0) is classified in the "Zone of Uselessness".
     /// </summary>
     [Fact]
     public void MartinMetrics_ShouldIdentifyZoneOfUselessness_ForAbstractUncoupledInterface()
     {
-        // Arrange: Interfaccia astratta che non ha implementatori né utilizzatori, ma dipende da un altro tipo
+        // Arrange: Abstract interface that has no implementers or users, but depends on another type
         var graph = new CodeGraph();
 
         var orphanInterface = new Symbol { Id = Guid.NewGuid(), Name = "IOrphanService", QualifiedName = "IOrphanService", FilePath = "IOrphanService.cls", Kind = SymbolKind.Interface, LineStart = 1, LineEnd = 40 };
@@ -88,7 +88,7 @@ public class MartinMetricsTests
 
         graph.Symbols.AddRange(new[] { orphanInterface, otherModule });
 
-        // orphanInterface dipende da otherModule tramite UsesType
+        // orphanInterface depends on otherModule via UsesType
         graph.AddUsesType(orphanInterface, otherModule);
 
         // Act
@@ -105,13 +105,13 @@ public class MartinMetricsTests
     }
 
     /// <summary>
-    /// Verifica che un componente ben bilanciato situato vicino alla retta A + I = 1
-    /// venga categorizzato in MainSequence o Balanced.
+    /// Verify that a well-balanced component located close to the line A + I = 1
+    /// is categorized into MainSequence or Balanced.
     /// </summary>
     [Fact]
     public void MartinMetrics_ShouldIdentifyMainSequence_ForBalancedComponents()
     {
-        // Arrange: Modulo concreto che dipende da 2 moduli e viene chiamato da 2 moduli (I = 0.5, A = 0.0 => D = 0.5)
+        // Arrange: Concrete module that depends on 2 modules and is called by 2 modules (I = 0.5, A = 0.0 => D = 0.5)
         var graph = new CodeGraph();
 
         var coreMod = new Symbol { Id = Guid.NewGuid(), Name = "CoreService", QualifiedName = "CoreService", FilePath = "CoreService.bas", Kind = SymbolKind.Module };

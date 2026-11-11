@@ -3,7 +3,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.DataFlow;
 
 /// <summary>
-/// Tipologia di sorgente di dati non controllati / esterni (Taint Source).
+/// Type of uncontrolled / external data source (Taint Source).
 /// </summary>
 public enum TaintSourceKind
 {
@@ -16,7 +16,7 @@ public enum TaintSourceKind
 }
 
 /// <summary>
-/// Tipologia di punto critico di esecuzione / consumo dati (Taint Sink).
+/// Type of critical execution/data consumption point (Taint Sink).
 /// </summary>
 public enum TaintSinkKind
 {
@@ -29,7 +29,7 @@ public enum TaintSinkKind
 }
 
 /// <summary>
-/// Definizione di un pattern di rilevamento per sorgenti o sink di flusso dati.
+/// Defining a detection pattern for data flow sources or sinks.
 /// </summary>
 public sealed class TaintPattern
 {
@@ -56,7 +56,7 @@ public sealed class TaintPattern
 }
 
 /// <summary>
-/// Percorso di propagazione del dato non controllato dalla sorgente al punto critico (Source-to-Sink Path).
+/// Uncontrolled data propagation path from the source to the critical point (Source-to-Sink Path).
 /// </summary>
 public sealed class TaintPath
 {
@@ -65,18 +65,18 @@ public sealed class TaintPath
     public Symbol SinkSymbol { get; init; } = null!;
     public TaintSinkKind SinkKind { get; init; }
 
-    /// <summary>Catena ordinata di invocazioni o letture/scritture che connettono la sorgente al sink.</summary>
+    /// <summary>Ordered chain of invocations or reads/writes that connect the source to the sink.</summary>
     public List<Symbol> PropagationChain { get; init; } = new();
 
-    /// <summary>Lunghezza del percorso di propagazione.</summary>
+    /// <summary>Length of the propagation path.</summary>
     public int HopCount => Math.Max(0, PropagationChain.Count - 1);
 
-    /// <summary>Descrizione del rischio di sicurezza o integrità.</summary>
+    /// <summary>Description of the security or integrity risk.</summary>
     public string Description => $"Unsanitized flow from [{SourceKind}] '{SourceSymbol.Name}' to [{SinkKind}] '{SinkSymbol.Name}' ({HopCount} hops).";
 }
 
 /// <summary>
-/// Rilevamento di anomalie Def-Use (es. variabile scritta ma mai letta -> Dead Store).
+/// Detection of Def-Use anomalies (e.g. variable written but never read -> Dead Store).
 /// </summary>
 public sealed class DefUseAnomaly
 {
@@ -87,7 +87,7 @@ public sealed class DefUseAnomaly
 }
 
 /// <summary>
-/// Dataset complessivo dell'analisi di Data Flow e Taint Tracking.
+/// Overall dataset of Data Flow and Taint Tracking analysis.
 /// </summary>
 public sealed class DataFlowDataset
 {

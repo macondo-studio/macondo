@@ -3,16 +3,16 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Rappresenta un'istanziazione di tipo oggetto (es. 'new Customer(...)', 'new ArrayList<>()') rilevata nel codice Java.
+/// Represents an object-type instantiation (e.g. 'new Customer(...)', 'new ArrayList<>()') found in Java code.
 /// </summary>
 public sealed class JavaInstantiation
 {
-    /// <summary>Simbolo sorgente in cui avviene l'istanziazione (metodo, costruttore, oppure tipo contenitore per inizializzatori inline di campo).</summary>
+    /// <summary>Source symbol where the instantiation occurs (method, constructor, or container type for inline field initializers).</summary>
     public required Symbol SourceSymbol { get; init; }
 
-    /// <summary>Nome semplice o qualificato del tipo istanziato (es. "CustomerService", "ArrayList", "HashMap").</summary>
+    /// <summary>Simple or qualified name of the instantiated type (e.g. "CustomerService", "ArrayList", "HashMap").</summary>
     public required string TargetTypeName { get; init; }
 
-    /// <summary>Numero di riga nel file sorgente Java in cui avviene l'istanziazione (1-indexed).</summary>
+    /// <summary>Line number in the Java source file where the instantiation occurs (1-indexed).</summary>
     public int Line { get; init; }
 }

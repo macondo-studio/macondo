@@ -16,7 +16,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Views;
 
 /// <summary>
-/// Controllo visuale per la scheda tabellare dei risultati del Blast Radius e matrice di rischio dell'intero progetto.
+/// Visual control for the Blast Radius results tabular sheet and risk matrix of the entire project.
 /// </summary>
 public partial class BlastRadiusGridView : UserControl
 {
@@ -29,27 +29,27 @@ public partial class BlastRadiusGridView : UserControl
     private Task? _ongoingPopulateTask;
 
     /// <summary>
-    /// Evento scatenato quando una riga della griglia viene selezionata.
+    /// Event triggered when a grid row is selected.
     /// </summary>
     public event EventHandler<BlastRadiusGridRow>? RowSelected;
 
     /// <summary>
-    /// Evento scatenato quando l'utente richiede di navigare e visualizzare il nodo nel canvas del grafo (doppio clic o pulsante azione).
+    /// Event triggered when the user requests to navigate and view the node in the graph canvas (double click or action button).
     /// </summary>
     public event EventHandler<Guid>? NavigateToNodeRequested;
 
     /// <summary>
-    /// Evento scatenato quando l'utente richiede di ricalcolare l'audit completo.
+    /// Event triggered when the user requests to recalculate the full audit.
     /// </summary>
     public event EventHandler? RecalculateAuditRequested;
 
     /// <summary>
-    /// Evento scatenato per segnalare un messaggio di stato verso la barra principale.
+    /// Event triggered to report a status message to the main bar.
     /// </summary>
     public event EventHandler<string>? StatusReported;
 
     /// <summary>
-    /// Ottiene o imposta l'elenco completo delle righe calcolate.
+    /// Gets or sets the complete list of calculated rows.
     /// </summary>
     public List<BlastRadiusGridRow> AllRows
     {
@@ -62,7 +62,7 @@ public partial class BlastRadiusGridView : UserControl
     }
 
     /// <summary>
-    /// Inizializza una nuova istanza di <see cref="BlastRadiusGridView"/>.
+    /// Initializes a new instance of <see cref="BlastRadiusGridView"/>.
     /// </summary>
     public BlastRadiusGridView()
     {
@@ -74,7 +74,7 @@ public partial class BlastRadiusGridView : UserControl
     }
 
     /// <summary>
-    /// Applica i filtri sui progetti nascosti / visibili.
+    /// Apply filters on hidden/visible projects.
     /// </summary>
     public void SetHiddenProjects(IEnumerable<Guid>? hiddenProjectIds)
     {
@@ -83,7 +83,7 @@ public partial class BlastRadiusGridView : UserControl
     }
 
     /// <summary>
-    /// Sincronizza la riga attiva nella griglia in corrispondenza del nodo selezionato nel grafo.
+    /// Synchronizes the active row in the grid to the selected node in the graph.
     /// </summary>
     public void SelectNode(Guid nodeId)
     {
@@ -108,7 +108,7 @@ public partial class BlastRadiusGridView : UserControl
     }
 
     /// <summary>
-    /// Pulisce i dati della tabella e reimposta i contatori.
+    /// Cleans table data and resets counters.
     /// </summary>
     public void Clear()
     {
@@ -120,8 +120,8 @@ public partial class BlastRadiusGridView : UserControl
     }
 
     /// <summary>
-    /// Calcola in background l'impatto semantico e il Blast Radius per tutte le routine del workspace (metodi e proprietà),
-    /// popolando la griglia tabellare con conteggi chiamanti, profondità, form coinvolte e livello di rischio.
+    /// Calculates the semantic impact and Blast Radius for all workspace routines (methods and properties) in the background,
+    /// populating the table grid with caller counts, depth, forms involved and risk level.
     /// </summary>
     public async Task PopulateBlastRadiusGridAsync(VisualCodeGraph? graph, string? currentFolderPath, bool hasUserMovedNodes)
     {
@@ -170,7 +170,7 @@ public partial class BlastRadiusGridView : UserControl
         var queries = graph.Queries;
         if (queries == null) return;
 
-        // Raccogliamo tutti i nodi di tipo routine (Method e Property)
+        // We collect all the routine type nodes (Method and Property)
         var routineNodes = graph.Nodes
             .Where(n => n.SemanticSymbol is not null &&
                         (n.SemanticSymbol.Kind == SymbolKind.Method || n.SemanticSymbol.Kind == SymbolKind.Property))
@@ -185,7 +185,7 @@ public partial class BlastRadiusGridView : UserControl
             return;
         }
 
-        // Mostra e configura la barra di avanzamento del calcolo
+        // Show and configure the calculation progress bar
         if (GridLoadingProgressBar != null)
         {
             GridLoadingProgressBar.Minimum = 0;
@@ -242,7 +242,7 @@ public partial class BlastRadiusGridView : UserControl
 
                     processedCount++;
 
-                    // Notifica periodica dell'avanzamento sulla UI
+                    // Periodic notification of progress on the UI
                     var now = DateTime.UtcNow;
                     if (processedCount % 25 == 0 || (now - lastReportTime).TotalMilliseconds >= 100 || processedCount == totalCount)
                     {
@@ -261,7 +261,7 @@ public partial class BlastRadiusGridView : UserControl
                     }
                 }
 
-                // Ordinamento predefinito: Rischio decrescente (Critical -> High -> Medium -> Low), poi Impatto Totale decrescente
+                // Default sorting: Risk decreasing (Critical -> High -> Medium -> Low), then Total Impact decreasing
                 return result
                     .OrderByDescending(r => r.RiskLevel)
                     .ThenByDescending(r => r.TotalImpactedCount)
@@ -271,7 +271,7 @@ public partial class BlastRadiusGridView : UserControl
             _allBlastRadiusRows = rows;
             ApplyGridFilters();
 
-            // Salva in background nella cache persistente se stiamo analizzando una cartella su disco
+            // Save in the background to the persistent cache if we are analyzing a folder on disk
             if (!string.IsNullOrEmpty(_currentFolderPath) && _currentGraph != null)
 
                 _ = ProjectCacheService.Instance.SaveSnapshotAsync(_currentFolderPath, _currentGraph, _allBlastRadiusRows, _hasUserMovedNodes);
@@ -289,7 +289,7 @@ public partial class BlastRadiusGridView : UserControl
     }
 
     /// <summary>
-    /// Applica i criteri di filtro correnti alla lista completa delle righe.
+    /// Applies the current filter criteria to the complete list of rows.
     /// </summary>
     public void ApplyGridFilters()
     {
@@ -334,7 +334,7 @@ public partial class BlastRadiusGridView : UserControl
     }
 
     /// <summary>
-    /// Aggiorna i testi localizzati della toolbar, dei filtri e delle intestazioni di colonna della griglia.
+    /// Update localized text in the grid's toolbar, filters, and column headers.
     /// </summary>
     public void UpdateLocalizedUI()
     {
@@ -369,7 +369,7 @@ public partial class BlastRadiusGridView : UserControl
     }
 
     /// <summary>
-    /// Applica i colori di sfondo e bordo del tema corrente alla griglia e alla toolbar.
+    /// Applies the current theme's background and border colors to the grid and toolbar.
     /// </summary>
     public void ApplyTheme(ThemeDefinition theme)
     {

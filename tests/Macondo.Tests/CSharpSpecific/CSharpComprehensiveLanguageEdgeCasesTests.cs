@@ -10,8 +10,8 @@ public class CSharpComprehensiveLanguageEdgeCasesTests
     #region Primary Constructors with Base Invocations
 
     /// <summary>
-    /// Verifica l'estrazione di classi con costruttore primario (Primary Constructor)
-    /// che invoca il costruttore della classe base derivata.
+    /// Test class extraction with Primary Constructor
+    /// which invokes the constructor of the derived base class.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractPrimaryConstructors_WithBaseClassInvocations()
@@ -59,8 +59,8 @@ public class CSharpComprehensiveLanguageEdgeCasesTests
     #region Records, Record Structs and With-Expressions
 
     /// <summary>
-    /// Verifica l'estrazione di record class, record struct, readonly record struct
-    /// e costrutti di mutazione non distruttiva con espressione 'with'.
+    /// Check extraction of record class, record struct, readonly record struct
+    /// and nondestructive mutation constructs with 'with' expression.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractRecordsAndRecordStructs()
@@ -104,7 +104,7 @@ public class CSharpComprehensiveLanguageEdgeCasesTests
     #region Collection Expressions and Spread Operator (C# 12+)
 
     /// <summary>
-    /// Verifica il parsing di espressioni di collezione ('[1, 2, 3]') e spread operator ('[..first, ..second]').
+    /// Tests parsing of collection expressions ('[1, 2, 3]') and spread operators ('[..first, ..second]').
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldHandleCollectionExpressionsAndSpreadOperators()
@@ -145,7 +145,7 @@ public class CSharpComprehensiveLanguageEdgeCasesTests
     #region Async Streams and IAsyncEnumerable
 
     /// <summary>
-    /// Verifica l'estrazione di metodi che restituiscono flussi asincroni (IAsyncEnumerable) con 'yield return' e 'await foreach'.
+    /// Test extraction of methods that return asynchronous streams (IAsyncEnumerable) with 'yield return' and 'await foreach'.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractAsyncStreamsAndYieldReturn()
@@ -206,7 +206,7 @@ public class CSharpComprehensiveLanguageEdgeCasesTests
     #region Attributes with Arguments and Custom Targets
 
     /// <summary>
-    /// Verifica l'estrazione di classi e metodi decorati con attributi provvisti di argomenti posizionali e nominati.
+    /// Tests the extraction of classes and methods decorated with attributes that have positional and named arguments.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldHandleAttributesWithNamedArguments()

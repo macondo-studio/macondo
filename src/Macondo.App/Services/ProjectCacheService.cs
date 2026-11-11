@@ -15,9 +15,9 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Services;
 
 /// <summary>
-/// Servizio ad alte prestazioni per il caching persistente dei progetti VB6 analizzati (%APPDATA%\Macondo\cache\).
-/// Fornisce avvio istantaneo da disco, rilevamento dello stato di staleness rispetto ai file sorgente
-/// e ricostruzione del grafo e della tabella Blast Radius.
+/// High-performance service for persistent caching of analyzed VB6 projects (%APPDATA%\Macondo\cache\).
+/// Provides instant boot from disk, staleness detection against source files
+/// and reconstruction of the Blast Radius graph and table.
 /// </summary>
 public sealed class ProjectCacheService
 {
@@ -46,7 +46,7 @@ public sealed class ProjectCacheService
     }
 
     /// <summary>
-    /// Normalizza un percorso di cartella o di file di progetto (.vbp, .csproj, .sln) restituendo il percorso assoluto della cartella di riferimento in minuscolo.
+    /// Normalizes a folder or project file path (.vbp, .csproj, .sln) by returning the absolute path of the referenced folder in lowercase.
     /// </summary>
     public static string NormalizeFolderOrFilePath(string path)
     {
@@ -64,7 +64,7 @@ public sealed class ProjectCacheService
     }
 
     /// <summary>
-    /// Percorso del file di cache associato a una determinata cartella o file di progetto.
+    /// Path to the cache file associated with a specific folder or project file.
     /// </summary>
     public string GetCacheFilePath(string folderOrFilePath)
     {
@@ -75,7 +75,7 @@ public sealed class ProjectCacheService
     }
 
     /// <summary>
-    /// Verifica se esiste una cache su disco per la cartella o file di progetto specificato.
+    /// Checks whether a disk cache exists for the specified folder or project file.
     /// </summary>
     public bool HasCache(string folderOrFilePath)
     {
@@ -91,11 +91,11 @@ public sealed class ProjectCacheService
     }
 
     /// <summary>
-    /// Tenta di caricare lo snapshot di cache per la cartella o file di progetto specificato.
-    /// Restituisce null se la cache non esiste o non è valida.
+    /// Attempts to load the cache snapshot for the specified project file or folder.
+    /// Returns null if the cache does not exist or is invalid.
     /// </summary>
-    /// <param name="folderOrFilePath">Percorso della cartella o file di progetto.</param>
-    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
+    /// <param name="folderOrFilePath">Path to the project folder or file.</param>
+    /// <param name="cancellationToken">Optional deletion token.</param>
     public async Task<ProjectCacheSnapshot?> TryLoadSnapshotAsync(string folderOrFilePath, CancellationToken cancellationToken = default)
     {
         try
@@ -123,33 +123,33 @@ public sealed class ProjectCacheService
         }
         catch
         {
-            // Tolleranza agli errori: se il file è corrotto o inaccessibile, fallback su null
+            // Fault tolerance: If the file is corrupt or inaccessible, fallback to null
             return null;
         }
     }
 
     /// <summary>
-    /// Ricostruisce il VisualCodeGraph (con semantic graph e queries attive) e le righe della tabella Blast Radius.
+    /// Rebuilds the VisualCodeGraph (with semantic graph and active queries) and the rows of the Blast Radius table.
     /// </summary>
-    /// <param name="snapshot">Snapshot di cache caricato.</param>
-    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
+    /// <param name="snapshot">Cache snapshot loaded.</param>
+    /// <param name="cancellationToken">Optional deletion token.</param>
     public (VisualCodeGraph Graph, List<BlastRadiusGridRow> Rows) RestoreGraphAndRows(ProjectCacheSnapshot snapshot, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 1. Ricostruzione del CodeGraph semantico
+        // 1. Reconstruction of the semantic CodeGraph
         var semanticGraph = new CodeGraph();
         semanticGraph.Symbols.AddRange(snapshot.Symbols);
         semanticGraph.Relationships.AddRange(snapshot.Relationships);
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 2. Creazione dell'adattatore visuale
+        // 2. Creating the visual adapter
         var visualGraph = GraphVisualAdapter.FromSemanticGraph(semanticGraph, snapshot.ProjectName);
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 3. Ripristino delle coordinate geometriche salvate
+        // 3. Restoration of saved geometric coordinates
         if (snapshot.LayoutNodes.Count > 0)
         {
             var layoutMap = snapshot.LayoutNodes.ToDictionary(n => n.Id);
@@ -166,7 +166,7 @@ public sealed class ProjectCacheService
             visualGraph.Invalidate();
         }
 
-        // 4. Ripristino delle righe Blast Radius
+        // 4. Restoring Blast Radius lines
         var rows = new List<BlastRadiusGridRow>(snapshot.BlastRadiusRows.Count);
         foreach (var r in snapshot.BlastRadiusRows)
         {
@@ -197,7 +197,7 @@ public sealed class ProjectCacheService
     }
 
     /// <summary>
-    /// Salva immediatamente e in modo sincrono uno snapshot completo di cache per la cartella o file analizzato.
+    /// Instantly and synchronously save a full cache snapshot for the scanned folder or file.
     /// </summary>
     public void SaveSnapshot(
         string folderOrFilePath,
@@ -289,12 +289,12 @@ public sealed class ProjectCacheService
         }
         catch
         {
-            // Il fallimento di una scrittura cache non deve mai bloccare l'interfaccia utente
+            // Failure of a cache write should never crash the UI
         }
     }
 
     /// <summary>
-    /// Salva in background su thread dedicato uno snapshot completo di cache per la cartella o file analizzato.
+    /// Saves a full cache snapshot for the analyzed folder or file in the background on a dedicated thread.
     /// </summary>
     public Task SaveSnapshotAsync(
         string folderOrFilePath,
@@ -305,7 +305,7 @@ public sealed class ProjectCacheService
         => Task.Run(() => SaveSnapshot(folderOrFilePath, graph, rows, hasCustomUserLayout, enabledAnalyticsTabs));
 
     /// <summary>
-    /// Aggiorna le coordinate geometriche del layout nello snapshot di cache esistente su disco.
+    /// Updates the geometric coordinates of the layout in the existing cache snapshot on disk.
     /// </summary>
     public void UpdateLayoutSnapshot(string folderOrFilePath, VisualCodeGraph graph, bool hasCustomUserLayout = false)
     {
@@ -347,18 +347,18 @@ public sealed class ProjectCacheService
         }
         catch
         {
-            // Tolleranza agli errori
+            // Fault tolerance
         }
     }
 
     /// <summary>
-    /// Versione asincrona che esegue l'aggiornamento del layout su thread di background.
+    /// Asynchronous version that performs layout updates on background threads.
     /// </summary>
     public Task UpdateLayoutSnapshotAsync(string folderOrFilePath, VisualCodeGraph graph, bool hasCustomUserLayout = false)
         => Task.Run(() => UpdateLayoutSnapshot(folderOrFilePath, graph, hasCustomUserLayout));
 
     /// <summary>
-    /// Aggiorna l'elenco delle schede analitiche abilitate o avviate nello snapshot di cache esistente su disco.
+    /// Updates the list of enabled or launched analytic cards in the existing on-disk cache snapshot.
     /// </summary>
     public void UpdateEnabledAnalyticsTabs(string folderOrFilePath, IEnumerable<string> enabledTabs)
     {
@@ -393,18 +393,18 @@ public sealed class ProjectCacheService
         }
         catch
         {
-            // Tolleranza agli errori
+            // Fault tolerance
         }
     }
 
     /// <summary>
-    /// Versione asincrona che aggiorna l'elenco delle schede analitiche abilitate in background.
+    /// Asynchronous version that updates the list of enabled analytical cards in the background.
     /// </summary>
     public Task UpdateEnabledAnalyticsTabsAsync(string folderOrFilePath, IEnumerable<string> enabledTabs)
         => Task.Run(() => UpdateEnabledAnalyticsTabs(folderOrFilePath, enabledTabs));
 
     /// <summary>
-    /// Controlla se i file sorgente su disco sono cambiati rispetto allo snapshot della cache.
+    /// Checks whether the source files on disk have changed since the cache snapshot.
     /// </summary>
     public bool CheckStaleness(ProjectCacheSnapshot snapshot, string folderOrFilePath)
     {
@@ -424,8 +424,8 @@ public sealed class ProjectCacheService
     }
 
     /// <summary>
-    /// Elimina tutti i file snapshot di cache persistenti presenti nella directory di cache (%APPDATA%\Macondo\cache\).
-    /// Restituisce il numero di file di cache eliminati.
+    /// Delete all persistent cache snapshot files in the cache directory (%APPDATA%\Macondo\cache\).
+    /// Returns the number of cache files deleted.
     /// </summary>
     public int ClearAllCache()
     {
@@ -454,8 +454,8 @@ public sealed class ProjectCacheService
     }
 
     /// <summary>
-    /// Ispeziona i file sorgente VB6, C# e Java (.cls, .bas, .frm, .ctl, .cs, .csproj, .sln, .vbp, .vbg, .vb, .java, pom.xml, gradle) nella directory specificata per calcolare
-    /// il numero totale di file e l'ultimo timestamp di modifica UTC, utile a verificare lo stato di staleness della cache.
+    /// Inspects VB6, C# and Java source files (.cls, .bas, .frm, .ctl, .cs, .csproj, .sln, .vbp, .vbg, .vb, .java, pom.xml, gradle) in the specified directory to calculate
+    /// the total number of files and the last UTC modification timestamp, useful for checking the staleness status of the cache.
     /// </summary>
     private static (int FileCount, DateTime LatestWriteUtc) GetFolderSourceStats(string folderPath)
     {

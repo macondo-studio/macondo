@@ -1,7 +1,7 @@
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Descrittore di un progetto (VB6, C# o Java) all'interno di un Workspace (singolo o multi-progetto).
+/// Descriptor of a project (VB6, C# or Java) within a Workspace (single or multi-project).
 /// </summary>
 public sealed class ProjectDescriptor
 {
@@ -16,11 +16,11 @@ public sealed class ProjectDescriptor
     public List<string> SourceFiles { get; init; } = new();
 
     /// <summary>
-    /// Ispeziona un insieme di percorsi (cartelle, file .vbp, .vbg, .csproj, .sln, pom.xml, build.gradle o file sorgente)
-    /// e restituisce i descrittori di tutti i progetti individuati.
+    /// Inspect a set of paths (folders, .vbp, .vbg, .csproj, .sln, pom.xml, build.gradle, or source files)
+    /// and returns the descriptors of all the identified projects.
     /// </summary>
-    /// <param name="paths">Percorsi di cartelle o file di progetto.</param>
-    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
+    /// <param name="paths">Paths to folders or project files.</param>
+    /// <param name="cancellationToken">Optional deletion token.</param>
     public static List<ProjectDescriptor> DiscoverFromPaths(IEnumerable<string> paths, CancellationToken cancellationToken = default)
     {
         var descriptors = new List<ProjectDescriptor>();
@@ -115,7 +115,7 @@ public sealed class ProjectDescriptor
             {
                 if (!seenFolders.Add(fullPath)) continue;
 
-                // 1. Cerca file .sln o .vbg nella cartella principale
+                // 1. Search for .sln or .vbg files in the root folder
                 var slnFiles = Directory.GetFiles(fullPath, "*.sln", SearchOption.TopDirectoryOnly);
                 if (slnFiles.Length > 0)
                 {
@@ -151,7 +151,7 @@ public sealed class ProjectDescriptor
                     if (descriptors.Count > 0) continue;
                 }
 
-                // 2. Cerca file .csproj, .vbp, pom.xml o build.gradle nella cartella o sottocartelle
+                // 2. Search for .csproj, .vbp, pom.xml or build.gradle files in the folder or subfolders
                 cancellationToken.ThrowIfCancellationRequested();
                 var csprojFiles = Directory.GetFiles(fullPath, "*.csproj", SearchOption.AllDirectories)
                     .Where(f => !IsInIgnoredFolder(f))
@@ -191,9 +191,9 @@ public sealed class ProjectDescriptor
                             descriptors.Add(ParseVbpFile(vbpFile, cancellationToken));
                     }
 
-                    // 2a. Gestione avanzata Maven Multi-Modulo:
-                    // Raccoglie preventivamente l'elenco di tutte le cartelle contenenti un file pom.xml
-                    // per evitare che un modulo root (o padre) includa ricorsivamente i file dei sottomoduli figli.
+                    // 2a. Advanced Maven Multi-Module Management:
+                    // Collects the list of all folders containing a pom.xml file in advance
+                    // to prevent a root (or parent) module from recursively including child submodule files.
                     if (pomFiles.Length > 0)
                     {
                         var pomFolders = pomFiles
@@ -211,7 +211,7 @@ public sealed class ProjectDescriptor
                                 var folder = Path.GetDirectoryName(pomFile) ?? "";
                                 var normalizedFolder = folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
 
-                                // Isola le cartelle dei sottomoduli che risiedono fisicamente all'interno della cartella di questo pom.xml
+                                // Isolates submodule folders that physically reside within this pom.xml folder
                                 var childFolders = pomFolders
                                     .Where(d => !string.Equals(d, folder, StringComparison.OrdinalIgnoreCase) && d.StartsWith(normalizedFolder, StringComparison.OrdinalIgnoreCase))
                                     .ToList();
@@ -221,19 +221,19 @@ public sealed class ProjectDescriptor
                         }
                     }
 
-                    // 2b. Gestione avanzata Gradle Multi-Project (es. Android / Kotlin / Spring / Robolectric):
-                    // Identifica in modo deterministico le directory radice dei progetti Gradle per preservare la reale architettura:
-                    // 1) Nei progetti Android standard o multi-modulo, 'settings.gradle' o 'settings.gradle.kts' risiede nella
-                    //    cartella genitrice principale (es. 'BroadcastApp'), mentre il codice applicativo risiede convenzionalmente
-                    //    nel sottomodulo 'app/' (che include il proprio 'build.gradle[.kts]').
-                    // 2) Assegnando l'intera gerarchia di sottocartelle alla radice proprietaria, si garantisce che tutti i sorgenti
-                    //    (.kt, .java) compaiano raggruppati sotto il rispettivo progetto applicativo nel Project Explorer,
-                    //    evitando la proliferazione di progetti orfani o duplicati chiamati genericamente 'app'.
+                    // 2b. Advanced Gradle Multi-Project Management (e.g. Android / Kotlin / Spring / Robolectric):
+                    // Deterministically identifies the root directories of Gradle projects to preserve the real architecture:
+                    // 1) In standard or multi-module Android projects, 'settings.gradle' or 'settings.gradle.kts' resides in
+                    // main parent folder (e.g. 'BroadcastApp'), while the application code resides conventionally
+                    // in the 'app/' submodule (which includes your own 'build.gradle[.kts]').
+                    // 2) By assigning the entire subfolder hierarchy to the owning root, you ensure that all sources
+                    // (.kt, .java) appear grouped under the respective application project in the Project Explorer,
+                    // avoiding the proliferation of orphaned or duplicate projects generically called 'apps'.
                     if (gradleSettingsFiles.Length > 0 || gradleBuildFiles.Length > 0)
                     {
                         var gradleProjectRoots = new List<string>();
 
-                        // Fase 1: Censimento delle radici ufficiali con file di impostazioni 'settings.gradle' o 'settings.gradle.kts'
+                        // Step 1: Census of official roots with settings file 'settings.gradle' or 'settings.gradle.kts'
                         var settingsDirs = gradleSettingsFiles
                             .Select(Path.GetDirectoryName)
                             .Where(d => !string.IsNullOrEmpty(d))
@@ -249,8 +249,8 @@ public sealed class ProjectDescriptor
                                 gradleProjectRoots.Add(sDir);
                         }
 
-                        // Fase 2: Censimento di ulteriori progetti Gradle standalone (con 'build.gradle[.kts]' ma senza 'settings.gradle[.kts]')
-                        // che non facciano già parte di una gerarchia radice censita nella Fase 1
+                        // Phase 2: Census of additional standalone Gradle projects (with 'build.gradle[.kts]' but without 'settings.gradle[.kts]')
+                        // that are not already part of a root hierarchy surveyed in Phase 1
                         var buildDirs = gradleBuildFiles
                             .Select(Path.GetDirectoryName)
                             .Where(d => !string.IsNullOrEmpty(d))
@@ -266,7 +266,7 @@ public sealed class ProjectDescriptor
                                 gradleProjectRoots.Add(bDir);
                         }
 
-                        // Fase 3: Creazione dei descrittori di progetto con aggregazione completa dei relativi sorgenti
+                        // Phase 3: Creation of project descriptors with complete aggregation of the related sources
                         foreach (var gRoot in gradleProjectRoots)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
@@ -280,16 +280,16 @@ public sealed class ProjectDescriptor
                         }
                     }
 
-                    // 2c. Pulizia moduli aggregatori privi di sorgenti:
-                    // Se sono stati scoperti più progetti nel workspace e almeno uno contiene file sorgente effettivi,
-                    // scarta i progetti radice puramente configurativi/aggregatori (es. root build.gradle senza codice Java/Kotlin proprio)
-                    // evitando di generare progetti vuoti o nodi orfani nel grafo visuale.
+                    // 2c. Cleaning aggregator modules without sources:
+                    // If multiple projects have been discovered in the workspace and at least one contains actual source files,
+                    // discard purely configurative/aggregatory root projects (e.g. root build.gradle without its own Java/Kotlin code)
+                    // avoiding generating empty projects or orphan nodes in the visual graph.
                     if (descriptors.Count > 1 && descriptors.Any(d => d.SourceFiles.Count > 0))
                         descriptors.RemoveAll(d => d.SourceFiles.Count == 0);
                 }
                 else
                 {
-                    // 3. Nessun file di progetto: scansione dei file sorgente (VB6, C#, Java)
+                    // 3. No project files: scan source files (VB6, C#, Java)
                     cancellationToken.ThrowIfCancellationRequested();
                     var subDirs = Directory.GetDirectories(fullPath).Where(d => !IsInIgnoredFolder(d)).ToArray();
                     var foundInSubDirs = false;
@@ -357,8 +357,8 @@ public sealed class ProjectDescriptor
     }
 
     /// <summary>
-    /// Verifica se un file è un sorgente valido di codice applicativo analizzabile (VB6, C#, Java, Kotlin).
-    /// Esclude esplicitamente file di configurazione o script di build come 'build.gradle.kts' o 'settings.gradle.kts'.
+    /// Tests whether a file is a valid source of parsable application code (VB6, C#, Java, Kotlin).
+    /// Explicitly exclude configuration files or build scripts such as 'build.gradle.kts' or 'settings.gradle.kts'.
     /// </summary>
     private static bool IsValidSourceFile(string f)
     {
@@ -400,13 +400,13 @@ public sealed class ProjectDescriptor
     }
 
     /// <summary>
-    /// Verifica se il file sorgente specificato appartiene a uno dei sottomoduli annidati censiti.
-    /// In tal caso, il file deve essere escluso dal modulo genitore per garantire che ogni sorgente
-    /// venga attribuito esclusivamente e univocamente al proprio sottomodulo proprietario.
+    /// Checks whether the specified source file belongs to one of the nested submodules surveyed.
+    /// In that case, the file must be excluded from the parent module to ensure that every source
+    /// is attributed exclusively and univocally to its own proprietary submodule.
     /// </summary>
-    /// <param name="filePath">Percorso assoluto del file sorgente da verificare.</param>
-    /// <param name="childProjectFolders">Insieme delle cartelle assolute dei sottomoduli annidati.</param>
-    /// <returns><c>true</c> se il file risiede all'interno di una cartella di un sottomodulo; altrimenti <c>false</c>.</returns>
+    /// <param name="filePath">Absolute path of the source file to verify.</param>
+    /// <param name="childProjectFolders">Set of absolute folders of nested submodules.</param>
+    /// <returns><c>true</c> if the file resides inside a submodule folder; otherwise <c>false</c>.</returns>
     private static bool IsInChildProjectFolder(string filePath, IEnumerable<string>? childProjectFolders)
     {
         if (childProjectFolders == null)
@@ -424,21 +424,21 @@ public sealed class ProjectDescriptor
     }
 
     /// <summary>
-    /// Esegue il parsing di un file di configurazione Maven ('pom.xml') e individua tutti i file sorgente Java (.java) associati.
-    /// Rileva automaticamente eventuali sottomoduli Maven annidati per escluderne i file sorgente ed evitare duplicazioni.
+    /// Parses a Maven configuration file ('pom.xml') and locates any associated Java source (.java) files.
+    /// Automatically detects any nested Maven submodules to exclude their source files and avoid duplication.
     /// </summary>
     public static ProjectDescriptor ParsePomXmlFile(string pomXmlPath, CancellationToken cancellationToken = default)
         => ParsePomXmlFile(pomXmlPath, childProjectFolders: null, cancellationToken);
 
     /// <summary>
-    /// Esegue il parsing di un file di configurazione Maven ('pom.xml') e individua tutti i file sorgente Java (.java) associati.
-    /// Estrae il nome del progetto da &lt;artifactId&gt; o &lt;name&gt;, oppure ricorre al nome della cartella genitrice come fallback.
-    /// Se specificato l'elenco dei sottomoduli, esclude ricorsivamente i file di questi ultimi.
+    /// Parses a Maven configuration file ('pom.xml') and locates any associated Java source (.java) files.
+    /// Extracts the project name from <artifactId> or <name>, or uses the parent folder name as a fallback.
+    /// If the list of submodules is specified, it recursively excludes the files of the latter.
     /// </summary>
-    /// <param name="pomXmlPath">Percorso assoluto del file pom.xml.</param>
-    /// <param name="childProjectFolders">Cartelle opzionali di sottomoduli annidati i cui file sorgente non devono essere inclusi nel modulo corrente.</param>
-    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere la scansione.</param>
-    /// <returns>Il descrittore del progetto Maven popolato con l'elenco dei file sorgente Java.</returns>
+    /// <param name="pomXmlPath">Absolute path to the pom.xml file.</param>
+    /// <param name="childProjectFolders">Optional folders of nested submodules whose source files should not be included in the current module.</param>
+    /// <param name="cancellationToken">Optional delete token to stop scanning.</param>
+    /// <returns>The Maven project descriptor populated with the list of Java source files.</returns>
     public static ProjectDescriptor ParsePomXmlFile(
         string pomXmlPath,
         IReadOnlyCollection<string>? childProjectFolders,
@@ -447,7 +447,7 @@ public sealed class ProjectDescriptor
         var folder = Path.GetDirectoryName(pomXmlPath) ?? "";
         var projName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
-        // Prova a leggere <artifactId> o <name> dal file pom.xml
+        // Try reading <artifactId> or <name> from the pom.xml file
         try
         {
             if (File.Exists(pomXmlPath))
@@ -460,12 +460,12 @@ public sealed class ProjectDescriptor
         }
         catch
         {
-            // Ignora errori di parsing del pom.xml ed usa il nome della cartella come fallback resiliente
+            // Ignore pom.xml parsing errors and use the folder name as a resilient fallback
         }
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Se non specificato esplicitamente, individua in autonomia eventuali sottomoduli Maven annidati nella cartella
+        // If not explicitly specified, it independently identifies any Maven submodules nested in the folder
         if (childProjectFolders == null && Directory.Exists(folder))
         {
             childProjectFolders = Directory.GetFiles(folder, "pom.xml", SearchOption.AllDirectories)
@@ -477,7 +477,7 @@ public sealed class ProjectDescriptor
                 .ToList();
         }
 
-        // Recupera i file sorgente Java e Kotlin (.java, .kt, .kts) appartenenti al modulo corrente, escludendo cartelle ignorate e sottomoduli
+        // Recovers Java and Kotlin source files (.java, .kt, .kts) belonging to the current module, excluding ignored folders and submodules
         var sourceFiles = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
             .Where(f => !IsInIgnoredFolder(f) &&
                         !IsInChildProjectFolder(f, childProjectFolders) &&
@@ -498,21 +498,21 @@ public sealed class ProjectDescriptor
     }
 
     /// <summary>
-    /// Esegue il parsing di uno script di build Gradle ('build.gradle', 'build.gradle.kts', 'settings.gradle' o 'settings.gradle.kts')
-    /// e raccoglie tutti i file sorgente Java e Kotlin associati.
-    /// Risolve automaticamente la radice del progetto se invocato all'interno di un modulo standard come 'app'.
+    /// Parses a Gradle build script ('build.gradle', 'build.gradle.kts', 'settings.gradle', or 'settings.gradle.kts')
+    /// and collects all associated Java and Kotlin source files.
+    /// Automatically resolves the project root if invoked within a standard module such as 'app'.
     /// </summary>
     public static ProjectDescriptor ParseGradleFile(string gradlePath, CancellationToken cancellationToken = default)
         => ParseGradleFile(gradlePath, childProjectFolders: null, cancellationToken);
 
     /// <summary>
-    /// Esegue il parsing di uno script di build Gradle ('build.gradle' o 'build.gradle.kts') e raccoglie tutti i file Java e Kotlin.
-    /// Se specificato l'elenco dei sottomoduli, esclude ricorsivamente i file di questi ultimi.
+    /// Parses a Gradle build script ('build.gradle' or 'build.gradle.kts') and collects all Java and Kotlin files.
+    /// If the list of submodules is specified, it recursively excludes the files of the latter.
     /// </summary>
-    /// <param name="gradlePath">Percorso assoluto del file build.gradle o build.gradle.kts.</param>
-    /// <param name="childProjectFolders">Cartelle opzionali di sottomoduli annidati i cui file sorgente non devono essere inclusi nel modulo corrente.</param>
-    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
-    /// <returns>Il descrittore del progetto Gradle con l'elenco completo dei file sorgente trovati.</returns>
+    /// <param name="gradlePath">Absolute path to the build.gradle or build.gradle.kts file.</param>
+    /// <param name="childProjectFolders">Optional folders of nested submodules whose source files should not be included in the current module.</param>
+    /// <param name="cancellationToken">Optional deletion token.</param>
+    /// <returns>The Gradle project descriptor with the complete list of source files found.</returns>
     public static ProjectDescriptor ParseGradleFile(
         string gradlePath,
         IReadOnlyCollection<string>? childProjectFolders,
@@ -520,8 +520,8 @@ public sealed class ProjectDescriptor
     {
         var folder = Path.GetDirectoryName(gradlePath) ?? "";
 
-        // Se la cartella indicata è 'app' e il genitore contiene settings.gradle o build.gradle,
-        // risolve direttamente alla radice del progetto genitore
+        // If the given folder is 'app' and the parent contains settings.gradle or build.gradle,
+        // resolves directly to the root of the parent project
         if (string.Equals(Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)), "app", StringComparison.OrdinalIgnoreCase))
         {
             var parent = Path.GetDirectoryName(folder);
@@ -562,17 +562,17 @@ public sealed class ProjectDescriptor
     }
 
     /// <summary>
-    /// Esegue il parsing di una directory radice di progetto Gradle (contenente settings.gradle[.kts] o build.gradle[.kts]),
-    /// rilevando il nome reale del progetto ed includendo tutti i sorgenti Java e Kotlin (inclusi i sottomoduli interni come 'app').
+    /// Parses a Gradle project root directory (containing settings.gradle[.kts] or build.gradle[.kts]),
+    /// detecting the actual project name and including all Java and Kotlin sources (including internal submodules like 'app').
     /// </summary>
-    /// <param name="folder">Percorso assoluto della cartella radice del progetto Gradle.</param>
-    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere l'analisi.</param>
-    /// <returns>Il descrittore del progetto Gradle configurato con tutti i file sorgente appartenenti alla gerarchia applicativa.</returns>
+    /// <param name="folder">Absolute path to the root folder of the Gradle project.</param>
+    /// <param name="cancellationToken">Optional delete token to stop analysis.</param>
+    /// <returns>The Gradle project descriptor configured with all source files belonging to the application hierarchy.</returns>
     public static ProjectDescriptor ParseGradleProjectFolder(string folder, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Individua il file di configurazione principale
+        // Locate the main configuration file
         string? gradlePath = null;
         var candBuildKts = Path.Combine(folder, "build.gradle.kts");
         var candBuildGroovy = Path.Combine(folder, "build.gradle");
@@ -597,7 +597,7 @@ public sealed class ProjectDescriptor
         var folderName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
         var projName = folderName;
 
-        // Se la cartella è genericamente "app", prova a leggere il nome della cartella genitrice
+        // If the folder is generically "app", try reading the name of the parent folder
         if (string.Equals(projName, "app", StringComparison.OrdinalIgnoreCase))
         {
             var parent = Path.GetDirectoryName(folder);
@@ -609,7 +609,7 @@ public sealed class ProjectDescriptor
             }
         }
 
-        // Se disponibile settings.gradle[.kts], controlla se è specificato un rootProject.name personalizzato
+        // If available settings.gradle[.kts], checks whether a custom rootProject.name is specified
         var settingsPath = File.Exists(candSettingsKts) ? candSettingsKts : (File.Exists(candSettingsGroovy) ? candSettingsGroovy : null);
         if (settingsPath != null && File.Exists(settingsPath))
         {
@@ -622,11 +622,11 @@ public sealed class ProjectDescriptor
             }
             catch
             {
-                // Ignora errori di parsing del file settings
+                // Ignore settings file parsing errors
             }
         }
 
-        // Raccoglie tutti i file sorgente Java e Kotlin nel progetto (inclusi tutti i sottomoduli come app/)
+        // Collects all Java and Kotlin source files in the project (including all submodules like app/)
         var sourceFiles = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
             .Where(f => !IsInIgnoredFolder(f) && IsValidSourceFile(f))
             .OrderBy(f => Path.GetFileName(f))
@@ -755,7 +755,7 @@ public sealed class ProjectDescriptor
             }
         }
 
-        // Se nessun file è stato trovato specificamente dal .vbp, effettua scansione cartella
+        // If no file was found specifically from the .vbp, scan the folder
         if (sourceFiles.Count == 0 && Directory.Exists(folder))
         {
             cancellationToken.ThrowIfCancellationRequested();

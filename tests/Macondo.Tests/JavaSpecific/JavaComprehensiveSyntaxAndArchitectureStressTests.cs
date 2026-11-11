@@ -7,9 +7,9 @@ using Xunit;
 namespace Macondo.Tests.JavaSpecific;
 
 /// <summary>
-/// Suite di test di stress sintattico e architetturale per sorgenti Java:
-/// gerarchie di ereditarietà profonde (5 livelli), ereditarietà multipla tra interfacce,
-/// pattern Builder con chiamate concatenate (fluent API), annotazioni custom con meta-annotazioni
+/// Syntactic and architectural stress test suite for Java sources:
+/// deep inheritance hierarchies (5 levels), multiple inheritance between interfaces,
+/// Builder pattern with chained calls (fluent API), custom annotations with meta-annotations
 /// e file singoli contenenti classi multiple.
 /// </summary>
 public class JavaComprehensiveSyntaxAndArchitectureStressTests
@@ -17,7 +17,7 @@ public class JavaComprehensiveSyntaxAndArchitectureStressTests
     #region Deep Class Hierarchy (5 Levels)
 
     /// <summary>
-    /// Verifica la ricostruzione di una gerarchia di ereditarietà profonda a 5 livelli
+    /// Test the reconstruction of a 5-level deep inheritance hierarchy
     /// (AbstractNode -> BaseNode -> StructuralNode -> LayoutNode -> FlexLayoutNode).
     /// </summary>
     [Fact]
@@ -81,7 +81,7 @@ public class JavaComprehensiveSyntaxAndArchitectureStressTests
     #region Multiple Interface Inheritance on Interfaces
 
     /// <summary>
-    /// Verifica la corretta estrazione di interfacce che estendono contemporaneamente più interfacce base
+    /// Verifies the correct extraction of interfaces that simultaneously extend multiple base interfaces
     /// ('interface ExtendedInterface extends A, B, C').
     /// </summary>
     [Fact]
@@ -135,7 +135,7 @@ public class JavaComprehensiveSyntaxAndArchitectureStressTests
     #region Fluent API and Builder Pattern
 
     /// <summary>
-    /// Verifica l'estrazione di pattern Fluent Builder con concatenazione di chiamate a metodi che ritornano 'this'.
+    /// Test Fluent Builder pattern extraction with concatenation of method calls returning 'this'.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractFluentBuilderPattern()
@@ -208,7 +208,7 @@ public class JavaComprehensiveSyntaxAndArchitectureStressTests
     #region Custom Annotations with Meta-Annotations
 
     /// <summary>
-    /// Verifica l'estrazione di definizioni di annotazioni personalizzate decorate con meta-annotazioni standard (@Retention, @Target).
+    /// Test extraction of custom annotation definitions decorated with standard meta-annotations (@Retention, @Target).
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractCustomAnnotationDefinitionsWithMetaAnnotations()

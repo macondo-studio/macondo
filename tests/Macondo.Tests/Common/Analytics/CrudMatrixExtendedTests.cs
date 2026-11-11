@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class CrudMatrixExtendedTests
 {
     /// <summary>
-    /// Verifica che un servizio di sola lettura (Query/Reporting) venga mappato con
-    /// ReadCount positivo e 0 operazioni Create, Update e Delete per l'entità target.
+    /// Verify that a read-only service (Query/Reporting) is mapped to
+    /// Positive ReadCount and 0 Create, Update, and Delete operations for the target entity.
     /// </summary>
     [Fact]
     public void CrudMatrix_ShouldIdentifyReadOnlyReportingService()
@@ -37,8 +37,8 @@ public class CrudMatrixExtendedTests
     }
 
     /// <summary>
-    /// Verifica che routine con nomi specifici di rimozione (Delete, Remove, Purge)
-    /// vengano categorizzate come operazioni di cancellazione (Delete).
+    /// Check for routines with specific purge names (Delete, Remove, Purge)
+    /// are categorized as deletion operations (Delete).
     /// </summary>
     [Fact]
     public void CrudMatrix_ShouldIdentifyDeleteAndPurgeOperations()
@@ -62,7 +62,7 @@ public class CrudMatrixExtendedTests
     }
 
     /// <summary>
-    /// Verifica che un CodeGraph privo di entità o metodi ritorni un dataset vuoto coerente.
+    /// Verify that a CodeGraph with no entities or methods returns a consistent empty dataset.
     /// </summary>
     [Fact]
     public void CrudMatrix_ShouldHandleEmptyGraph_Gracefully()

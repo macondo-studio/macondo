@@ -16,8 +16,8 @@ public class Vb6DeepLanguageAndGrammarEdgeCasesTests
     #region Complex Loops and Flow Control
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di tutti i tipi di loop VB6:
-    /// Do While ... Loop, Do Until ... Loop, Do ... Loop While, Do ... Loop Until, Do ... Loop con Exit Do, e While ... Wend.
+    /// Test parsing and extraction of all VB6 loop types:
+    /// Do While ... Loop, Do Until ... Loop, Do ... Loop While, Do ... Loop Until, Do ... Loop with Exit Do, and While ... Wend.
     /// </summary>
     [Fact]
     public void Parser_ShouldParseAllVarietiesOfDoLoopsAndWhileWend()
@@ -79,8 +79,8 @@ public class Vb6DeepLanguageAndGrammarEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica la gestione di istruzioni multiple separate da due punti (:) sulla stessa riga
-    /// e la presenza di etichette numeriche e testuali nello stesso blocco.
+    /// Tests the handling of multiple statements separated by colons (:) on the same line
+    /// and the presence of numeric and textual labels in the same block.
     /// </summary>
     [Fact]
     public void Parser_ShouldParseMultiStatementsPerLineWithColonsAndLabels()
@@ -123,8 +123,8 @@ public class Vb6DeepLanguageAndGrammarEdgeCasesTests
     #region Nested With Blocks and Member Access
 
     /// <summary>
-    /// Verifica il parsing di blocchi 'With ... End With' annidati (Nested With Blocks)
-    /// con accesso a membri e proprietà dell'oggetto interno ed esterno.
+    /// Test parsing of nested 'With ... End With' blocks (Nested With Blocks)
+    /// with access to internal and external object members and properties.
     /// </summary>
     [Fact]
     public void Parser_ShouldParseNestedWithBlocks()
@@ -169,8 +169,8 @@ public class Vb6DeepLanguageAndGrammarEdgeCasesTests
     #region Declare Function and API Definitions
 
     /// <summary>
-    /// Verifica l'estrazione e il parsing di dichiarazioni Windows API 'Declare Function / Declare Sub'
-    /// con Alias numerico (ordinale), Alias testuale, passaggio parametri ByVal / ByRef, e tipo 'Any'.
+    /// Test extraction and parsing of Windows API 'Declare Function / Declare Sub' declarations
+    /// with Numeric Alias (ordinal), Textual Alias, ByVal / ByRef parameter passing, and type 'Any'.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldExtractDeclareStatementsWithAliasesAndAnyType()
@@ -214,8 +214,8 @@ public class Vb6DeepLanguageAndGrammarEdgeCasesTests
     #region Type Declaration Characters and Compound Dim Statements
 
     /// <summary>
-    /// Verifica il parsing di variabili con suffissi di tipo VB6 tradizionali (%, &, !, #, $, @)
-    /// e dichiarazioni Dim composte con array multidimensionali e tipi misti.
+    /// Test parsing of variables with traditional VB6-style suffixes (%, &, !, #, $, @)
+    /// and Dim declarations composed with multidimensional arrays and mixed types.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldSupportTypeSuffixesAndCompoundDimDeclarations()
@@ -252,7 +252,7 @@ public class Vb6DeepLanguageAndGrammarEdgeCasesTests
     #region Indexed Property Get / Let / Set
 
     /// <summary>
-    /// Verifica la definizione di proprietà indicizzate (Property Get / Property Let con parametri di indice).
+    /// Tests the definition of indexed properties (Property Get / Property Let with index parameters).
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldExtractIndexedProperties()
@@ -300,7 +300,7 @@ public class Vb6DeepLanguageAndGrammarEdgeCasesTests
     #region Error Handling Constructs
 
     /// <summary>
-    /// Verifica il parsing di costrutti avanzati di gestione errori:
+    /// Test parsing of advanced error handling constructs:
     /// On Error Resume Next, On Error GoTo 0, On Error GoTo -1, Err.Raise, Resume Next, Resume Label.
     /// </summary>
     [Fact]
@@ -359,7 +359,7 @@ public class Vb6DeepLanguageAndGrammarEdgeCasesTests
     #region Event Definition and RaiseEvent Wiring
 
     /// <summary>
-    /// Verifica l'estrazione di eventi definiti con Event e la chiamata RaiseEvent.
+    /// Test extracting events defined with Event and calling RaiseEvent.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldExtractEventDefinitionsAndRaiseEvent()
@@ -405,7 +405,7 @@ public class Vb6DeepLanguageAndGrammarEdgeCasesTests
     #region LSet, RSet, and Mid$ Assignment
 
     /// <summary>
-    /// Verifica il parsing di istruzioni specialistiche VB6 come Mid$ come l-value, LSet e RSet.
+    /// Verify parsing of VB6 specialized instructions such as Mid$ as l-value, LSet, and RSet.
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportMidStatementLSetAndRSet()

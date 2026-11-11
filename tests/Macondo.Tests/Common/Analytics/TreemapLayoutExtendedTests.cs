@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class TreemapLayoutExtendedTests
 {
     /// <summary>
-    /// Verifica che una gerarchia multilivello (Progetto -> Moduli -> Metodi)
-    /// venga posizionata con tutti i rettangoli dei figli contenuti strettamente entro i limiti del genitore.
+    /// Verify that a multilevel hierarchy (Project -> Modules -> Methods)
+    /// is placed with all child rectangles contained strictly within the bounds of the parent.
     /// </summary>
     [Fact]
     public void TreemapLayout_ShouldPositionHierarchicalNodes_WithinParentBounds()
@@ -67,7 +67,7 @@ public class TreemapLayoutExtendedTests
     }
 
     /// <summary>
-    /// Verifica che viewport con dimensioni nulle (0x0) non generino eccezioni né valori NaN.
+    /// Verify that viewports with zero dimensions (0x0) do not throw exceptions or NaN values.
     /// </summary>
     [Fact]
     public void TreemapLayout_ShouldHandleZeroDimensions_Safely()
@@ -94,8 +94,8 @@ public class TreemapLayoutExtendedTests
     }
 
     /// <summary>
-    /// Verifica che la costruzione del modello Treemap da un CodeGraph sintetico estragga
-    /// i moduli e i loro metodi come nodi figli.
+    /// Verify that building the Treemap model from a synthetic CodeGraph extracts
+    /// modules and their methods as child nodes.
     /// </summary>
     [Fact]
     public void TreemapModelBuilder_ShouldBuildFromSemanticGraph()

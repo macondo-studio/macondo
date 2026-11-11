@@ -12,8 +12,8 @@ public class CallGraphAndImpactAdvancedScenariosTests
     #region CallGraph Multi-Path and Complex Queries
 
     /// <summary>
-    /// Verifica che CallGraphQueries trovi tutti i molteplici percorsi di esecuzione indipendenti
-    /// in una rete a maglie con biforcazioni e confluenze multiple (es. A -> B -> D, A -> C -> D, A -> B -> C -> D).
+    /// Verify that CallGraphQueries finds all multiple independent execution paths
+    /// in a mesh network with multiple bifurcations and confluences (e.g. A -> B -> D, A -> C -> D, A -> B -> C -> D).
     /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldFindAllDistinctPathsInMeshTopology()
@@ -47,7 +47,7 @@ public class CallGraphAndImpactAdvancedScenariosTests
     }
 
     /// <summary>
-    /// Verifica il rilevamento di cicli annidati e sovrapposti (Loop 1: A <-> B, Loop 2: B <-> C).
+    /// Tests for detection of nested and overlapping loops (Loop 1: A <-> B, Loop 2: B <-> C).
     /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldDetectOverlappingCycles()
@@ -84,8 +84,8 @@ public class CallGraphAndImpactAdvancedScenariosTests
     #region Advanced Impact Analysis Scenarios
 
     /// <summary>
-    /// Verifica che ImpactAnalyzer su un nodo completamente isolato (nessun chiamante né dipendenza)
-    /// restituisca una risposta valida con 0 chiamanti diretti e indiretti.
+    /// Verify ImpactAnalyzer on a fully isolated node (no callers or dependencies)
+    /// returns a valid response with 0 direct and indirect callers.
     /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldHandleCompletelyIsolatedNode()
@@ -109,13 +109,13 @@ public class CallGraphAndImpactAdvancedScenariosTests
     }
 
     /// <summary>
-    /// Verifica che ImpactAnalyzer gestisca una topologia a grafo completo (clique K4)
-    /// terminando rapidamente senza duplicazioni o ricorsioni infinite.
+    /// Verify that ImpactAnalyzer handles a full graph topology (K4 clique)
+    /// finishing quickly without infinite duplication or recursion.
     /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldHandleFullyConnectedClique()
     {
-        // Arrange: 4 nodi tutti collegati tra loro
+        // Arrange: 4 nodes all connected to each other
         var graph = new CodeGraph();
         var nodes = new List<Symbol>();
 
@@ -153,7 +153,7 @@ public class CallGraphAndImpactAdvancedScenariosTests
     #region Full Graph Roundtrip with All Relationship Kinds
 
     /// <summary>
-    /// Verifica la persistenza e deserializzazione completa di un grafo che contiene tutti i tipi di relazione:
+    /// Tests persistence and complete deserialization of a graph containing all relation types:
     /// Contains, Calls, UsesType, Implements, Inherits, HandlesEvent, Instantiates, Reads, Writes.
     /// </summary>
     [Fact]

@@ -16,8 +16,8 @@ public class Vb6UncoveredEdgeCasesAndBugsHunterTests
     #region Control Arrays and Event Handlers
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di controlli UI raggruppati in Control Arrays (con proprietà Index)
-    /// e la corretta generazione delle relazioni HANDLES_EVENT per gli handler di eventi con parametro (Index As Integer).
+    /// Test parsing and extraction of UI controls grouped into Control Arrays (with Index properties)
+    /// and correct generation of HANDLES_EVENT relationships for parameterized event handlers (Index As Integer).
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldWireHandlesEvent_ForControlArrayEventHandlersWithIndexParameter()
@@ -91,7 +91,7 @@ public class Vb6UncoveredEdgeCasesAndBugsHunterTests
     #region GoSub / Return and On...GoTo / On...GoSub Flow Controls
 
     /// <summary>
-    /// Verifica il parsing di istruzioni di salto interne GoSub ... Return e costrutti On ... GoTo / On ... GoSub.
+    /// Tests parsing of internal GoSub ... Return jump statements and On ... GoTo / On ... GoSub constructs.
     /// </summary>
     [Fact]
     public void Parser_ShouldParseGoSubReturnAndComputedOnGoToStatements()
@@ -146,8 +146,8 @@ public class Vb6UncoveredEdgeCasesAndBugsHunterTests
     #region Line Continuations with Named Arguments and Complex Expressions
 
     /// <summary>
-    /// Verifica il corretto parsing e l'estrazione di chiamate con line continuations (_)
-    /// su argomenti nominati (ParamName:=Value) ed espressioni multilinea.
+    /// Verify correct parsing and extraction of calls with line continuations (_)
+    /// on named arguments (ParamName:=Value) and multiline expressions.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldHandleLineContinuationsWithNamedArguments()
@@ -196,7 +196,7 @@ public class Vb6UncoveredEdgeCasesAndBugsHunterTests
     #region Static Variables and Static Sub/Function Declarations
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di routine e variabili con modificatore Static.
+    /// Tests parsing and extraction of routines and variables with Static modifier.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldExtractStaticVariablesAndStaticProcedures()
@@ -242,8 +242,8 @@ public class Vb6UncoveredEdgeCasesAndBugsHunterTests
     #region Multi-Interface Implements and Method Mapping
 
     /// <summary>
-    /// Verifica una classe che implementa molteplici interfacce distinte (Implements IFoo, Implements IBar)
-    /// e la corretta mappatura dei metodi di implementazione con prefisso Interfaccia_Metodo.
+    /// Tests a class that implements multiple distinct interfaces (Implements IFoo, Implements IBar)
+    /// and the correct mapping of implementation methods with the Interface_Method prefix.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldResolveMultiInterfaceImplementationsAndInheritedContracts()
@@ -308,8 +308,8 @@ public class Vb6UncoveredEdgeCasesAndBugsHunterTests
     #region Mid Statement as L-Value and File I/O Operations
 
     /// <summary>
-    /// Verifica il parsing di assegnazioni Mid$ a sinistra dell'uguale (Mid Statement L-Value)
-    /// e le operazioni di I/O binario e sequenziale su file (Open, Put, Get, Close).
+    /// Test parsing of Mid$ assignments to the left of equals (Mid Statement L-Value)
+    /// and binary and sequential file I/O operations (Open, Put, Get, Close).
     /// </summary>
     [Fact]
     public void Parser_ShouldParseMidStatementLValueAndBinaryFileIO()
@@ -353,7 +353,7 @@ public class Vb6UncoveredEdgeCasesAndBugsHunterTests
     #region ReDim and ReDim Preserve with Multidimensional Bounds
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di ReDim Preserve con dimensioni multiple e lower bound personalizzati.
+    /// Test ReDim Preserve parsing and extraction with multiple dimensions and custom lower bounds.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldSupportReDimPreserveWithCustomBounds()
@@ -389,8 +389,8 @@ public class Vb6UncoveredEdgeCasesAndBugsHunterTests
     #region Default Type Directives (DefInt, DefLng, DefStr, DefBool, DefObj)
 
     /// <summary>
-    /// Verifica che le direttive storiche di tipo predefinito (DefInt, DefLng, DefStr, DefBool, DefObj)
-    /// a livello di modulo vengano analizzate senza generare errori di parsing.
+    /// Verify that historical directives of default type (DefInt, DefLng, DefStr, DefBool, DefObj)
+    /// at the module level are analyzed without generating parsing errors.
     /// </summary>
     [Fact]
     public void Parser_ShouldParseModuleLevelDefTypeDirectives()

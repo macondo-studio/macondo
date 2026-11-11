@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Modello visuale per un elemento di progetto recente nella schermata iniziale (Welcome View).
-/// Include lo stato di cache calcolato dinamicamente per dare feedback immediato all'utente.
+/// Visual template for a recent project item on the Welcome View.
+/// Includes dynamically calculated cache state to give immediate feedback to the user.
 /// </summary>
 public sealed class WelcomeRecentItem
 {

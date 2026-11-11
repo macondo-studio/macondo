@@ -15,7 +15,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Controls;
 
 /// <summary>
-/// Riga visualizzata nel DataGrid dell'analisi Dead Code / Orfani.
+/// Row displayed in the Dead Code / Orphans analysis DataGrid.
 /// </summary>
 public sealed class DeadCodeGridRow
 {
@@ -86,8 +86,8 @@ public sealed class DeadCodeGridRow
 }
 
 /// <summary>
-/// Controllo visuale completo per la consultazione e il filtraggio del Dead Code e componenti orfani.
-/// Include un cruscotto KPI superiore, filtri rapidi di ricerca/categoria e DataGrid interattivo.
+/// Complete visual control for browsing and filtering Dead Code and orphaned components.
+/// Includes a superior KPI dashboard, quick search/category filters and interactive DataGrid.
 /// </summary>
 public sealed class DeadCodeControl : UserControl
 {

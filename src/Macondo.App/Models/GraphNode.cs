@@ -3,43 +3,43 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Nodo visuale del CodeGraph renderizzato dal GraphControl.
-/// Incapsula il <see cref="Symbol"/> semantico reale estratto dalla pipeline di analisi VB6
-/// e mantiene le coordinate per il layout e lo stato di interazione (zoom, selezione, espansione).
+/// Visual node of the CodeGraph rendered by the GraphControl.
+/// Encapsulates the real semantic <see cref="Symbol"/> extracted from the VB6 parsing pipeline
+/// and maintains coordinates for layout and interaction state (zoom, select, expand).
 /// </summary>
 public sealed class GraphNode
 {
-    /// <summary>ID univoco del nodo (corrisponde al Symbol.Id per i simboli reali).</summary>
+    /// <summary>Unique ID of the node (corresponds to the Symbol.Id for real symbols).</summary>
     public required Guid Id { get; init; }
 
-    /// <summary>Nome visualizzato del simbolo.</summary>
+    /// <summary>Display name of the symbol.</summary>
     public required string Name { get; init; }
 
     /// <summary>Nome qualificato completo (es. "Customer.Save").</summary>
     public required string QualifiedName { get; init; }
 
-    /// <summary>Categoria del simbolo semantico.</summary>
+    /// <summary>Category of the semantic symbol.</summary>
     public required SymbolKind Kind { get; init; }
 
-    /// <summary>Il simbolo semantico reale sottostante (null per il nodo radice di progetto sintetico).</summary>
+    /// <summary>The underlying real semantic symbol (null for the synthetic project root node).</summary>
     public Symbol? SemanticSymbol { get; init; }
 
-    /// <summary>Nodo contenitore padre nella gerarchia CONTAINS (null per il Project root).</summary>
+    /// <summary>Parent container node in the CONTAINS hierarchy (null for the Project root).</summary>
     public Guid? ParentId { get; set; }
 
-    /// <summary>ID del progetto a cui appartiene questo nodo (se in un workspace).</summary>
+    /// <summary>ID of the project to which this node belongs (if in a workspace).</summary>
     public Guid? ProjectId { get; set; }
 
-    /// <summary>Nome del progetto a cui appartiene questo nodo.</summary>
+    /// <summary>Name of the project to which this node belongs.</summary>
     public string? ProjectName { get; set; }
 
-    /// <summary>Posizione X nel grafo (calcolata dal layout engine).</summary>
+    /// <summary>Position X in the graph (calculated by the layout engine).</summary>
     public double X { get; set; }
 
-    /// <summary>Posizione Y nel grafo (calcolata dal layout engine).</summary>
+    /// <summary>Y position in the graph (calculated by the layout engine).</summary>
     public double Y { get; set; }
 
-    /// <summary>Raggio di disegno del nodo in pixel.</summary>
+    /// <summary>Node drawing radius in pixels.</summary>
     public double Radius => Kind switch
     {
         SymbolKind.Project => 28,
@@ -50,19 +50,19 @@ public sealed class GraphNode
     };
 
     /// <summary>
-    /// Indica se il nodo è un container espandibile (Class, Form, Module, Type, Enum).
+    /// Indicates whether the node is an expandable container (Class, Form, Module, Type, Enum).
     /// </summary>
     public bool IsContainer => Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module
                                     or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum;
 
     /// <summary>
-    /// Stato di espansione: i membri figli sono visibili solo se il container è espanso (progressive disclosure).
+    /// Expansion state: child members are visible only if the container is expanded (progressive disclosure).
     /// </summary>
     public bool IsExpanded { get; set; } = true;
 
     private SourceLanguage? _language;
 
-    /// <summary>Linguaggio di programmazione sorgente del nodo (es. VB6, C#, C++, ecc.).</summary>
+    /// <summary>Node source programming language (e.g. VB6, C#, C++, etc.).</summary>
     public SourceLanguage Language
     {
         get
@@ -70,12 +70,12 @@ public sealed class GraphNode
             if (_language.HasValue && _language.Value != SourceLanguage.Unknown)
                 return _language.Value;
 
-            // 1. Rilevamento primario dal percorso del file sorgente
+            // 1. Primary detection from source file path
             var detected = DetectLanguageFromPath();
             if (detected != SourceLanguage.Unknown)
                 return detected;
 
-            // 2. Rilevamento secondario dal simbolo semantico effettivo
+            // 2. Secondary detection from the actual semantic symbol
             if (SemanticSymbol != null)
             {
                 var symLang = SemanticSymbol.GetEffectiveLanguage();

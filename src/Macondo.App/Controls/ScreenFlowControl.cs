@@ -11,8 +11,8 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Controls;
 
 /// <summary>
-/// Controllo custom Avalonia Skia per il grafo di navigazione e flusso delle schermate / Form UI.
-/// Visualizza le transizioni e gli eventi che scatenano l'apertura e chiusura di dialoghi e form.
+/// Avalonia Skia custom control for the navigation graph and screen flow / Form UI.
+/// View transitions and events that trigger the opening and closing of dialogs and forms.
 /// </summary>
 public sealed class ScreenFlowControl : Control
 {
@@ -84,7 +84,7 @@ public sealed class ScreenFlowControl : Control
     }
 
     /// <summary>
-    /// Seleziona la schermata identificata dall'ID specificato e aggiorna il rendering.
+    /// Select the screen identified by the specified ID and update the rendering.
     /// </summary>
     public void SelectScreen(Guid screenId)
     {
@@ -93,7 +93,7 @@ public sealed class ScreenFlowControl : Control
     }
 
     /// <summary>
-    /// Imposta la schermata selezionata e aggiorna il rendering.
+    /// Sets the selected screen and updates the rendering.
     /// </summary>
     public void SelectScreen(ScreenFlowNode? screen)
     {
@@ -102,7 +102,7 @@ public sealed class ScreenFlowControl : Control
     }
 
     /// <summary>
-    /// Centra la vista del canvas sulla schermata specificata.
+    /// Centers the canvas view on the specified screen.
     /// </summary>
     public void FocusOnScreen(Guid screenId)
     {
@@ -118,7 +118,7 @@ public sealed class ScreenFlowControl : Control
     }
 
     /// <summary>
-    /// Applica un filtro di ricerca testuale o per lista di ID per evidenziare le schermate corrispondenti (e attenuare le altre).
+    /// Apply a text or ID list search filter to highlight matching screens (and dim the others).
     /// </summary>
     public void SetSearchFilter(string? query, IEnumerable<Guid>? matchedScreenIds = null)
     {
@@ -137,7 +137,7 @@ public sealed class ScreenFlowControl : Control
     }
 
     /// <summary>
-    /// Rimuove qualsiasi evidenziazione o filtro di ricerca attivo.
+    /// Removes any active highlights or search filters.
     /// </summary>
     public void ClearHighlight()
     {
@@ -148,7 +148,7 @@ public sealed class ScreenFlowControl : Control
     }
 
     /// <summary>
-    /// Verifica se una determinata schermata corrisponde al filtro di ricerca o alla selezione attiva.
+    /// Check if a particular screen matches your search filter or active selection.
     /// </summary>
     public bool IsScreenMatchingSearch(ScreenFlowNode screen)
     {
@@ -167,7 +167,7 @@ public sealed class ScreenFlowControl : Control
     }
 
     /// <summary>
-    /// Applica i pennelli e lo schema colori del tema attivo per card, transizioni ed etichette.
+    /// Apply the active theme's brushes and color scheme to cards, transitions, and labels.
     /// </summary>
     public void ApplyTheme(ThemeDefinition theme)
     {
@@ -243,7 +243,7 @@ public sealed class ScreenFlowControl : Control
         using (context.PushTransform(Matrix.CreateTranslation(_offsetX, _offsetY)))
         using (context.PushTransform(Matrix.CreateScale(_scale, _scale)))
         {
-            // 1. Disegna le frecce di transizione tra schermate
+            // 1. Draw transition arrows between screens
             foreach (var t in graph.Transitions)
             {
                 var src = graph.FindScreen(t.SourceScreenId);
@@ -259,7 +259,7 @@ public sealed class ScreenFlowControl : Control
 
                     var pen = t.TransitionKind == ScreenTransitionKind.OpenModal ? _modalTransitionPen : _transitionPen;
 
-                    // Linea curva di collegamento
+                    // Connecting curved line
                     var geometry = new StreamGeometry();
                     using (var ctx = geometry.Open())
                     {
@@ -272,7 +272,7 @@ public sealed class ScreenFlowControl : Control
                     // Freccia finale
                     DrawArrowHead(context, end, pen.Brush ?? Brushes.DodgerBlue);
 
-                    // Badge con il nome dell'evento scatenante
+                    // Badge with the name of the triggering event
                     if (!string.IsNullOrEmpty(t.TriggerEventName))
                     {
                         var midPoint = new Point((start.X + end.X) / 2.0, (start.Y + end.Y) / 2.0 - 8);
@@ -297,7 +297,7 @@ public sealed class ScreenFlowControl : Control
                 }
             }
 
-            // 2. Disegna le Card delle Schermate
+            // 2. Draw the Screen Cards
             foreach (var screen in graph.Screens)
             {
                 var cardRect = new Rect(screen.X, screen.Y, screen.Width, screen.Height);
@@ -314,14 +314,14 @@ public sealed class ScreenFlowControl : Control
                     context.FillRectangle(_cardBgBrush, cardRect);
                     context.FillRectangle(screen.IsStartupScreen ? _startupHeaderBrush : _cardHeaderBrush, headerRect);
 
-                    // Bordo ed evidenziazione
+                    // Border and highlight
                     if (isSelected)
 
                         context.DrawRectangle(new Pen(_selectedBorderBrush, 2.5), cardRect);
 
                     else if (isMatch)
                     {
-                        // Glow esterno e bordo evidenziato per ricerca
+                        // External glow and highlighted edge for search
                         context.DrawRectangle(_highlightGlowPen, cardRect);
                         context.DrawRectangle(_highlightBorderPen, cardRect);
                     }

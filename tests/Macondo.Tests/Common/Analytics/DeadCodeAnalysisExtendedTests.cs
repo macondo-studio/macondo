@@ -8,9 +8,9 @@ namespace Macondo.Tests.Common.Analytics;
 public class DeadCodeAnalysisExtendedTests
 {
     /// <summary>
-    /// Verifica che in presenza di proprietà distinte (Property Get e Property Let),
-    /// qualora solo Property Get venga invocata dall'applicazione, la Property Let mai referenziata
-    /// venga contrassegnata come codice morto.
+    /// Check that in the presence of distinct properties (Property Get and Property Let),
+    /// if only Property Get is invoked by the application, the Property Let is never referenced
+    /// is marked as dead code.
     /// </summary>
     [Fact]
     public void DeadCodeAnalysis_ShouldIdentifyUnusedPropertyAccessor_WhenGetterIsUsedButSetterIsNot()
@@ -44,8 +44,8 @@ public class DeadCodeAnalysisExtendedTests
     }
 
     /// <summary>
-    /// Verifica che l'analizzatore gestisca un CodeGraph vuoto senza errori,
-    /// producendo un dataset con rapporto di codice morto pari a 0.
+    /// Verify that the analyzer handles an empty CodeGraph without errors,
+    /// producing a dataset with a dead code ratio of 0.
     /// </summary>
     [Fact]
     public void DeadCodeAnalysis_ShouldHandleEmptyGraph_Gracefully()

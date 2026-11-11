@@ -3,41 +3,41 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.Maintainability;
 
 /// <summary>
-/// Livello di manutenibilità secondo lo standard Microsoft / SEI Code Metrics.
+/// Maintainability level according to the Microsoft / SEI Code Metrics standard.
 /// </summary>
 public enum MaintainabilityRating
 {
-    /// <summary>Indice 80 - 100: Codice altamente manutenibile, chiaro e ben modulato.</summary>
+    /// <summary>Index 80 - 100: Highly maintainable, clear and well-modulated code.</summary>
     High,
 
-    /// <summary>Indice 20 - 79: Manutenibilità moderata con aree di debito tecnico o complessità.</summary>
+    /// <summary>Index 20 - 79: Moderate maintainability with areas of technical debt or complexity.</summary>
     Moderate,
 
-    /// <summary>Indice 0 - 19: Codice ad altissimo rischio, monolitico o scarsamente manutenibile.</summary>
+    /// <summary>Index 0 - 19: Very high risk, monolithic or poorly maintainable code.</summary>
     Low
 }
 
 /// <summary>
-/// Metriche di Halstead dettagliate per un elemento di codice (Maurice Halstead, 1977).
+/// Detailed Halstead Metrics for a Code Element (Maurice Halstead, 1977).
 /// </summary>
 public sealed class HalsteadMetrics
 {
-    /// <summary>Numero di operatori unici / distinti (n1).</summary>
+    /// <summary>Number of unique / distinct operators (n1).</summary>
     public int DistinctOperators { get; set; }
 
-    /// <summary>Numero di operandi unici / distinti (n2).</summary>
+    /// <summary>Number of unique / distinct operands (n2).</summary>
     public int DistinctOperands { get; set; }
 
-    /// <summary>Numero totale di occorrenze di operatori (N1).</summary>
+    /// <summary>Total number of operator occurrences (N1).</summary>
     public int TotalOperators { get; set; }
 
-    /// <summary>Numero totale di occorrenze di operandi (N2).</summary>
+    /// <summary>Total number of operand occurrences (N2).</summary>
     public int TotalOperands { get; set; }
 
-    /// <summary>Vocabolario del programma: eta = n1 + n2.</summary>
+    /// <summary>Program vocabulary: eta = n1 + n2.</summary>
     public int Vocabulary => DistinctOperators + DistinctOperands;
 
-    /// <summary>Lunghezza totale del programma: N = N1 + N2.</summary>
+    /// <summary>Total length of the program: N = N1 + N2.</summary>
     public int Length => TotalOperators + TotalOperands;
 
     /// <summary>Lunghezza stimata calcolata: N_hat = n1 * log2(n1) + n2 * log2(n2).</summary>
@@ -50,7 +50,7 @@ public sealed class HalsteadMetrics
         }
     }
 
-    /// <summary>Volume di Halstead: V = N * log2(eta). Rappresenta lo spazio informativo in bit.</summary>
+    /// <summary>Halstead volume: V = N * log2(eta). Represents the information space in bits.</summary>
     public double Volume
     {
         get
@@ -61,7 +61,7 @@ public sealed class HalsteadMetrics
         }
     }
 
-    /// <summary>Difficoltà di comprensione o implementazione: D = (n1 / 2) * (N2 / n2).</summary>
+    /// <summary>Difficulty understanding or implementing: D = (n1 / 2) * (N2 / n2).</summary>
     public double Difficulty
     {
         get
@@ -71,18 +71,18 @@ public sealed class HalsteadMetrics
         }
     }
 
-    /// <summary>Sforzo intellettuale richiesto per comprendere/scrivere il codice: E = D * V.</summary>
+    /// <summary>Intellectual effort required to understand/write the code: E = D * V.</summary>
     public double Effort => Difficulty * Volume;
 
-    /// <summary>Tempo stimato di comprensione in secondi (legge di Stroud): T = E / 18.</summary>
+    /// <summary>Estimated comprehension time in seconds (Stroud's law): T = E / 18.</summary>
     public double TimeToUnderstandSeconds => Effort / 18.0;
 
-    /// <summary>Numero stimato di bug / difetti latenti: B = V / 3000.</summary>
+    /// <summary>Estimated number of bugs / latent defects: B = V / 3000.</summary>
     public double EstimatedBugs => Volume / 3000.0;
 }
 
 /// <summary>
-/// Singolo elemento (File, Classe, Modulo, Routine) valutato per la manutenibilità.
+/// Single element (File, Class, Module, Routine) evaluated for maintainability.
 /// </summary>
 public sealed class MaintainabilityItem
 {
@@ -93,17 +93,17 @@ public sealed class MaintainabilityItem
     public SymbolKind Kind { get; init; }
     public SourceLanguage Language { get; init; }
 
-    /// <summary>Linee di codice fisiche totali (LOC / LoC).</summary>
+    /// <summary>Total physical lines of code (LOC / LoC).</summary>
     public int LinesOfCode { get; set; }
 
-    /// <summary>Complessità Ciclomatica di McCabe stimata o calcolata (CC / V(G)).</summary>
+    /// <summary>Estimated or calculated McCabe Cyclomatic Complexity (CC / V(G)).</summary>
     public int CyclomaticComplexity { get; set; }
 
-    /// <summary>Dettaglio delle metriche di Halstead.</summary>
+    /// <summary>Detail of Halstead metrics.</summary>
     public HalsteadMetrics Halstead { get; init; } = new();
 
     /// <summary>
-    /// Maintainability Index (MI) normalizzato secondo lo standard Microsoft / SEI:
+    /// Maintainability Index (MI) normalized according to the Microsoft / SEI standard:
     /// MI = MAX(0, (171 - 5.2 * ln(V) - 0.23 * CC - 16.2 * ln(LOC)) * 100 / 171)
     /// </summary>
     public double MaintainabilityIndex { get; set; }
@@ -121,24 +121,24 @@ public sealed class MaintainabilityItem
 }
 
 /// <summary>
-/// Dataset aggregato per l'analisi di manutenibilità del progetto.
+/// Aggregated dataset for project maintainability analysis.
 /// </summary>
 public sealed class MaintainabilityDataset
 {
     public List<MaintainabilityItem> Items { get; init; } = new();
 
-    /// <summary>Maintainability Index medio ponderato del progetto.</summary>
+    /// <summary>Weighted average Maintainability Index of the project.</summary>
     public double AverageMaintainabilityIndex => Items.Count > 0 ? Items.Average(i => i.MaintainabilityIndex) : 100.0;
 
-    /// <summary>Numero di elementi ad alta manutenibilità (MI >= 80).</summary>
+    /// <summary>Number of highly maintainable elements (MI >= 80).</summary>
     public int HighCount => Items.Count(i => i.Rating == MaintainabilityRating.High);
 
-    /// <summary>Numero di elementi a moderata manutenibilità (20 <= MI < 80).</summary>
+    /// <summary>Number of moderately maintainable elements (20 <= MI < 80).</summary>
     public int ModerateCount => Items.Count(i => i.Rating == MaintainabilityRating.Moderate);
 
-    /// <summary>Numero di elementi a bassa/critica manutenibilità (MI < 20).</summary>
+    /// <summary>Number of elements with low/critical maintainability (MI < 20).</summary>
     public int LowCount => Items.Count(i => i.Rating == MaintainabilityRating.Low);
 
-    /// <summary>Stima totale dei bug latenti calcolata tramite la formula di Halstead.</summary>
+    /// <summary>Total estimate of latent bugs calculated using the Halstead formula.</summary>
     public double TotalEstimatedBugs => Items.Sum(i => i.Halstead.EstimatedBugs);
 }

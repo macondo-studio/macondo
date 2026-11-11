@@ -5,28 +5,28 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Estrattore semantico di file sorgente C# basato sul compilatore Microsoft Roslyn (<see cref="CSharpSyntaxTree"/>).
+/// C# source file semantic extractor based on the Microsoft Roslyn compiler (<see cref="CSharpSyntaxTree"/>).
 /// 
 /// RESPONSABILITÀ:
-/// 1. Effettua il parsing del codice sorgente C# costruendo un albero sintattico (Roslyn SyntaxTree).
-/// 2. Attraversa l'albero tramite <see cref="CSharpSymbolWalker"/> estraendo tutti i simboli strutturati
-///    (Classi, Interfacce, Record, Struct, Enum, Metodi, Proprietà, Campi, Eventi, Costanti).
-/// 3. Inserisce i simboli nel <see cref="CodeGraph"/> condiviso collegandoli con relazioni di contenimento (<see cref="RelationshipKind.Contains"/>).
-/// 4. Raccoglie i call-site di invocazione, le istanziazioni 'new' e le clausole di ereditarietà per consentire
-///    al <see cref="Macondo.Semantic.Graph.CallGraphBuilder"/> di generare i collegamenti semantici cross-language.
+/// 1. Parse the C# source code by building a syntax tree (Roslyn SyntaxTree).
+/// 2. Traverse the tree via <see cref="CSharpSymbolWalker"/> extracting all structured symbols
+/// (Classes, Interfaces, Records, Structs, Enums, Methods, Properties, Fields, Events, Constants).
+/// 3. Inserts symbols into the shared <see cref="CodeGraph"/> by connecting them with containment relations (<see cref="RelationshipKind.Contains"/>).
+/// 4. Collects invocation call-sites, 'new' instantiations and inheritance clauses to allow
+/// to <see cref="Macondo.Semantic.Graph.CallGraphBuilder"/> to generate cross-language semantic links.
 /// </summary>
 public static class CSharpExtractor
 {
     /// <summary>
-    /// Esegue il parsing e l'estrazione semantica di un file C# inserendo direttamente i simboli nel <see cref="CodeGraph"/>.
+    /// Performs parsing and semantic extraction of a C# file by directly inserting symbols into the <see cref="CodeGraph"/>.
     /// </summary>
-    /// <param name="graph">Il grafo semantico condiviso dell'analisi in memoria.</param>
-    /// <param name="filePath">Percorso o nome del file C# analizzato.</param>
-    /// <param name="sourceText">Il codice sorgente C# completo del file.</param>
-    /// <returns>Il risultato strutturato contenente simboli, call site, istanziazioni ed ereditarietà estratte.</returns>
+    /// <param name="graph">The shared semantic graph of in-memory analysis.</param>
+    /// <param name="filePath">Path or name of the analyzed C# file.</param>
+    /// <param name="sourceText">The complete C# source code of the file.</param>
+    /// <returns>The structured result containing extracted symbols, call sites, instantiations and inheritances.</returns>
     public static CSharpExtractionResult ExtractCSharpFile(CodeGraph graph, string filePath, string sourceText)
     {
-        // 1. Parsing del testo sorgente C# tramite Roslyn con supporto alla versione più recente del linguaggio
+        // 1. Parsing C# source text using Roslyn with support for the latest version of the language
         var syntaxTree = CSharpSyntaxTree.ParseText(
             sourceText,
             path: filePath,
@@ -34,7 +34,7 @@ public static class CSharpExtractor
 
         var root = syntaxTree.GetRoot();
 
-        // 2. Raccolta di eventuali errori di diagnostica sintattica
+        // 2. Collection of any syntactic diagnostic errors
         var errors = new List<string>();
         foreach (var diag in syntaxTree.GetDiagnostics())
         {
@@ -42,11 +42,11 @@ public static class CSharpExtractor
                 errors.Add(diag.ToString());
         }
 
-        // 3. Esecuzione del walker specializzato per l'estrazione gerarchica dei simboli e delle relazioni
+        // 3. Execution of the specialized walker for the hierarchical extraction of symbols and relations
         var walker = new CSharpSymbolWalker(graph, filePath);
         walker.Visit(root);
 
-        // 4. Confezionamento del risultato finale di estrazione
+        // 4. Packaging of the final extraction result
         return new CSharpExtractionResult
         {
             FilePath = filePath,

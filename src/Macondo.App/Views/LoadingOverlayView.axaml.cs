@@ -6,17 +6,17 @@ using Macondo.App.Services;
 namespace Macondo.App.Views;
 
 /// <summary>
-/// Overlay a schermo intero con animazione di caricamento e barra di avanzamento per operazioni asincrone pesanti.
+/// Full screen overlay with loading animation and progress bar for heavy asynchronous operations.
 /// </summary>
 public partial class LoadingOverlayView : UserControl
 {
     /// <summary>
-    /// Evento scatenato quando l'utente richiede di annullare l'operazione in corso.
+    /// Event triggered when the user requests to cancel the current operation.
     /// </summary>
     public event EventHandler? CancelRequested;
 
     /// <summary>
-    /// Inizializza una nuova istanza di <see cref="LoadingOverlayView"/>.
+    /// Initializes a new instance of <see cref="LoadingOverlayView"/>.
     /// </summary>
     public LoadingOverlayView()
     {
@@ -25,7 +25,7 @@ public partial class LoadingOverlayView : UserControl
     }
 
     /// <summary>
-    /// Mostra l'overlay di caricamento con titolo e sottotitolo personalizzati.
+    /// Show loading overlay with custom title and subtitle.
     /// </summary>
     public void Show(string title, string subtitle, bool canCancel = true, string? timeText = null)
     {
@@ -43,7 +43,7 @@ public partial class LoadingOverlayView : UserControl
     }
 
     /// <summary>
-    /// Aggiorna i valori di avanzamento e i dettagli numerici della barra di caricamento.
+    /// Updates progress values and numerical details of the loading bar.
     /// </summary>
     public void UpdateProgress(int current, int total, string countText, string statsText, string? timeText = null, string? subtitle = null)
     {
@@ -87,7 +87,7 @@ public partial class LoadingOverlayView : UserControl
     }
 
     /// <summary>
-    /// Nasconde l'overlay di caricamento.
+    /// Hides the loading overlay.
     /// </summary>
     public void Hide()
     {
@@ -95,7 +95,7 @@ public partial class LoadingOverlayView : UserControl
     }
 
     /// <summary>
-    /// Aggiorna le stringhe localizzate del pulsante di annullamento.
+    /// Update localized cancel button strings.
     /// </summary>
     public void UpdateLocalizedUI()
     {

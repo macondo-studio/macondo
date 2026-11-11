@@ -8,8 +8,8 @@ namespace Macondo.Tests.CSharpSpecific;
 public class CSharpEdgeCasesAndResilienceTests
 {
     /// <summary>
-    /// Verifica l'estrazione di tipi dichiarati nel Global Namespace (senza clausola namespace esplicita),
-    /// garantendo che il QualifiedName coincida con il nome semplice del tipo.
+    /// Tests extraction of types declared in the Global Namespace (without explicit namespace clause),
+    /// ensuring that the QualifiedName matches the simple name of the type.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractTypesInGlobalNamespace()
@@ -43,7 +43,7 @@ public class CSharpEdgeCasesAndResilienceTests
     }
 
     /// <summary>
-    /// Verifica la corretta gestione di molteplici blocchi 'namespace' all'interno del medesimo file sorgente.
+    /// Verifies the correct management of multiple 'namespace' blocks within the same source file.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldSupportMultipleNamespacesInSingleFile()
@@ -81,8 +81,8 @@ public class CSharpEdgeCasesAndResilienceTests
     }
 
     /// <summary>
-    /// Verifica che file C# vuoti, composti da soli spazi o contenenti esclusivamente commenti e direttive using
-    /// vengano elaborati senza errori restituendo una lista vuota di simboli.
+    /// Check for C# files that are empty, contain only spaces, or contain only comments and using directives
+    /// are processed without errors, returning an empty list of symbols.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldHandleEmptyAndCommentOnlyFilesGracefully()
@@ -110,7 +110,7 @@ public class CSharpEdgeCasesAndResilienceTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di molteplici overload del medesimo metodo all'interno della stessa classe.
+    /// Checks the extraction of multiple overloads of the same method within the same class.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractOverloadedMethods()

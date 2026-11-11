@@ -16,8 +16,8 @@ public class Vb6ComprehensiveEdgeCasesAndGrammarStressTests
     #region Conditional Compilation Directives (#If, #ElseIf, #Else, #End If, #Const)
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di codice contenente direttive di compilazione condizionale
-    /// (#Const, #If, #ElseIf, #Else, #End If) a livello di modulo e all'interno delle routine.
+    /// Tests parsing and extraction of code containing conditional compilation directives
+    /// (#Const, #If, #ElseIf, #Else, #End If) at the module level and within routines.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldHandleConditionalCompilationDirectives()
@@ -72,7 +72,7 @@ public class Vb6ComprehensiveEdgeCasesAndGrammarStressTests
     #region AddressOf Operator in Win32 Subclassing & Callbacks
 
     /// <summary>
-    /// Verifica il corretto parsing e l'estrazione dell'operatore AddressOf utilizzato nei callback di sottoclasse e timer Windows API.
+    /// Verify correct parsing and extraction of the AddressOf operator used in Windows API subclass and timer callbacks.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldHandleAddressOfOperatorInApiCalls()
@@ -122,8 +122,8 @@ public class Vb6ComprehensiveEdgeCasesAndGrammarStressTests
     #region User-Defined Types (UDTs) with Fixed-Size Arrays and Fixed-Length Strings
 
     /// <summary>
-    /// Verifica il parsing di strutture dati utente (Type ... End Type) complesse con array a dimensione fissa,
-    /// stringhe a lunghezza fissa (String * N) e tipi annidati.
+    /// Tests parsing of complex user data structures (Type ... End Type) with fixed-size arrays,
+    /// fixed-length strings (String * N) and nested types.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldExtractComplexUDTsWithFixedBuffers()
@@ -172,7 +172,7 @@ public class Vb6ComprehensiveEdgeCasesAndGrammarStressTests
     #region Enums with Negative, Hex, and Explicit Values
 
     /// <summary>
-    /// Verifica il parsing di Enum VB6 contenenti valori esadecimali (&amp;H...), valori negativi ed espressioni di bitmask.
+    /// Tests parsing of VB6 Enums containing hexadecimal (&H...) values, negative values, and bitmask expressions.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldExtractEnumsWithHexAndNegativeValues()
@@ -214,7 +214,7 @@ public class Vb6ComprehensiveEdgeCasesAndGrammarStressTests
     #region ParamArray and Optional Variant Arguments
 
     /// <summary>
-    /// Verifica l'estrazione e il call-graph di routine con parametri ParamArray e parametri opzionali multipli.
+    /// Test extraction and call-graph routines with ParamArray parameters and multiple optional parameters.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldExtractParamArrayAndOptionalParameters()
@@ -265,7 +265,7 @@ public class Vb6ComprehensiveEdgeCasesAndGrammarStressTests
     #region Multiple Variable Declarations with Dim As New and Mixed Types
 
     /// <summary>
-    /// Verifica il parsing di dichiarazioni Dim composite su singola riga con auto-istanziazione (As New),
+    /// Test parsing of single-line composite Dim declarations with self-instantiation (As New),
     /// array dinamici e tipi primitivi misti.
     /// </summary>
     [Fact]
@@ -297,8 +297,8 @@ public class Vb6ComprehensiveEdgeCasesAndGrammarStressTests
     #region On Error GoTo -1 and Complex Error Recovery
 
     /// <summary>
-    /// Verifica il parsing di costrutti avanzati di gestione eccezioni VB6 con 'On Error GoTo -1'
-    /// per il reset dello stato di eccezione attivo.
+    /// Test parsing of advanced VB6 exception handling constructs with 'On Error GoTo -1'
+    /// for resetting the active exception state.
     /// </summary>
     [Fact]
     public void Parser_ShouldParseOnErrorResetDirective()

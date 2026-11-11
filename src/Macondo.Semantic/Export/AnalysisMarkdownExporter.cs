@@ -17,8 +17,8 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Export;
 
 /// <summary>
-/// Esportatore Markdown unificato per tutte le analisi semantiche e architetturali di Macondo.
-/// Genera report chiari, leggibili e formattati con tabelle ed elenchi compatibili con GitHub, Markdown viewer e LLM.
+/// Unified Markdown exporter for all Macondo semantic and architectural analyses.
+/// Generate clear, readable and formatted reports with tables and lists compatible with GitHub, Markdown viewer and LLM.
 /// </summary>
 public static class AnalysisMarkdownExporter
 {

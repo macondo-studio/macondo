@@ -7,8 +7,8 @@ namespace Macondo.Tests.Common.App;
 public class WindowsNotificationServiceTests
 {
     /// <summary>
-    /// Verifica che il servizio di notifica Windows gestisca istanze Window nulle o non inizializzate
-    /// senza sollevare eccezioni a runtime (NullReferenceException o AccessViolationException).
+    /// Verify that the Windows Notification Service handles null or uninitialized Window instances
+    /// without raising exceptions at runtime (NullReferenceException or AccessViolationException).
     /// </summary>
     [Fact]
     public void WindowsNotificationService_ShouldHandleNullWindow_Gracefully()
@@ -22,8 +22,8 @@ public class WindowsNotificationServiceTests
     }
 
     /// <summary>
-    /// Verifica che stringhe vuote, nulle o molto lunghe nei messaggi di notifica
-    /// non causino buffer overflow o crash nelle API P/Invoke sottostanti.
+    /// Check for empty, null, or very long strings in notification messages
+    /// do not cause buffer overflows or crashes in the underlying P/Invoke APIs.
     /// </summary>
     [Theory]
     [InlineData("", "")]

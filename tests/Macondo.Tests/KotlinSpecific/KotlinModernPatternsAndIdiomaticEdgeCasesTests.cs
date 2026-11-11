@@ -8,17 +8,17 @@ using Xunit;
 namespace Macondo.Tests.KotlinSpecific;
 
 /// <summary>
-/// Suite di test per costrutti idiomatici moderni ed edge cases del linguaggio Kotlin (.kt),
+/// Test suite for modern idiomatic constructs and edge cases of the Kotlin language (.kt),
 /// inclusi funzioni/costanti top-level, scope functions (apply, let, run, also, with), object expressions anonimi,
-/// property getter/setter con backing field 'field', lateinit, Elvis chaining ed espressioni 'when' con smart casting.
+/// property getter/setter with backing field 'field', lateinit, Elvis chaining and 'when' expressions with smart casting.
 /// </summary>
 public class KotlinModernPatternsAndIdiomaticEdgeCasesTests
 {
     #region Top-Level Functions and Properties
 
     /// <summary>
-    /// In Kotlin non è obbligatorio incapsulare funzioni e variabili in una classe:
-    /// verifica la corretta estrazione di funzioni e costanti definite a livello di package (top-level).
+    /// In Kotlin it is not mandatory to encapsulate functions and variables in a class:
+    /// verifies the correct extraction of functions and constants defined at package level (top-level).
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldExtractTopLevelFunctionsAndProperties()
@@ -68,8 +68,8 @@ public class KotlinModernPatternsAndIdiomaticEdgeCasesTests
     #region Scope Functions (let, run, apply, also, with)
 
     /// <summary>
-    /// Verifica che le invocazioni di metodi e funzioni all'interno dei blocchi delle scope functions
-    /// standard di Kotlin (let, apply, also, run) vengano tracciate correttamente nel Call Graph.
+    /// Verify that method and function invocations are within scope function blocks
+    /// Kotlin standards (let, apply, also, run) are tracked correctly in the Call Graph.
     /// </summary>
     [Fact]
     public void KotlinCallGraph_ShouldResolveCallsInsideScopeFunctions()
@@ -125,8 +125,8 @@ public class KotlinModernPatternsAndIdiomaticEdgeCasesTests
     #region Anonymous Object Expressions
 
     /// <summary>
-    /// In Kotlin 'object : Interface { ... }' crea una classe anonima inline.
-    /// Verifica che la classe e i suoi metodi interni siano estratti e le chiamate interne risolte.
+    /// In Kotlin 'object : Interface { ... }' creates an inline anonymous class.
+    /// Verify that the class and its internal methods are extracted and internal calls resolved.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldExtractAnonymousObjectExpressions()
@@ -177,7 +177,7 @@ public class KotlinModernPatternsAndIdiomaticEdgeCasesTests
     #region Custom Property Getters/Setters and Backing Field 'field'
 
     /// <summary>
-    /// Verifica la gestione di proprietà Kotlin con getter/setter personalizzati e identificatore speciale 'field'.
+    /// Test Kotlin property management with custom getters/setters and special identifier 'field'.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldExtractCustomPropertyGettersAndSettersWithField()
@@ -228,7 +228,7 @@ public class KotlinModernPatternsAndIdiomaticEdgeCasesTests
     #region Lateinit and Chained Elvis Operator
 
     /// <summary>
-    /// Verifica la gestione della keyword 'lateinit var' e del fallback con l'operatore Elvis '?:' su catene complesse.
+    /// Check the handling of the keyword 'lateinit var' and the fallback with the Elvis operator '?:' on complex chains.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldHandleLateinitAndChainedElvisOperator()
@@ -278,8 +278,8 @@ public class KotlinModernPatternsAndIdiomaticEdgeCasesTests
     #region Smart Casts and Exhaustive When Pattern
 
     /// <summary>
-    /// Verifica che espressioni 'when' con smart casting su tipi (is Type) risolvano correttamente
-    /// le chiamate ai metodi specifici del tipo castato.
+    /// Verify that 'when' expressions with smart casting on types (is Type) resolve correctly
+    /// calls to the type-specific methods cast.
     /// </summary>
     [Fact]
     public void KotlinCallGraph_ShouldResolveCallsInExhaustiveWhenWithSmartCasting()
@@ -331,8 +331,8 @@ public class KotlinModernPatternsAndIdiomaticEdgeCasesTests
     #region Vararg, Default Arguments and Named Parameters
 
     /// <summary>
-    /// Verifica l'estrazione e il tracciamento di metodi con parametri vararg, valori di default
-    /// e invocazioni con argomenti con nome (named arguments).
+    /// Tests extraction and tracking of methods with vararg parameters, default values
+    /// and invocations with named arguments.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldHandleVarargsDefaultArgumentsAndNamedParameters()

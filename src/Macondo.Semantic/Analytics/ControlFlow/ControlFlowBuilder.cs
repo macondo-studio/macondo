@@ -3,26 +3,26 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.ControlFlow;
 
 /// <summary>
-/// Costruttore di Control Flow Graph agnostico dal linguaggio.
-/// Genera la struttura a blocchi base e salti condizionali per qualsiasi routine.
+/// Language agnostic Control Flow Graph builder.
+/// Generate the basic block structure and conditional jumps for any routine.
 /// </summary>
 public static class ControlFlowBuilder
 {
     /// <summary>
-    /// Costruisce il Control Flow Graph (CFG) semantico per il simbolo di routine specificato (Sub, Function, Property).
+    /// Constructs the semantic Control Flow Graph (CFG) for the specified procedure symbol (Sub, Function, Property).
     /// </summary>
-    /// <param name="routine">Il simbolo della routine da modellare.</param>
-    /// <param name="graph">Il CodeGraph contenente le relazioni e chiamate effettuate.</param>
-    /// <returns>Il modello <see cref="ProcedureControlFlowGraph"/> con blocchi base, diramazioni e coordinate spaziali calcolate.</returns>
+    /// <param name="routine">The symbol of the routine to model.</param>
+    /// <param name="graph">The CodeGraph containing the reports and calls made.</param>
+    /// <returns>The <see cref="ProcedureControlFlowGraph"/> model with basic blocks, branches and calculated spatial coordinates.</returns>
     /// <remarks>
-    /// L'algoritmo di modellazione:
+    /// The modeling algorithm:
     /// <list type="number">
-    ///   <item><description>Crea il blocco di ingresso <see cref="ControlFlowBlockKind.Entry"/> con la firma e i parametri formali della routine.</description></item>
-    ///   <item><description>Se la routine è lineare (priva di chiamate/branching), genera un corpo semplice con transizione diretta verso l'uscita (<see cref="ControlFlowBlockKind.Exit"/>).</description></item>
-    ///   <item><description>Se sono presenti chiamate o parametri, struttura una guard condizionale (<see cref="ControlFlowBlockKind.DecisionIf"/>), un ramo principale di elaborazione (True) e un ramo alternativo di fallback (False).</description></item>
-    ///   <item><description>In caso di molteplici chiamate esterne, modella un blocco dedicato di gestione errori (<see cref="ControlFlowBlockKind.ExceptionHandler"/>) con salto eccezionale.</description></item>
-    ///   <item><description>Collega tutti i rami di esecuzione al blocco di terminazione <see cref="ControlFlowBlockKind.Exit"/> e calcola la complessità ciclomatica di McCabe: <c>M = 1 + DecisionBlocks</c>.</description></item>
-    ///   <item><description>Esegue l'algoritmo gerarchico di Sugiyama (<see cref="LayoutSugiyama"/>) per calcolare la disposizione dei blocchi a livelli.</description></item>
+    /// <item><description>Creates the input block <see cref="ControlFlowBlockKind.Entry"/> with the signature and formal parameters of the routine.</description></item>
+    /// <item><description>If the routine is linear (no calls/branching), generates a simple body with direct transition to the exit (<see cref="ControlFlowBlockKind.Exit"/>).</description></item>
+    /// <item><description>If there are calls or parameters, structures a conditional guard (<see cref="ControlFlowBlockKind.DecisionIf"/>), a main processing branch (True), and an alternative fallback branch (False).</description></item>
+    /// <item><description>In case of multiple external calls, models a dedicated error handling block (<see cref="ControlFlowBlockKind.ExceptionHandler"/>) with exceptional skip.</description></item>
+    /// <item><description>Connect all execution branches to the termination block <see cref="ControlFlowBlockKind.Exit"/> and calculate the McCabe cyclomatic complexity: <c>M = 1 + DecisionBlocks</c>.</description></item>
+    /// <item><description>Executes Sugiyama's hierarchical algorithm (<see cref="LayoutSugiyama"/>) to calculate the tiered block arrangement.</description></item>
     /// </list>
     /// </remarks>
     public static ProcedureControlFlowGraph BuildForSymbol(Symbol routine, CodeGraph graph)
@@ -36,15 +36,15 @@ public static class ControlFlowBuilder
             ContainerName = routine.QualifiedName.Contains('.') ? routine.QualifiedName.Split('.')[0] : "Module"
         };
 
-        // Raccoglie i nomi delle chiamate uscenti effettuate da questa routine
+        // Collects the names of outgoing calls made by this routine
         var outgoingCalls = graph.Relationships
             .Where(r => r.SourceId == routine.Id && r.Kind == RelationshipKind.Calls)
             .Select(r => symbolMap.TryGetValue(r.TargetId, out var s) ? s.Name : "Call")
             .ToList();
 
         // ---------------------------------------------------------------------
-        // PASSO 1: Creazione del blocco di ingresso (Entry Block).
-        // Contiene la firma formale della procedura e l'elenco dei parametri.
+        // STEP 1: Creation of the Entry Block.
+        // Contains the formal signature of the procedure and the list of parameters.
         // ---------------------------------------------------------------------
         var entryNode = new ControlFlowNode
         {
@@ -55,8 +55,8 @@ public static class ControlFlowBuilder
         cfg.Blocks.Add(entryNode);
 
         // ---------------------------------------------------------------------
-        // PASSO 2: Gestione di routine lineari (senza chiamate uscenti o parametri).
-        // Se non ci sono punti di decisione, il flusso è una sequenza diretta Entry -> Body -> Exit.
+        // STEP 2: Management of linear routines (without outgoing calls or parameters).
+        // If there are no decision points, the flow is a direct sequence Entry -> Body -> Exit.
         // ---------------------------------------------------------------------
         if (outgoingCalls.Count == 0 && routine.Parameters.Count == 0)
         {
@@ -86,9 +86,9 @@ public static class ControlFlowBuilder
         }
 
         // ---------------------------------------------------------------------
-        // PASSO 3: Strutturazione di routine complesse con diramazioni (Branching If/Else / Catch).
+        // STEP 3: Structuring complex routines with branches (Branching If/Else / Catch).
         // ---------------------------------------------------------------------
-        // 3a. Blocco di decisione / validazione dei parametri di input
+        // 3a. Decision block / validation of input parameters
         var guardBlock = new ControlFlowNode
         {
             BlockKind = ControlFlowBlockKind.DecisionIf,
@@ -98,7 +98,7 @@ public static class ControlFlowBuilder
         cfg.Blocks.Add(guardBlock);
         cfg.Edges.Add(new ControlFlowEdge { SourceBlockId = entryNode.Id, TargetBlockId = guardBlock.Id, BranchKind = ControlFlowBranchKind.Fallthrough });
 
-        // 3b. Ramo True: Blocco di elaborazione principale con le chiamate esterne
+        // 3b. Branch True: Main processing block with external calls
         var bodyBlock = new ControlFlowNode
         {
             BlockKind = ControlFlowBlockKind.BasicBlock,
@@ -116,7 +116,7 @@ public static class ControlFlowBuilder
             ConditionLabel = "True [Valid]"
         });
 
-        // 3c. Ramo False: Blocco di gestione alternativa / fallback
+        // 3c. False branch: Alternate/fallback management block
         var altBlock = new ControlFlowNode
         {
             BlockKind = ControlFlowBlockKind.BasicBlock,
@@ -132,7 +132,7 @@ public static class ControlFlowBuilder
             ConditionLabel = "False [Invalid]"
         });
 
-        // 3d. Gestione eccezioni: se vi sono multiple chiamate esterne, modella un blocco ExceptionHandler
+        // 3d. Exception Handling: If there are multiple external calls, model an ExceptionHandler block
         ControlFlowNode? errorHandlerBlock = null;
         if (outgoingCalls.Count >= 2)
         {
@@ -153,7 +153,7 @@ public static class ControlFlowBuilder
         }
 
         // ---------------------------------------------------------------------
-        // PASSO 4: Blocco terminale di uscita (Exit Block) e convergenza di tutti i rami.
+        // STEP 4: Exit Block and convergence of all branches.
         // ---------------------------------------------------------------------
         var finalExit = new ControlFlowNode
         {
@@ -163,18 +163,18 @@ public static class ControlFlowBuilder
         };
         cfg.Blocks.Add(finalExit);
 
-        // Chiusura di tutti i cammini verso il blocco di uscita comune
+        // Closure of all paths to the common exit block
         cfg.Edges.Add(new ControlFlowEdge { SourceBlockId = bodyBlock.Id, TargetBlockId = finalExit.Id, BranchKind = ControlFlowBranchKind.Fallthrough });
         cfg.Edges.Add(new ControlFlowEdge { SourceBlockId = altBlock.Id, TargetBlockId = finalExit.Id, BranchKind = ControlFlowBranchKind.Fallthrough });
         if (errorHandlerBlock != null)
 
             cfg.Edges.Add(new ControlFlowEdge { SourceBlockId = errorHandlerBlock.Id, TargetBlockId = finalExit.Id, BranchKind = ControlFlowBranchKind.Fallthrough });
 
-        // Calcolo della Complessità Ciclomatica di McCabe: M = 1 + numero di punti di decisione (If/Select/Loop)
+        // McCabe Cyclomatic Complexity Calculation: M = 1 + number of decision points (If/Select/Loop)
         cfg.CyclomaticComplexity = 1 + cfg.Blocks.Count(b => b.BlockKind is ControlFlowBlockKind.DecisionIf or ControlFlowBlockKind.DecisionSelect or ControlFlowBlockKind.LoopHeader);
 
         // ---------------------------------------------------------------------
-        // PASSO 5: Calcolo del layout spaziale gerarchico (Sugiyama Layout)
+        // STEP 5: Calculating the hierarchical spatial layout (Sugiyama Layout)
         // ---------------------------------------------------------------------
         LayoutSugiyama(cfg);
 
@@ -182,22 +182,22 @@ public static class ControlFlowBuilder
     }
 
     /// <summary>
-    /// Calcola la disposizione gerarchica a livelli verticali dei blocchi del CFG (Framework Sugiyama).
+    /// Calculate the hierarchical arrangement at vertical levels of the blocks of the CFG (Sugiyama Framework).
     /// </summary>
-    /// <param name="cfg">Il grafo di flusso di controllo da disporre sul piano 2D.</param>
+    /// <param name="cfg">The control flow graph to be placed on the 2D plane.</param>
     /// <remarks>
     /// L'algoritmo:
     /// <list type="number">
-    ///   <item><description>Assegna i nodi a livelli orizzontali progressivi a partire dal blocco Entry mediante attraversamento BFS guidato dagli archi orientati.</description></item>
-    ///   <item><description>Per ciascun livello orizzontale, centra i blocchi rispetto all'asse mediano del canvas calcolando l'ingombro cumulativo e la spaziatura.</description></item>
-    ///   <item><description>Imposta le coordinate assolute <c>(X, Y)</c> e le dimensioni per ogni <see cref="ControlFlowNode"/>.</description></item>
+    /// <item><description>Assigns nodes to progressive horizontal levels starting from the Entry block via BFS traversal guided by directed arcs.</description></item>
+    /// <item><description>For each horizontal level, center the blocks with respect to the median axis of the canvas, calculating the cumulative size and spacing.</description></item>
+    /// <item><description>Set the absolute coordinates <c>(X, Y)</c> and dimensions for each <see cref="ControlFlowNode"/>.</description></item>
     /// </list>
     /// </remarks>
     private static void LayoutSugiyama(ProcedureControlFlowGraph cfg)
     {
         if (cfg.Blocks.Count == 0) return;
 
-        // 1. Assegnazione dei nodi ai livelli gerarchici (Layer Assignment via BFS)
+        // 1. Assignment of nodes to hierarchical levels (Layer Assignment via BFS)
         var levels = new List<List<ControlFlowNode>>();
         var placed = new HashSet<Guid>();
 
@@ -205,17 +205,17 @@ public static class ControlFlowBuilder
         levels.Add(new List<ControlFlowNode> { entry });
         placed.Add(entry.Id);
 
-        // Continua finché tutti i blocchi sono stati allocati a un livello
+        // Continue until all blocks have been allocated to a level
         while (placed.Count < cfg.Blocks.Count)
         {
             var nextLevel = new List<ControlFlowNode>();
             var prevLevelIds = levels.Last().Select(b => b.Id).ToHashSet();
 
-            // Identifica i nodi destinazione dei blocchi del livello precedente
+            // Identifies the destination nodes of the blocks of the previous level
             foreach (var edge in cfg.Edges.Where(e => prevLevelIds.Contains(e.SourceBlockId)))
             {
                 var target = cfg.FindBlock(edge.TargetBlockId);
-                // Il blocco Exit viene riservato preferibilmente per l'ultimo livello
+                // The Exit block is preferably reserved for the last level
                 if (target != null && !placed.Contains(target.Id) && target.BlockKind != ControlFlowBlockKind.Exit)
                 {
                     nextLevel.Add(target);
@@ -223,7 +223,7 @@ public static class ControlFlowBuilder
                 }
             }
 
-            // Fallback per nodi residui non raggiungibili direttamente
+            // Fallback for residual nodes that cannot be reached directly
             if (nextLevel.Count == 0)
             {
                 var remaining = cfg.Blocks.Where(b => !placed.Contains(b.Id)).ToList();
@@ -239,7 +239,7 @@ public static class ControlFlowBuilder
                 levels.Add(nextLevel);
         }
 
-        // 2. Calcolo coordinate geometriche 2D (Centratura orizzontale e spaziatura verticale)
+        // 2. Calculating 2D geometric coordinates (Horizontal centering and vertical spacing)
         double blockWidth = 220.0;
         double blockHeight = 65.0;
         double levelSpacingY = 110.0;

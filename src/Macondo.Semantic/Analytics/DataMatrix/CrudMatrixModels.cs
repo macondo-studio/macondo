@@ -3,7 +3,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.DataMatrix;
 
 /// <summary>
-/// Flag delle tipologie di operazioni CRUD eseguite su un'entità dati o tabella.
+/// Flags of the types of CRUD operations performed on a data entity or table.
 /// </summary>
 [Flags]
 public enum CrudOperation
@@ -17,7 +17,7 @@ public enum CrudOperation
 }
 
 /// <summary>
-/// Singola cella di interazione CRUD tra un'entità dati (tabella/modello) e una routine/modulo.
+/// Single CRUD interaction cell between a data entity (table/model) and a routine/module.
 /// </summary>
 public sealed class CrudCell
 {
@@ -46,7 +46,7 @@ public sealed class CrudCell
 }
 
 /// <summary>
-/// Riepilogo di tutte le operazioni CRUD afferenti a una specifica entità/tabella di database.
+/// Summary of all CRUD operations relating to a specific database entity/table.
 /// </summary>
 public sealed class EntityCrudSummary
 {
@@ -61,7 +61,7 @@ public sealed class EntityCrudSummary
 }
 
 /// <summary>
-/// Matrice bidirezionale CRUD completa del progetto.
+/// Complete bidirectional CRUD matrix of the project.
 /// </summary>
 public sealed class CrudMatrixDataset
 {

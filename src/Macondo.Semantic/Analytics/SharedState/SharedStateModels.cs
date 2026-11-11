@@ -3,7 +3,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.SharedState;
 
 /// <summary>
-/// Tipologia di accesso a una variabile o stato globale condiviso.
+/// Type of access to a shared global variable or state.
 /// </summary>
 public enum SharedStateAccessKind
 {
@@ -13,7 +13,7 @@ public enum SharedStateAccessKind
 }
 
 /// <summary>
-/// Singola routine o procedura che accede in lettura o scrittura a una variabile globale/statica.
+/// Single routine or procedure that reads or writes to a global/static variable.
 /// </summary>
 public sealed class SharedVariableAccessor
 {
@@ -28,7 +28,7 @@ public sealed class SharedVariableAccessor
 }
 
 /// <summary>
-/// Singola variabile globale, campo statico o stato mutabile condiviso tra più moduli.
+/// Single global variable, static field or mutable state shared across multiple modules.
 /// </summary>
 public sealed class SharedVariableItem
 {
@@ -49,7 +49,7 @@ public sealed class SharedVariableItem
     public int CrossModuleWritersCount => Accessors.Count(a => a.IsCrossModule && (a.AccessKind is SharedStateAccessKind.Write or SharedStateAccessKind.ReadWrite));
 
     /// <summary>
-    /// Punteggio di rischio mutazione: proporzionale a quanti moduli differenti scrivono direttamente su questa variabile.
+    /// Mutation risk score: proportional to how many different modules write directly to this variable.
     /// </summary>
     public ImpactRiskLevel MutationRisk
     {
@@ -65,7 +65,7 @@ public sealed class SharedVariableItem
 }
 
 /// <summary>
-/// Dataset completo dell'analisi dello Stato Condiviso per l'intero progetto.
+/// Complete Shared State analysis dataset for the entire project.
 /// </summary>
 public sealed class SharedStateDataset
 {

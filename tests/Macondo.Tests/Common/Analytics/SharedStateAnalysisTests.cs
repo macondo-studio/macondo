@@ -9,8 +9,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class SharedStateAnalysisTests
 {
     /// <summary>
-    /// Verifica che l'analizzatore individui correttamente variabili con visibilità Public o Global
-    /// dichiarate all'interno di moduli standard (.bas) o classi.
+    /// Verify that the parser correctly detects variables with Public or Global visibility
+    /// declared within standard modules (.bas) or classes.
     /// </summary>
     [Fact]
     public void SharedStateAnalysis_ShouldDetectGlobalVariables_InStandardModules()
@@ -37,8 +37,8 @@ public class SharedStateAnalysisTests
     }
 
     /// <summary>
-    /// Verifica che l'analizzatore tracci e distingua lettori (Reads) e scrittori (Writes)
-    /// identificando se l'accesso avviene da un modulo differente (IsCrossModule).
+    /// Verify that the analyzer tracks and distinguishes readers (Reads) and writers (Writes)
+    /// identifying whether access is from a different module (IsCrossModule).
     /// </summary>
     [Fact]
     public void SharedStateAnalysis_ShouldTrackReadersAndWriters_AndDistinguishCrossModuleAccess()
@@ -54,7 +54,7 @@ public class SharedStateAnalysisTests
         graph.AddContains(stateMod, globalState);
         graph.AddContains(stateMod, localInit);
 
-        // localInit scrive su g_SystemStatus nello stesso modulo
+        // localInit writes to g_SystemStatus in the same module
         graph.Relationships.Add(new Relationship
         {
             SourceId = localInit.Id,
@@ -63,7 +63,7 @@ public class SharedStateAnalysisTests
             Confidence = ResolutionConfidence.Exact
         });
 
-        // Modulo esterno che legge g_SystemStatus
+        // External module that reads g_SystemStatus
         var readerMod = new Symbol { Id = Guid.NewGuid(), Name = "ReaderMod", QualifiedName = "ReaderMod", FilePath = "ReaderMod.bas", Kind = SymbolKind.Module };
         var readerRoutine = new Symbol { Id = Guid.NewGuid(), Name = "CheckStatus", QualifiedName = "ReaderMod.CheckStatus", FilePath = "ReaderMod.bas", Kind = SymbolKind.Method };
         graph.Symbols.AddRange(new[] { readerMod, readerRoutine });
@@ -94,8 +94,8 @@ public class SharedStateAnalysisTests
     }
 
     /// <summary>
-    /// Verifica che una variabile globale modificata da molteplici moduli esterni differenti (>= 4)
-    /// venga categorizzata con livello di rischio di mutazione Critical.
+    /// Verifies that a global variable is modified by multiple different external modules (>= 4)
+    /// is categorized with Critical mutation risk level.
     /// </summary>
     [Fact]
     public void SharedStateAnalysis_ShouldAssignCriticalRisk_WhenMultipleCrossModulesWriteToVariable()
@@ -135,8 +135,8 @@ public class SharedStateAnalysisTests
     }
 
     /// <summary>
-    /// Verifica che una variabile globale che non subisce alcuna scrittura
-    /// mantenga un livello di rischio Low.
+    /// Verifies that a global variable that is not written to
+    /// maintain a Low risk level.
     /// </summary>
     [Fact]
     public void SharedStateAnalysis_ShouldAssignLowRisk_WhenVariableIsOnlyRead()

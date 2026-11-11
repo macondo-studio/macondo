@@ -3,47 +3,47 @@ using System;
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Rappresenta lo stato di avanzamento durante l'analisi di un progetto o cartella VB6.
+/// Represents the progress when analyzing a VB6 project or folder.
 /// </summary>
 public sealed class ProjectAnalysisProgress
 {
     /// <summary>
-    /// Numero di file analizzati finora (0..TotalFiles).
+    /// Number of files scanned so far (0..TotalFiles).
     /// </summary>
     public int CurrentFileIndex { get; set; }
 
     /// <summary>
-    /// Numero totale di file sorgente VB6 da analizzare.
+    /// Total number of VB6 source files to analyze.
     /// </summary>
     public int TotalFiles { get; set; }
 
     /// <summary>
-    /// Nome del file attualmente in fase di elaborazione (es. "frmMain.frm").
+    /// Name of the file currently being processed (e.g. "frmMain.frm").
     /// </summary>
     public string CurrentFileName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Numero cumulativo di nodi/simboli estratti finora nell'AST/grafo.
+    /// Cumulative number of nodes/symbols extracted so far in the AST/graph.
     /// </summary>
     public int ExtractedNodesCount { get; set; }
 
     /// <summary>
-    /// Messaggio descrittivo della fase o operazione corrente.
+    /// Descriptive message of the current phase or operation.
     /// </summary>
     public string PhaseMessage { get; set; } = string.Empty;
 
     /// <summary>
-    /// Percentuale di completamento da 0 a 100.
+    /// Completion percentage from 0 to 100.
     /// </summary>
     public double Percentage => TotalFiles > 0 ? Math.Clamp((double)CurrentFileIndex / TotalFiles * 100.0, 0.0, 100.0) : 0.0;
 
     /// <summary>
-    /// Durata totale stimata dell'analisi in secondi.
+    /// Estimated total scan time in seconds.
     /// </summary>
     public double? EstimatedTotalSeconds { get; set; }
 
     /// <summary>
-    /// Tempo rimanente stimato in secondi per il completamento dell'analisi e generazione del CodeGraph.
+    /// Estimated time remaining in seconds to complete analysis and CodeGraph generation.
     /// </summary>
     public double? EstimatedRemainingSeconds { get; set; }
 }

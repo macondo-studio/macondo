@@ -12,8 +12,8 @@ using Macondo.Semantic.Analytics.CodeCity;
 namespace Macondo.App.Controls;
 
 /// <summary>
-/// Visualizzatore urbano polimetrico 3D / Isometrico 2.5D (CodeCity) basato sulle metriche software (Wettel &amp; Lanza).
-/// Rappresenta il codebase come una città: isolati per cartelle/progetti, edifici per classi/moduli, altezza per complessità e area base per LOC.
+/// Polymetric 3D / Isometric 2.5D urban viewer (CodeCity) based on software metrics (Wettel & Lanza).
+/// Represent the codebase as a city: blocks for folders/projects, buildings for classes/modules, height for complexity, and base area for LOC.
 /// </summary>
 public sealed class CodeCityControl : Control
 {
@@ -134,7 +134,7 @@ public sealed class CodeCityControl : Control
         var dataset = Dataset;
         if (dataset == null) return;
 
-        // Hit testing 2.5D per gli edifici (dall'ultimo disegnato al primo per rispettare la profondità visiva)
+        // 2.5D hit testing for buildings (from the last drawn to the first to respect visual depth)
         CityBuilding? hit = null;
         var sorted = dataset.AllBuildings.OrderByDescending(b => b.X + b.Y).ToList();
 
@@ -186,7 +186,7 @@ public sealed class CodeCityControl : Control
             RenderDistrictFoundation(context, district);
         }
 
-        // 3. Disegno edifici in ordine di profondità (Algoritmo del pittore X + Y crescente)
+        // 3. Draw buildings in order of depth (Painter's Algorithm X + Y ascending)
         var orderedBuildings = dataset.AllBuildings.OrderBy(b => b.X + b.Y).ToList();
         foreach (var building in orderedBuildings)
         {
@@ -199,7 +199,7 @@ public sealed class CodeCityControl : Control
             RenderDistrictLabel(context, district);
         }
 
-        // 5. Tooltip di dettaglio su hover
+        // 5. Hover detail tooltip
         if (_hoveredBuilding != null)
 
             RenderTooltip(context, bounds, _hoveredBuilding);
@@ -241,7 +241,7 @@ public sealed class CodeCityControl : Control
 
     private Point WorldToScreen(double x, double y, double z = 0)
     {
-        // Proiezione isometrica standard 30 gradi
+        // Standard 30 degree isometric projection
         double cos30 = 0.8660254;
         double sin30 = 0.5;
 
@@ -350,7 +350,7 @@ public sealed class CodeCityControl : Control
 
     private bool IsPointInsideBuildingPrism(Point pt, CityBuilding b)
     {
-        // Calcola la bounding box approssimata dello schermo per l'edificio proiettato
+        // Calculate the approximate screen bounding box for the projected building
         var t0 = WorldToScreen(b.X, b.Y, b.Height);
         var b2 = WorldToScreen(b.X + b.Width, b.Y + b.Depth, 0);
         var t3 = WorldToScreen(b.X, b.Y + b.Depth, b.Height);

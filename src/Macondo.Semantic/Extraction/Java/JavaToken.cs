@@ -1,7 +1,7 @@
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Singolo token lessicale con metadati di posizione (riga e colonna 1-indexed).
+/// Single lexical token with positional metadata (1-indexed row and column).
 /// </summary>
 internal sealed class JavaToken
 {

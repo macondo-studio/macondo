@@ -8,10 +8,10 @@ using Accessibility = Macondo.Semantic.Model.Accessibility;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Parser sintattico ricorsivo resiliente per file sorgente Kotlin (.kt / .kts).
-/// Supporta costrutti moderni di Kotlin (classi, data class, sealed class/interface, interfacce,
-/// object, companion object, enum class, funzioni top-level ed extension, proprietà val/var con getter/setter,
-/// costruttori primari e secondari, call site, istanziazioni e gerarchie di ereditarietà).
+/// Resilient recursive syntactic parser for Kotlin source files (.kt / .kts).
+/// Supports modern Kotlin constructs (classes, data classes, sealed class/interface, interfaces,
+/// object, companion object, enum class, top-level functions and extensions, val/var properties with getter/setter,
+/// primary and secondary constructors, call sites, instantiations and inheritance hierarchies).
 /// </summary>
 internal sealed class KotlinFileParser
 {
@@ -21,31 +21,31 @@ internal sealed class KotlinFileParser
     private readonly List<KotlinToken> _tokens = new();
     private int _tokenIndex;
 
-    /// <summary>Stack dei simboli contenitori attivi per tracciare la gerarchia semantica e i QualifiedName.</summary>
+    /// <summary>Stack of active container symbols to trace the semantic hierarchy and QualifiedNames.</summary>
     private readonly Stack<Symbol> _scopeStack = new();
 
-    /// <summary>Package Kotlin estratto dalla dichiarazione 'package ...'.</summary>
+    /// <summary>Kotlin package extracted from 'package ...' declaration.</summary>
     private string _packageName = string.Empty;
 
-    /// <summary>Elenco dei simboli radice di primo livello estratti dal file.</summary>
+    /// <summary>List of top-level root symbols extracted from the file.</summary>
     private readonly List<Symbol> _topLevelSymbols = new();
 
-    /// <summary>Elenco dei call-site di chiamata rilevati nei corpi.</summary>
+    /// <summary>List of call-sites detected in the bodies.</summary>
     private readonly List<KotlinCallSite> _callSites = new();
 
-    /// <summary>Elenco delle istanziazioni rilevate.</summary>
+    /// <summary>List of detected instances.</summary>
     private readonly List<KotlinInstantiation> _instantiations = new();
 
-    /// <summary>Elenco delle clausole di supertipo (ereditarietà e interfacce) rilevate.</summary>
+    /// <summary>List of supertype clauses (inheritance and interfaces) detected.</summary>
     private readonly List<KotlinTypeInheritance> _inheritances = new();
 
-    /// <summary>Elenco degli errori o avvisi sintattici raccolti durante il parsing.</summary>
+    /// <summary>List of syntactic errors or warnings collected during parsing.</summary>
     private readonly List<string> _parseErrors = new();
 
-    /// <summary>Simbolo sintetico di facciata di file (es. 'FileKt') per raggruppare funzioni e proprietà top-level.</summary>
+    /// <summary>Synthetic file front symbol (e.g. 'FileKt') to group top-level functions and properties.</summary>
     private Symbol? _fileFacadeSymbol;
 
-    /// <summary>Insieme delle parole chiave riservate in Kotlin.</summary>
+    /// <summary>Set of reserved keywords in Kotlin.</summary>
     private static readonly HashSet<string> KotlinKeywords = new(StringComparer.Ordinal)
     {
         "as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in",
@@ -55,7 +55,7 @@ internal sealed class KotlinFileParser
         "property", "receiver", "set", "setparam", "where"
     };
 
-    /// <summary>Insieme dei modificatori di visibilità e caratteristiche dei tipi/membri Kotlin.</summary>
+    /// <summary>Set of visibility modifiers and characteristics of Kotlin types/members.</summary>
     private static readonly HashSet<string> ModifierKeywords = new(StringComparer.Ordinal)
     {
         "public", "protected", "private", "internal", "abstract", "final", "open", "sealed",
@@ -64,7 +64,7 @@ internal sealed class KotlinFileParser
         "actual", "companion", "reified", "crossinline", "noinline"
     };
 
-    /// <summary>Insieme delle parole chiave e strutture di controllo che non possono rappresentare invocazioni di metodi.</summary>
+    /// <summary>Set of keywords and control structures that cannot represent method invocations.</summary>
     private static readonly HashSet<string> NonCallableKeywords = new(StringComparer.Ordinal)
     {
         "if", "while", "for", "when", "catch", "return", "throw", "else", "try", "finally",
@@ -80,16 +80,16 @@ internal sealed class KotlinFileParser
     }
 
     /// <summary>
-    /// Avvia il processo a due fasi: tokenizzazione lessicale seguita da parsing AST ricorsivo.
+    /// It starts the two-step process: lexical tokenization followed by recursive AST parsing.
     /// </summary>
     public KotlinExtractionResult Parse()
     {
         try
         {
-            // Fase 1: Lexing del sorgente in sequenza di KotlinToken
+            // Phase 1: Lexing the KotlinToken sequence source
             Tokenize();
 
-            // Fase 2: Parsing della Compilation Unit (package, imports, tipi, funzioni top-level)
+            // Phase 2: Parsing the Compilation Unit (packages, imports, types, top-level functions)
             ParseCompilationUnit();
         }
         catch (Exception ex)
@@ -114,7 +114,7 @@ internal sealed class KotlinFileParser
     }
 
     // =========================================================================
-    // FASE 1: LEXER / TOKENIZZAZIONE LESSICALE
+    // PHASE 1: LEXER / LEXICAL TOKENIZATION
     // =========================================================================
 
     private void Tokenize()
@@ -128,7 +128,7 @@ internal sealed class KotlinFileParser
         {
             var ch = _sourceText[i];
 
-            // 1. A capo Windows (\r\n) o Unix (\n)
+            // 1. Return Windows (\r\n) or Unix (\n)
             if (ch == '\r')
             {
                 i++;
@@ -152,7 +152,7 @@ internal sealed class KotlinFileParser
                 continue;
             }
 
-            // 2. Commenti a riga singola '//'
+            // 2. Single line comments '//'
             if (ch == '/' && i + 1 < len && _sourceText[i + 1] == '/')
             {
                 i += 2;
@@ -161,7 +161,7 @@ internal sealed class KotlinFileParser
                 continue;
             }
 
-            // 3. Commenti a blocchi '/*' con supporto all'annidamento ricorsivo (standard Kotlin)
+            // 3. '/*' block comments with recursive nesting support (Kotlin standard)
             if (ch == '/' && i + 1 < len && _sourceText[i + 1] == '*')
             {
                 i += 2;
@@ -281,7 +281,7 @@ internal sealed class KotlinFileParser
                 continue;
             }
 
-            // 6. Stringhe standard " ... " (con gestione escape)
+            // 6. Standard " ... " strings (escaped)
             if (ch == '"')
             {
                 var startLine = line;
@@ -324,7 +324,7 @@ internal sealed class KotlinFileParser
                 continue;
             }
 
-            // 7. Caratteri letterali 'a'
+            // 7. Literal 'a' characters
             if (ch == '\'')
             {
                 var startLine = line;
@@ -434,7 +434,7 @@ internal sealed class KotlinFileParser
                 continue;
             }
 
-            // 9. Identificatori e Parole Chiave
+            // 9. Identifiers and Keywords
             if (IsKotlinIdentifierStart(ch))
             {
                 var startLine = line;
@@ -460,7 +460,7 @@ internal sealed class KotlinFileParser
                 continue;
             }
 
-            // 10. Operatori a tre caratteri (===, !==, ..., ..<)
+            // 10. Three-character operators (===, !==, ..., ..<)
             var startOpLine = line;
             var startOpCol = col;
             if (i + 2 < len)
@@ -481,7 +481,7 @@ internal sealed class KotlinFileParser
                 }
             }
 
-            // 11. Operatori a due caratteri (?. ?: :: -> == != <= >= && || ++ -- += -= *= /= %= !! ..)
+            // 11. Two-character operators (?. ?: :: -> == != <= >= && || ++ -- += -= *= /= %= !! ..)
             if (i + 1 < len)
             {
                 var pair = _sourceText.Substring(i, 2);
@@ -512,7 +512,7 @@ internal sealed class KotlinFileParser
             col++;
         }
 
-        // Sentinella di fine file
+        // End of file sentinel
         _tokens.Add(new KotlinToken
         {
             Type = KotlinTokenType.EndOfFile,
@@ -555,7 +555,7 @@ internal sealed class KotlinFileParser
     }
 
     // =========================================================================
-    // HELPER DI NAVIGAZIONE DEI TOKEN
+    // TOKEN NAVIGATION HELPER
     // =========================================================================
 
     private KotlinToken Peek(int offset = 0)
@@ -621,7 +621,7 @@ internal sealed class KotlinFileParser
     }
 
     /// <summary>
-    /// Salta le annotazioni (@Annotation(...), @file:JvmName(...), @get:Rule, ecc.).
+    /// Skip annotations (@Annotation(...), @file:JvmName(...), @get:Rule, etc.).
     /// </summary>
     private void SkipAnnotations()
     {
@@ -705,7 +705,7 @@ internal sealed class KotlinFileParser
     }
 
     /// <summary>
-    /// Analizza una dichiarazione top-level del file: Classi, Interfacce, Object, Enum, Funzioni o Proprietà.
+    /// Parse a top-level declaration of the file: Classes, Interfaces, Object, Enum, Functions or Properties.
     /// </summary>
     private void ParseTopLevelDeclaration()
     {
@@ -744,7 +744,7 @@ internal sealed class KotlinFileParser
             return;
         }
 
-        // 5. fun (funzione top-level)
+        // 5. fun (top-level function)
         if (Match("fun"))
         {
             var facade = GetOrCreateFileFacade();
@@ -752,7 +752,7 @@ internal sealed class KotlinFileParser
             return;
         }
 
-        // 6. val / var (proprietà top-level)
+        // 6. val / var (top-level property)
         if (Check("val") || Check("var"))
         {
             var isVal = Match("val");
@@ -768,8 +768,8 @@ internal sealed class KotlinFileParser
     }
 
     /// <summary>
-    /// Restituisce o crea la classe di facciata sintetica per il file (es. 'MathUtilsKt')
-    /// conforme allo standard di compilazione Kotlin JVM per funzioni e proprietà top-level.
+    /// Returns or creates the synthetic facade class for the file (e.g. 'MathUtilsKt')
+    /// Complies with the Kotlin JVM compilation standard for top-level functions and properties.
     /// </summary>
     private Symbol GetOrCreateFileFacade()
     {
@@ -803,7 +803,7 @@ internal sealed class KotlinFileParser
     }
 
     /// <summary>
-    /// Raccoglie tutti i modificatori Kotlin consecutivi.
+    /// Collects all consecutive Kotlin modifiers.
     /// </summary>
     private List<string> ParseModifiers()
     {
@@ -835,7 +835,7 @@ internal sealed class KotlinFileParser
         if (modifiers.Contains("private")) return Accessibility.Private;
         if (modifiers.Contains("protected")) return Accessibility.Friend;
         if (modifiers.Contains("internal")) return Accessibility.Friend;
-        // In Kotlin la visibilità di default è Public
+        // In Kotlin the default visibility is Public
         return Accessibility.Public;
     }
 
@@ -872,7 +872,7 @@ internal sealed class KotlinFileParser
     }
 
     // =========================================================================
-    // DICHIARAZIONI DI TIPI: CLASSI, INTERFACCE, OBJECT, ENUM
+    // TYPE DECLARATIONS: CLASSES, INTERFACES, OBJECT, ENUM
     // =========================================================================
 
     private void ParseTypeDeclaration(SymbolKind kind, List<string> modifiers, bool isObject = false)
@@ -915,7 +915,7 @@ internal sealed class KotlinFileParser
 
         RegisterSymbol(symbol);
 
-        // Costruttore primario della classe: class Foo(val id: Int, var name: String)
+        // Primary class constructor: class Foo(val id: Int, var name: String)
         if (Check("(") || Check("constructor"))
         {
             if (Match("constructor"))
@@ -927,7 +927,7 @@ internal sealed class KotlinFileParser
         // Supertypi, ereditarietà e interfacce: ': BaseClass(), Interface1, Interface2'
         ParseSuperTypes(symbol);
 
-        // Blocco corpo del tipo: '{ ... }'
+        // Body block of type: '{ ... }'
         if (Match("{"))
         {
             _scopeStack.Push(symbol);
@@ -1006,7 +1006,7 @@ internal sealed class KotlinFileParser
                     _graph.AddContains(enclosingType, propSymbol);
                 }
 
-                // Salta valore di default '= ...'
+                // Skip default value '= ...'
                 if (Match("="))
                     SkipExpressionUntilParamEnd();
             }
@@ -1059,7 +1059,7 @@ internal sealed class KotlinFileParser
 
             var isInterface = true;
 
-            // Se seguito da '(', è una chiamata al costruttore della classe base ('extends Base()')
+            // If followed by '(', it is a call to the base class constructor ('extends Base()')
             if (Check("("))
             {
                 isInterface = false;
@@ -1111,7 +1111,7 @@ internal sealed class KotlinFileParser
 
         RegisterSymbol(symbol);
 
-        // Eventuale costruttore primario dell'enum
+        // Any primary constructor of the enum
         if (Check("("))
             ParsePrimaryConstructor(symbol);
 
@@ -1121,7 +1121,7 @@ internal sealed class KotlinFileParser
 
         _scopeStack.Push(symbol);
 
-        // Estrazione costanti enum
+        // Enum constant extraction
         while (!Check("}") && !Check(";") && !Check(KotlinTokenType.EndOfFile))
         {
             SkipAnnotations();
@@ -1160,7 +1160,7 @@ internal sealed class KotlinFileParser
 
         if (Match(";"))
         {
-            // Membri aggiuntivi dell'enum (metodi, proprietà)
+            // Additional enum members (methods, properties)
             ParseTypeBody(symbol);
         }
         else
@@ -1185,7 +1185,7 @@ internal sealed class KotlinFileParser
     }
 
     // =========================================================================
-    // CORPO DEI TIPI: METODI, PROPRIETÀ, INNER TYPES, INIT, COSTRUTTORI
+    // TYPE BODY: METHODS, PROPERTIES, INNER TYPES, INIT, CONSTRUCTORS
     // =========================================================================
 
     private void ParseTypeBody(Symbol enclosingType)
@@ -1227,7 +1227,7 @@ internal sealed class KotlinFileParser
                 continue;
             }
 
-            // 5. class annidata (enum, data, sealed, inner, ecc.)
+            // 5. nested class (enum, data, sealed, inner, etc.)
             if (Match("class"))
             {
                 var isEnum = modifiers.Contains("enum");
@@ -1239,21 +1239,21 @@ internal sealed class KotlinFileParser
                 continue;
             }
 
-            // 6. Costruttore secondario 'constructor(...) : this(...) { ... }'
+            // 6. Subconstructor 'constructor(...) : this(...) { ... }'
             if (Match("constructor"))
             {
                 ParseSecondaryConstructor(enclosingType, modifiers);
                 continue;
             }
 
-            // 7. Funzione membro 'fun ...'
+            // 7. Member function 'fun ...'
             if (Match("fun"))
             {
                 ParseFunctionDeclaration(enclosingType, modifiers);
                 continue;
             }
 
-            // 8. Proprietà membro 'val' / 'var'
+            // 8. 'val' / 'var' member properties
             if (Check("val") || Check("var"))
             {
                 var isVal = Match("val");
@@ -1291,7 +1291,7 @@ internal sealed class KotlinFileParser
         ExtractParameters(ctorSymbol);
         RegisterSymbol(ctorSymbol);
 
-        // Invocazione delegata del costruttore: ': this(...)' o ': super(...)'
+        // Delegated constructor invocation: ': this(...)' or ': super(...)'
         if (Match(":"))
         {
             if (Match("this") || Match("super"))
@@ -1326,13 +1326,13 @@ internal sealed class KotlinFileParser
     {
         SkipTypeParameters();
 
-        // Supporto a funzioni membro ed Extension Functions: fun String.toSlug()
+        // Support for member functions and Extension Functions: fun String.toSlug()
         var namePart1 = ParseTypeName();
         string funcName;
 
         if (Match("."))
         {
-            // Extension function: namePart1 è il tipo ricevitore
+            // Extension function: namePart1 is the receiver type
             if (Check(KotlinTokenType.Identifier) || Check(KotlinTokenType.Keyword))
                 funcName = Next().Value;
             else
@@ -1365,7 +1365,7 @@ internal sealed class KotlinFileParser
 
         ExtractParameters(methodSymbol);
 
-        // Tipo di ritorno opzionale ': ReturnType'
+        // Optional return type ': ReturnType'
         if (Match(":"))
             methodSymbol.ReturnType = ParseTypeName();
 
@@ -1374,7 +1374,7 @@ internal sealed class KotlinFileParser
         // Clausola 'where T : Any'
         SkipWhereClause();
 
-        // Corpo a blocco '{ ... }' oppure espressione singola '= expr'
+        // Block body '{ ... }' or single expression '= expr'
         if (Check("{"))
         {
             _scopeStack.Push(methodSymbol);
@@ -1430,13 +1430,13 @@ internal sealed class KotlinFileParser
 
         RegisterSymbol(propSymbol);
 
-        // Inizializzatore inline: '= expr'
+        // Inline initializer: '=expr'
         if (Match("="))
         {
             ParseInitializerExpression(propSymbol);
         }
 
-        // Delegato di proprietà: 'by lazy { ... }'
+        // Property delegate: 'by lazy { ... }'
         if (Match("by"))
         {
             ParseInitializerExpression(propSymbol);
@@ -1658,7 +1658,7 @@ internal sealed class KotlinFileParser
 
     private void ProcessTokenInBody(Symbol callerSymbol, ref string? lastReceiver)
     {
-        // 1. Chiamata a costruttore con 'new' (se presente in interop)
+        // 1. Call constructor with 'new' (if present in interop)
         if (Match("new"))
         {
             var line = Peek(-1).Line;
@@ -1675,17 +1675,17 @@ internal sealed class KotlinFileParser
             return;
         }
 
-        // 2. Identificatori: Invocazioni di metodi, accessi e costruttori
+        // 2. Identifiers: Invocations of methods, accesses and constructors
         if (Check(KotlinTokenType.Identifier) || Check(KotlinTokenType.Keyword))
         {
             var tok = Next();
             var line = tok.Line;
             var val = tok.Value;
 
-            // Chiamata con parentesi: name(...) o trailing lambda: name { ... }
+            // Calling with brackets: name(...) or trailing lambda: name { ... }
             if ((Check("(") || Check("{")) && !NonCallableKeywords.Contains(val))
             {
-                // In Kotlin le istanziazioni di classe si scrivono come 'Customer("Alice")' o 'ArrayList()'
+                // In Kotlin class instantiations are written as 'Customer("Alice")' or 'ArrayList()'
                 if (val.Length > 0 && char.IsUpper(val[0]) && string.IsNullOrEmpty(lastReceiver))
                 {
                     _instantiations.Add(new KotlinInstantiation
@@ -1708,7 +1708,7 @@ internal sealed class KotlinFileParser
                 return;
             }
 
-            // Accesso a membro: receiver.member o receiver?.member
+            // Member Access: receiver.member or receiver?.member
             if (Check(".") || Check("?."))
             {
                 lastReceiver = val;

@@ -12,8 +12,8 @@ public class AppServicesAndDiscoveryResilienceStressTests
     #region Project Discovery Resilience and Mixed Path Formats
 
     /// <summary>
-    /// Verifica che ProjectDescriptor.DiscoverFromPaths gestisca in modo resiliente percorsi misti
-    /// contenenti directory inesistenti, file non validi e separatori / o \ alternati.
+    /// Verify that ProjectDescriptor.DiscoverFromPaths resiliently handles mixed paths
+    /// containing non-existent directories, invalid files, and alternating / or \ separators.
     /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldBeResilientToInvalidPathsAndMixedSeparators()
@@ -48,8 +48,8 @@ public class AppServicesAndDiscoveryResilienceStressTests
     }
 
     /// <summary>
-    /// Verifica che la scansione di una cartella contenente file di controllo utente (.ctl) e proprietà (.pag)
-    /// includa correttamente tutti i file sorgente VB6 rilevanti.
+    /// Verify that scanning a folder containing user control (.ctl) and properties (.pag) files
+    /// correctly includes all relevant VB6 source files.
     /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldDiscoverAllVb6SourceExtensions_IncludingUserControls()
@@ -88,8 +88,8 @@ public class AppServicesAndDiscoveryResilienceStressTests
     #region Large Project Cache Snapshot Stress Test
 
     /// <summary>
-    /// Verifica che il ripristino di uno snapshot di cache di grandi dimensioni (500 simboli, 200 righe Blast Radius)
-    /// conservi tutte le coordinate, i livelli di rischio e le gerarchie di nodi.
+    /// Verify that restoring a large cache snapshot (500 symbols, 200 lines Blast Radius)
+    /// you retain all coordinates, risk levels and node hierarchies.
     /// </summary>
     [Fact]
     public void ProjectCacheService_ShouldRestoreLargeSnapshotsAccurately()
@@ -162,8 +162,8 @@ public class AppServicesAndDiscoveryResilienceStressTests
     #region Localization Dynamic Argument Robustness
 
     /// <summary>
-    /// Verifica che LocalizationService.Get gestisca stringhe con parametri posizionali complessi,
-    /// formati multipli e valori nulli negli argomenti senza lanciare eccezioni.
+    /// Verify that LocalizationService.Get handles strings with complex positional parameters,
+    /// multiple formats and null values in arguments without throwing exceptions.
     /// </summary>
     [Fact]
     public void Localization_ShouldHandleComplexArgsAndNullValues_Safely()

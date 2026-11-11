@@ -1,168 +1,168 @@
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Modello serializzabile per la memorizzazione delle impostazioni e preferenze utente.
-/// Salvato in %APPDATA%\Macondo\settings.json.
+/// Serializable model for storing user settings and preferences.
+/// Saved in %APPDATA%\Macondo\settings.json.
 /// </summary>
 public sealed class AppSettings
 {
     /// <summary>Tema grafico selezionato dall'utente.</summary>
     public AppTheme Theme { get; set; } = AppTheme.DarkModern;
 
-    /// <summary>Lingua dell'interfaccia utente (Italiano o English, rilevata automaticamente dalla lingua di sistema se non personalizzata).</summary>
+    /// <summary>User interface language (Italian or English, automatically detected from the system language if not customized).</summary>
     public AppLanguage Language { get; set; } = Services.LocalizationService.DetectSystemLanguage();
 
-    /// <summary>Comportamento di caricamento e analisi del progetto all'avvio dell'applicazione.</summary>
+    /// <summary>Project loading and analysis behavior when the application starts.</summary>
     public StartupLoadMode StartupMode { get; set; } = StartupLoadMode.OnlyIfCached;
 
-    /// <summary>Percorso dell'ultima cartella di progetto VB6 aperta con successo.</summary>
+    /// <summary>Path to the last successfully opened VB6 project folder.</summary>
     public string? LastOpenedFolder { get; set; }
 
-    /// <summary>Indice del filtro di rischio predefinito per la griglia Blast Radius (0: Tutti, 1: Critical, 2: High, 3: Medium, 4: Low).</summary>
+    /// <summary>Default risk filter index for the Blast Radius grid (0: All, 1: Critical, 2: High, 3: Medium, 4: Low).</summary>
     public int DefaultRiskFilterIndex { get; set; } = 0;
 
-    /// <summary>Modalità di layout preferita per il canvas del grafo.</summary>
+    /// <summary>Preferred layout mode for the graph canvas.</summary>
     public Layout.GraphLayoutMode PreferredLayout { get; set; } = Layout.GraphLayoutMode.StandardRadial;
 
-    /// <summary>Larghezza della finestra memorizzata alla chiusura.</summary>
+    /// <summary>Width of the window stored on closing.</summary>
     public double WindowWidth { get; set; } = 1400;
 
-    /// <summary>Altezza della finestra memorizzata alla chiusura.</summary>
+    /// <summary>Window height stored when closed.</summary>
     public double WindowHeight { get; set; } = 900;
 
-    /// <summary>Coordinata X della finestra su schermo.</summary>
+    /// <summary>X coordinate of the window on the screen.</summary>
     public int? WindowX { get; set; }
 
-    /// <summary>Coordinata Y della finestra su schermo.</summary>
+    /// <summary>Y coordinate of the window on the screen.</summary>
     public int? WindowY { get; set; }
 
-    /// <summary>Indica se la finestra era massimizzata all'ultima chiusura.</summary>
+    /// <summary>Indicates whether the window was maximized when it was last closed.</summary>
     public bool IsMaximized { get; set; } = false;
 
-    /// <summary>Larghezza del pannello Project Explorer (pannello sinistro).</summary>
+    /// <summary>Width of the Project Explorer panel (left panel).</summary>
     public double ExplorerWidth { get; set; } = 280;
 
-    /// <summary>Larghezza del pannello Symbol Inspector (pannello destro).</summary>
+    /// <summary>Width of the Symbol Inspector panel (right panel).</summary>
     public double InspectorWidth { get; set; } = 360;
 
-    /// <summary>Indica se il pannello Project Explorer (sinistro) è visibile.</summary>
+    /// <summary>Indicates whether the Project Explorer (left) panel is visible.</summary>
     public bool IsExplorerVisible { get; set; } = true;
 
-    /// <summary>Indica se il pannello Symbol Inspector (destro) è visibile.</summary>
+    /// <summary>Indicates whether the Symbol Inspector (right) panel is visible.</summary>
     public bool IsInspectorVisible { get; set; } = true;
 
-    /// <summary>Indica se mostrare i metodi/procedure (Sub, Function) nel grafo.</summary>
+    /// <summary>Indicates whether to show the methods/procedures (Sub, Function) in the graph.</summary>
     public bool ShowMethods { get; set; } = true;
 
-    /// <summary>Indica se mostrare le proprietà (Property Get/Let/Set) nel grafo.</summary>
+    /// <summary>Indicates whether to show the properties (Property Get/Let/Set) in the graph.</summary>
     public bool ShowProperties { get; set; } = true;
 
-    /// <summary>Indica se mostrare le variabili e campi nel grafo.</summary>
+    /// <summary>Indicates whether to show the variables and fields in the graph.</summary>
     public bool ShowFields { get; set; } = true;
 
-    /// <summary>Indica se mostrare le costanti nel grafo.</summary>
+    /// <summary>Indicates whether to show constants in the graph.</summary>
     public bool ShowConstants { get; set; } = true;
 
-    /// <summary>Indica se mostrare i tipi definiti dall'utente ed enumerazioni nel grafo.</summary>
+    /// <summary>Indicates whether to show user-defined types and enumerations in the graph.</summary>
     public bool ShowTypesAndEnums { get; set; } = true;
 
-    /// <summary>Indica se abilitare la selezione/ispezione automatica dei nodi al passaggio del cursore del mouse (Hover).</summary>
+    /// <summary>Indicates whether to enable automatic selection/inspection of nodes when the mouse cursor passes over (Hover).</summary>
     public bool EnableHoverSelection { get; set; } = true;
 
-    /// <summary>Indica se mostrare i nomi testuali accanto alle icone nelle schede di visualizzazione centrali (Vista Grafo, DSM, Treemap...).</summary>
+    /// <summary>Indicates whether to show the text names next to the icons in the central display tabs (Graph View, DSM, Treemap...).</summary>
     public bool ShowTabLabels { get; set; } = true;
 
-    /// <summary>Numero massimo di righe sorgente visualizzate nell'anteprima del codice (default: 500 righe).</summary>
+    /// <summary>Maximum number of source lines displayed in the code preview (default: 500 lines).</summary>
     public int MaxCodePreviewLines { get; set; } = 500;
 
-    /// <summary>Indica se abilitare la pre-elaborazione automatica in background delle schede analitiche all'apertura del progetto.</summary>
+    /// <summary>Indicates whether to enable automatic background pre-processing of analytical cards when opening the project.</summary>
     public bool EnableBackgroundAnalytics { get; set; } = true;
 
-    /// <summary>Indica se la scheda Vista Grafo è visibile.</summary>
+    /// <summary>Indicates whether the Graph View tab is visible.</summary>
     public bool ShowTabGraph { get; set; } = true;
 
-    /// <summary>Indica se la scheda Matrice DSM è visibile.</summary>
+    /// <summary>Indicates whether the DSM Matrix tab is visible.</summary>
     public bool ShowTabDsm { get; set; } = true;
 
-    /// <summary>Indica se la scheda Treemap Metriche è visibile.</summary>
+    /// <summary>Indicates whether the Metrics Treemap tab is visible.</summary>
     public bool ShowTabTreemap { get; set; } = true;
 
-    /// <summary>Indica se la scheda Hotspot di Rischio è visibile.</summary>
+    /// <summary>Indicates whether the Risk Hotspot tab is visible.</summary>
     public bool ShowTabHotspot { get; set; } = true;
 
-    /// <summary>Indica se la scheda Flusso Schermate è visibile.</summary>
+    /// <summary>Indicates whether the Screen Flow tab is visible.</summary>
     public bool ShowTabScreenFlow { get; set; } = true;
 
-    /// <summary>Indica se la scheda Control Flow (CFG) è visibile.</summary>
+    /// <summary>Indicates whether the Control Flow (CFG) tab is visible.</summary>
     public bool ShowTabControlFlow { get; set; } = true;
 
-    /// <summary>Indica se la scheda Metriche Martin è visibile.</summary>
+    /// <summary>Indicates whether the Martin Metrics tab is visible.</summary>
     public bool ShowTabMartin { get; set; } = true;
 
-    /// <summary>Indica se la scheda Dead Code &amp; Orfani è visibile.</summary>
+    /// <summary>Indicates whether the Dead Code & Orphans tab is visible.</summary>
     public bool ShowTabDeadCode { get; set; } = true;
 
-    /// <summary>Indica se la scheda Stato Condiviso è visibile.</summary>
+    /// <summary>Indicates whether the Shared Status tab is visible.</summary>
     public bool ShowTabSharedState { get; set; } = true;
 
-    /// <summary>Indica se la scheda Temporal Coupling è visibile.</summary>
+    /// <summary>Indicates whether the Temporal Coupling tab is visible.</summary>
     public bool ShowTabTemporalCoupling { get; set; } = true;
 
-    /// <summary>Indica se la scheda Flussi Architetturali è visibile.</summary>
+    /// <summary>Indicates whether the Architectural Flows tab is visible.</summary>
     public bool ShowTabArchitecturalFlow { get; set; } = true;
 
-    /// <summary>Indica se la scheda CodeCity 3D è visibile.</summary>
+    /// <summary>Indicates whether the CodeCity 3D tab is visible.</summary>
     public bool ShowTabCodeCity { get; set; } = true;
 
-    /// <summary>Indica se la scheda Griglia Blast Radius è visibile.</summary>
+    /// <summary>Indicates whether the Blast Radius Grid tab is visible.</summary>
     public bool ShowTabBlastRadiusGrid { get; set; } = true;
 
-    /// <summary>Indica se la scheda Coesione &amp; LCOM è visibile.</summary>
+    /// <summary>Indicates whether the Cohesion & LCOM tab is visible.</summary>
     public bool ShowTabCohesion { get; set; } = true;
 
-    /// <summary>Indica se la scheda Indice di Manutenibilità è visibile.</summary>
+    /// <summary>Indicates whether the Maintainability Index tab is visible.</summary>
     public bool ShowTabMaintainability { get; set; } = true;
 
-    /// <summary>Indica se la scheda Regole Architetturali è visibile.</summary>
+    /// <summary>Indicates whether the Architectural Rules tab is visible.</summary>
     public bool ShowTabArchitecturalRules { get; set; } = true;
 
-    /// <summary>Indica se la scheda Duplicazioni (CPD) è visibile.</summary>
+    /// <summary>Indicates whether the Duplications (CPD) tab is visible.</summary>
     public bool ShowTabCodeClone { get; set; } = true;
 
-    /// <summary>Indica se la scheda Social &amp; Bus Factor è visibile.</summary>
+    /// <summary>Indicates whether the Social & Bus Factor tab is visible.</summary>
     public bool ShowTabSocialCode { get; set; } = true;
 
-    /// <summary>Indica se la scheda Data Flow &amp; Taint è visibile.</summary>
+    /// <summary>Indicates whether the Data Flow & Taint tab is visible.</summary>
     public bool ShowTabDataFlow { get; set; } = true;
 
-    /// <summary>Indica se la scheda API Diff &amp; SemVer è visibile.</summary>
+    /// <summary>Indicates whether the Diff & SemVer API tab is visible.</summary>
     public bool ShowTabApiDiff { get; set; } = true;
 
-    /// <summary>Indica se la scheda Matrice CRUD è visibile.</summary>
+    /// <summary>Indicates whether the CRUD Matrix tab is visible.</summary>
     public bool ShowTabCrudMatrix { get; set; } = true;
 
-    /// <summary>Indica se la scheda Symbol Inspector nel pannello destro è visibile.</summary>
+    /// <summary>Indicates whether the Symbol Inspector tab in the right panel is visible.</summary>
     public bool ShowTabInspector { get; set; } = true;
 
-    /// <summary>Indica se la scheda Anteprima Codice Sorgente nel pannello destro è visibile.</summary>
+    /// <summary>Indicates whether the Source Code Preview tab in the right panel is visible.</summary>
     public bool ShowTabSourceCode { get; set; } = true;
 
-    /// <summary>Elenco degli ultimi progetti o cartelle analizzati (massimo 10 elementi).</summary>
+    /// <summary>List of the latest analyzed projects or folders (maximum 10 elements).</summary>
     public List<RecentProjectItem> RecentProjects { get; set; } = new();
 
-    /// <summary>Elenco delle schede analitiche avviate o abilitate più di recente (mantenute tra progetti).</summary>
+    /// <summary>List of most recently launched or enabled analytics cards (maintained across projects).</summary>
     public List<string> LastEnabledAnalyticsTabs { get; set; } = new();
 
     /// <summary>
-    /// Sequenza ordinata dei nomi (x:Name) delle schede analitiche del pannello centrale (CentralTabControl).
-    /// Memorizza l'ordinamento personalizzato configurato dall'utente tramite drag &amp; drop con il mouse.
-    /// In assenza di valori o al ripristino delle impostazioni predefinite, viene utilizzato l'ordine nativo di fabbrica.
+    /// Ordered sequence of names (x:Name) of the analytical tabs of the central panel (CentralTabControl).
+    /// Stores the custom sorting configured by the user via drag & drop with the mouse.
+    /// If there are no values or when default settings are restored, the native factory order is used.
     /// </summary>
     public List<string> AnalyticsTabOrder { get; set; } = new();
 }
 
 /// <summary>
-/// Informazioni su un progetto o cartella precedentemente analizzato memorizzato nella cronologia recenti.
+/// Information about a previously analyzed project or folder stored in recent history.
 /// </summary>
 public sealed class RecentProjectItem
 {
@@ -173,16 +173,16 @@ public sealed class RecentProjectItem
 }
 
 /// <summary>
-/// Modalità di gestione del caricamento e dell'analisi all'avvio dell'applicazione.
+/// How to handle loading and parsing when the application starts.
 /// </summary>
 public enum StartupLoadMode
 {
-    /// <summary>Ripristina automaticamente il progetto solo se è già presente uno snapshot in cache. Altrimenti mostra la schermata iniziale.</summary>
+    /// <summary>Automatically restore the project only if there is already a snapshot in cache. Otherwise show the home screen.</summary>
     OnlyIfCached = 0,
 
-    /// <summary>Esegue sempre l'analisi automatica da disco dell'ultimo progetto aperto anche in assenza di cache.</summary>
+    /// <summary>Always performs automatic analysis from disk of the last opened project even in the absence of cache.</summary>
     AlwaysAnalyze = 1,
 
-    /// <summary>Non carica automaticamente alcun progetto all'avvio e mostra sempre la schermata iniziale (workspace vuoto).</summary>
+    /// <summary>Does not automatically load any projects on startup and always shows the splash screen (empty workspace).</summary>
     EmptyWorkspace = 2
 }

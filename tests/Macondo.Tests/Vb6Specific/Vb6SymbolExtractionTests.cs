@@ -9,8 +9,8 @@ namespace Macondo.Tests.Vb6Specific;
 public class Vb6SymbolExtractionTests
 {
     /// <summary>
-    /// Verifica che ModuleExtractor estragga correttamente routine Sub e Function VB6, inclusi parametri
-    /// per valore/riferimento (ByVal/ByRef), parametri opzionali e tipi di ritorno.
+    /// Verify that ModuleExtractor correctly extracts VB6 Sub and Function routines, including parameters
+    /// for value/reference (ByVal/ByRef), optional parameters and return types.
     /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractSubAndFunctionSymbols()
@@ -55,7 +55,7 @@ public class Vb6SymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione delle proprietà VB6 nelle varianti Property Get, Property Let e Property Set.
+    /// Test VB6 property extraction in Property Get, Property Let, and Property Set variants.
     /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractProperties_GetLetSet()
@@ -89,7 +89,7 @@ public class Vb6SymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di costanti ('Public/Private Const') ed enumerazioni ('Enum ... End Enum') con i rispettivi membri.
+    /// Tests the extraction of constants ('Public/Private Const') and enumerations ('Enum ... End Enum') with their members.
     /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractConstantsAndEnums()
@@ -127,7 +127,7 @@ public class Vb6SymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica che i membri di modulo vengano collegati al modulo contenitore tramite relazioni CONTAINS.
+    /// Verifies that module members are linked to the container module via CONTAINS relationships.
     /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractContainsRelationships()
@@ -152,7 +152,7 @@ public class Vb6SymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di strutture UDT ('Type ... End Type') con campi primitivi e array a dimensione fissa.
+    /// Tests the extraction of UDT ('Type ... End Type') structures with primitive fields and fixed-size arrays.
     /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractUserDefinedTypes_UDT_WithMembersAndArrays()
@@ -190,7 +190,7 @@ public class Vb6SymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione dei controlli UI definiti nell'header descrittivo delle form VB6 (.frm).
+    /// Check the extraction of the UI controls defined in the descriptive header of the VB6 forms (.frm).
     /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractFormControls_FromFrmHeader()
@@ -229,7 +229,7 @@ public class Vb6SymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica la marcatura dei flag IsNewInstance (per 'Dim ... As New') e IsArray (per buffer e array).
+    /// Check the marking of the IsNewInstance (for 'Dim ... As New') and IsArray (for buffer and array) flags.
     /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldCaptureIsNewInstance_AndIsArrayFlags()
@@ -262,7 +262,7 @@ public class Vb6SymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di procedure e variabili dichiarate con modificatore Static in VB6.
+    /// Tests extraction of procedures and variables declared with Static modifier in VB6.
     /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldCaptureStaticProceduresAndVariables()
@@ -291,7 +291,7 @@ public class Vb6SymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica l'individuazione euristica dei gestori di eventi UI in base alle convenzioni di denominazione (es. 'cmdSubmit_Click', 'Form_Load').
+    /// Check heuristic detection of UI event handlers based on naming conventions (e.g. 'cmdSubmit_Click', 'Form_Load').
     /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldDetectLikelyEventHandlerNamingConventions()

@@ -40,7 +40,7 @@ Write-Host "==========================================================" -Foregro
 Write-Host "  Macondo Version Bump Tool -> $NewVersion" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-# 0. Verifica preliminare obbligatoria: esecuzione suite di test automatizzati
+# 0. Mandatory preliminary verification: execution of automated test suites
 $slnPath = Join-Path $workspaceRoot "Macondo.sln"
 Write-Host "[0/6] Esecuzione suite di test automatizzati preliminare..." -ForegroundColor Yellow
 $testProcess = Start-Process -FilePath "dotnet" -ArgumentList "test", "`"$slnPath`"", "--nologo", "-v", "minimal" -NoNewWindow -PassThru -Wait
@@ -51,7 +51,7 @@ if ($testProcess.ExitCode -ne 0) {
 }
 Write-Host "      -> Tutti i test superati con successo (0 errori)." -ForegroundColor Green
 
-# 1. Aggiornamento Macondo.App.csproj
+# 1. Update Macondo.App.csproj
 $csprojPath = Join-Path $workspaceRoot "src\Macondo.App\Macondo.App.csproj"
 if (Test-Path $csprojPath) {
     Write-Host "[1/6] Aggiornamento $csprojPath..." -ForegroundColor Yellow
@@ -66,7 +66,7 @@ if (Test-Path $csprojPath) {
     Write-Host "      -> Version: $NewVersion, AssemblyVersion: $assemblyVer" -ForegroundColor Green
 }
 
-# 2. Aggiornamento UpdateService.cs
+# 2. Update UpdateService.cs
 $updateServicePath = Join-Path $workspaceRoot "src\Macondo.App\Services\UpdateService.cs"
 if (Test-Path $updateServicePath) {
     Write-Host "[2/6] Aggiornamento $updateServicePath..." -ForegroundColor Yellow
@@ -84,7 +84,7 @@ if (Test-Path $updateServicePath) {
     Write-Host "      -> CurrentVersion: ($major, $minor, $patch), CurrentVersionString: `"$NewVersion`"" -ForegroundColor Green
 }
 
-# 3. Aggiornamento MainWindow.axaml (Fallback placeholder)
+# 3. Update MainWindow.axaml (Fallback placeholder)
 $mainWindowAxamlPath = Join-Path $workspaceRoot "src\Macondo.App\MainWindow.axaml"
 if (Test-Path $mainWindowAxamlPath) {
     Write-Host "[3/6] Aggiornamento $mainWindowAxamlPath..." -ForegroundColor Yellow
@@ -95,7 +95,7 @@ if (Test-Path $mainWindowAxamlPath) {
     Write-Host "      -> Placeholder finestra aggiornato ad attuale: $NewVersion" -ForegroundColor Green
 }
 
-# 4. Aggiornamento site/version.json (Sito Web / Manifesto - Repo Privata)
+# 4. Update site/version.json (Website / Poster - Private Repo)
 $versionJsonPath = Join-Path $siteRoot "version.json"
 if (Test-Path $versionJsonPath) {
     Write-Host "[4/6] Aggiornamento $versionJsonPath..." -ForegroundColor Yellow
@@ -118,7 +118,7 @@ if (Test-Path $versionJsonPath) {
     Write-Host "      -> version.json impostato a v$NewVersion con timestamp UTC" -ForegroundColor Green
 }
 
-# 5. Aggiornamento site/it.html & site/index.html (Repo Privata)
+# 5. Update site/it.html & site/index.html (Private Repo)
 $itHtmlPath = Join-Path $siteRoot "it.html"
 if (Test-Path $itHtmlPath) {
     Write-Host "[5/6] Aggiornamento $itHtmlPath e index.html..." -ForegroundColor Yellow
@@ -137,7 +137,7 @@ if (Test-Path $indexHtmlPath) {
     Write-Host "      -> Pagine del sito web in $siteRoot allineate a v$NewVersion" -ForegroundColor Green
 }
 
-# 6. Sincronizzazione file da site/ alla cartella della repo pubblica macondo
+# 6. Synchronize files from site/ to the macondo public repository folder
 if (Test-Path $macondoPublicRoot) {
     Write-Host "[6/6] Copia file del sito da $siteRoot verso $macondoPublicRoot (repo pubblica)..." -ForegroundColor Yellow
     Get-ChildItem -Path $siteRoot -Exclude ".git" | ForEach-Object {

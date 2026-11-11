@@ -10,33 +10,33 @@ using Macondo.App.Services;
 namespace Macondo.App.Views;
 
 /// <summary>
-/// Controllo visuale per la schermata di benvenuto e stato iniziale (Welcome View / Empty State).
-/// Gestisce l'avvio rapido, la card per il progetto recente in sospeso e la lista dei progetti recenti con badge di cache.
+/// Visual control for the welcome screen and initial state (Welcome View / Empty State).
+/// Manages quick launch, card for pending recent project and list of recent projects with cache badges.
 /// </summary>
 public partial class WelcomeView : UserControl
 {
     /// <summary>
-    /// Evento generato quando l'utente richiede di aprire singoli file di progetto (.vbp, .frm, .bas, .cls).
+    /// Event raised when user requests to open individual project files (.vbp, .frm, .bas, .cls).
     /// </summary>
     public event EventHandler? OpenProjectRequested;
 
     /// <summary>
-    /// Evento generato quando l'utente richiede di aprire una cartella.
+    /// Event raised when the user requests to open a folder.
     /// </summary>
     public event EventHandler? OpenFolderRequested;
 
     /// <summary>
-    /// Evento generato quando l'utente richiede di caricare le fixture demo.
+    /// Event generated when the user requests to load the demo fixtures.
     /// </summary>
     public event EventHandler? LoadFixturesRequested;
 
     /// <summary>
-    /// Evento generato quando l'utente clicca su "Analizza Ora" nella card di progetto in sospeso.
+    /// Event generated when the user clicks on "Analyze Now" in the pending project card.
     /// </summary>
     public event EventHandler<string>? PendingAnalyzeRequested;
 
     /// <summary>
-    /// Evento generato quando l'utente seleziona un progetto recente dalla lista.
+    /// Event raised when the user selects a recent project from the list.
     /// </summary>
     public event EventHandler<IReadOnlyList<string>>? RecentItemClicked;
 
@@ -46,28 +46,28 @@ public partial class WelcomeView : UserControl
     }
 
     /// <summary>
-    /// Aggiorna i contenuti dinamici della schermata di benvenuto (card di progetto in sospeso e lista recenti con badge cache).
+    /// Updates the dynamic contents of the welcome screen (pending project cards and recent list with cache badges).
     /// </summary>
-    /// <param name="pendingFolder">Percorso opzionale (file o cartella) da mostrare nella card del progetto rilevato.</param>
+    /// <param name="pendingFolder">Optional path (file or folder) to show on the card of the detected project.</param>
     public void Refresh(string? pendingFolder = null)
     {
         var localizationService = LocalizationService.Instance;
         var settings = SettingsService.Instance.Settings;
 
         // --------------------------------------------------------------------------------------------
-        // 1. Gestione card "Ultimo Progetto Rilevato" in sospeso (progetto senza cache pronta)
+        // 1. Management of pending "Last Project Detected" card (project without ready cache)
         // --------------------------------------------------------------------------------------------
         string? targetPending = pendingFolder;
         if (string.IsNullOrEmpty(targetPending))
         {
-            // Cerca prioritariamente il primo elemento della cronologia RecentProjects
+            // Search for the first item in the RecentProjects history as a priority
             if (settings.RecentProjects.Count > 0)
             {
                 var topRecent = settings.RecentProjects[0];
                 var firstPath = topRecent.Paths.FirstOrDefault();
                 if (!string.IsNullOrEmpty(firstPath))
                 {
-                    // Calcola la cartella per verificare se esiste già una cache salvata su disco
+                    // Calculate the folder to check if there is already a cache saved on disk
                     var cacheFolder = Directory.Exists(firstPath)
                         ? firstPath
                         : (File.Exists(firstPath) ? Path.GetDirectoryName(firstPath) : null);
@@ -78,13 +78,13 @@ public partial class WelcomeView : UserControl
                 }
             }
 
-            // Se la cronologia non ha fornito un target senza cache, ricade sulla cartella salvata nelle impostazioni
+            // If the history did not provide a cache-free target, it falls back to the folder saved in the settings
             if (string.IsNullOrEmpty(targetPending) && !string.IsNullOrEmpty(settings.LastOpenedFolder) && Directory.Exists(settings.LastOpenedFolder) && !ProjectCacheService.Instance.HasCache(settings.LastOpenedFolder))
 
                 targetPending = settings.LastOpenedFolder;
         }
 
-        // Se è presente un progetto valido (cartella o file) privo di cache, visualizza la card con il pulsante di avvio analisi
+        // If there is a valid project (folder or file) without cache, view the card with the start analysis button
         if (!string.IsNullOrEmpty(targetPending) && (Directory.Exists(targetPending) || File.Exists(targetPending)))
         {
             WelcomePendingCard.IsVisible = true;
@@ -101,7 +101,7 @@ public partial class WelcomeView : UserControl
         }
 
         // --------------------------------------------------------------------------------------------
-        // 2. Popolamento lista progetti recenti con calcolo dinamico dello stato cache per ciascun elemento
+        // 2. Population of recent projects list with dynamic calculation of the cache status for each element
         // --------------------------------------------------------------------------------------------
         var recentItems = new List<WelcomeRecentItem>();
         foreach (var recent in settings.RecentProjects)
@@ -139,7 +139,7 @@ public partial class WelcomeView : UserControl
     }
 
     /// <summary>
-    /// Aggiorna tutte le stringhe localizzate dell'interfaccia utente di benvenuto.
+    /// Update all localized welcome UI strings.
     /// </summary>
     public void UpdateLocalizedUI()
     {
@@ -165,7 +165,7 @@ public partial class WelcomeView : UserControl
     }
 
     /// <summary>
-    /// Gestisce il click sul pulsante "Analizza ora" nella card di progetto in sospeso.
+    /// Manages the click on the "Analyze Now" button in the pending project card.
     /// </summary>
     private void OnWelcomePendingAnalyzeClicked(object? sender, RoutedEventArgs e)
     {
@@ -175,7 +175,7 @@ public partial class WelcomeView : UserControl
     }
 
     /// <summary>
-    /// Gestisce il click sull'opzione "Apri file progetto".
+    /// Manages clicking on the "Open project file" option.
     /// </summary>
     private void OnWelcomeOpenProjectFilesClicked(object? sender, PointerPressedEventArgs e)
     {
@@ -183,7 +183,7 @@ public partial class WelcomeView : UserControl
     }
 
     /// <summary>
-    /// Gestisce il click sull'opzione "Apri cartella".
+    /// Handles clicking on the "Open folder" option.
     /// </summary>
     private void OnWelcomeOpenFolderClicked(object? sender, PointerPressedEventArgs e)
     {
@@ -191,7 +191,7 @@ public partial class WelcomeView : UserControl
     }
 
     /// <summary>
-    /// Gestisce il click sull'opzione "Carica fixture di test".
+    /// Manages clicking on the "Load test fixture" option.
     /// </summary>
     private void OnWelcomeLoadFixturesClicked(object? sender, PointerPressedEventArgs e)
     {
@@ -199,7 +199,7 @@ public partial class WelcomeView : UserControl
     }
 
     /// <summary>
-    /// Gestisce il click su un elemento della lista dei progetti recenti.
+    /// Manages clicking on an item in the recent projects list.
     /// </summary>
     private void OnWelcomeRecentItemPointerPressed(object? sender, PointerPressedEventArgs e)
     {

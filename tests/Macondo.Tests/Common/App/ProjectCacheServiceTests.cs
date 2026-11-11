@@ -10,8 +10,8 @@ namespace Macondo.Tests.Common.App;
 public class ProjectCacheServiceTests
 {
     /// <summary>
-    /// Verifica che ProjectCacheService generi percorsi deterministici per il file di cache
-    /// basati sull'hash SHA256 della cartella normalizzata.
+    /// Verify that ProjectCacheService generates deterministic paths for the cache file
+    /// based on the SHA256 hash of the normalized folder.
     /// </summary>
     [Fact]
     public void GetCacheFilePath_ShouldBeDeterministicAndNormalizeSeparators()
@@ -32,13 +32,13 @@ public class ProjectCacheServiceTests
     }
 
     /// <summary>
-    /// Verifica il roundtrip completo: creazione dello snapshot (CreateSnapshot) a partire da un VisualCodeGraph
-    /// e righe Blast Radius, serializzazione/deserializzazione e successivo ripristino (RestoreGraphAndRows).
+    /// Check the complete roundtrip: creation of the snapshot (CreateSnapshot) starting from a VisualCodeGraph
+    /// and Blast Radius rows, serialization/deserialization and subsequent restoration (RestoreGraphAndRows).
     /// </summary>
     [Fact]
     public void CreateSnapshot_And_RestoreGraphAndRows_ShouldRoundtripIdentically()
     {
-        // Arrange: Crea un grafo visuale completo con un nodo e un arco
+        // Arrange: Creates a complete visual graph with one node and one edge
         var symId = Guid.NewGuid();
         var symbol = new Symbol
         {

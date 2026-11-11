@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.Impact;
 public class ImpactAnalysisEdgeCasesTests
 {
     /// <summary>
-    /// Verifica che in un grafo con dipendenza a diamante (A -> B -> D e A -> C -> D),
-    /// il calcolo del raggio di impatto deduplichi correttamente i chiamanti indiretti senza duplicazioni.
+    /// Verify that in a graph with diamond dependencies (A -> B -> D and A -> C -> D),
+    /// impact radius calculation correctly deduplicates indirect callers without duplication.
     /// </summary>
     [Fact]
     public void DiamondDependency_ShouldDeduplicateAffectedCallers()
@@ -37,7 +37,7 @@ public class ImpactAnalysisEdgeCasesTests
         impact.DirectCallers.Should().HaveCount(2);
         impact.DirectCallers.Select(s => s.Id).Should().Contain(new[] { symB.Id, symC.Id });
 
-        // symA deve comparire esattamente 1 volta negli indirect callers
+        // symA must appear exactly 1 time in indirect callers
         impact.IndirectCallers.Should().HaveCount(1);
         impact.IndirectCallers[0].Symbol.Id.Should().Be(symA.Id);
 
@@ -45,8 +45,8 @@ public class ImpactAnalysisEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che routine ricorsive (A -> A) o cicli diretti di chiamata non provochino loop infiniti
-    /// o StackOverflowException durante l'attraversamento BFS dei chiamanti.
+    /// Verify that recursive routines (A -> A) or direct calling loops do not cause infinite loops
+    /// o StackOverflowException during callers BFS traversal.
     /// </summary>
     [Fact]
     public void RecursiveSelfInvocation_ShouldTerminateGracefullyWithoutStackOverflow()
@@ -73,8 +73,8 @@ public class ImpactAnalysisEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che in una catena molto profonda di chiamate (15 livelli), il parametro maxDepth
-    /// limiti rigorosamente il raggio d'azione dell'analisi di impatto.
+    /// Check that in a very deep chain of calls (15 levels), the maxDepth
+    /// strictly limits the scope of the impact analysis.
     /// </summary>
     [Fact]
     public void DeepCallChain_ShouldRespectMaxDepthConstraint()
@@ -105,14 +105,14 @@ public class ImpactAnalysisEdgeCasesTests
         impact.DirectCallers.Should().HaveCount(1);
         impact.DirectCallers[0].Id.Should().Be(symbols[13].Id);
 
-        // Con maxDepth = 4, deve esplorare solo M13 (depth 1), M12 (2), M11 (3), M10 (4)
+        // With maxDepth = 4, it only needs to explore M13 (depth 1), M12 (2), M11 (3), M10 (4)
         impact.IndirectCallers.Should().HaveCount(3); // M12, M11, M10
         impact.MaxDependencyDepth.Should().Be(4);
     }
 
     /// <summary>
-    /// Verifica che l'analisi di impatto individui tutte le Form impattate univoche
-    /// e formatti AffectedFormsSummary in modo pulito e senza duplicazioni.
+    /// Verify that the impact analysis identifies all unique impacted Forms
+    /// and formats AffectedFormsSummary cleanly and without duplication.
     /// </summary>
     [Fact]
     public void MultiFormImpact_ShouldSummarizeUniqueFormsWithoutDuplicates()
@@ -125,7 +125,7 @@ public class ImpactAnalysisEdgeCasesTests
         graph.Symbols.AddRange(new[] { utilMod, helperMethod });
         graph.AddContains(utilMod, helperMethod);
 
-        // 3 Form che invocano helperMethod
+        // 3 Forms that invoke helperMethod
         var formNames = new[] { "frmOrder", "frmInvoice", "frmMain" };
         foreach (var formName in formNames)
         {

@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class ApiDiffAndSemVerExtendedTests
 {
     /// <summary>
-    /// Verifica che il confronto tra due CodeGraph identici non rilevi alcuna differenza
-    /// e indichi 0 modifiche e nessun impatto di rilascio.
+    /// Verify that comparing two identical CodeGraphs reveals no differences
+    /// and indicate 0 changes and no release impact.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldReturnZeroDifferences_WhenGraphsAreIdentical()
@@ -44,7 +44,7 @@ public class ApiDiffAndSemVerExtendedTests
     }
 
     /// <summary>
-    /// Verifica che due CodeGraph vuoti vengano confrontati senza sollevare eccezioni.
+    /// Verify that two empty CodeGraphs are compared without raising exceptions.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldHandleEmptyGraphs_Gracefully()

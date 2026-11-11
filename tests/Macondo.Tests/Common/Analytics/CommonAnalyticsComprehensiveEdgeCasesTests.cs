@@ -14,8 +14,8 @@ public class CommonAnalyticsComprehensiveEdgeCasesTests
     #region ApiDiff & SemVer Advanced Edge Cases
 
     /// <summary>
-    /// Verifica che la trasformazione di un metodo pubblico da istanza a statico (o viceversa)
-    /// sia rilevata come Breaking Change (Major).
+    /// Verify that transforming a public method from instance to static (or vice versa)
+    /// is detected as Breaking Change (Major).
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectBreakingChange_WhenMethodStaticModifierChanges()
@@ -58,8 +58,8 @@ public class CommonAnalyticsComprehensiveEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che l'aggiunta di un nuovo membro a una Enum pubblica sia classificata come Minor,
-    /// mentre la rimozione di un valore da una Enum pubblica sia classificata come MajorBreaking.
+    /// Verify that adding a new member to a public Enum is classified as Minor,
+    /// while removing a value from a public Enum is classified as MajorBreaking.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldClassifyEnumChanges_Correctly()
@@ -99,7 +99,7 @@ public class CommonAnalyticsComprehensiveEdgeCasesTests
         oldGraph.AddContains(oldEnum, valPending);
         oldGraph.AddContains(oldEnum, valPaid);
 
-        // In newGraph aggiungiamo Refunded e rimuoviamo Paid
+        // In newGraph we add Refunded and remove Paid
         var newEnum = new Symbol
         {
             Id = Guid.NewGuid(),
@@ -136,7 +136,7 @@ public class CommonAnalyticsComprehensiveEdgeCasesTests
     #region CodeCity Boundary Scenarios
 
     /// <summary>
-    /// Verifica che un CodeGraph completamente vuoto generi un dataset CodeCity valido con 0 distretti ed edifici.
+    /// Verify that a completely empty CodeGraph generates a valid CodeCity dataset with 0 districts and buildings.
     /// </summary>
     [Fact]
     public void CodeCityBuilder_ShouldHandleEmptyGraph_Gracefully()
@@ -157,7 +157,7 @@ public class CommonAnalyticsComprehensiveEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che file distribuiti su diverse sottocartelle vengano raggruppati in distretti distinti.
+    /// Verify that files spread across different subfolders are grouped into distinct districts.
     /// </summary>
     [Fact]
     public void CodeCityBuilder_ShouldGroupBuildingsByDirectoryDistricts()
@@ -185,7 +185,7 @@ public class CommonAnalyticsComprehensiveEdgeCasesTests
     #region Temporal Coupling Edge Cases
 
     /// <summary>
-    /// Verifica che commit con singoli file (nessuna co-modifica) producano 0 coppie di accoppiamento temporale.
+    /// Verify that commits with single files (no co-modifications) produce 0 temporal coupling pairs.
     /// </summary>
     [Fact]
     public void TemporalCoupling_ShouldProduceZeroPairs_WhenCommitsAreSingleFileOnly()
@@ -208,8 +208,8 @@ public class CommonAnalyticsComprehensiveEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che coppie con forte co-modifica ma provviste di dipendenza statica esplicita nel grafo
-    /// abbiano HasStaticDependency = True e non aumentino il contatore di HiddenCoupling.
+    /// Verify that pairs with strong co-modification but with explicit static dependency in the graph
+    /// have HasStaticDependency = True and do not increase the HiddenCoupling counter.
     /// </summary>
     [Fact]
     public void TemporalCoupling_ShouldAcknowledgeStaticDependency_WhenPresentInGraph()
@@ -245,7 +245,7 @@ public class CommonAnalyticsComprehensiveEdgeCasesTests
     #region Social Code and Bus Factor Boundary Scenarios
 
     /// <summary>
-    /// Verifica che in assenza di cronologia di commit il report SocialCode restituisca un dataset vuoto coerente.
+    /// Verify that in the absence of commit history the SocialCode report returns a consistent empty dataset.
     /// </summary>
     [Fact]
     public void SocialCode_ShouldReturnEmptyDataset_WhenCommitHistoryIsEmpty()
@@ -264,7 +264,7 @@ public class CommonAnalyticsComprehensiveEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che un file con contributi bilanciati tra più autori attivi abbia un Bus Factor > 1 e rischio basso/nullo.
+    /// Verifies that a file with balanced contributions between multiple active authors has a Bus Factor > 1 and low/no risk.
     /// </summary>
     [Fact]
     public void SocialCode_ShouldCalculateHealthyBusFactor_ForMultiAuthorFiles()
@@ -300,7 +300,7 @@ public class CommonAnalyticsComprehensiveEdgeCasesTests
     #region Cohesion / LCOM4 Boundary Scenarios
 
     /// <summary>
-    /// Verifica che una classe con un solo metodo e nessun campo produca LCOM4 = 1 e non sia candidata al refactoring.
+    /// Verify that a class with only one method and no fields produces LCOM4 = 1 and is not a candidate for refactoring.
     /// </summary>
     [Fact]
     public void Cohesion_ShouldCalculateLcom4_ForSingleMethodClassWithoutFields()
@@ -324,7 +324,7 @@ public class CommonAnalyticsComprehensiveEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che una classe in cui tutti i metodi accedono allo stesso campo condiviso produca LCOM4 = 1 (cluster singolo compatto).
+    /// Verify that a class in which all methods access the same shared field produces LCOM4 = 1 (compact single cluster).
     /// </summary>
     [Fact]
     public void Cohesion_ShouldCalculateSingleCluster_WhenAllMethodsShareField()

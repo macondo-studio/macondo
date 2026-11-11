@@ -13,22 +13,22 @@ using Xunit;
 namespace Macondo.Tests.Vb6Specific;
 
 /// <summary>
-/// Suite di regression test mirati a prevenire e validare i bug riscontrati durante l'analisi reale
-/// di progetti VB6 complessi (oltre 500.000 righe di codice enterprise):
-/// 1. Crash Call Graph per 'GoTo Label:' con i due punti dentro blocchi If/While.
-/// 2. Crash Call Graph per identificatori tra quadre con spazi/punti in argomenti di chiamate ('RS![a b]').
-/// 3. Resilienza del CallGraphBuilder su eccezioni o costrutti malformati.
-/// 4. Risoluzione di chiamate a membri su oggetti restituiti da Property/Function globali (es. bcPCassaProcessor.BarcodeArrotondamento).
-/// 5. Riconoscimento event handler di variabili WithEvents e prefissi complessi con underscore multipli.
-/// 6. Limitazione LOC dei controlli designer delle form e corretta classificazione nel Dead Code.
-/// 7. Calcolo effettivo di In-Degree e Out-Degree nella matrice DSM (DsmItem).
-/// 8. Dipendenze afferenti/efferenti verso moduli contenenti funzioni Declare Win32 o Costanti globali.
-/// 9. Scrittura file UTF-8 senza BOM per massima compatibilità con parser e script esterni.
+/// Suite of regression tests aimed at preventing and validating bugs found during real analysis
+/// of complex VB6 projects (over 500,000 lines of enterprise code):
+/// 1. Crash Call Graph for 'GoTo Label:' with colons inside If/While blocks.
+/// 2. Crash Call Graph for inter-quadrant identifiers with spaces/periods in call arguments ('RS![a b]').
+/// 3. Resilience of the CallGraphBuilder on exceptions or malformed constructs.
+/// 4. Resolving member calls on objects returned by global Property/Functions (e.g. bcPCassaProcessor.BarcodeRounding).
+/// 5. Event handler recognition of WithEvents variables and complex prefixes with multiple underscores.
+/// 6. LOC limitation of form designer controls and correct classification in Dead Code.
+/// 7. Actual calculation of In-Degree and Out-Degree in the DSM matrix (DsmItem).
+/// 8. Afferent/efferent dependencies towards modules containing Win32 Declare functions or Global Constants.
+/// 9. Writing UTF-8 files without BOM for maximum compatibility with external parsers and scripts.
 /// </summary>
 public class Vb6LegacyEdgeCasesRegressionTests
 {
     // =========================================================================
-    // 1. CRASH GOTO CON DUE PUNTI (GoTo Fine:)
+    // 1. GOTO CRASH WITH TWO POINTS (GoTo Fine:)
     // =========================================================================
     [Fact]
     public void GoToWithTrailingColon_InsideIfBlock_ShouldNotCrashCallGraph_AndShouldBuildCalls()
@@ -54,13 +54,13 @@ public class Vb6LegacyEdgeCasesRegressionTests
         var symbolResolver = new SymbolResolver(graph, typeResolver);
         var builder = new CallGraphBuilder(graph, symbolResolver);
 
-        // Non deve lanciare eccezioni né NullReferenceException
+        // It should not throw exceptions or NullReferenceExceptions
         var act = () => builder.BuildGraph(new[] { extract });
         act.Should().NotThrow("GoTo con due punti terminali non deve mandare in crash la costruzione del Call Graph");
     }
 
     // =========================================================================
-    // 2. CRASH IDENTIFICATORI TRA QUADRE CON SPAZI O PUNTI (RS![a b])
+    // 2. CRASH IDENTIFIERS BETWEEN SQUARES WITH SPACES OR DOTS (RS![a b])
     // =========================================================================
     [Fact]
     public void BracketedIdentifierWithSpacesAndDots_InMethodArgument_ShouldNotCrashCallGraph()
@@ -89,7 +89,7 @@ public class Vb6LegacyEdgeCasesRegressionTests
     }
 
     // =========================================================================
-    // 3. RESILIENZA DEL CALLGRAPHBUILDER SU ERRORI PER SINGOLO MODULO
+    // 3. RESILIENCE OF THE CALLGRAPHBUILDER ON ERRORS FOR SINGLE MODULE
     // =========================================================================
     [Fact]
     public void CallGraphBuilder_ShouldContinueProcessingOtherModules_IfOneModuleEncounterUnexpectedError()
@@ -107,7 +107,7 @@ public class Vb6LegacyEdgeCasesRegressionTests
 
         var extractValid = ModuleExtractor.ExtractModule(graph, "modValid.bas", validCode);
 
-        // Simuliamo un modulo estratto il cui ParseTree è integro
+        // Let's simulate an extracted module whose ParseTree is intact
         var typeResolver = new TypeResolver(graph);
         typeResolver.ResolveAllTypes();
         var symbolResolver = new SymbolResolver(graph, typeResolver);
@@ -115,7 +115,7 @@ public class Vb6LegacyEdgeCasesRegressionTests
 
         builder.BuildGraph(new[] { extractValid });
 
-        // Verifica che il modulo valido abbia le sue relazioni CALLS create regolarmente
+        // Verify that the valid module has its CALLS relationships created regularly
         var mainSub = graph.Symbols.First(s => s.Kind == SymbolKind.Method && s.Name == "Main");
         var helperSub = graph.Symbols.First(s => s.Kind == SymbolKind.Method && s.Name == "HelperSub");
 
@@ -125,7 +125,7 @@ public class Vb6LegacyEdgeCasesRegressionTests
     }
 
     // =========================================================================
-    // 4. CHIAMATE TRAMITE OGGETTI RESTITUITI DA PROPERTY/FUNZIONI GLOBALI
+    // 4. CALLS THROUGH OBJECTS RETURNED FROM GLOBAL PROPERTY/FUNCTIONS
     // =========================================================================
     [Fact]
     public void GlobalPropertyReturningClass_ShouldResolveMethodCallsOnReturnedObject()
@@ -193,7 +193,7 @@ public class Vb6LegacyEdgeCasesRegressionTests
     }
 
     // =========================================================================
-    // 5. EVENT HANDLERS DI VARIABILI WithEvents E PREFISSI COMPLESSI
+    // 5. EVENT HANDLERS OF VARIABLES WithEvents AND COMPLEX PREFIXES
     // =========================================================================
     [Fact]
     public void WithEventsHandlers_WithComplexUnderscores_ShouldBeWiredAndMarkedReachable()
@@ -232,7 +232,7 @@ public class Vb6LegacyEdgeCasesRegressionTests
         var handlesDdt = graph.Relationships.Where(r => r.Kind == RelationshipKind.HandlesEvent && r.TargetId == ddtSub.Id).ToList();
         handlesDdt.Should().NotBeEmpty("doc_service_nuovoDDT deve essere collegato tramite HandlesEvent alla form o alla variabile WithEvents");
 
-        // Dead Code: gli event handler collegati alla form devono risultare raggiungibili
+        // Dead Code: the event handlers connected to the form must be reachable
         var deadData = DeadCodeAnalyzer.Analyze(graph);
         deadData.Items.Should().NotContain(i => i.Id == ddtSub.Id, "Gli handler di variabili WithEvents attive nella form non sono codice morto");
         deadData.Items.Should().NotContain(i => i.Id == exportSub.Id, "Gli handler con doppio underscore non devono essere considerati codice morto");
@@ -272,11 +272,11 @@ public class Vb6LegacyEdgeCasesRegressionTests
 
         var frameSym = graph.Symbols.FirstOrDefault(s => s.Name == "FrameContainer");
         frameSym.Should().NotBeNull();
-        // LineEnd deve essere circoscritto alla riga del controllo, non estendersi all'intero blocco del designer
+        // LineEnd must be limited to the control line, not extend to the entire designer block
         frameSym!.LineEnd.Should().Be(frameSym.LineStart, "Il controllo designer deve avere estensione di riga limitata alla dichiarazione (1 LOC)");
 
         var deadData = DeadCodeAnalyzer.Analyze(graph);
-        // I controlli visivi del form non devono essere conteggiati come migliaia di righe di dead LOC
+        // Visual checks of the form should not be counted as thousands of lines of dead LOC
         var deadFrame = deadData.Items.FirstOrDefault(i => i.Name == "FrameContainer");
         if (deadFrame != null)
         {
@@ -285,7 +285,7 @@ public class Vb6LegacyEdgeCasesRegressionTests
     }
 
     // =========================================================================
-    // 7. DSM MATRIX: CALCOLO EFFETTIVO DI InDegree E OutDegree
+    // 7. DSM MATRIX: ACTUAL CALCULATION OF InDegree AND OutDegree
     // =========================================================================
     [Fact]
     public void DsmMatrixBuilder_ShouldPopulateInDegreeAndOutDegree()
@@ -333,17 +333,17 @@ public class Vb6LegacyEdgeCasesRegressionTests
         itemA.OutDegree.Should().Be(2);
         itemA.InDegree.Should().Be(0);
 
-        // ModB chiama ModC, chiamato da ModA -> OutDegree = 1, InDegree = 1
+        // ModB calls ModC, called by ModA -> OutDegree = 1, InDegree = 1
         itemB.OutDegree.Should().Be(1);
         itemB.InDegree.Should().Be(1);
 
-        // ModC chiamato da ModA e ModB -> OutDegree = 0, InDegree = 2
+        // ModC called from ModA and ModB -> OutDegree = 0, InDegree = 2
         itemC.OutDegree.Should().Be(0);
         itemC.InDegree.Should().Be(2);
     }
 
     // =========================================================================
-    // 8. MARTIN METRICS: DIPENDENZE SU DECLARE E COSTANTI GLOBALI
+    // 8. MARTIN METRICS: DEPENDENCES ON DECLARE AND GLOBAL CONSTANTS
     // =========================================================================
     [Fact]
     public void MartinMetrics_ShouldCountCallsToExternalDeclares_AsAfferentDependencies()
@@ -382,7 +382,7 @@ public class Vb6LegacyEdgeCasesRegressionTests
     }
 
     // =========================================================================
-    // 9. SCRITTURA FILE UTF-8 SENZA BOM
+    // 9. WRITING UTF-8 FILE WITHOUT BOM
     // =========================================================================
     [Fact]
     public void CliRunner_SaveFile_ShouldWriteUtf8WithoutBom()
@@ -394,7 +394,7 @@ public class Vb6LegacyEdgeCasesRegressionTests
             CliRunner.SaveFile(tempFile, content);
 
             var bytes = File.ReadAllBytes(tempFile);
-            // I primi 3 byte UTF-8 con BOM sono 0xEF, 0xBB, 0xBF
+            // First 3 UTF-8 bytes with BOM are 0xEF, 0xBB, 0xBF
             bool hasBom = bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
             hasBom.Should().BeFalse("I file JSON esportati da Macondo devono essere in codifica UTF-8 senza BOM per compatibilità con tool standard");
         }

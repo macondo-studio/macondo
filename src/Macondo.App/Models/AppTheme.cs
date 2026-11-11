@@ -1,7 +1,7 @@
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Temi grafici selezionabili dall'utente per l'applicazione.
+/// User-selectable graphic themes for the application.
 /// </summary>
 public enum AppTheme
 {
@@ -13,7 +13,7 @@ public enum AppTheme
 }
 
 /// <summary>
-/// Definizione completa dei colori e dei pennelli di un tema grafico dell'applicazione.
+/// Complete definition of the colors and brushes of an application graphic theme.
 /// </summary>
 public sealed class ThemeDefinition
 {

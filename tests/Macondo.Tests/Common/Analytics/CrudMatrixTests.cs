@@ -8,7 +8,7 @@ namespace Macondo.Tests.Common.Analytics;
 public class CrudMatrixTests
 {
     /// <summary>
-    /// Verifica il rilevamento e la mappatura delle operazioni CRUD su entità e tabelle.
+    /// Test detection and mapping of CRUD operations on entities and tables.
     /// </summary>
     [Fact]
     public void CrudMatrix_ShouldInferOperationsAndBuildMatrix()

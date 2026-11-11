@@ -14,7 +14,7 @@ public class CommonAnalyticsUncoveredEdgeCasesAndBugsHunterTests
     #region Control Flow Multi-Exit and Deep Branching Scenarios
 
     /// <summary>
-    /// Verifica che ControlFlowBuilder gestisca routine con molteplici punti di uscita anticipati (Exit Sub / return multipli).
+    /// Verify that ControlFlowBuilder handles routines with multiple early exit points (multiple Exit Sub / multiple returns).
     /// </summary>
     [Fact]
     public void ControlFlowBuilder_ShouldHandleMultipleExitPointsAndEarlyReturns()
@@ -54,7 +54,7 @@ public class CommonAnalyticsUncoveredEdgeCasesAndBugsHunterTests
     }
 
     /// <summary>
-    /// Verifica che una routine completamente vuota o priva di istruzioni produca un CFG coerente con complessità pari a 1.
+    /// Verify that a completely empty or instruction-free routine produces a consistent CFG with complexity of 1.
     /// </summary>
     [Fact]
     public void ControlFlowBuilder_ShouldProduceValidCFG_ForEmptyOrStubRoutine()
@@ -86,8 +86,8 @@ public class CommonAnalyticsUncoveredEdgeCasesAndBugsHunterTests
     #region Data Flow Multi-Hop Taint Propagation and Multiple Sinks
 
     /// <summary>
-    /// Verifica la propagazione del flusso di contaminazione (Taint Analysis) attraverso una catena profonda
-    /// a 5 livelli (UI Input -> Controller -> Service -> Repository -> Database Sink).
+    /// Verify the propagation of the contamination flow (Taint Analysis) through a deep chain
+    /// at 5 levels (UI Input -> Controller -> Service -> Repository -> Database Sink).
     /// </summary>
     [Fact]
     public void DataFlow_ShouldPropagateTaintThroughDeepMultiHopChain()
@@ -129,8 +129,8 @@ public class CommonAnalyticsUncoveredEdgeCasesAndBugsHunterTests
     #region Dead Code Mutually Recursive Islands
 
     /// <summary>
-    /// Verifica che un'isola di codice composta da routine mutuamente ricorsive (A chiama B e B chiama A),
-    /// ma priva di qualsiasi chiamata da Entry Point o da codice pubblico attivo, venga classificata come codice morto.
+    /// Verify that an island of code composed of mutually recursive routines (A calls B and B calls A),
+    /// but without any call from Entry Point or active public code, it is classified as a dead code.
     /// </summary>
     [Fact]
     public void DeadCodeAnalysis_ShouldIdentifyMutuallyRecursiveDeadIslands()
@@ -177,8 +177,8 @@ public class CommonAnalyticsUncoveredEdgeCasesAndBugsHunterTests
     #region ApiDiff Parameter Changes and Overload Bumps
 
     /// <summary>
-    /// Verifica che la rimozione di un parametro o l'aggiunta di un parametro obbligatorio in una API pubblica
-    /// venga rilevata e classificata con impatto SemVer adeguato.
+    /// Verifies that removing a parameter or adding a parameter is required in a public API
+    /// is detected and classified with adequate SemVer impact.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectBreakingChange_WhenPublicMethodSignatureChanges()
@@ -199,7 +199,7 @@ public class CommonAnalyticsUncoveredEdgeCasesAndBugsHunterTests
         oldMethod.Parameters.Add(new ParameterSymbol { Name = "reportId", DeclaredTypeName = "Long" });
         oldGraph.Symbols.Add(oldMethod);
 
-        // Nel nuovo grafo il metodo è stato rimosso o modificato in modo incompatibile
+        // In the new graph the method has been removed or changed in an incompatible way
         var newMethod = new Symbol
         {
             Id = Guid.NewGuid(),
@@ -228,7 +228,7 @@ public class CommonAnalyticsUncoveredEdgeCasesAndBugsHunterTests
     #region CRUD Matrix Multi-Entity Transactions
 
     /// <summary>
-    /// Verifica la generazione della matrice CRUD per servizi complessi che manipolano contemporaneamente più entità distinte.
+    /// Test CRUD matrix generation for complex services that simultaneously manipulate multiple distinct entities.
     /// </summary>
     [Fact]
     public void CrudMatrix_ShouldTrackOperationsAcrossMultipleEntitiesInSingleService()

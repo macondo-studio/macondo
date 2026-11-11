@@ -9,48 +9,48 @@ using Accessibility = Macondo.Semantic.Model.Accessibility;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// SyntaxWalker specializzato di Roslyn (<see cref="CSharpSyntaxWalker"/>) che percorre ricorsivamente
-/// i nodi AST C# per individuare dichiarazioni, gerarchie di contenimento, invocazioni e istanziazioni.
+/// Roslyn's specialized SyntaxWalker (<see cref="CSharpSyntaxWalker"/>) that walks recursively
+/// C# AST nodes to locate declarations, containment hierarchies, invocations, and instantiations.
 /// 
-/// STRATEGIA DI GESTIONE DEGLI SCOPE E DEI SIMBOLI:
-/// - <see cref="_namespaceStack"/>: tiene traccia dei namespace annidati o file-scoped per costruire i QualifiedName completi.
-/// - <see cref="_scopeStack"/>: mantiene lo stack dei simboli contenitori attivi (es. Tipo -> Metodo -> Lambda/Local).
-///   Quando viene creato un nuovo simbolo figlio, viene automaticamente collegato al genitore in cima allo stack
-///   tramite una relazione CONTAINS nel CodeGraph.
-/// - Rilevamento Call Sites: intercetta <see cref="InvocationExpressionSyntax"/> estraendo il nome del metodo
-///   e l'eventuale espressione ricevitore (receiver) per consentire una risoluzione accurata del target nel Call Graph.
-/// - Rilevamento Istanziazioni: intercetta sia <see cref="ObjectCreationExpressionSyntax"/> espliciti ('new Foo()')
-///   sia <see cref="ImplicitObjectCreationExpressionSyntax"/> (C# 9+ target-typed 'new()') e gli inizializzatori di campo.
-/// - Rilevamento Ereditarietà: ispeziona <see cref="BaseListSyntax"/> su tipi per mappare basi di classe e interfacce implementate.
+/// SCOPE AND SYMBOL MANAGEMENT STRATEGY:
+/// - <see cref="_namespaceStack"/>: Keeps track of nested or file-scoped namespaces to construct complete QualifiedNames.
+/// - <see cref="_scopeStack"/>: maintains the stack of active container symbols (e.g. Type -> Method -> Lambda/Local).
+/// When a new child symbol is created, it is automatically linked to the parent at the top of the stack
+/// via a CONTAINS relationship in the CodeGraph.
+/// - Call Sites detection: intercept <see cref="InvocationExpressionSyntax"/> extracting the method name
+/// and the possible receiver expression (receiver) to allow accurate resolution of the target in the Call Graph.
+/// - Instance Detection: intercept both explicit <see cref="ObjectCreationExpressionSyntax"/> ('new Foo()')
+/// both <see cref="ImplicitObjectCreationExpressionSyntax"/> (C# 9+ target-typed 'new()') and the field initializers.
+/// - Inheritance Detection: Inspect <see cref="BaseListSyntax"/> on types to map class bases and implemented interfaces.
 /// </summary>
 internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
 {
     private readonly CodeGraph _graph;
     private readonly string _filePath;
 
-    /// <summary>Stack dei simboli contenitori attivi (usato per stabilire le relazioni CONTAINS e identificare il chiamante).</summary>
+    /// <summary>Stack of active container symbols (used to establish CONTAINS relationships and identify the caller).</summary>
     private readonly Stack<Symbol> _scopeStack = new();
 
-    /// <summary>Stack dei segmenti di namespace correnti (gestisce sia namespace a blocchi che file-scoped namespace).</summary>
+    /// <summary>Stack of current namespace segments (handles both block namespaces and file-scoped namespaces).</summary>
     private readonly Stack<string> _namespaceStack = new();
 
-    /// <summary>Simboli dichiarati a livello radice (non contenuti in altri tipi all'interno del file).</summary>
+    /// <summary>Symbols declared at the root level (not contained in other types within the file).</summary>
     public List<Symbol> TopLevelSymbols { get; } = new();
 
-    /// <summary>Punti di invocazione rilevati all'interno dei metodi o proprietà.</summary>
+    /// <summary>Invocation points detected within methods or properties.</summary>
     public List<CSharpCallSite> CallSites { get; } = new();
 
-    /// <summary>Istanziazioni di oggetti ('new Type()') rilevate nei metodi o inizializzatori di campo.</summary>
+    /// <summary>Object instantiations ('new Type()') detected in methods or field initializers.</summary>
     public List<CSharpInstantiation> Instantiations { get; } = new();
 
-    /// <summary>Clausole di ereditarietà o interfacce dichiarate per classi, struct, record e interfacce.</summary>
+    /// <summary>Inheritance clauses or interfaces declared for classes, structs, records, and interfaces.</summary>
     public List<CSharpTypeInheritance> Inheritances { get; } = new();
 
     /// <summary>
-    /// Inizializza una nuova istanza del walker per il file specificato.
+    /// Initializes a new walker instance for the specified file.
     /// </summary>
-    /// <param name="graph">Il CodeGraph in cui registrare i simboli e le relazioni CONTAINS.</param>
-    /// <param name="filePath">Il percorso del file sorgente C# analizzato.</param>
+    /// <param name="graph">The CodeGraph in which to record the symbols and relationships CONTAINS.</param>
+    /// <param name="filePath">The path to the analyzed C# source file.</param>
     public CSharpSymbolWalker(CodeGraph graph, string filePath)
     {
         _graph = graph;
@@ -58,17 +58,17 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Restituisce il namespace completo corrente combinando con punti i segmenti presenti nello stack.
+    /// Returns the current complete namespace by combining segments on the stack with dots.
     /// </summary>
     private string CurrentNamespace => string.Join(".", _namespaceStack.Reverse());
 
     // =========================================================================
-    // GESTIONE DEI NAMESPACE
+    // NAMESPACE MANAGEMENT
     // =========================================================================
 
     /// <summary>
-    /// Visita una dichiarazione di namespace classica a blocchi ("namespace Foo.Bar { ... }").
-    /// Spinge il nome del namespace sullo stack, visita i nodi figli, quindi rimuove il namespace.
+    /// Visit a classic block namespace declaration ("namespace Foo.Bar { ... }").
+    /// Pushes the namespace name onto the stack, visits the child nodes, then removes the namespace.
     /// </summary>
     public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
     {
@@ -78,8 +78,8 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Visita una dichiarazione di namespace con ambito di file ("namespace Foo.Bar;").
-    /// Disponibile da C# 10, si applica a tutto il contenuto del file.
+    /// Visits a file-scoped namespace declaration ("namespace Foo.Bar;").
+    /// Available since C# 10, applies to all file contents.
     /// </summary>
     public override void VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
     {
@@ -89,11 +89,11 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     // =========================================================================
-    // DICHIARAZIONI DI TIPI (Class, Interface, Struct, Record, Enum)
+    // TYPE DECLARATIONS (Class, Interface, Struct, Record, Enum)
     // =========================================================================
 
     /// <summary>
-    /// Visita la dichiarazione di una classe C# ("class Foo : IBar").
+    /// Visit the declaration of a C# class ("class Foo : IBar").
     /// </summary>
     public override void VisitClassDeclaration(ClassDeclarationSyntax node)
     {
@@ -101,7 +101,7 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Visita la dichiarazione di un'interfaccia C# ("interface IFoo").
+    /// Visit the declaration of a C# interface ("interface IFoo").
     /// </summary>
     public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
     {
@@ -109,7 +109,7 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Visita la dichiarazione di una struct C# ("struct Point").
+    /// Visit the declaration of a C# struct ("struct Point").
     /// </summary>
     public override void VisitStructDeclaration(StructDeclarationSyntax node)
     {
@@ -117,7 +117,7 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Visita la dichiarazione di un record C# ("record Person(...)").
+    /// Visit the declaration of a C# record ("Person record(...)").
     /// </summary>
     public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
     {
@@ -128,9 +128,9 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Visita la dichiarazione di un'enumerazione C# ("enum OrderStatus { Pending, Completed }").
-    /// Crea il simbolo Enum per il tipo e un simbolo Constant per ciascun membro enumerato,
-    /// collegando i membri all'Enum tramite relazioni CONTAINS.
+    /// Visit the declaration of a C# enumeration ("enum OrderStatus { Pending, Completed }").
+    /// Creates the Enum symbol for the type and a Constant symbol for each enumerated member,
+    /// connecting members to the Enum via CONTAINS relationships.
     /// </summary>
     public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
     {
@@ -138,7 +138,7 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
         var name = node.Identifier.ValueText;
         var qname = BuildQualifiedName(name);
 
-        // 1. Crea e registra il simbolo che rappresenta l'intero Enum
+        // 1. Create and register the symbol representing the entire Enum
         var symbol = new Symbol
         {
             Id = Guid.NewGuid(),
@@ -154,7 +154,7 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
         RegisterSymbol(symbol);
         _scopeStack.Push(symbol);
 
-        // 2. Itera su ciascun valore costante dichiarato all'interno dell'Enum
+        // 2. Iterate over each constant value declared within the Enum
         foreach (var member in node.Members)
         {
             var mspan = member.GetLocation().GetLineSpan();
@@ -178,12 +178,12 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Logica unificata per la creazione, registrazione e attraversamento di un tipo C# (Classe, Interfaccia, Struct, Record).
-    /// Gestisce:
-    /// 1. Calcolo del nome qualificato (inclusi namespace e classi contenitrici/annidate).
-    /// 2. Rilevamento modificatori di visibilità e flag statico.
-    /// 3. Estrazione delle clausole di ereditarietà e interfacce (BaseListSyntax).
-    /// 4. Gestione dello stack di scope e visita ricorsiva di tutti i membri interni.
+    /// Unified logic for creating, recording and traversing a C# type (Class, Interface, Struct, Record).
+    /// Handles:
+    /// 1. Calculating the qualified name (including namespaces and containing/nested classes).
+    /// 2. Visibility modifiers and static flag detection.
+    /// 3. Extraction of inheritance clauses and interfaces (BaseListSyntax).
+    /// 4. Managing the scope stack and recursively visiting all internal members.
     /// </summary>
     private void ProcessTypeDeclaration(
         TypeDeclarationSyntax node,
@@ -195,7 +195,7 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
         var span = node.GetLocation().GetLineSpan();
         var qname = BuildQualifiedName(name);
 
-        // 1. Creazione del simbolo per il tipo
+        // 1. Creating the symbol for the type
         var symbol = new Symbol
         {
             Id = Guid.NewGuid(),
@@ -211,7 +211,7 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
 
         RegisterSymbol(symbol);
 
-        // 2. Estrazione delle relazioni di ereditarietà e implementazione interfacce
+        // 2. Extraction of inheritance relations and interface implementation
         if (baseList != null)
         {
             foreach (var baseType in baseList.Types)
@@ -226,7 +226,7 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
             }
         }
 
-        // 3. Spinge il tipo sullo stack e visita ricorsivamente tutti i membri dichiarati
+        // 3. Pushes the type onto the stack and recursively visits all declared members
         _scopeStack.Push(symbol);
         foreach (var member in node.Members)
         {
@@ -236,13 +236,13 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     // =========================================================================
-    // MEMBRI DI ROUTINE (Metodi, Costruttori, Proprietà)
+    // ROUTINE MEMBERS (Methods, Constructors, Properties)
     // =========================================================================
 
     /// <summary>
-    /// Visita la dichiarazione di un metodo C# ("public void Process(int id) { ... }").
-    /// Estrae i parametri formali, il tipo di ritorno, i flag di visibilità/static,
-    /// registra il metodo nel grafo e visita il corpo per intercettare invocazioni e istanziazioni.
+    /// Visit the declaration of a C# method ("public void Process(int id) { ... }").
+    /// Extracts formal parameters, return type, visibility/static flags,
+    /// registers the method in the graph and visits the body to intercept invocations and instantiations.
     /// </summary>
     public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
     {
@@ -264,19 +264,19 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
             IsStatic = node.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword))
         };
 
-        // Estrae i parametri formali del metodo
+        // Extracts the formal parameters of the method
         ExtractParameters(node.ParameterList, symbol);
         RegisterSymbol(symbol);
 
-        // Spinge il metodo sullo scope stack e visita il corpo (istruzioni o espressioni lambda)
+        // Pushes the method onto the scope stack and visits the body (statements or lambda expressions)
         _scopeStack.Push(symbol);
         base.VisitMethodDeclaration(node);
         _scopeStack.Pop();
     }
 
     /// <summary>
-    /// Visita la dichiarazione di un costruttore C# ("public Customer(string name) { ... }").
-    /// Trattato come un metodo speciale senza tipo di ritorno esplicito.
+    /// Visit the declaration of a C# constructor ("public Customer(string name) { ... }").
+    /// Treated as a special method with no explicit return type.
     /// </summary>
     public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
     {
@@ -298,19 +298,19 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
             IsStatic = node.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword))
         };
 
-        // Estrae i parametri del costruttore
+        // Extracts the constructor parameters
         ExtractParameters(node.ParameterList, symbol);
         RegisterSymbol(symbol);
 
-        // Spinge il costruttore sullo stack e visita il corpo (inclusi eventuali 'this()' / 'base()')
+        // Pushes the constructor onto the stack and visits the body (including any 'this()' / 'base()')
         _scopeStack.Push(symbol);
         base.VisitConstructorDeclaration(node);
         _scopeStack.Pop();
     }
 
     /// <summary>
-    /// Visita la dichiarazione di una proprietà C# ("public string Name { get; set; }").
-    /// Registra il simbolo Property e visita gli accessor get/set o l'expression body.
+    /// Visit the declaration of a C# property ("public string Name { get; set; }").
+    /// Register the Property symbol and visit the get/set accessories or the expression body.
     /// </summary>
     public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
     {
@@ -334,19 +334,19 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
 
         RegisterSymbol(symbol);
 
-        // Spinge la proprietà sullo stack e visita accessor o espressioni interne
+        // Pushes the property onto the stack and visits accessors or internal expressions
         _scopeStack.Push(symbol);
         base.VisitPropertyDeclaration(node);
         _scopeStack.Pop();
     }
 
     // =========================================================================
-    // CAMPI, COSTANTI ED EVENTI
+    // FIELDS, CONSTANTS AND EVENTS
     // =========================================================================
 
     /// <summary>
-    /// Visita la dichiarazione di uno o più campi o costanti C# ("private readonly int _count = 0;", "public const int Max = 10;").
-    /// Rileva anche eventuali espressioni di istanziazione inline ('new Foo()') nell'inizializzatore del campo.
+    /// Visit the declaration of one or more C# fields or constants ("private readonly int _count = 0;", "public const int Max = 10;").
+    /// Also detects any inline instantiation expressions ('new Foo()') in the field initializer.
     /// </summary>
     public override void VisitFieldDeclaration(FieldDeclarationSyntax node)
     {
@@ -356,7 +356,7 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
         var access = DetermineAccessibility(node.Modifiers, isType: false);
         var typeName = node.Declaration.Type.ToString();
 
-        // Una singola FieldDeclarationSyntax può dichiarare più variabili (es. "int a = 1, b = 2;")
+        // A single FieldDeclarationSyntax can declare multiple variables (e.g. "int a = 1, b = 2;")
         foreach (var variable in node.Declaration.Variables)
         {
             var vname = variable.Identifier.ValueText;
@@ -379,7 +379,7 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
 
             RegisterSymbol(symbol);
 
-            // Se il campo ha un'inizializzazione inline con creazione oggetto (es. 'private List<int> list = new List<int>();')
+            // If the field has an inline initialization with object creation (e.g. 'private List<int> list = new List<int>();')
             if (variable.Initializer?.Value is ObjectCreationExpressionSyntax objCreation)
             {
                 var createdTypeName = GetSimpleTypeName(objCreation.Type.ToString());
@@ -396,7 +396,7 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Visita la dichiarazione di un campo evento C# ("public event EventHandler? OrderCompleted;").
+    /// Visit the declaration of a C# event field ("public event EventHandler? OrderCompleted;").
     /// </summary>
     public override void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
     {
@@ -429,13 +429,13 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     // =========================================================================
-    // INVOCAZIONI E ISTANZIAZIONI (Call Sites & Instantiations)
+    // INVOCATIONS AND INSTANTIATIONS (Call Sites & Instantiations)
     // =========================================================================
 
     /// <summary>
-    /// Visita un'espressione di invocazione a metodo o funzione C# ("service.Execute()", "DoWork()", "Console.WriteLine()").
-    /// Identifica la routine chiamante dallo scope stack, estrae il nome del metodo invocato e l'eventuale espressione receiver,
-    /// e registra il call site per la successiva risoluzione nel Call Graph.
+    /// Visits a C# method or function invocation expression ("service.Execute()", "DoWork()", "Console.WriteLine()").
+    /// Identifies the calling routine from the scope stack, extracts the name of the invoked method and any receiver expression,
+    /// and records the call site for subsequent resolution in the Call Graph.
     /// </summary>
     public override void VisitInvocationExpression(InvocationExpressionSyntax node)
     {
@@ -446,13 +446,13 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
             string methodName;
             string? receiver = null;
 
-            // Caso 1: Invocazione tramite accesso a membro (es. 'obj.Method()' oppure 'ClassName.StaticMethod()')
+            // Case 1: Invocation via member access (e.g. 'obj.Method()' or 'ClassName.StaticMethod()')
             if (node.Expression is MemberAccessExpressionSyntax memberAccess)
             {
                 methodName = memberAccess.Name.Identifier.ValueText;
                 receiver = memberAccess.Expression.ToString();
             }
-            // Caso 2: Invocazione diretta di metodo locale/ereditato (es. 'DoSomething()')
+            // Case 2: Direct invocation of local/inherited method (e.g. 'DoSomething()')
             else if (node.Expression is IdentifierNameSyntax identifier)
             {
                 methodName = identifier.Identifier.ValueText;
@@ -475,8 +475,8 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Visita un'espressione esplicita di creazione oggetto C# ("new Customer()", "new List&lt;string&gt;()").
-    /// Registra l'istanziazione associandola alla routine corrente.
+    /// Visits an explicit C# object creation expression ("new Customer()", "new List<string>()").
+    /// Register the instantiation by associating it with the current routine.
     /// </summary>
     public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
     {
@@ -498,8 +498,8 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Visita un'espressione implicita target-typed di creazione oggetto (C# 9+, "Customer c = new();").
-    /// Registra l'istanziazione con placeholder "var" che verrà risolto contestualmente.
+    /// Visits an object creation target-typed implicit expression (C# 9+, "Customer c = new();").
+    /// Register the instantiation with placeholder "var" which will be resolved contextually.
     /// </summary>
     public override void VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)
     {
@@ -519,12 +519,12 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     // =========================================================================
-    // METODI DI SUPPORTO E UTILITY
+    // SUPPORT METHODS AND UTILITIES
     // =========================================================================
 
     /// <summary>
-    /// Registra un simbolo nel grafo, imposta il linguaggio C# e crea la relazione CONTAINS
-    /// con il simbolo contenitore attivo in cima allo stack (o aggiunge a TopLevelSymbols se radice).
+    /// Register a symbol in the graph, set the C# language, and create the CONTAINS relationship
+    /// with the active container symbol at the top of the stack (or adds to TopLevelSymbols if root).
     /// </summary>
     private void RegisterSymbol(Symbol symbol)
     {
@@ -543,8 +543,8 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Risale lo stack degli scope per trovare il simbolo di routine (Metodo o Proprietà) più vicino che racchiude l'istruzione corrente.
-    /// Se non trova una routine, restituisce il simbolo in cima allo stack (es. la classe o il campo per inizializzatori).
+    /// It moves up the scope stack to find the closest routine symbol (Method or Property) that encloses the current statement.
+    /// If it does not find a routine, it returns the symbol at the top of the stack (e.g. the class or field for initializers).
     /// </summary>
     private Symbol? GetCurrentRoutineSymbol()
     {
@@ -557,8 +557,8 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Estrae la lista dei parametri formali da una dichiarazione di metodo o costruttore
-    /// e li popola all'interno della proprietà <see cref="Symbol.Parameters"/> del simbolo routine.
+    /// Extracts the list of formal parameters from a method or constructor declaration
+    /// and populates them inside the <see cref="Symbol.Parameters"/> property of the symbol routine.
     /// </summary>
     private void ExtractParameters(ParameterListSyntax? parameterList, Symbol routineSymbol)
     {
@@ -579,8 +579,8 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Costruisce il nome completamente qualificato (QualifiedName) concatenando il namespace corrente,
-    /// i nomi dei tipi contenitori/annidati e il nome del simbolo stesso.
+    /// Constructs the fully qualified name (QualifiedName) by concatenating the current namespace,
+    /// the names of the container/nested types and the name of the symbol itself.
     /// </summary>
     private string BuildQualifiedName(string name)
     {
@@ -599,8 +599,8 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Normalizza una stringa di tipo C# rimuovendo parametri di tipo generico ('&lt;T&gt;'),
-    /// prefissi di namespace ('System.') e indicatori di nullabilità ('?').
+    /// Normalize a C#-style string by removing generic type parameters ('<T>'),
+    /// namespace prefixes ('System.') and nullability indicators ('?').
     /// Esempio: 'System.Collections.Generic.List&lt;Customer&gt;?' -> 'List'.
     /// </summary>
     private static string GetSimpleTypeName(string rawType)
@@ -621,10 +621,10 @@ internal sealed class CSharpSymbolWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Determina il livello semantico di accessibilità (<see cref="Accessibility"/>) da una lista di modificatori sintattici C#.
-    /// Applica le regole predefinite del linguaggio quando i modificatori sono omessi:
+    /// Determines the semantic level of accessibility (<see cref="Accessibility"/>) from a list of C# syntactic modifiers.
+    /// Apply the language's default rules when modifiers are omitted:
     /// - Tipi (classi, struct, enum, record): <see cref="Accessibility.Internal"/>
-    /// - Membri (metodi, proprietà, campi): <see cref="Accessibility.Private"/>
+    /// - Members (methods, properties, fields): <see cref="Accessibility.Private"/>
     /// </summary>
     private static Accessibility DetermineAccessibility(SyntaxTokenList modifiers, bool isType)
     {

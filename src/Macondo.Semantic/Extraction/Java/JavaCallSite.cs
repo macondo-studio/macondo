@@ -3,19 +3,19 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Rappresenta un sito di chiamata a metodo (call-site) rilevato all'interno del corpo di un metodo, costruttore o blocco Java.
+/// Represents a call-site found within the body of a Java method, constructor, or block.
 /// </summary>
 public sealed class JavaCallSite
 {
-    /// <summary>Simbolo della routine o metodo Java chiamante (es. un metodo 'processOrder', un costruttore o un blocco statico).</summary>
+    /// <summary>Symbol of the calling Java procedure or method (e.g. a 'processOrder' method, a constructor or a static block).</summary>
     public required Symbol CallerSymbol { get; init; }
 
-    /// <summary>Nome identificativo del metodo o membro invocato (es. "processOrder", "save", "execute", "super", "this").</summary>
+    /// <summary>Identifying name of the invoked method or member (e.g. "processOrder", "save", "execute", "super", "this").</summary>
     public required string InvokedMethodName { get; init; }
 
-    /// <summary>Testo dell'espressione ricevitore (receiver) se presente (es. "customerService", "orderRepo", "this", "super").</summary>
+    /// <summary>Text of the receiver expression if present (e.g. "customerService", "orderRepo", "this", "super").</summary>
     public string? ReceiverExpressionText { get; init; }
 
-    /// <summary>Numero di riga nel file sorgente Java in cui si trova l'invocazione (1-indexed).</summary>
+    /// <summary>Line number in the Java source file where the invocation is located (1-indexed).</summary>
     public int Line { get; init; }
 }

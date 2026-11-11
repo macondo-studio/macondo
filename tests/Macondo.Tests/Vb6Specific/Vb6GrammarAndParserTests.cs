@@ -11,7 +11,7 @@ namespace Macondo.Tests.Vb6Specific;
 public class Vb6GrammarAndParserTests
 {
     /// <summary>
-    /// Verifica che il lexer e parser ANTLR4 eseguano il parsing di una Sub VB6 standard senza generare errori di sintassi.
+    /// Verify that the ANTLR4 lexer and parser parse a standard VB6 Sub without generating syntax errors.
     /// </summary>
     [Fact]
     public void Parser_ShouldParseSimpleSub_WithoutErrors()
@@ -42,7 +42,7 @@ public class Vb6GrammarAndParserTests
     }
 
     /// <summary>
-    /// Verifica la corretta gestione del carattere di continuazione riga (' _') su istruzioni e stringhe multilinea.
+    /// Tests correct handling of the line continuation character (' _') on multiline statements and strings.
     /// </summary>
     [Fact]
     public void Parser_ShouldHandleLineContinuation_Successfully()
@@ -75,7 +75,7 @@ public class Vb6GrammarAndParserTests
     }
 
     /// <summary>
-    /// Verifica che il CollectingErrorListener intercetti e memorizzi tutti gli errori sintattici in presenza di codice malformato.
+    /// Verify that the CollectingErrorListener intercepts and stores all syntax errors in the presence of malformed code.
     /// </summary>
     [Fact]
     public void Parser_ShouldCollectSyntaxErrors_WhenCodeIsMalformed()
@@ -104,7 +104,7 @@ public class Vb6GrammarAndParserTests
     }
 
     /// <summary>
-    /// Verifica il parsing di blocchi 'With ... End With' e definizioni di Property Get/Let/Set.
+    /// Tests parsing of 'With ... End With' blocks and Property Get/Let/Set definitions.
     /// </summary>
     [Fact]
     public void Parser_ShouldParseWithBlocksAndProperties()
@@ -141,7 +141,7 @@ public class Vb6GrammarAndParserTests
     }
 
     /// <summary>
-    /// Verifica il supporto per numeri di riga numerici legacy (es. '10 On Error GoTo Errore') ed etichette prima delle istruzioni.
+    /// Check support for legacy numeric line numbers (e.g. '10 On Error GoTo Error') and labels before statements.
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportNumericLineNumbers_AndLabelsBeforeStatements()
@@ -178,7 +178,7 @@ public class Vb6GrammarAndParserTests
     }
 
     /// <summary>
-    /// Verifica il parsing dell'istruzione Load/Unload con argomenti multipli o espressioni.
+    /// Test parsing of the Load/Unload statement with multiple arguments or expressions.
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportLoadWithMultipleArguments()
@@ -209,7 +209,7 @@ public class Vb6GrammarAndParserTests
     }
 
     /// <summary>
-    /// Verifica il parsing delle dichiarazioni Win32 API ('Declare Function/Sub ... Lib ... Alias ...').
+    /// Test parsing of Win32 API declarations ('Declare Function/Sub ... Lib ... Alias ...').
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportWin32DeclareStatements_WithLibAndAlias()
@@ -238,7 +238,7 @@ public class Vb6GrammarAndParserTests
     }
 
     /// <summary>
-    /// Verifica il supporto per identificatori racchiusi tra parentesi quadre (bracketed identifiers, es. '[Date]', '[Select]').
+    /// Check support for bracketed identifiers, e.g. '[Date]', '[Select]'.
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportBracketedIdentifiers()
@@ -271,7 +271,7 @@ public class Vb6GrammarAndParserTests
     }
 
     /// <summary>
-    /// Verifica il supporto per istruzioni multiple separate da due punti (':') sulla stessa riga di codice.
+    /// Tests support for multiple statements separated by colons (':') on the same line of code.
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportMultiStatementOnSingleLine_WithColon()
@@ -303,7 +303,7 @@ public class Vb6GrammarAndParserTests
     }
 
     /// <summary>
-    /// Verifica il parsing di dichiarazioni di eventi ('Public Event ...') e istruzioni 'RaiseEvent'.
+    /// Tests parsing of event declarations ('Public Event ...') and 'RaiseEvent' statements.
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportEventDeclarationAndRaiseEvent()
@@ -335,7 +335,7 @@ public class Vb6GrammarAndParserTests
     }
 
     /// <summary>
-    /// Verifica il parsing di direttive di compilazione condizionale ('#If ... #Else ... #End If').
+    /// Tests parsing of conditional compilation directives ('#If ... #Else ... #End If').
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportConditionalCompilationDirectives()
@@ -373,7 +373,7 @@ public class Vb6GrammarAndParserTests
     }
 
     /// <summary>
-    /// Verifica la gestione di doppi apici escapati all'interno di stringhe letterali VB6 (es. '""John Doe""').
+    /// Check the handling of escaped double quotes within VB6 literal strings (e.g. '""John Doe""').
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportEscapedQuotesInStringLiterals()
@@ -404,7 +404,7 @@ public class Vb6GrammarAndParserTests
     }
 
     /// <summary>
-    /// Verifica il parsing della clausola 'Implements InterfaceName' a livello di modulo di classe.
+    /// Tests the parsing of the 'Implements InterfaceName' clause at the class module level.
     /// </summary>
     [Fact]
     public void Parser_ShouldSupportImplementsStatement()

@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class DataFlowAndTaintExtendedTests
 {
     /// <summary>
-    /// Verifica che quando molteplici controlli UI (es. casella di testo e combobox)
-    /// convergono sullo stesso metodo di query SQL, vengano generati molteplici percorsi di contaminazione (TaintPaths) distinti.
+    /// Check that when multiple UI controls (e.g. textbox and combobox)
+    /// converge on the same SQL query method, multiple distinct TaintPaths are generated.
     /// </summary>
     [Fact]
     public void DataFlow_ShouldDetectMultipleDistinctTaintSourcesConvergingOnSameSink()
@@ -26,11 +26,11 @@ public class DataFlowAndTaintExtendedTests
 
         graph.Symbols.AddRange(new[] { txtUser, txtPass, btnLogin, authService, sqlSink });
 
-        // btnLogin legge entrambi i campi
+        // btnLogin reads both fields
         graph.AddReads(btnLogin, txtUser);
         graph.AddReads(btnLogin, txtPass);
 
-        // btnLogin chiama authService che chiama sqlSink
+        // btnLogin calls authService which calls sqlSink
         graph.AddCalls(btnLogin, authService);
         graph.AddCalls(authService, sqlSink);
 
@@ -45,7 +45,7 @@ public class DataFlowAndTaintExtendedTests
     }
 
     /// <summary>
-    /// Verifica che un CodeGraph privo di simboli o di archi ritorni un dataset vuoto senza errori.
+    /// Verify that a CodeGraph without symbols or edges returns an empty dataset without errors.
     /// </summary>
     [Fact]
     public void DataFlow_ShouldHandleEmptyGraph_Gracefully()

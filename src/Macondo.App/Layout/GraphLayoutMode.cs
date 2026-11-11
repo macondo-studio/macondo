@@ -1,28 +1,28 @@
 namespace Macondo.App.Layout;
 
 /// <summary>
-/// Modalità di disposizione visiva e posizionamento spaziale dei nodi nel CodeGraph.
+/// How to visually arrange and spatially position nodes in the CodeGraph.
 /// </summary>
 public enum GraphLayoutMode
 {
     /// <summary>
-    /// Disposizione concentrica geometrica standard (Progetto al centro, moduli su anello uniforme).
+    /// Standard geometric concentric arrangement (Project in the center, modules on a uniform ring).
     /// </summary>
     StandardRadial,
 
     /// <summary>
-    /// Disposizione circolare con ordinamento angolare dei moduli basato sull'affinità delle chiamate
-    /// per minimizzare gli incroci di archi attraverso il centro del canvas.
+    /// Circular layout with angular sorting of modules based on call affinity
+    /// to minimize arc crossings through the center of the canvas.
     /// </summary>
     AffinityRadial,
 
     /// <summary>
-    /// Rileva i sottosistemi di business/moduli fortemente accoppiati e li raggruppa in isole/cluster separati sul piano.
+    /// Detects tightly coupled business subsystems/modules and groups them into separate islands/clusters on the plane.
     /// </summary>
     ClusteredIslands,
 
     /// <summary>
-    /// Simulazione fisica a forze (Fruchterman-Reingold): repulsione elettrostatica tra nodi e attrazione a molla lungo le chiamate.
+    /// Physical simulation with forces (Fruchterman-Reingold): electrostatic repulsion between nodes and spring attraction along the calls.
     /// </summary>
     ForceDirected
 }

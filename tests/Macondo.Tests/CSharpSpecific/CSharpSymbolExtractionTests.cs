@@ -9,8 +9,8 @@ namespace Macondo.Tests.CSharpSpecific;
 public class CSharpSymbolExtractionTests
 {
     /// <summary>
-    /// Verifica che CSharpExtractor riconosca ed estragga correttamente tutti i costrutti di tipo C#
-    /// fondamentali (Classi, Interfacce, Struct, Record, ed Enum con i relativi valori numerici/costanti).
+    /// Verify that CSharpExtractor correctly recognizes and extracts all C#-style constructs
+    /// fundamentals (Classes, Interfaces, Structs, Records, and Enums with the related numeric/constant values).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractClassStructInterfaceRecordAndEnum()
@@ -80,8 +80,8 @@ public class CSharpSymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica il supporto ai File-Scoped Namespaces introdotti in C# 10 (es. 'namespace Foo.Bar;')
-    /// e la corretta propagazione del QualifiedName sui tipi e metodi contenuti.
+    /// Check support for File-Scoped Namespaces introduced in C# 10 (e.g. 'namespace Foo.Bar;')
+    /// and the correct propagation of the QualifiedName on the contained types and methods.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldSupportFileScopedNamespaces()
@@ -111,8 +111,8 @@ public class CSharpSymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione delle firme dei metodi C#, inclusi tipi di ritorno (void e tipi specifici),
-    /// parametri posizionali e parametri opzionali con valori di default.
+    /// Verify extraction of C# method signatures, including return types (void and specific types),
+    /// positional parameters and optional parameters with default values.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractMethods_WithParametersAndReturnTypes()
@@ -169,8 +169,8 @@ public class CSharpSymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica che i costruttori di classe C# vengano estratti come simboli Method con ReturnType nullo
-    /// e con l'elenco completo dei parametri di istanziazione.
+    /// Verify that C# class constructors are extracted as Method symbols with a null ReturnType
+    /// and with the complete list of instantiation parameters.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractConstructors()
@@ -206,8 +206,8 @@ public class CSharpSymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di proprietà, campi di istanza, campi statici, costanti ('const')
-    /// ed eventi ('event EventHandler') con i rispettivi tipi dichiarati.
+    /// Test extraction of properties, instance fields, static fields, constants ('const')
+    /// and events ('event EventHandler') with their declared types.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractPropertiesFieldsEventsAndConstants()
@@ -266,7 +266,7 @@ public class CSharpSymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica la mappatura corretta di tutti i modificatori di visibilità del linguaggio C#
+    /// Verify correct mapping of all C# language visibility modifiers
     /// (public, private, protected, internal, protected internal, private protected) nell'enum Accessibility.
     /// </summary>
     [Fact]
@@ -303,8 +303,8 @@ public class CSharpSymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica che in caso di sintassi C# errata o incompleta l'estrattore non generi eccezioni non gestite,
-    /// ma restituisca un risultato con Success == false e l'elenco dei messaggi di errore Roslyn in ParseErrors.
+    /// Verify that the extractor does not throw unhandled exceptions in case of incorrect or incomplete C# syntax,
+    /// but return a result with Success == false and the list of Roslyn error messages in ParseErrors.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldCaptureParseErrorsOnInvalidSyntax()

@@ -12,8 +12,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class AnalyticsAndGraphExtendedTests
 {
     /// <summary>
-    /// Verifica che DeadCodeAnalyzer individui un'isola di metodi privati mutuamente ricorsivi
-    /// (A chiama B e B chiama A), che non sono raggiungibili da alcun entry point o API pubblica.
+    /// Verify that DeadCodeAnalyzer locates an island of mutually recursive private methods
+    /// (A calls B and B calls A), which are not reachable from any entry point or public API.
     /// </summary>
     [Fact]
     public void DeadCodeAnalysis_ShouldIdentifyMutuallyRecursiveDeadIsland()
@@ -53,7 +53,7 @@ public class AnalyticsAndGraphExtendedTests
         graph.AddContains(mod, pingSub);
         graph.AddContains(mod, pongSub);
 
-        // Ping e Pong si chiamano a vicenda ma non sono chiamati da Main
+        // Ping and Pong call each other but are not called by Main
         graph.AddCalls(pingSub, pongSub);
         graph.AddCalls(pongSub, pingSub);
 
@@ -66,8 +66,8 @@ public class AnalyticsAndGraphExtendedTests
     }
 
     /// <summary>
-    /// Verifica che all'interno di una Form VB6, gli handler di eventi dei controlli vengano preservati come vivi,
-    /// mentre routine helper private mai invocate vengano correttamente segnalate come codice morto.
+    /// Verify that within a VB6 Form, control event handlers are preserved as alive,
+    /// while never invoked private helper routines are correctly reported as dead code.
     /// </summary>
     [Fact]
     public void DeadCodeAnalysis_ShouldPreserveFormEventHandlers_WhileDetectingUnusedPrivateHelpers()
@@ -90,13 +90,13 @@ public class AnalyticsAndGraphExtendedTests
         // Act
         var dataset = DeadCodeAnalyzer.Analyze(graph);
 
-        // Assert: cmdSave_Click è vivo perché gestisce l'evento del controllo, ObsoleteFormatting è dead code
+        // Assert: cmdSave_Click is alive because it handles the control's event, ObsoleteFormatting is dead code
         dataset.Items.Should().NotContain(i => i.Id == saveClick.Id);
         dataset.Items.Should().Contain(i => i.Id == unusedHelper.Id && i.Category == DeadCodeCategory.UnreachableRoutine);
     }
 
     /// <summary>
-    /// Verifica che ApiDiffAnalyzer identifichi la riduzione di accessibilità da Public a Private come Breaking Change.
+    /// Verify that ApiDiffAnalyzer identifies the reduction in accessibility from Public to Private as a Breaking Change.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectBreakingChange_WhenAccessibilityIsDemotedFromPublicToPrivate()
@@ -137,7 +137,7 @@ public class AnalyticsAndGraphExtendedTests
     }
 
     /// <summary>
-    /// Verifica che CallGraphQueries rilevi cicli diretti di auto-invocazione (Self-Loop: A -&gt; A) e cicli complessi (A -&gt; B -&gt; C -&gt; A).
+    /// Verify that CallGraphQueries detects self-invoking direct loops (Self-Loop: A -> A) and complex loops (A -> B -> C -> A).
     /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldDetectSelfLoopsAndMultiNodeCycles()
@@ -172,13 +172,13 @@ public class AnalyticsAndGraphExtendedTests
     }
 
     /// <summary>
-    /// Verifica che FindExecutionPaths gestisca grafi disconnessi o percorsi inesistenti senza errori,
-    /// restituendo una collezione vuota.
+    /// Verify that FindExecutionPaths handles disconnected graphs or non-existent paths without errors,
+    /// returning an empty collection.
     /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldReturnEmpty_ForDisconnectedSubgraphs()
     {
-        // Arrange: Due grafi disconnessi (A -> B) e (C -> D)
+        // Arrange: Two disconnected graphs (A -> B) and (C -> D)
         var graph = new CodeGraph();
 
         var nodeA = new Symbol { Id = Guid.NewGuid(), Name = "A", QualifiedName = "Mod.A", FilePath = "Mod.bas", Kind = SymbolKind.Method };
@@ -200,8 +200,8 @@ public class AnalyticsAndGraphExtendedTests
     }
 
     /// <summary>
-    /// Verifica che CodeCloneDetector filtri correttamente le routine banali al di sotto della soglia minima di righe (minLineCount)
-    /// e raggruppi cloni identici distribuiti su 3 o più moduli differenti.
+    /// Verify that CodeCloneDetector correctly filters trivial routines below the minimum lines threshold (minLineCount)
+    /// and group identical clones distributed across 3 or more different modules.
     /// </summary>
     [Fact]
     public void CodeClones_ShouldGroupMultipleOccurrencesAcrossModules_AndRespectMinLineCount()
@@ -212,7 +212,7 @@ public class AnalyticsAndGraphExtendedTests
         var targetHelper = new Symbol { Id = Guid.NewGuid(), Name = "ExecuteQuery", QualifiedName = "Db.ExecuteQuery", FilePath = "Db.cs", Kind = SymbolKind.Method };
         graph.Symbols.Add(targetHelper);
 
-        // 3 metodi duplicati con 20 righe
+        // 3 duplicate methods with 20 lines
         var cloneMethods = new List<Symbol>();
         for (int i = 1; i <= 3; i++)
         {
@@ -231,7 +231,7 @@ public class AnalyticsAndGraphExtendedTests
             graph.AddCalls(mth, targetHelper);
         }
 
-        // Metodo banale di 2 righe
+        // Trivial 2 line method
         var tinyMethod = new Symbol
         {
             Id = Guid.NewGuid(),

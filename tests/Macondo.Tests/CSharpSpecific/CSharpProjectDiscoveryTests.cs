@@ -7,8 +7,8 @@ namespace Macondo.Tests.CSharpSpecific;
 public class CSharpProjectDiscoveryTests
 {
     /// <summary>
-    /// Verifica che ProjectDescriptor.DiscoverFromPaths riconosca i file di progetto '.csproj',
-    /// ne estragga il nome e i sorgenti '.cs', escludendo correttamente le cartelle di build ('bin', 'obj').
+    /// Verify that ProjectDescriptor.DiscoverFromPaths recognizes '.csproj' project files,
+    /// extract the name and the '.cs' sources, correctly excluding the build folders ('bin', 'obj').
     /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldDiscoverFromCsprojFile_AndFilterOutBinAndObj()
@@ -59,8 +59,8 @@ public class CSharpProjectDiscoveryTests
     }
 
     /// <summary>
-    /// Verifica che il parser dei file di soluzione Visual Studio (.sln) individui tutti i progetti .csproj
-    /// referenziati e ne carichi i rispettivi descrittori di progetto.
+    /// Verify that the Visual Studio solution file (.sln) parser locates all .csproj projects
+    /// referenced and upload the respective project descriptors.
     /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldDiscoverFromSlnFile_ContainingCsprojProjects()
@@ -109,7 +109,7 @@ public class CSharpProjectDiscoveryTests
     }
 
     /// <summary>
-    /// Verifica la discovery di un singolo file sorgente C# (.cs) standalone passato come percorso diretto.
+    /// Tests discovery of a single standalone C# source (.cs) file passed as a direct path.
     /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldDiscoverSingleCsFile()

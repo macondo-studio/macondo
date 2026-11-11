@@ -20,32 +20,32 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Services;
 
 /// <summary>
-/// Motore di esecuzione CLI (Command-Line Interface) per Macondo.
-/// Gestisce il parsing degli argomenti, l'esecuzione delle analisi semantiche,
-/// la generazione dei report (Markdown e JSON) e la valutazione dei Quality Gate CI/CD.
+/// Command-Line Interface (CLI) execution engine for Macondo.
+/// It manages the parsing of arguments, the execution of semantic analyses,
+/// report generation (Markdown and JSON) and CI/CD Quality Gate evaluation.
 /// </summary>
 public static class CliRunner
 {
     /// <summary>
-    /// Codice di uscita per esecuzione completata con successo.
+    /// Exit code for successful execution.
     /// </summary>
     public const int ExitCodeSuccess = 0;
 
     /// <summary>
-    /// Codice di uscita per errori di parsing, argomenti mancanti/non validi o eccezioni impreviste.
+    /// Exit code for parsing errors, missing/invalid arguments, or unexpected exceptions.
     /// </summary>
     public const int ExitCodeError = 1;
 
     /// <summary>
-    /// Codice di uscita quando un Quality Gate CI/CD fallisce (violazioni architetturali, MI o Dead Code).
+    /// Exit code when a CI/CD Quality Gate fails (architectural violations, MI or Dead Code).
     /// </summary>
     public const int ExitCodeQualityGateFailed = 2;
 
     /// <summary>
-    /// Determina se gli argomenti della riga di comando corrispondono a una modalità di esecuzione CLI non interattiva.
+    /// Determines whether command line arguments correspond to a non-interactive CLI execution mode.
     /// </summary>
-    /// <param name="args">Array degli argomenti passati al processo.</param>
-    /// <returns><c>true</c> se è richiesta l'esecuzione CLI o la guida; altrimenti <c>false</c>.</returns>
+    /// <param name="args">Array of arguments passed to the process.</param>
+    /// <returns><c>true</c> if CLI execution or help is required; otherwise <c>false</c>.</returns>
     public static bool IsCliInvocation(string[]? args)
     {
         if (args == null || args.Length == 0)
@@ -60,17 +60,17 @@ public static class CliRunner
     }
 
     /// <summary>
-    /// Esegue il comando CLI analizzando i parametri forniti ed emettendo i risultati sui flussi di output specificati.
+    /// Executes the CLI command by parsing the supplied parameters and outputting the results to the specified output streams.
     /// </summary>
-    /// <param name="args">Argomenti da riga di comando.</param>
-    /// <param name="outWriter">Flusso per i messaggi informativi e di progresso (se null, usa <see cref="Console.Out"/>).</param>
-    /// <param name="errorWriter">Flusso per i messaggi di errore (se null, usa <see cref="Console.Error"/>).</param>
+    /// <param name="args">Command line arguments.</param>
+    /// <param name="outWriter">Flow for informational and progress messages (if null, use <see cref="Console.Out"/>).</param>
+    /// <param name="errorWriter">Error message flow (if null, use <see cref="Console.Error"/>).</param>
     /// <returns>
-    /// Codice di uscita:
+    /// Exit code:
     /// <list type="bullet">
-    ///   <item><description><see cref="ExitCodeSuccess"/> (0): Analisi ed export completati con successo.</description></item>
-    ///   <item><description><see cref="ExitCodeError"/> (1): Parametri non validi o errore durante l'esecuzione.</description></item>
-    ///   <item><description><see cref="ExitCodeQualityGateFailed"/> (2): Quality Gate CI/CD non superato.</description></item>
+    /// <item><description><see cref="ExitCodeSuccess"/> (0): Analysis and export completed successfully.</description></item>
+    /// <item><description><see cref="ExitCodeError"/> (1): Invalid parameters or error during execution.</description></item>
+    /// <item><description><see cref="ExitCodeQualityGateFailed"/> (2): CI/CD Quality Gate failed.</description></item>
     /// </list>
     /// </returns>
     public static int Run(string[] args, TextWriter? outWriter = null, TextWriter? errorWriter = null)
@@ -85,14 +85,14 @@ public static class CliRunner
             return ExitCodeError;
         }
 
-        // 1. Controllo richiesta Help
+        // 1. Check Help request
         if (args.Any(a => a is "-h" or "--help" or "help" or "/?"))
         {
             PrintHelp(outWriter);
             return ExitCodeSuccess;
         }
 
-        // Variabili di configurazione input & output generale
+        // General input & output configuration variables
         var inputPaths = new List<string>();
         string? exportMdPath = null;
         string? exportJsonPath = null;
@@ -102,7 +102,7 @@ public static class CliRunner
         string format = "md"; // Formati supportati: "md", "json", "all"
         string? rulesConfigPath = null;
 
-        // Output specifici per singole analisi (granular flags)
+        // Specific outputs for individual analyzes (granular flags)
         string? deadCodePath = null;
         string? maintainabilityPath = null;
         string? rulesPath = null;
@@ -116,13 +116,13 @@ public static class CliRunner
         string? dsmPath = null;
         (string SymbolName, string OutPath)? impactArg = null;
 
-        // Opzioni per CI/CD Quality Gates
+        // Options for CI/CD Quality Gates
         bool failOnViolations = false;
         double? failOnMiThreshold = null;
         double? failOnDeadCodeThreshold = null;
         bool verbose = false;
 
-        // 2. Parsing degli argomenti da riga di comando
+        // 2. Parsing command line arguments
         for (int i = 0; i < args.Length; i++)
         {
             var arg = args[i];
@@ -162,7 +162,7 @@ public static class CliRunner
                     return ExitCodeError;
                 }
             }
-            // Batch export su directory
+            // Batch export to directory
             else if (arg.Equals("--out-dir", StringComparison.OrdinalIgnoreCase) || arg.Equals("-o", StringComparison.OrdinalIgnoreCase))
             {
                 if (i + 1 < args.Length)
@@ -193,7 +193,7 @@ public static class CliRunner
                     return ExitCodeError;
                 }
             }
-            // File di configurazione regole architetturali custom
+            // Custom architectural rules configuration file
             else if (arg.Equals("--rules-config", StringComparison.OrdinalIgnoreCase))
             {
                 if (i + 1 < args.Length)
@@ -204,7 +204,7 @@ public static class CliRunner
                     return ExitCodeError;
                 }
             }
-            // Esportazioni singole granulari (il file di output è opzionale: se omesso, viene usato un nome predefinito)
+            // Granular single exports (output file is optional; if omitted, a default name is used)
             else if (arg.Equals("--dead-code", StringComparison.OrdinalIgnoreCase))
             {
                 if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
@@ -329,7 +329,7 @@ public static class CliRunner
                 inputPaths.Add(arg);
         }
 
-        // 3. Validazione percorsi sorgente
+        // 3. Source path validation
         if (inputPaths.Count == 0)
         {
             errorWriter.WriteLine("[Error] No target project, group or folder path specified for analysis.");
@@ -342,13 +342,13 @@ public static class CliRunner
             || clonesPath != null || cohesionPath != null || martinPath != null || sharedStatePath != null
             || crudPath != null || dataFlowPath != null || screenFlowPath != null || dsmPath != null || impactArg != null;
 
-        // Se non è stato specificato alcun output né alcun quality gate, il default è generare un audit report completo
+        // If no output or quality gate has been specified, the default is to generate a full audit report
         if (!hasSpecificOutput && !failOnViolations && !failOnMiThreshold.HasValue && !failOnDeadCodeThreshold.HasValue)
             reportPath = "audit-report.md";
 
         try
         {
-            // 4. Discovery e analisi semantica dei progetti
+            // 4. Discovery and semantic analysis of projects
             outWriter.WriteLine($"[Macondo] Discovering projects from {inputPaths.Count} path(s)...");
             var projects = ProjectDescriptor.DiscoverFromPaths(inputPaths);
             if (projects.Count == 0)
@@ -371,7 +371,7 @@ public static class CliRunner
                 }
                 catch (ObjectDisposedException)
                 {
-                    // Ignora scritture se il writer è stato rilasciato
+                    // Ignore writes if the writer has been released
                 }
             });
 
@@ -385,7 +385,7 @@ public static class CliRunner
 
             outWriter.WriteLine($"[Macondo] Extraction complete: {semanticGraph.Symbols.Count} symbols, {semanticGraph.Relationships.Count} relationships.");
 
-            // 5. Caricamento regole architetturali custom (opzionale)
+            // 5. Loading custom architectural rules (optional)
             List<ArchitecturalRule>? customRules = null;
             if (!string.IsNullOrEmpty(rulesConfigPath))
             {
@@ -405,7 +405,7 @@ public static class CliRunner
                 }
             }
 
-            // 6. Esportazioni Legacy (Repo Map & Raw JSON)
+            // 6. Legacy Exports (Repo Map & Raw JSON)
             if (!string.IsNullOrEmpty(exportMdPath))
             {
                 var md = CodeGraphMarkdownExporter.Export(semanticGraph);
@@ -420,7 +420,7 @@ public static class CliRunner
                 outWriter.WriteLine($"[OK] CodeGraph JSON exported to: {Path.GetFullPath(exportJsonPath)}");
             }
 
-            // 7. Generazione Audit Report (--report)
+            // 7. Audit Report Generation (--report)
             AuditReportResult? auditResult = null;
             AuditReportResult GetOrBuildAuditResult()
             {
@@ -432,7 +432,7 @@ public static class CliRunner
                     }
                     catch (ObjectDisposedException)
                     {
-                        // Ignora se il writer è stato rilasciato
+                        // Ignore whether the writer has been released
                     }
                 });
             }
@@ -448,7 +448,7 @@ public static class CliRunner
                 outWriter.WriteLine($"[OK] Audit Report ({ (isJson ? "JSON" : "Markdown") }) exported to: {fullReportPath}");
             }
 
-            // 8. Esportazione batch su cartella di destinazione (--out-dir)
+            // 8. Batch export to destination folder (--out-dir)
             if (!string.IsNullOrEmpty(outDir))
             {
                 var audit = GetOrBuildAuditResult();
@@ -521,7 +521,7 @@ public static class CliRunner
                 outWriter.WriteLine($"[OK] All requested analyses exported to folder: {fullOutDir}");
             }
 
-            // 9. Esportazioni granulari per flag individuali
+            // 9. Granular exports for individual flags
             void ExportGranular<T>(string? path, Func<T> datasetFactory, Func<T, string> mdExporter, Func<T, string> jsonExporter, string label)
             {
                 if (string.IsNullOrEmpty(path))
@@ -545,7 +545,7 @@ public static class CliRunner
             ExportGranular(screenFlowPath, () => ScreenFlowBuilder.Build(semanticGraph), AnalysisMarkdownExporter.ExportScreenFlow, d => AnalysisJsonExporter.ExportToJson(d), "Screen Flow Report");
             ExportGranular(dsmPath, () => DsmMatrixBuilder.Build(semanticGraph), AnalysisMarkdownExporter.ExportDsm, d => AnalysisJsonExporter.ExportToJson(d), "DSM Report");
 
-            // 10. Impact Analysis (Blast Radius) su singolo simbolo
+            // 10. Impact Analysis (Blast Radius) on a single symbol
             if (impactArg.HasValue)
             {
                 var targetSymName = impactArg.Value.SymbolName;
@@ -566,7 +566,7 @@ public static class CliRunner
                 }
             }
 
-            // 11. Valutazione dei Quality Gate CI/CD
+            // 11. Evaluation of CI/CD Quality Gates
             bool qualityGateFailed = false;
 
             if (failOnViolations)
@@ -624,11 +624,11 @@ public static class CliRunner
     }
 
     /// <summary>
-    /// Salva il contenuto specificato nel percorso indicato, creando le cartelle padre se non esistono.
-    /// Il file viene scritto in codifica UTF-8 senza BOM per massima compatibilità con tool standard e script.
+    /// Saves the specified content to the specified location, creating parent folders if they do not exist.
+    /// The file is written in UTF-8 encoding without BOM for maximum compatibility with standard tools and scripts.
     /// </summary>
-    /// <param name="path">Percorso del file di destinazione.</param>
-    /// <param name="content">Contenuto testuale da scrivere in codifica UTF-8 senza BOM.</param>
+    /// <param name="path">Path to the destination file.</param>
+    /// <param name="content">Text content to be written in UTF-8 encoding without BOM.</param>
     public static void SaveFile(string path, string content)
     {
         var fullPath = Path.GetFullPath(path);
@@ -640,9 +640,9 @@ public static class CliRunner
     }
 
     /// <summary>
-    /// Stampa la guida completa all'utilizzo della riga di comando sul writer specificato.
+    /// Prints the complete guide to using the command line on the specified writer.
     /// </summary>
-    /// <param name="outWriter">Flusso di destinazione (se null, usa <see cref="Console.Out"/>).</param>
+    /// <param name="outWriter">Target stream (if null, use <see cref="Console.Out"/>).</param>
     public static void PrintHelp(TextWriter? outWriter = null)
     {
         outWriter ??= Console.Out;
@@ -707,8 +707,8 @@ Examples:
     }
 
     /// <summary>
-    /// Implementazione sincrona e thread-safe di <see cref="IProgress{T}"/> per ambienti CLI/batch.
-    /// Evita l'accodamento asincrono su ThreadPool/SynchronizationContext che potrebbe tentare scritture su flussi già rilasciati.
+    /// Synchronous and thread-safe implementation of <see cref="IProgress{T}"/> for CLI/batch environments.
+    /// Avoid asynchronous queuing on ThreadPool/SynchronizationContext which may attempt writes to already released streams.
     /// </summary>
     private sealed class SynchronousProgress<T>(Action<T> handler) : IProgress<T>
     {
@@ -720,7 +720,7 @@ Examples:
             }
             catch (ObjectDisposedException)
             {
-                // Ignora scritture se lo stream di output sottostante è stato chiuso
+                // Ignore writes if the underlying output stream has been closed
             }
         }
     }

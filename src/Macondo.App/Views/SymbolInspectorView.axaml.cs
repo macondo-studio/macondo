@@ -13,29 +13,29 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Views;
 
 /// <summary>
-/// Controllo visuale per il pannello laterale Symbol Inspector &amp; Blast Radius.
-/// Mostra i dettagli semantici, metadati di tipo/parametri, estrazione AI slice,
-/// raggio d'impatto (Blast Radius) e relazioni di chiamata dirette e indirette del simbolo selezionato.
+/// Visual control for the Symbol Inspector & Blast Radius side panel.
+/// Show semantic details, type/parameter metadata, AI slice extraction,
+/// impact radius (Blast Radius) and direct and indirect call relations of the selected symbol.
 /// </summary>
 public partial class SymbolInspectorView : UserControl
 {
     /// <summary>
-    /// Evento generato quando l'utente richiede di aprire il file originale del simbolo.
+    /// Event raised when the user requests to open the original symbol file.
     /// </summary>
     public event EventHandler? OpenFileRequested;
 
     /// <summary>
-    /// Evento generato quando l'utente richiede di aprire la cartella contenitrice del file sorgente.
+    /// Event generated when the user requests to open the folder containing the source file.
     /// </summary>
     public event EventHandler? OpenFolderRequested;
 
     /// <summary>
-    /// Evento generato quando l'utente richiede di copiare negli appunti il Context Slice per AI.
+    /// Event raised when the user requests to copy the Context Slice for AI to the clipboard.
     /// </summary>
     public event EventHandler? CopySliceRequested;
 
     /// <summary>
-    /// Evento generato quando l'utente richiede di salvare il Context Slice come file Markdown.
+    /// Event raised when the user requests to save the Context Slice as a Markdown file.
     /// </summary>
     public event EventHandler? SaveSliceRequested;
 
@@ -45,8 +45,8 @@ public partial class SymbolInspectorView : UserControl
     }
 
     /// <summary>
-    /// Mostra lo stato vuoto dell'Inspector quando nessun simbolo è selezionato nel grafo.
-    /// Se non c'è alcun progetto in analisi (hasProject = false), nasconde il pannello dei suggerimenti.
+    /// Shows the empty state of the Inspector when no symbols are selected in the graph.
+    /// If there is no project under analysis (hasProject = false), hides the suggestions panel.
     /// </summary>
     public void ShowEmpty(bool hasProject = true)
     {
@@ -55,9 +55,9 @@ public partial class SymbolInspectorView : UserControl
     }
 
     /// <summary>
-    /// Visualizza i metadati statici immediati del nodo selezionato (nome, qualified name, categoria, visibilità, linguaggio, tipo, parametri, coordinate file e anteprima codice).
+    /// Displays immediate static metadata of the selected node (name, qualified name, category, visibility, language, type, parameters, file coordinates and code preview).
     /// </summary>
-    /// <param name="node">Il nodo del grafo selezionato.</param>
+    /// <param name="node">The node of the selected graph.</param>
     public void ShowSymbolMetadata(GraphNode node)
     {
         InspectorEmptyPanel.IsVisible = false;
@@ -101,7 +101,7 @@ public partial class SymbolInspectorView : UserControl
             InspectorTypeSection.IsVisible = false;
         }
 
-        // Parametri formali
+        // Formal parameters
         if (sym != null && sym.Parameters.Count > 0)
         {
             InspectorParamsSection.IsVisible = true;
@@ -119,7 +119,7 @@ public partial class SymbolInspectorView : UserControl
             InspectorParamsSection.IsVisible = false;
         }
 
-        // File, coordinate di riga e conteggio righe
+        // File, row coordinates and row count
         if (sym != null && !string.IsNullOrEmpty(sym.FilePath))
         {
             InspectorFileSection.IsVisible = true;
@@ -148,7 +148,7 @@ else
     }
 
     /// <summary>
-    /// Imposta lo stato visivo di calcolo in corso per la sezione Blast Radius e per gli elenchi dei chiamanti/chiamati.
+    /// Sets the calculation-in-progress visual state for the Blast Radius section and caller/callee lists.
     /// </summary>
     public void SetCalculatingState()
     {
@@ -167,7 +167,7 @@ else
     }
 
     /// <summary>
-    /// Ripristina lo stato predefinito (vuoto) per le sezioni dinamiche dell'Inspector.
+    /// Restores the default (empty) state for the dynamic sections of the Inspector.
     /// </summary>
     public void ClearDynamicSections()
     {
@@ -181,9 +181,9 @@ else
     }
 
     /// <summary>
-    /// Aggiorna la sezione Blast Radius (badge di rischio, conteggi, form, moduli e call chains).
+    /// Update the Blast Radius section (risk badges, counts, forms, modules and call chains).
     /// </summary>
-    /// <param name="impact">Il report d'impatto calcolato.</param>
+    /// <param name="impact">The calculated impact report.</param>
     public void UpdateImpactSection(ImpactReport impact)
     {
         var localizationService = LocalizationService.Instance;
@@ -226,7 +226,7 @@ else
             BlastClassesSection.IsVisible = false;
         }
 
-        // Percorsi di esecuzione (call chains)
+        // Execution paths (call chains)
         if (impact.AffectedExecutionPaths.Count > 0)
         {
             BlastPathsSection.IsVisible = true;
@@ -240,11 +240,11 @@ else
     }
 
     /// <summary>
-    /// Aggiorna l'intera sezione d'impatto e relazioni nel Symbol Inspector, compresi gli elenchi testuali di chiamanti, chiamati e istanziazioni.
+    /// Updates the entire Impact and Relationships section in the Symbol Inspector, including the textual lists of callers, callees, and instantiations.
     /// </summary>
-    /// <param name="impact">Il report d'impatto calcolato.</param>
-    /// <param name="callees">L'elenco dei simboli chiamati direttamente.</param>
-    /// <param name="instantiations">L'elenco delle classi istanziate.</param>
+    /// <param name="impact">The calculated impact report.</param>
+    /// <param name="callees">The list of directly called symbols.</param>
+    /// <param name="instantiations">The list of instantiated classes.</param>
     public void UpdateImpactDetails(
         ImpactReport impact,
         IReadOnlyList<Symbol> callees,
@@ -277,7 +277,7 @@ else
     }
 
     /// <summary>
-    /// Aggiorna tutte le stringhe localizzate dell'interfaccia utente del Symbol Inspector.
+    /// Updates all localized Symbol Inspector UI strings.
     /// </summary>
     public void UpdateLocalizedUI()
     {

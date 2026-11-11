@@ -9,8 +9,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class DeadCodeAnalysisTests
 {
     /// <summary>
-    /// Verifica l'esecuzione dell'analisi del codice morto sul set completo delle fixture di test,
-    /// confermando che il dataset contenga sia simboli raggiungibili che eventuali elementi non referenziati.
+    /// Verify execution of dead code analysis on the complete set of test fixtures,
+    /// confirming that the dataset contains both reachable symbols and any non-referenced elements.
     /// </summary>
     [Fact]
     public void DeadCodeAnalysis_ShouldExecuteOnFixtures_AndIdentifyReachableAndDeadSymbols()
@@ -29,8 +29,8 @@ public class DeadCodeAnalysisTests
     }
 
     /// <summary>
-    /// Verifica che gli Entry Point naturali (Sub Main, eventi Form_Load, handler di controlli UI)
-    /// non vengano contrassegnati come codice morto anche se nessun altro metodo del codice li chiama esplicitamente.
+    /// Verify that natural Entry Points (Sub Main, Form_Load events, UI control handlers)
+    /// are not marked as dead code even if no other method in the code explicitly calls them.
     /// </summary>
     [Fact]
     public void DeadCodeAnalysis_ShouldPreserveNaturalEntryPoints_SuchAsSubMainAndFormEvents()
@@ -50,7 +50,7 @@ public class DeadCodeAnalysisTests
         graph.AddContains(form, formLoad);
         graph.AddContains(form, btnClick);
 
-        // Sub Main invoca un worker
+        // Sub Main invokes a worker
         var workerMethod = new Symbol { Id = Guid.NewGuid(), Name = "DoWork", QualifiedName = "StartupMod.DoWork", FilePath = "StartupMod.bas", Kind = SymbolKind.Method };
         graph.Symbols.Add(workerMethod);
         graph.AddContains(startupModule, workerMethod);
@@ -67,8 +67,8 @@ public class DeadCodeAnalysisTests
     }
 
     /// <summary>
-    /// Verifica che routine private mai invocate da nessun flusso di ingresso
-    /// vengano correttamente segnalate nella categoria UnreachableRoutine.
+    /// Check that private routines are never invoked by any input stream
+    /// are correctly reported in the UnreachableRoutine category.
     /// </summary>
     [Fact]
     public void DeadCodeAnalysis_ShouldIdentifyUnreachablePrivateRoutines()
@@ -96,8 +96,8 @@ public class DeadCodeAnalysisTests
     }
 
     /// <summary>
-    /// Verifica che campi, variabili globali o costanti mai referenziate
-    /// vengano categorizzate come UnusedFieldOrConstant.
+    /// Check for fields, global variables or constants that have never been referenced
+    /// are categorized as UnusedFieldOrConstant.
     /// </summary>
     [Fact]
     public void DeadCodeAnalysis_ShouldIdentifyUnusedFieldsAndConstants()
@@ -124,8 +124,8 @@ public class DeadCodeAnalysisTests
     }
 
     /// <summary>
-    /// Verifica che classi o moduli isolati senza istanziazioni o chiamate
-    /// vengano individuati come OrphanContainer.
+    /// Check that classes or modules are isolated without instantiations or calls
+    /// are identified as OrphanContainer.
     /// </summary>
     [Fact]
     public void DeadCodeAnalysis_ShouldIdentifyOrphanContainers()
@@ -151,13 +151,13 @@ public class DeadCodeAnalysisTests
     }
 
     /// <summary>
-    /// Verifica che in assenza di Entry Point espliciti (es. progetto di tipo DLL / Libreria pura),
-    /// l'algoritmo consideri come radici di raggiungibilità tutti i simboli con accessibilità Public o Interface.
+    /// Check that in the absence of explicit Entry Points (e.g. DLL / Pure Library type project),
+    /// the algorithm considers all symbols with Public or Interface accessibility as reachability roots.
     /// </summary>
     [Fact]
     public void DeadCodeAnalysis_ShouldFallbackToPublicSymbols_WhenNoExplicitEntryPointExists()
     {
-        // Arrange: Libreria pura senza Main né Form
+        // Arrange: Pure library without Main or Form
         var graph = new CodeGraph();
 
         var pubClass = new Symbol { Id = Guid.NewGuid(), Name = "PublicApi", QualifiedName = "PublicApi", FilePath = "PublicApi.cls", Kind = SymbolKind.Class, Accessibility = Accessibility.Public };
@@ -172,7 +172,7 @@ public class DeadCodeAnalysisTests
         // Act
         var dataset = DeadCodeAnalyzer.Analyze(graph);
 
-        // Assert: pubClass, pubMethod e privInternal (chiamato da pubMethod) devono essere raggiungibili
+        // Assert: pubClass, pubMethod and privInternal (called from pubMethod) must be reachable
         dataset.Items.Should().NotContain(i => i.Id == pubClass.Id);
         dataset.Items.Should().NotContain(i => i.Id == pubMethod.Id);
         dataset.Items.Should().NotContain(i => i.Id == privInternal.Id);

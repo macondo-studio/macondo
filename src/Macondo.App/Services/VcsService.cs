@@ -7,9 +7,9 @@ using Macondo.App.Models;
 namespace Macondo.App.Services;
 
 /// <summary>
-/// Servizio unificato di gestione Version Control (Git e Subversion/SVN).
-/// Fornisce un'interfaccia unica all'applicazione per il rilevamento del repository,
-/// la lettura del branch attivo, il listing dei branch e il cambio branch.
+/// Unified Version Control management service (Git and Subversion/SVN).
+/// Provides a unique interface to the repository discovery application,
+/// reading the active branch, branch listing and branch switching.
 /// </summary>
 public sealed class VcsService
 {
@@ -19,7 +19,7 @@ public sealed class VcsService
     private VcsService() { }
 
     /// <summary>
-    /// Rileva se la cartella specificata è tracciata sotto Git o SVN.
+    /// Detects whether the specified folder is tracked under Git or SVN.
     /// </summary>
     public VcsType DetectVcsType(string? folderPath)
     {
@@ -37,13 +37,13 @@ public sealed class VcsService
     }
 
     /// <summary>
-    /// Verifica se la cartella appartiene a un qualsiasi repository controllato da versione (Git o SVN).
+    /// Check if the folder belongs to any version-controlled repository (Git or SVN).
     /// </summary>
     public bool IsVcsRepository(string? folderPath) =>
         DetectVcsType(folderPath) != VcsType.None;
 
     /// <summary>
-    /// Restituisce il nome del branch attivo e il tipo di VCS associato alla cartella.
+    /// Returns the name of the active branch and the type of VCS associated with the folder.
     /// </summary>
     public string? GetCurrentBranch(string? folderPath, out VcsType vcsType)
     {
@@ -57,7 +57,7 @@ public sealed class VcsService
     }
 
     /// <summary>
-    /// Restituisce l'elenco dei branch disponibili per il repository attivo.
+    /// Returns the list of branches available for the active repository.
     /// </summary>
     public List<VcsBranchInfo> GetBranches(string? folderPath)
     {
@@ -89,7 +89,7 @@ public sealed class VcsService
     }
 
     /// <summary>
-    /// Esegue il checkout (Git) o lo switch (SVN) verso il branch selezionato.
+    /// Performs checkout (Git) or switch (SVN) to the selected branch.
     /// </summary>
     public async Task<(bool Success, string? Error)> SwitchBranchAsync(string? folderPath, VcsBranchInfo branch)
     {

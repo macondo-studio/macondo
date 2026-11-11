@@ -3,22 +3,22 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.ApiDiff;
 
 /// <summary>
-/// Classificazione della severità di una modifica di API secondo il Semantic Versioning (SemVer).
+/// Classification of the severity of an API change according to Semantic Versioning (SemVer).
 /// </summary>
 public enum ApiChangeImpact
 {
-    /// <summary>Modifica retrocompatibile / interna (Patch: 0.0.X).</summary>
+    /// <summary>Backwards compatible / internal change (Patch: 0.0.X).</summary>
     Patch,
 
-    /// <summary>Aggiunta di nuove funzionalità o API retrocompatibili (Minor: 0.X.0).</summary>
+    /// <summary>Addition of new features or backwards compatible APIs (Minor: 0.X.0).</summary>
     Minor,
 
-    /// <summary>Rottura di compatibilità binaria o contrattuale dell'API (Major / Breaking Change: X.0.0).</summary>
+    /// <summary>Binary or contractual compatibility break of the API (Major / Breaking Change: X.0.0).</summary>
     MajorBreaking
 }
 
 /// <summary>
-/// Tipologia di modifica rilevata su un simbolo dell'API pubblica.
+/// Type of change detected on a public API symbol.
 /// </summary>
 public enum ApiChangeKind
 {
@@ -31,7 +31,7 @@ public enum ApiChangeKind
 }
 
 /// <summary>
-/// Singola differenza rilevata sulla superficie dell'API tra due snapshot del CodeGraph.
+/// Single difference detected on the API surface between two CodeGraph snapshots.
 /// </summary>
 public sealed class ApiDifferenceItem
 {
@@ -45,7 +45,7 @@ public sealed class ApiDifferenceItem
 }
 
 /// <summary>
-/// Report complessivo dell'analisi API Diff e raccomandazione SemVer.
+/// Overall API Diff analysis report and SemVer recommendation.
 /// </summary>
 public sealed class ApiDiffReport
 {
@@ -57,7 +57,7 @@ public sealed class ApiDiffReport
     public int PatchChangesCount => Differences.Count(d => d.Impact == ApiChangeImpact.Patch);
 
     /// <summary>
-    /// Raccomandazione automatica del tipo di rilascio SemVer richiesto.
+    /// Automatic recommendation of the required SemVer release type.
     /// </summary>
     public ApiChangeImpact RecommendedBump
     {

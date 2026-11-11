@@ -22,8 +22,8 @@ public class ExportAndSerializationComprehensiveEdgeCasesTests
     #region Exporting Empty Graphs Across All Analyzers
 
     /// <summary>
-    /// Verifica che tutti gli esportatori Markdown e JSON gestiscano un CodeGraph completamente vuoto
-    /// senza sollevare eccezioni NullReferenceException o formattare markdown malformato.
+    /// Verify that all Markdown and JSON exporters handle a completely empty CodeGraph
+    /// without raising NullReferenceException or formatting malformed markdown.
     /// </summary>
     [Fact]
     public void MarkdownAndJsonExporters_ShouldHandleEmptyGraphAcrossAllAnalyses()
@@ -84,7 +84,7 @@ public class ExportAndSerializationComprehensiveEdgeCasesTests
     #region Full Relationship Kind Roundtrip Serialization
 
     /// <summary>
-    /// Verifica che la serializzazione JSON conservi tutte le 7 tipologie di relazioni
+    /// Verify that JSON serialization preserves all 7 relationship types
     /// (Calls, Reads, Writes, Contains, Implements, UsesType, HandlesEvent).
     /// </summary>
     [Fact]
@@ -137,8 +137,8 @@ public class ExportAndSerializationComprehensiveEdgeCasesTests
     #region Markdown Table Special Character Escaping
 
     /// <summary>
-    /// Verifica che i simboli contenenti pipe, apici e caratteri speciali vengano esportati
-    /// in Markdown senza corrompere la struttura delle tabelle.
+    /// Verify that symbols containing pipes, quotes, and special characters are exported
+    /// in Markdown without corrupting the table structure.
     /// </summary>
     [Fact]
     public void MarkdownExporter_ShouldHandleSpecialCharactersInSymbolNames()

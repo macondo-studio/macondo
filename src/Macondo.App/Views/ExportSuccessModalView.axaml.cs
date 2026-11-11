@@ -6,24 +6,24 @@ using Macondo.App.Services;
 namespace Macondo.App.Views;
 
 /// <summary>
-/// Finestra modale di notifica a seguito di esportazioni di file su disco andate a buon fine.
+/// Modal notification window following successful file exports to disk.
 /// </summary>
 public partial class ExportSuccessModalView : UserControl
 {
     private string? _fullPath;
 
     /// <summary>
-    /// Evento scatenato quando l'utente richiede di aprire la cartella contenitrice del file esportato.
+    /// Event triggered when the user requests to open the folder containing the exported file.
     /// </summary>
     public event EventHandler<string>? OpenFolderRequested;
 
     /// <summary>
-    /// Evento scatenato quando la modale viene chiusa dall'utente.
+    /// Event triggered when the modal is closed by the user.
     /// </summary>
     public event EventHandler? Closed;
 
     /// <summary>
-    /// Inizializza una nuova istanza di <see cref="ExportSuccessModalView"/>.
+    /// Initializes a new instance of <see cref="ExportSuccessModalView"/>.
     /// </summary>
     public ExportSuccessModalView()
     {
@@ -31,7 +31,7 @@ public partial class ExportSuccessModalView : UserControl
     }
 
     /// <summary>
-    /// Mostra la modale valorizzando il nome del file e il percorso completo.
+    /// Show the modal by valorising the file name and the complete path.
     /// </summary>
     public void Show(string fileName, string fullPath)
     {
@@ -43,7 +43,7 @@ public partial class ExportSuccessModalView : UserControl
     }
 
     /// <summary>
-    /// Nasconde la modale.
+    /// Hides the modal.
     /// </summary>
     public void Hide()
     {
@@ -52,7 +52,7 @@ public partial class ExportSuccessModalView : UserControl
     }
 
     /// <summary>
-    /// Aggiorna i testi localizzati della modale.
+    /// Update localized modal texts.
     /// </summary>
     public void UpdateLocalizedUI()
     {

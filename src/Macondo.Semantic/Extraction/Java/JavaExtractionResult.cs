@@ -3,28 +3,28 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Risultato strutturato dell'estrazione semantica di un singolo file sorgente Java (.java).
+/// Structured result of semantic extraction of a single Java source file (.java).
 /// </summary>
 public sealed class JavaExtractionResult
 {
-    /// <summary>Percorso assoluto o relativo del file sorgente Java analizzato.</summary>
+    /// <summary>Absolute or relative path to the analyzed Java source file.</summary>
     public required string FilePath { get; init; }
 
-    /// <summary>Elenco dei simboli di primo livello (classi, interfacce, record, enum, annotazioni) dichiarati nel file.</summary>
+    /// <summary>List of top-level symbols (classes, interfaces, records, enums, annotations) declared in the file.</summary>
     public required IReadOnlyList<Symbol> TopLevelSymbols { get; init; }
 
-    /// <summary>Elenco dei call-site di invocazione rilevati nei corpi dei metodi Java.</summary>
+    /// <summary>List of invocation call-sites detected in Java method bodies.</summary>
     public required IReadOnlyList<JavaCallSite> CallSites { get; init; }
 
-    /// <summary>Elenco delle istanziazioni 'new' rilevate nei metodi o nelle inizializzazioni di campo.</summary>
+    /// <summary>List of 'new' instantiations detected in methods or field initializations.</summary>
     public required IReadOnlyList<JavaInstantiation> Instantiations { get; init; }
 
-    /// <summary>Elenco delle relazioni di ereditarietà e implementazione di interfacce estratte dalle dichiarazioni di tipo.</summary>
+    /// <summary>List of inheritance relations and interface implementations extracted from type declarations.</summary>
     public required IReadOnlyList<JavaTypeInheritance> Inheritances { get; init; }
 
-    /// <summary>Elenco degli errori diagnostici di parsing rilevati sul file.</summary>
+    /// <summary>List of diagnostic parsing errors detected on the file.</summary>
     public required IReadOnlyList<string> ParseErrors { get; init; }
 
-    /// <summary>Indica se il file è stato parsato ed estratto con successo senza errori bloccanti.</summary>
+    /// <summary>Indicates whether the file was successfully parsed and extracted without blocking errors.</summary>
     public bool Success => ParseErrors.Count == 0;
 }

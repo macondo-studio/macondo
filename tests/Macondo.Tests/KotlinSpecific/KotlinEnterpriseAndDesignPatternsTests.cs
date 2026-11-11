@@ -8,8 +8,8 @@ using Xunit;
 namespace Macondo.Tests.KotlinSpecific;
 
 /// <summary>
-/// Suite di test avanzata per pattern enterprise, architetturali e di design del linguaggio Kotlin (.kt),
-/// inclusi Repository & Service con Dependency Injection, Factory tramite Companion Object, Extension Functions,
+/// Advanced test suite for enterprise, architectural and design patterns of the Kotlin language (.kt),
+/// including Repository & Service with Dependency Injection, Factory via Companion Object, Extension Functions,
 /// Class Delegation via 'by', Value Classes idiomatiche, annotazioni custom e DSL Builder.
 /// </summary>
 public class KotlinEnterpriseAndDesignPatternsTests
@@ -17,9 +17,9 @@ public class KotlinEnterpriseAndDesignPatternsTests
     #region Repository and Service Pattern with Dependency Injection
 
     /// <summary>
-    /// Verifica l'estrazione e il tracciamento del pattern Repository e Service:
-    /// interfaccia astratta, classe concreta che la implementa e Service che riceve
-    /// il repository tramite Primary Constructor Injection invocandone le funzioni.
+    /// Verify Repository and Service pattern extraction and tracking:
+    /// abstract interface, concrete class that implements it and Service that receives it
+    /// the repository via Primary Constructor Injection by invoking its functions.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldExtractRepositoryPatternAndResolveServiceCalls()
@@ -101,8 +101,8 @@ public class KotlinEnterpriseAndDesignPatternsTests
     #region Factory Pattern with Companion Object
 
     /// <summary>
-    /// Verifica il pattern Factory realizzato con costruttore privato e metodi factory nel Companion Object,
-    /// assicurando la corretta estrazione dei metodi statici e la relazione di istanziazione.
+    /// Check the Factory pattern created with private constructor and factory methods in the Companion Object,
+    /// ensuring correct extraction of static methods and instantiation relationship.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldExtractFactoryPatternInCompanionObject()
@@ -164,8 +164,8 @@ public class KotlinEnterpriseAndDesignPatternsTests
     #region Extension Functions and Properties Pattern
 
     /// <summary>
-    /// Verifica l'estrazione e il call graph di Extension Functions ed Extension Properties,
-    /// caratteristiche idiomatiche cardine di Kotlin per estendere classi senza ereditarietà.
+    /// Check the extraction and call graph of Extension Functions and Extension Properties,
+    /// Kotlin's key idiomatic features for extending classes without inheritance.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldExtractExtensionFunctionsAndResolveInvocations()
@@ -220,8 +220,8 @@ public class KotlinEnterpriseAndDesignPatternsTests
     #region Class Delegation via 'by' Keyword
 
     /// <summary>
-    /// Verifica l'estrazione di classi Kotlin che utilizzano la delega nativa dell'implementazione
-    /// tramite parola chiave 'by' (Decorator / Delegation Pattern a livello di compilatore).
+    /// Test extraction of Kotlin classes that use native delegation of the implementation
+    /// via 'by' keyword (Compiler-level Decorator/Delegation Pattern).
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldExtractClassDelegationViaByClause()
@@ -286,7 +286,7 @@ public class KotlinEnterpriseAndDesignPatternsTests
     #region Value Classes and Strongly Typed Identifiers
 
     /// <summary>
-    /// Verifica la corretta gestione di @JvmInline value class (Domain-Driven Design primitive obsession avoidance).
+    /// Check the correct management of @JvmInline value class (Domain-Driven Design primitive obsession avoidance).
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldExtractValueClassesAndMembers()
@@ -334,7 +334,7 @@ public class KotlinEnterpriseAndDesignPatternsTests
     #region Custom Annotations and Metaprogramming
 
     /// <summary>
-    /// Verifica l'estrazione di dichiarazioni di annotazioni custom ('annotation class') con parametri e default.
+    /// Tests extraction of custom annotation declarations ('annotation class') with parameters and defaults.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldExtractCustomAnnotationClassesAndTargets()
@@ -375,7 +375,7 @@ public class KotlinEnterpriseAndDesignPatternsTests
     #region DSL Builder Pattern with Lambda with Receiver
 
     /// <summary>
-    /// Verifica l'estrazione di pattern DSL basati su lambda con receiver (T.() -> Unit), tipici di Kotlin (Ktor, Gradle, HTML builders).
+    /// Test the extraction of lambda-based DSL patterns with receiver (T.() -> Unit), typical of Kotlin (Ktor, Gradle, HTML builders).
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldExtractTypeSafeDslBuilders()

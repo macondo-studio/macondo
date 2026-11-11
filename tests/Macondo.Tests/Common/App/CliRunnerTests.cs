@@ -252,7 +252,7 @@ End Sub
             File.Exists(deadCodeFile).Should().BeTrue();
             File.Exists(impactFile).Should().BeTrue();
 
-            // Verifica che siano stati generati sia file .md che .json
+            // Verify that both .md and .json files have been generated
             Directory.GetFiles(outDir, "*.md").Should().NotBeEmpty();
             Directory.GetFiles(outDir, "*.json").Should().NotBeEmpty();
         }
@@ -283,7 +283,7 @@ End Sub
             using var outWriter = new StringWriter();
             using var errorWriter = new StringWriter();
 
-            // Impostiamo una soglia irraggiungibile di 150 (MI è tipicamente <= 100)
+            // We set an unattainable threshold of 150 (MI is typically <= 100)
             var exitCode = CliRunner.Run(new[]
             {
                 "analyze",
@@ -321,7 +321,7 @@ End Sub
             using var outWriter = new StringWriter();
             using var errorWriter = new StringWriter();
 
-            // Soglia MI molto bassa (1.0) che verrà superata
+            // Very low MI threshold (1.0) that will be exceeded
             var exitCode = CliRunner.Run(new[]
             {
                 "analyze",

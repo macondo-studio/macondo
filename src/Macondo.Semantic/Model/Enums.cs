@@ -1,48 +1,48 @@
 namespace Macondo.Semantic.Model;
 
 /// <summary>
-/// Categoria del simbolo semantico.
-/// Rappresenta la tipologia di elemento nel modello concettuale del codice VB6.
+/// Semantic symbol category.
+/// Represents the type of element in the conceptual model of the VB6 code.
 /// </summary>
 public enum SymbolKind
 {
     /// <summary>Progetto VB6 (.vbp).</summary>
     Project,
 
-    /// <summary>Form / Finestra visuale (.frm).</summary>
+    /// <summary>Form / Visual window (.frm).</summary>
     Form,
 
-    /// <summary>Modulo di classe (.cls).</summary>
+    /// <summary>Class module (.cls).</summary>
     Class,
 
-    /// <summary>Modulo standard di codice (.bas).</summary>
+    /// <summary>Standard code module (.bas).</summary>
     Module,
 
-    /// <summary>Controllo utente ActiveX (.ctl).</summary>
+    /// <summary>ActiveX User Control (.ctl).</summary>
     UserControl,
 
-    /// <summary>Metodo o procedura (Sub o Function).</summary>
+    /// <summary>Method or procedure (Sub or Function).</summary>
     Method,
 
-    /// <summary>Proprietà (Property Get / Let / Set unificate).</summary>
+    /// <summary>Properties (Property Get / Let / Set unified).</summary>
     Property,
 
-    /// <summary>Campo o variabile (sia a livello di modulo che variabile locale a una routine).</summary>
+    /// <summary>Field or variable (either module-level or variable local to a routine).</summary>
     Field,
 
-    /// <summary>Costante (Const a livello di modulo o locale, o singolo valore di un Enum).</summary>
+    /// <summary>Constant (module-level or local Const, or single value of an Enum).</summary>
     Constant,
 
-    /// <summary>Enumerazione (Enum ... End Enum).</summary>
+    /// <summary>Enumeration (Enum ... End Enum).</summary>
     Enum,
 
     /// <summary>Tipo definito dall'utente / Struttura UDT (Type ... End Type).</summary>
     Type,
 
-    /// <summary>Evento dichiarato in una classe o UserControl (Event ...).</summary>
+    /// <summary>Event declared in a class or UserControl (Event ...).</summary>
     Event,
 
-    /// <summary>Interfaccia (interface IFoo).</summary>
+    /// <summary>Interface (IFoo interface).</summary>
     Interface,
 
     /// <summary>Struttura (struct Point).</summary>
@@ -51,16 +51,16 @@ public enum SymbolKind
     /// <summary>Record (record Person).</summary>
     Record,
 
-    /// <summary>Namespace di raggruppamento logico.</summary>
+    /// <summary>Logical grouping namespace.</summary>
     Namespace
 }
 
 /// <summary>
-/// Linguaggio di programmazione sorgente del simbolo o progetto.
+/// Source programming language of the symbol or project.
 /// </summary>
 public enum SourceLanguage
 {
-    /// <summary>Linguaggio sconosciuto o non specificato.</summary>
+    /// <summary>Unknown or unspecified language.</summary>
     Unknown,
 
     /// <summary>Microsoft Visual Basic 6.0 / VBA legacy.</summary>
@@ -89,144 +89,144 @@ public enum SourceLanguage
 }
 
 /// <summary>
-/// Tipologie di relazioni / archi tra simboli nel CodeGraph.
+/// Types of relationships / arcs between symbols in CodeGraph.
 /// </summary>
 public enum RelationshipKind
 {
-    /// <summary>Relazione strutturale gerarchica di contenimento (es. Modulo contiene Metodo, Metodo contiene Variabile locale).</summary>
+    /// <summary>Hierarchical structural containment relationship (e.g. Module contains Method, Method contains Local Variable).</summary>
     Contains,
 
-    /// <summary>Dichiarazione formale di un elemento.</summary>
+    /// <summary>Formal declaration of an element.</summary>
     Declares,
 
-    /// <summary>Invocazione / chiamata da una routine a un'altra (es. Customer.Save -> Database.Execute).</summary>
+    /// <summary>Invocation / call from one routine to another (e.g. Customer.Save -> Database.Execute).</summary>
     Calls,
 
-    /// <summary>Riferimento generico a un simbolo o libreria esterna.</summary>
+    /// <summary>Generic reference to an external symbol or library.</summary>
     References,
 
-    /// <summary>Utilizzo di un tipo come tipo di dato di una variabile, parametro o ritorno (es. Dim c As Customer).</summary>
+    /// <summary>Using a type as the data type of a variable, parameter, or return (e.g. Dim c As Customer).</summary>
     UsesType,
 
-    /// <summary>Ereditarietà (non comune in VB6 classico, supportata nel modello agnostico).</summary>
+    /// <summary>Inheritance (uncommon in classic VB6, supported in model agnostic).</summary>
     Inherits,
 
-    /// <summary>Implementazione di interfaccia tramite keyword 'Implements' (es. Implements ICustomerRepository).</summary>
+    /// <summary>Interface implementation via 'Implements' keyword (e.g. Implements ICustomerRepository).</summary>
     Implements,
 
-    /// <summary>Istanziazione di un oggetto tramite 'New' o 'Set ... = New' (es. Set c = New Customer).</summary>
+    /// <summary>Instantiation of an object via 'New' or 'Set ... = New' (e.g. Set c = New Customer).</summary>
     Instantiates,
 
-    /// <summary>Gestione di un evento (es. cmdSave.Click -> Form1.cmdSave_Click).</summary>
+    /// <summary>Management of an event (e.g. cmdSave.Click -> Form1.cmdSave_Click).</summary>
     HandlesEvent,
 
-    /// <summary>Accesso in lettura a un campo o proprietà.</summary>
+    /// <summary>Read access to a field or property.</summary>
     Reads,
 
-    /// <summary>Accesso in scrittura / assegnazione a un campo o proprietà.</summary>
+    /// <summary>Write access / assignment to a field or property.</summary>
     Writes
 }
 
 /// <summary>
-/// Livello di confidenza / certezza della risoluzione semantica di un simbolo o relazione.
-/// In VB6, costrutti come Variant, Object o CreateObject("...") non possono essere risolti staticamente con certezza assoluta.
+/// Confidence level / certainty of the semantic resolution of a symbol or relationship.
+/// In VB6, constructs like Variant, Object, or CreateObject("...") cannot be resolved statically with absolute certainty.
 /// </summary>
 public enum ResolutionConfidence
 {
-    /// <summary>Risoluzione statica certa e deterministica al 100% (es. tipo esplicito 'Dim c As Customer: c.Save').</summary>
+    /// <summary>100% certain and deterministic static resolution (e.g. explicit type 'Dim c As Customer: c.Save').</summary>
     Exact,
 
-    /// <summary>Risoluzione dedotta tramite inferenza o euristica contestuale.</summary>
+    /// <summary>Resolution inferred via inference or contextual heuristics.</summary>
     Inferred,
 
-    /// <summary>Presenza di molteplici candidati compatibili con lo stesso nome senza disambiguazione univoca.</summary>
+    /// <summary>Presence of multiple compatible candidates with the same name without unambiguous disambiguation.</summary>
     Ambiguous,
 
-    /// <summary>Target non risolvibile staticamente (es. late binding su 'Dim obj As Object: obj.Save').</summary>
+    /// <summary>Target not statically resolvable (e.g. late binding on 'Dim obj As Object: obj.Save').</summary>
     Unknown
 }
 
 /// <summary>
-/// Livelli di visibilità e modificatori di accesso dei simboli in VB6 e C#.
+/// Visibility levels and symbol access modifiers in VB6 and C#.
 /// </summary>
 public enum Accessibility
 {
-    /// <summary>Accessibilità predefinita implicita (Private per membri di classe/form, Public per membri di moduli .bas).</summary>
+    /// <summary>Implicit default accessibility (Private for class/form members, Public for .bas module members).</summary>
     Default,
 
-    /// <summary>Accessibile solo all'interno del modulo/classe corrente ('Private' / 'private').</summary>
+    /// <summary>Accessible only within the current module/class ('Private' / 'private').</summary>
     Private,
 
-    /// <summary>Accessibile pubblicamente all'intero progetto o dall'esterno ('Public' / 'public').</summary>
+    /// <summary>Publicly accessible to the entire project or from outside ('Public' / 'public').</summary>
     Public,
 
-    /// <summary>Accessibile a tutti i moduli all'interno dello stesso progetto/componente ('Friend').</summary>
+    /// <summary>Accessible to all modules within the same project/component ('Friend').</summary>
     Friend,
 
-    /// <summary>Dichiarazione a livello globale per moduli standard legacy ('Global').</summary>
+    /// <summary>Global level declaration for legacy standard modules ('Global').</summary>
     Global,
 
-    /// <summary>Accessibile dalla classe corrente e dalle classi derivate ('protected').</summary>
+    /// <summary>Accessible from the current class and derived classes ('protected').</summary>
     Protected,
 
-    /// <summary>Accessibile all'interno dello stesso assembly ('internal').</summary>
+    /// <summary>Accessible within the same assembly ('internal').</summary>
     Internal,
 
-    /// <summary>Accessibile all'interno dello stesso assembly o dalle classi derivate ('protected internal').</summary>
+    /// <summary>Accessible within the same assembly or from derived classes ('protected internal').</summary>
     ProtectedInternal,
 
-    /// <summary>Accessibile solo dalle classi derivate all'interno dello stesso assembly ('private protected').</summary>
+    /// <summary>Accessible only from derived classes within the same assembly ('private protected').</summary>
     PrivateProtected
 }
 
 /// <summary>
-/// Livello di rischio stimato per la modifica di un simbolo in base al suo Blast Radius.
+/// Estimated risk level for editing a symbol based on its Blast Radius.
 /// </summary>
 public enum ImpactRiskLevel
 {
-    /// <summary>Rischio Basso: nessun chiamante o solo chiamanti privati interni alla stessa classe.</summary>
+    /// <summary>Low Risk: no callers or only private callers within the same class.</summary>
     Low,
 
-    /// <summary>Rischio Medio: chiamanti in altre classi, ma nessuna Form UI direttamente impattata.</summary>
+    /// <summary>Medium Risk: callers in other classes, but no Form UI directly impacted.</summary>
     Medium,
 
-    /// <summary>Rischio Alto: più classi e almeno una Form UI impattata dalla modifica.</summary>
+    /// <summary>High Risk: multiple classes and at least one Form UI impacted by the change.</summary>
     High,
 
-    /// <summary>Rischio Critico: elevato numero di form, classi o moduli impattati con catena di chiamate profonda.</summary>
+    /// <summary>Critical Risk: high number of forms, classes or modules impacted with a deep call chain.</summary>
     Critical
 }
 
 /// <summary>
-/// Colori di stato dei nodi per l'algoritmo di visita DFS a 3 stati (White/Gray/Black)
-/// utilizzato per il rilevamento di cicli di invocazione ricorsiva nel Call Graph.
+/// Node state colors for the 3-state DFS visit algorithm (White/Gray/Black)
+/// used for detecting recursive invocation loops in the Call Graph.
 /// </summary>
 public enum NodeColor
 {
-    /// <summary>Non ancora visitato.</summary>
+    /// <summary>Not visited yet.</summary>
     White,
 
-    /// <summary>In corso di visita nello stack di chiamata corrente (se incontrato indica un ciclo ricorsivo).</summary>
+    /// <summary>Visiting the current call stack (if encountered indicates a recursive loop).</summary>
     Gray,
 
-    /// <summary>Visita completata con successo per tutti i discendenti.</summary>
+    /// <summary>Visit completed successfully for all descendants.</summary>
     Black
 }
 
 /// <summary>
-/// Modalità di evidenziazione visiva attiva nel canvas di visualizzazione del grafo (<see cref="Controls.GraphControl"/>).
+/// Visual highlighting mode active in the graph visualization canvas (<see cref="Controls.GraphControl"/>).
 /// </summary>
 public enum HighlightMode
 {
-    /// <summary>Visualizzazione standard con evidenziazione del nodo selezionato e dei vicini immediati.</summary>
+    /// <summary>Standard display with highlighting of the selected node and immediate neighbors.</summary>
     Normal,
 
-    /// <summary>Evidenziazione gerarchica di tutti i chiamanti della routine selezionata (Who calls me?).</summary>
+    /// <summary>Hierarchical highlighting of all the callers of the selected routine (Who calls me?).</summary>
     Callers,
 
-    /// <summary>Evidenziazione gerarchica di tutte le routine chiamate (What do I call?).</summary>
+    /// <summary>Hierarchical highlighting of all called routines (What do I call?).</summary>
     Callees,
 
-    /// <summary>Evidenziazione completa del Blast Radius / Impatto di modifica con gradiente di profondità e Form UI toccate.</summary>
+    /// <summary>Full Blast Radius Highlight/Edit Impact with Depth Gradient and Form UI Touched.</summary>
     BlastRadius
 }

@@ -9,14 +9,14 @@ using Xunit;
 namespace Macondo.Tests.KotlinSpecific;
 
 /// <summary>
-/// Suite di test per la risoluzione semantica del grafo di chiamate, gerarchie di ereditarietà
-/// e raggio di impatto su molteplici file sorgente Kotlin (.kt) e scenari poliglotti.
+/// Test suite for semantic resolution of call graph,inheritance hierarchies
+/// and radius of impact across multiple Kotlin (.kt) source files and polyglot scenarios.
 /// </summary>
 public class KotlinMultiFileAndCrossProjectTests
 {
     /// <summary>
-    /// In Kotlin i file appartenenti allo stesso package non necessitano di dichiarazioni import.
-    /// Verifica che CallGraphBuilder colleghi correttamente le chiamate tra classi in file distinti dello stesso package.
+    /// In Kotlin, files belonging to the same package do not require import declarations.
+    /// Verify that CallGraphBuilder correctly links calls between classes in separate files in the same package.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldResolveCallsAcrossMultipleKotlinFilesInSamePackage()
@@ -73,8 +73,8 @@ public class KotlinMultiFileAndCrossProjectTests
     }
 
     /// <summary>
-    /// Verifica che CallGraphBuilder risolva le invocazioni tra file Kotlin in package diversi
-    /// tramite import espliciti.
+    /// Verify that CallGraphBuilder resolves invocations between Kotlin files in different packages
+    /// via explicit imports.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldResolveCallsAcrossDifferentPackagesWithImports()
@@ -122,8 +122,8 @@ public class KotlinMultiFileAndCrossProjectTests
     }
 
     /// <summary>
-    /// Verifica che le gerarchie di ereditarietà (open class) e implementazione di interfacce
-    /// dichiarate su file Kotlin separati vengano collegate con relazioni INHERITS e IMPLEMENTS.
+    /// Verify that inheritance (open class) and interface implementation hierarchies
+    /// declared in separate Kotlin files are linked with INHERITS and IMPLEMENTS relationships.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldResolveInheritanceAndInterfacesAcrossMultipleKotlinFiles()
@@ -176,7 +176,7 @@ public class KotlinMultiFileAndCrossProjectTests
     }
 
     /// <summary>
-    /// Verifica che BlastRadiusEngine propaghi correttamente l'impatto a cascata su progetti
+    /// Verify that BlastRadiusEngine properly cascades impact across projects
     /// multi-file in Kotlin.
     /// </summary>
     [Fact]
@@ -233,7 +233,7 @@ public class KotlinMultiFileAndCrossProjectTests
     }
 
     /// <summary>
-    /// Verifica l'analisi poliglota combinata tra sorgenti Kotlin (.kt) e sorgenti Java (.java).
+    /// Test combined polyglot analysis between Kotlin sources (.kt) and Java sources (.java).
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldSupportMixedPolyglotKotlinAndJava()

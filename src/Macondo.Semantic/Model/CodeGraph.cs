@@ -1,84 +1,84 @@
 namespace Macondo.Semantic.Model;
 
 /// <summary>
-/// Grafo del codice semantico in memoria (CodeGraph).
+/// In-memory semantic code graph (CodeGraph).
 /// 
-/// Rappresenta l'intero modello del codice analizzato: nodi (<see cref="Symbols"/>) ed archi orientati (<see cref="Relationships"/>).
-/// È progettato per aggregare molteplici moduli, classi e form di un intero progetto VB6/C# in un'unica struttura
-/// in RAM altamente interrogabile, indipendente da qualsiasi database o interfaccia utente.
+/// It represents the entire model of the analyzed code: nodes (<see cref="Symbols"/>) and oriented arcs (<see cref="Relationships"/>).
+/// It is designed to aggregate multiple modules, classes, and forms of an entire VB6/C# project into a single structure
+/// in highly queryable RAM, independent of any database or user interface.
 /// 
-/// OTTIMIZZAZIONI DI PERFORMANCE:
-/// - Deduplicazione delle relazioni in tempo costante O(1) tramite HashSet di chiavi (Source, Target, Kind).
-/// - Ricerca dei simboli per ID in tempo costante O(1) tramite dizionario indicizzato lazy/sincronizzato.
-/// - Recupero dei figli gerarchici (CONTAINS) in tempo costante O(1) tramite indice di adiacenza parent-child.
+/// PERFORMANCE OPTIMIZATIONS:
+/// - O(1) constant time relationship deduplication via HashSet of keys (Source, Target, Kind).
+/// - Symbol search by ID in O(1) constant time via lazy/synchronized indexed dictionary.
+/// - Retrieval of hierarchical children (CONTAINS) in O(1) constant time via parent-child adjacency index.
 /// </summary>
 public sealed class CodeGraph
 {
-    /// <summary>Elenco completo di tutti i simboli estratti nel progetto.</summary>
+    /// <summary>Complete list of all symbols extracted in the project.</summary>
     public List<Symbol> Symbols { get; } = new();
 
-    /// <summary>Elenco completo di tutte le relazioni semantiche tra i simboli.</summary>
+    /// <summary>Complete list of all semantic relationships between symbols.</summary>
     public List<Relationship> Relationships { get; } = new();
 
     // =========================================================================
-    // INDICI INTERNI AD ALTE PRESTAZIONI (O(1)) E THREAD-SAFE
+    // HIGH PERFORMANCE (O(1)) AND THREAD-SAFE INTERNAL INDEXES
     // =========================================================================
 
     /// <summary>
-    /// Oggetto di sincronizzazione dedicato per l'accesso e la ricostruzione degli indici interni.
-    /// Utilizzato per proteggere le mutazioni concorrenti su collezioni non thread-safe durante
-    /// le elaborazioni parallele di analisi (Blast Radius, Treemap, Dead Code, Temporal Coupling, ecc.).
+    /// Dedicated synchronization object for accessing and rebuilding internal indexes.
+    /// Used to protect concurrent mutations on non-threadsafe collections during
+    /// parallel analysis processing (Blast Radius, Treemap, Dead Code, Temporal Coupling, etc.).
     /// </summary>
     private readonly object _syncLock = new();
 
     /// <summary>
-    /// Insieme di tuple (Sorgente, Destinazione, TipoRelazione) per la deduplicazione O(1) rapida delle relazioni.
+    /// Set of tuples (Source, Destination, RelationshipType) for fast O(1) deduplication of relationships.
     /// </summary>
     private HashSet<(Guid SourceId, Guid TargetId, RelationshipKind Kind)> _relationshipKeys = new();
 
     /// <summary>
-    /// Mappa indicizzata ID Simbolo -> Oggetto Simbolo per ricerche O(1) immediate.
+    /// Indexed map Symbol ID -> Symbol Object for immediate O(1) searches.
     /// </summary>
     private Dictionary<Guid, Symbol> _symbolsById = new();
 
     /// <summary>
-    /// Mappa indicizzata ID Padre -> Lista dei Simboli Figli (relazione CONTAINS) per navigazione gerarchica O(1).
+    /// Indexed map Parent ID -> List of Child Symbols (CONTAINS relationship) for O(1) hierarchical navigation.
     /// </summary>
     private Dictionary<Guid, List<Symbol>> _childrenByParentId = new();
 
     /// <summary>
-    /// Mappa indicizzata ID Sorgente -> Lista delle relazioni uscenti per query O(1).
+    /// Indexed map Source ID -> List of outgoing relations for O(1) query.
     /// </summary>
     private Dictionary<Guid, List<Relationship>> _outgoingBySourceId = new();
 
     /// <summary>
-    /// Mappa indicizzata ID Destinazione -> Lista delle relazioni entranti per query O(1).
+    /// Indexed map Destination ID -> List of incoming relations for O(1) query.
     /// </summary>
     private Dictionary<Guid, List<Relationship>> _incomingByTargetId = new();
 
     /// <summary>
-    /// Conteggio dei simboli all'ultima sincronizzazione dell'indice (marcato volatile per visibilità cross-thread).
+    /// Symbol count at last index sync (marked volatile for cross-thread visibility).
     /// </summary>
     private volatile int _lastIndexedSymbolCount = -1;
 
     /// <summary>
-    /// Conteggio delle relazioni all'ultima sincronizzazione dell'indice (marcato volatile per visibilità cross-thread).
+    /// Relationship count as of last index sync (marked volatile for cross-thread visibility).
     /// </summary>
     private volatile int _lastIndexedRelCount = -1;
 
     /// <summary>
-    /// Conteggio dei simboli all'ultima sincronizzazione dell'indice di contenimento.
+    /// Symbol count when the containment index was last synchronized.
     /// </summary>
     private volatile int _lastIndexedContainsSymbolCount = -1;
 
     /// <summary>
-    /// Sincronizza gli indici interni dei simboli se la lista <see cref="Symbols"/> è stata modificata o popolata.
+    /// Synchronize internal symbol indices if the <see cref="Symbols"/> list has been modified or populated.
     /// 
     /// STRATEGIA THREAD-SAFE:
-    /// 1. Fast-path lock-free: se il conteggio corrente coincide con l'ultimo indicizzato, ritorna istantaneamente.
-    /// 2. Double-checked locking: se un aggiornamento è richiesto, acquisisce <see cref="_syncLock"/> e ricontrolla.
-    /// 3. Sostituzione atomica: crea un nuovo dizionario locale isolato e sostituisce il riferimento di <see cref="_symbolsById"/>
-    ///    in modo atomico, garantendo che i thread lettori concorrenti non subiscano blocchi né leggano collezioni in corso di mutazione.
+    /// 1. Fast-path lock-free: if the current count matches the last indexed one, it returns instantly.
+    /// 2. Double-checked locking: if an update is required, acquire <see cref="_syncLock"/> and check again.
+    /// 3. Atomic Replacement: Creates a new isolated local dictionary and replaces the reference of <see cref="_symbolsById"/>
+    /// atomically, ensuring that concurrent reader threads do not crash or read mutating collections.
     /// </summary>
     private void EnsureSymbolsIndexed()
     {
@@ -102,11 +102,11 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Sincronizza l'indice gerarchico di contenimento (relazioni CONTAINS), le liste di adiacenza uscenti/entranti e le chiavi di deduplicazione.
+    /// Synchronize the hierarchical containment index (CONTAINS relationships), outgoing/incoming adjacency lists and deduplication keys.
     /// 
     /// STRATEGIA THREAD-SAFE:
-    /// Costruisce le nuove mappe di adiacenza e il nuovo set di deduplicazione in isolamento locale,
-    /// scambiando i riferimenti atomicamente.
+    /// Constructs the new adjacency maps and the new deduplication set in local isolation,
+    /// exchanging references atomically.
     /// </summary>
     private void EnsureContainsIndexed()
     {
@@ -169,8 +169,8 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Sincronizza esplicitamente e completamente gli indici interni del grafo in un unico passaggio atomico.
-    /// Utile al termine di caricamenti o merge massivi per garantire che tutte le future query O(1) siano calcolate.
+    /// Explicitly and completely synchronize the graph's internal indices in a single atomic step.
+    /// Useful at the end of massive loads or merges to ensure that all future O(1) queries are computed.
     /// </summary>
     public void BuildIndices()
     {
@@ -178,10 +178,10 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Unisce in blocco i simboli e le relazioni di un grafo secondario (es. grafo locale generato da un worker thread)
-    /// all'interno del grafo corrente, senza innescare ricalcoli ripetuti O(N^2) degli indici di contenimento.
+    /// Combines the symbols and relations of a secondary graph in bulk (e.g. local graph generated by a worker thread)
+    /// within the current graph, without triggering repeated O(N^2) recalculations of the containment indices.
     /// </summary>
-    /// <param name="other">Il grafo locale da unire nel grafo primario.</param>
+    /// <param name="other">The local graph to be merged into the primary graph.</param>
     public void MergeFrom(CodeGraph other)
     {
         if (other == null || (other.Symbols.Count == 0 && other.Relationships.Count == 0))
@@ -195,15 +195,15 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Registra internamente una relazione mantenendo sincronizzato l'indice O(1) delle chiavi e del contenimento.
-    /// Thread-safe: serializza l'aggiunta e l'aggiornamento incrementale delle strutture.
+    /// Internally records a relationship by keeping the O(1) index of keys and containment in sync.
+    /// Thread-safe: Serialize incremental adding and updating of structures.
     /// </summary>
     private void RegisterRelationship(Relationship rel)
     {
         lock (_syncLock)
         {
-            // Se le liste sottostanti sono state popolate o alterate esternamente (es. AddRange),
-            // rinfresca gli indici completi prima di procedere con l'aggiornamento incrementale.
+            // If the underlying lists have been populated or altered externally (e.g. AddRange),
+            // refresh complete indexes before proceeding with incremental refresh.
             if (_lastIndexedRelCount != Relationships.Count || _lastIndexedContainsSymbolCount != Symbols.Count)
                 EnsureContainsIndexed();
 
@@ -213,7 +213,7 @@ public sealed class CodeGraph
             Relationships.Add(rel);
             _lastIndexedRelCount = Relationships.Count;
 
-            // Mantiene l'adiacenza uscente ed entrante O(1) in tempo reale
+            // Maintains outgoing and incoming O(1) adjacency in real time
             if (!_outgoingBySourceId.TryGetValue(rel.SourceId, out var outList))
             {
                 outList = new List<Relationship>();
@@ -244,11 +244,11 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Aggiunge una relazione strutturale gerarchica di contenimento (CONTAINS) tra un parent e un child.
+    /// Adds a hierarchical structural containment relationship (CONTAINS) between a parent and a child.
     /// </summary>
-    /// <param name="parent">Il simbolo contenitore (es. Modulo o Metodo).</param>
-    /// <param name="child">Il simbolo contenuto (es. Metodo o Variabile locale).</param>
-    /// <param name="line">Numero di riga nel sorgente.</param>
+    /// <param name="parent">The container symbol (e.g. Module or Method).</param>
+    /// <param name="child">The contained symbol (e.g. Method or Local variable).</param>
+    /// <param name="line">Line number in the source.</param>
     public void AddContains(Symbol parent, Symbol child, int? line = null)
     {
         RegisterRelationship(new Relationship
@@ -262,12 +262,12 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Aggiunge una relazione di chiamata (CALLS) da una routine chiamante a una routine chiamata.
+    /// Adds a calling relationship (CALLS) from a calling routine to a called routine.
     /// </summary>
-    /// <param name="caller">La routine chiamante (Method o Property).</param>
-    /// <param name="callee">La routine chiamata (Method o Property).</param>
-    /// <param name="line">Numero di riga nel sorgente in cui si origina la chiamata.</param>
-    /// <param name="confidence">Grado di certezza della risoluzione (Exact, Inferred, Unknown).</param>
+    /// <param name="caller">The calling routine (Method or Property).</param>
+    /// <param name="callee">The called routine (Method or Property).</param>
+    /// <param name="line">Line number in the source where the call originates.</param>
+    /// <param name="confidence">Degree of resolution certainty (Exact, Inferred, Unknown).</param>
     public void AddCalls(
         Symbol caller,
         Symbol callee,
@@ -285,12 +285,12 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Aggiunge una relazione di istanziazione (INSTANTIATES) da una routine/modulo verso la classe istanziata.
+    /// Adds an instantiation relationship (INSTANTIATES) from a routine/module to the instantiated class.
     /// </summary>
-    /// <param name="source">La routine o modulo che istanzia l'oggetto.</param>
-    /// <param name="targetClass">Il simbolo della classe istanziata.</param>
-    /// <param name="line">Numero di riga nel sorgente.</param>
-    /// <param name="confidence">Grado di certezza della risoluzione.</param>
+    /// <param name="source">The routine or module that instantiates the object.</param>
+    /// <param name="targetClass">The symbol of the instantiated class.</param>
+    /// <param name="line">Line number in the source.</param>
+    /// <param name="confidence">Degree of certainty of resolution.</param>
     public void AddInstantiates(
         Symbol source,
         Symbol targetClass,
@@ -308,13 +308,13 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Aggiunge una relazione di gestione evento (HANDLES_EVENT) tra la sorgente dell'evento (Form, Controllo o Oggetto) e la routine gestore.
-    /// Deduplicazione istantanea O(1) e thread-safe.
+    /// Adds an event handler relationship (HANDLES_EVENT) between the event source (Form, Control, or Object) and the handler procedure.
+    /// Instant O(1) deduplication and thread-safe.
     /// </summary>
-    /// <param name="source">La Form, Controllo o Oggetto che genera l'evento.</param>
-    /// <param name="eventHandler">La procedura Sub che gestisce l'evento.</param>
-    /// <param name="line">Numero di riga nel sorgente.</param>
-    /// <param name="confidence">Grado di certezza della risoluzione.</param>
+    /// <param name="source">The Form, Control or Object that generates the event.</param>
+    /// <param name="eventHandler">The Sub procedure that handles the event.</param>
+    /// <param name="line">Line number in the source.</param>
+    /// <param name="confidence">Degree of certainty of resolution.</param>
     public void AddHandlesEvent(
         Symbol source,
         Symbol eventHandler,
@@ -332,8 +332,8 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Aggiunge una relazione di ereditarietà (INHERITS) da una classe/tipo derivato verso la classe base.
-    /// Deduplicazione istantanea O(1) e thread-safe.
+    /// Adds an inheritance relationship (INHERITS) from a derived class/type to the base class.
+    /// Instant O(1) deduplication and thread-safe.
     /// </summary>
     public void AddInherits(Symbol derivedType, Symbol baseType, int? line = null)
     {
@@ -348,8 +348,8 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Aggiunge una relazione di implementazione di interfaccia (IMPLEMENTS) tra una classe/struttura e l'interfaccia.
-    /// Deduplicazione istantanea O(1) e thread-safe.
+    /// Adds an interface implementation relationship (IMPLEMENTS) between a class/structure and the interface.
+    /// Instant O(1) deduplication and thread-safe.
     /// </summary>
     public void AddImplements(Symbol implementingType, Symbol interfaceType, int? line = null)
     {
@@ -364,12 +364,12 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Aggiunge una relazione di dipendenza di tipo (USES_TYPE) da un simbolo verso il tipo utilizzato.
-    /// Deduplicazione istantanea O(1) e thread-safe.
+    /// Adds a type dependency relationship (USES_TYPE) from a symbol to the type used.
+    /// Instant O(1) deduplication and thread-safe.
     /// </summary>
-    /// <param name="source">Il simbolo che dichiara o usa il tipo (variabile, routine, modulo).</param>
-    /// <param name="targetType">Il simbolo del tipo utilizzato (Class, UDT, Enum, Form).</param>
-    /// <param name="line">Numero di riga nel sorgente.</param>
+    /// <param name="source">The symbol that declares or uses the type (variable, routine, module).</param>
+    /// <param name="targetType">The symbol of the type used (Class, UDT, Enum, Form).</param>
+    /// <param name="line">Line number in the source.</param>
     public void AddUsesType(Symbol source, Symbol targetType, int? line = null)
     {
         RegisterRelationship(new Relationship
@@ -383,8 +383,8 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Aggiunge una relazione di lettura di stato (READS) da una routine o simbolo verso un campo o proprietà.
-    /// Deduplicazione istantanea O(1) e thread-safe.
+    /// Adds a read state (READS) relationship from a procedure or symbol to a field or property.
+    /// Instant O(1) deduplication and thread-safe.
     /// </summary>
     public void AddReads(Symbol source, Symbol targetField, int? line = null)
     {
@@ -399,8 +399,8 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Aggiunge una relazione di scrittura o assegnazione di stato (WRITES) verso un campo o proprietà.
-    /// Deduplicazione istantanea O(1) e thread-safe.
+    /// Adds a write or status assignment (WRITES) relationship to a field or property.
+    /// Instant O(1) deduplication and thread-safe.
     /// </summary>
     public void AddWrites(Symbol source, Symbol targetField, int? line = null)
     {
@@ -415,8 +415,8 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Aggiunge una relazione di riferimento generico (REFERENCES) tra simboli.
-    /// Deduplicazione istantanea O(1) e thread-safe.
+    /// Adds a generic reference relationship (REFERENCES) between symbols.
+    /// Instant O(1) deduplication and thread-safe.
     /// </summary>
     public void AddReferences(Symbol source, Symbol target, int? line = null)
     {
@@ -431,10 +431,10 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Restituisce tutti i simboli figli direttamente contenuti all'interno del simbolo specificato.
-    /// Esecuzione istantanea O(1) tramite indice di adiacenza gerarchico. Thread-safe.
+    /// Returns all child symbols directly contained within the specified symbol.
+    /// Instant O(1) execution via hierarchical adjacency index. Thread-safe.
     /// </summary>
-    /// <param name="parentId">ID del simbolo padre.</param>
+    /// <param name="parentId">ID of parent symbol.</param>
     public IEnumerable<Symbol> GetChildren(Guid parentId)
     {
         EnsureContainsIndexed();
@@ -443,8 +443,8 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Recupera un simbolo dal grafo tramite il suo ID univoco.
-    /// Esecuzione istantanea O(1) tramite dizionario indicizzato. Thread-safe.
+    /// Retrieves a symbol from the graph by its unique ID.
+    /// Instant O(1) execution via indexed dictionary. Thread-safe.
     /// </summary>
     public Symbol? FindSymbolById(Guid id)
     {
@@ -454,8 +454,8 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Restituisce tutte le relazioni uscenti con origine nel simbolo specificato (SourceId).
-    /// Esecuzione istantanea O(1) tramite lista di adiacenza indicizzata. Thread-safe.
+    /// Returns all outgoing relations with origin in the specified symbol (SourceId).
+    /// Instant O(1) execution via indexed adjacency list. Thread-safe.
     /// </summary>
     public IReadOnlyList<Relationship> GetOutgoingRelationships(Guid sourceId)
     {
@@ -465,8 +465,8 @@ public sealed class CodeGraph
     }
 
     /// <summary>
-    /// Restituisce tutte le relazioni entranti con destinazione nel simbolo specificato (TargetId).
-    /// Esecuzione istantanea O(1) tramite lista di adiacenza indicizzata. Thread-safe.
+    /// Returns all incoming relations with target in the specified symbol (TargetId).
+    /// Instant O(1) execution via indexed adjacency list. Thread-safe.
     /// </summary>
     public IReadOnlyList<Relationship> GetIncomingRelationships(Guid targetId)
     {

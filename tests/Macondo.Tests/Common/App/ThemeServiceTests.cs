@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.App;
 public class ThemeServiceTests
 {
     /// <summary>
-    /// Verifica che ogni valore dell'enum AppTheme disponga di una ThemeDefinition registrata
-    /// nel ThemeService con colori primari, secondari, di accento e del grafo validi.
+    /// Verify that each AppTheme enum value has a registered ThemeDefinition
+    /// in the ThemeService with valid primary, secondary, accent and graph colors.
     /// </summary>
     [Fact]
     public void ThemeService_ShouldHaveCompleteDefinitions_ForAllAppThemes()
@@ -38,7 +38,7 @@ public class ThemeServiceTests
     }
 
     /// <summary>
-    /// Verifica che il tema corrente predefinito sia coerente e che la proprietà CurrentDefinition corrisponda.
+    /// Verify that the default current theme is consistent and that the CurrentDefinition property matches.
     /// </summary>
     [Fact]
     public void CurrentDefinition_ShouldMatchCurrentTheme()
@@ -52,7 +52,7 @@ public class ThemeServiceTests
     }
 
     /// <summary>
-    /// Verifica che ogni tema registrato nel dizionario Themes abbia valori validi per tutti i campi colore.
+    /// Verify that each theme registered in the Themes dictionary has valid values for all color fields.
     /// </summary>
     [Fact]
     public void Themes_ShouldContainValidColorHexCodes_ForAllRegisteredThemes()

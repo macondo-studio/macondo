@@ -3,9 +3,9 @@
 namespace Macondo.Parser.Diagnostics;
 
 /// <summary>
-/// Cattura gli errori di lexer/parser in una lista invece di stamparli grezzi su
-/// stderr, così chi lo usa (spike M1, spike M2, in futuro la vera pipeline) può
-/// decidere come mostrarli.
+/// Capture lexer/parser errors in a list instead of printing them raw to
+/// stderr, so whoever uses it (spike M1, spike M2, in the future the real pipeline) can
+/// decide how to show them.
 /// </summary>
 public sealed class CollectingErrorListener(List<string> errors) : IAntlrErrorListener<IToken>, IAntlrErrorListener<int>
 {

@@ -10,8 +10,8 @@ using Macondo.Semantic.Analytics.ControlFlow;
 namespace Macondo.App.Controls;
 
 /// <summary>
-/// Controllo custom Avalonia Skia per il rendering del Control Flow Graph (CFG) a livello di singola procedura/metodo.
-/// Visualizza i blocchi base, i rami condizionali True/False, cicli, handler di errore e la complessità ciclomatica.
+/// Avalonia Skia custom control for rendering the Control Flow Graph (CFG) at the individual procedure/method level.
+/// View basic blocks, True/False conditional branches, loops, error handlers, and cyclomatic complexity.
 /// </summary>
 public sealed class ControlFlowControl : Control
 {
@@ -149,7 +149,7 @@ public sealed class ControlFlowControl : Control
             return;
         }
 
-        // Header superiore con metadati della procedura
+        // Upper header with procedure metadata
         string header = localizationService.Get("ControlFlow_Header", graph.ProcedureName, graph.ContainerName, graph.CyclomaticComplexity, graph.Blocks.Count);
         var hFmt = new FormattedText(header, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, HeaderTypeface, 12, _textWhiteBrush);
         context.DrawText(hFmt, new Point(16, 12));
@@ -157,7 +157,7 @@ public sealed class ControlFlowControl : Control
         using (context.PushTransform(Matrix.CreateTranslation(_offsetX, _offsetY)))
         using (context.PushTransform(Matrix.CreateScale(_scale, _scale)))
         {
-            // 1. Disegna i rami e salti orientati
+            // 1. Draw branches and oriented jumps
             foreach (var edge in graph.Edges)
             {
                 var src = graph.FindBlock(edge.SourceBlockId);
@@ -188,7 +188,7 @@ public sealed class ControlFlowControl : Control
                 // Freccia finale
                 DrawArrowHead(context, end, pen.Brush ?? Brushes.DodgerBlue);
 
-                // Etichetta del ramo (True / False / On Error)
+                // Branch Label (True / False / On Error)
                 if (!string.IsNullOrEmpty(edge.ConditionLabel))
                 {
                     var midPoint = new Point((start.X + end.X) / 2.0, (start.Y + end.Y) / 2.0);
@@ -200,7 +200,7 @@ public sealed class ControlFlowControl : Control
                 }
             }
 
-            // 2. Disegna i Blocchi Base
+            // 2. Draw the Basic Blocks
             foreach (var block in graph.Blocks)
             {
                 var blockRect = new Rect(block.X, block.Y, block.Width, block.Height);
@@ -221,11 +221,11 @@ else
                     context.DrawRectangle(borderPen, blockRect, 4.0f);
                 }
 
-                // Titolo del blocco
+                // Block title
                 var titleFmt = new FormattedText(block.Title, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, HeaderTypeface, 11, _textWhiteBrush);
                 context.DrawText(titleFmt, new Point(block.X + 8, block.Y + 6));
 
-                // Istruzioni contenute nel blocco
+                // Instructions contained in the block
                 double stmtY = block.Y + 24;
                 foreach (var stmt in block.Statements.Take(2))
                 {
@@ -239,10 +239,10 @@ else
     }
 
     /// <summary>
-    /// Restituisce il pennello di sfondo e la penna per il contorno associati al tipo di blocco del Control Flow Graph:
-    /// - Entry: Verde (Punto di ingresso)
-    /// - Exit: Grigio scuro (Punto di uscita/Return)
-    /// - DecisionIf / DecisionSelect / LoopHeader: Ambra (Punto di decisione/Biforcazione)
+    /// Returns the background brush and outline pen associated with the Control Flow Graph block type:
+    /// - Entry: Green (Entry point)
+    /// - Exit: Dark gray (Exit/Return point)
+    /// - DecisionIf / DecisionSelect / LoopHeader: Amber (Decision Point/Fork)
     /// - ExceptionHandler: Rosso/Scarlatto (Gestore errori On Error)
     /// - Sequential: Sfondo standard
     /// </summary>
@@ -256,7 +256,7 @@ else
     };
 
     /// <summary>
-    /// Disegna la freccia terminale di un arco di flusso orientato (True/False/Exception/Salto sequenziale).
+    /// Draws the terminal arrow of a directed flow arc (True/False/Exception/Sequential jump).
     /// </summary>
     private static void DrawArrowHead(DrawingContext context, Point tip, IBrush brush)
     {

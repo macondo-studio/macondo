@@ -8,16 +8,16 @@ using Xunit;
 namespace Macondo.Tests.JavaSpecific;
 
 /// <summary>
-/// Suite di test approfondita per pattern architetturali enterprise, costrutti di concorrenza,
-/// annotazioni complesse/ripetibili, enum con comportamenti polimorfici, record avanzati e text block in Java.
+/// In-depth test suite for enterprise architectural patterns, concurrency constructs,
+/// complex/repeatable annotations, enums with polymorphic behavior, advanced records and text blocks in Java.
 /// </summary>
 public class JavaEnterpriseAndConcurrentPatternsTests
 {
     #region Builder Pattern and Fluent APIs
 
     /// <summary>
-    /// Verifica l'estrazione e l'analisi del classico Builder Pattern con classe statica interna annidata,
-    /// metodi fluent per il concatenamento (chaining) che restituiscono la stessa istanza del Builder e metodo build().
+    /// Verify extraction and analysis of classic Builder Pattern with nested internal static class,
+    /// fluent methods for chaining that return the same instance of the Builder and build() method.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleBuilderPatternWithFluentMethodChaining()
@@ -111,8 +111,8 @@ public class JavaEnterpriseAndConcurrentPatternsTests
     #region Singleton Variations (Double-Checked Locking & Bill Pugh Holder)
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di pattern Singleton avanzati:
-    /// Double-Checked Locking con campo volatile e Bill Pugh Static Inner Holder.
+    /// Test advanced singleton pattern parsing and extraction:
+    /// Double-Checked Locking with Volatile Field and Bill Pugh Static Inner Holder.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleSingletonVariationsAndVolatileFields()
@@ -173,8 +173,8 @@ public class JavaEnterpriseAndConcurrentPatternsTests
     #region Enums with Abstract Methods and Interfaces
 
     /// <summary>
-    /// Verifica la modellazione di enum con metodi astratti implementati da ciascuna costante,
-    /// implementazione di interfacce e campi finali con costruttore parametrico.
+    /// Test enum modeling with abstract methods implemented by each constant,
+    /// implementation of interfaces and final fields with parametric constructor.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleEnumWithAbstractMethodsAndInterfaces()
@@ -255,8 +255,8 @@ public class JavaEnterpriseAndConcurrentPatternsTests
     #region Custom and Repeatable Annotations
 
     /// <summary>
-    /// Verifica la corretta estrazione di definizioni di annotazioni con @interface,
-    /// annotazioni ripetibili (@Repeatable), valori di default e tipizzazione degli elementi.
+    /// Verify correct extraction of annotation definitions with @interface,
+    /// repeatable annotations (@Repeatable), default values and element typing.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleRepeatableAndComplexCustomAnnotations()
@@ -311,8 +311,8 @@ public class JavaEnterpriseAndConcurrentPatternsTests
     #region Concurrency Constructs, Locks, and CompletableFuture
 
     /// <summary>
-    /// Verifica l'analisi sintattica e la risoluzione delle dipendenze per classi di concorrenza avanzata
-    /// con ReentrantLock, CountDownLatch, blocchi synchronized e catene di CompletableFuture.
+    /// Test syntactic parsing and dependency resolution for advanced concurrency classes
+    /// with ReentrantLock, CountDownLatch, synchronized locks and CompletebleFuture chains.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleConcurrencyConstructsAndLocks()
@@ -381,8 +381,8 @@ public class JavaEnterpriseAndConcurrentPatternsTests
     #region Template Method and Strategy Patterns
 
     /// <summary>
-    /// Verifica l'analisi di pattern comportamentali Template Method e Strategy con classi astratte,
-    /// metodi hook protected e implementazioni concrete con lambda e classi dedicate.
+    /// Verify the analysis of Template Method and Strategy behavioral patterns with abstract classes,
+    /// protected hook methods and concrete implementations with lambdas and dedicated classes.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleTemplateMethodAndStrategyPatterns()
@@ -452,8 +452,8 @@ public class JavaEnterpriseAndConcurrentPatternsTests
     #region Custom Generic Iterable and Iterator Implementations
 
     /// <summary>
-    /// Verifica la gestione di classi che implementano interfacce standard complesse con generics ricorsivi (Iterable<T>, Iterator<T>)
-    /// ed elementi di rimozione e navigazione personalizzata.
+    /// Tests handling of classes that implement complex standard interfaces with recursive generics (Iterable<T>, Iterator<T>)
+    /// and removal elements and custom navigation.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleCustomGenericIterableAndIteratorImplementations()
@@ -532,8 +532,8 @@ public class JavaEnterpriseAndConcurrentPatternsTests
     #region Complex Record with Compact Constructor and Validation
 
     /// <summary>
-    /// Verifica l'analisi di Java Records (Java 16+) con costruttori compatti di validazione,
-    /// campi statici costanti, metodi di fabbrica statici e componenti generici.
+    /// Verify parsing of Java Records (Java 16+) with compact validation constructors,
+    /// constant static fields, static factory methods, and generic components.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleComplexRecordWithCompactConstructorsAndValidation()
@@ -597,7 +597,7 @@ public class JavaEnterpriseAndConcurrentPatternsTests
     #region Adapter and Decorator Structural Patterns
 
     /// <summary>
-    /// Verifica l'analisi di pattern strutturali come Adapter e Decorator con delega interna (composition over inheritance).
+    /// Verify the analysis of structural patterns such as Adapter and Decorator with internal delegation (composition over inheritance).
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleAdapterAndDecoratorStructuralPatterns()
@@ -675,8 +675,8 @@ public class JavaEnterpriseAndConcurrentPatternsTests
     #region Multi-Line Text Blocks with Embedded Formats
 
     /// <summary>
-    /// Verifica il parsing di stringhe multi-line (Text Blocks Java 15+) contenenti query SQL,
-    /// strutture JSON e template HTML senza generare errori di parsing o corruzione dei delimitatori.
+    /// Tests parsing of multi-line strings (Text Blocks Java 15+) containing SQL queries,
+    /// JSON structures and HTML templates without generating parsing errors or delimiter corruption.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleMultiLineTextBlocksWithEmbeddedFormats()

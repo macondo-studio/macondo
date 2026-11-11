@@ -12,43 +12,43 @@ using Macondo.App.Services;
 namespace Macondo.App.Views;
 
 /// <summary>
-/// Controllo visuale per il pannello laterale Project Explorer.
-/// Gestisce l'albero gerarchico di progetti, moduli, file e simboli, con filtri di visibilità e menu contestuale.
+/// Visual control for the Project Explorer side panel.
+/// Manages the hierarchical tree of projects, modules, files and symbols, with visibility filters and context menu.
 /// </summary>
 public partial class ProjectExplorerView : UserControl
 {
     /// <summary>
-    /// Evento scatenato quando cambia l'elemento selezionato nell'albero.
+    /// Event triggered when the selected item in the tree changes.
     /// </summary>
     public event EventHandler<ExplorerTreeItem?>? SelectionChanged;
 
     /// <summary>
-    /// Evento scatenato quando si fa doppio clic su un elemento dell'albero.
+    /// Event triggered when a tree item is double-clicked.
     /// </summary>
     public event EventHandler<ExplorerTreeItem>? ItemDoubleTapped;
 
     /// <summary>
-    /// Evento scatenato quando viene richiesta l'apertura del file sorgente originale.
+    /// Event triggered when the original source file is requested to be opened.
     /// </summary>
     public event EventHandler<ExplorerTreeItem>? OpenFileRequested;
 
     /// <summary>
-    /// Evento scatenato quando viene richiesta l'apertura della cartella contenitrice.
+    /// Event triggered when the opening of the containing folder is requested.
     /// </summary>
     public event EventHandler<ExplorerTreeItem>? OpenFolderRequested;
 
     /// <summary>
-    /// Evento scatenato quando viene richiesta la copia del percorso del file negli appunti.
+    /// Event triggered when a request is made to copy the file path to the clipboard.
     /// </summary>
     public event EventHandler<ExplorerTreeItem>? CopyPathRequested;
 
     /// <summary>
-    /// Evento scatenato quando cambia lo stato del checkbox di visibilità di un progetto nel workspace multi-progetto.
+    /// Event triggered when the state of a project's visibility checkbox changes in the multi-project workspace.
     /// </summary>
     public event EventHandler<ExplorerTreeItem>? ProjectVisibilityChanged;
 
     /// <summary>
-    /// Evento scatenato quando si clicca sul pulsante "Tutti" nella barra di filtro progetti.
+    /// Event triggered when clicking the "All" button in the project filter bar.
     /// </summary>
     public event EventHandler? SelectAllProjectsRequested;
 
@@ -60,7 +60,7 @@ public partial class ProjectExplorerView : UserControl
     }
 
     /// <summary>
-    /// Ottiene o imposta la sorgente dati per l'albero del Project Explorer.
+    /// Gets or sets the data source for the Project Explorer tree.
     /// </summary>
     public IEnumerable? ItemsSource
     {
@@ -69,7 +69,7 @@ public partial class ProjectExplorerView : UserControl
     }
 
     /// <summary>
-    /// Ottiene o imposta l'elemento attualmente selezionato nel TreeView.
+    /// Gets or sets the currently selected item in the TreeView.
     /// </summary>
     public ExplorerTreeItem? SelectedItem
     {
@@ -78,10 +78,10 @@ public partial class ProjectExplorerView : UserControl
     }
 
     /// <summary>
-    /// Aggiorna la visibilità e il testo della barra di filtro rapido dei progetti in caso di workspace multi-progetto.
+    /// Updates the visibility and text of the project quick filter bar for multi-project workspaces.
     /// </summary>
-    /// <param name="isVisible">True se la barra di filtro progetti deve essere visibile.</param>
-    /// <param name="countText">Testo formattato con il conteggio dei progetti visibili (es. "2/3 Progetti visibili").</param>
+    /// <param name="isVisible">True if the project filter bar should be visible.</param>
+    /// <param name="countText">Text formatted with the count of visible projects (e.g. "2/3 Visible projects").</param>
     public void UpdateProjectFilterBar(bool isVisible, string countText)
     {
         ExplorerProjectFilterBar.IsVisible = isVisible;
@@ -89,7 +89,7 @@ public partial class ProjectExplorerView : UserControl
     }
 
     /// <summary>
-    /// Aggiorna i testi localizzati del titolo del pannello, della barra filtri e del menu contestuale.
+    /// Update localized texts of the panel title, filter bar and context menu.
     /// </summary>
     public void UpdateLocalizedUI()
     {

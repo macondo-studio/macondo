@@ -3,28 +3,28 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Risultato strutturato dell'estrazione semantica di un singolo file sorgente C# (.cs).
+/// Structured result of semantic extraction of a single C# source file (.cs).
 /// </summary>
 public sealed class CSharpExtractionResult
 {
-    /// <summary>Percorso assoluto o relativo del file sorgente C# analizzato.</summary>
+    /// <summary>Absolute or relative path to the analyzed C# source file.</summary>
     public required string FilePath { get; init; }
 
-    /// <summary>Elenco dei simboli di primo livello (classi, interfacce, record, struct, enum) dichiarati nel file.</summary>
+    /// <summary>List of top-level symbols (classes, interfaces, records, struct, enums) declared in the file.</summary>
     public required IReadOnlyList<Symbol> TopLevelSymbols { get; init; }
 
-    /// <summary>Elenco dei call-site di invocazione rilevati nei corpi delle routine C#.</summary>
+    /// <summary>List of invocation call-sites detected in the bodies of C# routines.</summary>
     public required IReadOnlyList<CSharpCallSite> CallSites { get; init; }
 
-    /// <summary>Elenco delle istanziazioni 'new' rilevate nei metodi o nelle inizializzazioni di campo.</summary>
+    /// <summary>List of 'new' instantiations detected in methods or field initializations.</summary>
     public required IReadOnlyList<CSharpInstantiation> Instantiations { get; init; }
 
-    /// <summary>Elenco delle relazioni di ereditarietà e implementazione di interfacce estratte dalle dichiarazioni di tipo.</summary>
+    /// <summary>List of inheritance relations and interface implementations extracted from type declarations.</summary>
     public required IReadOnlyList<CSharpTypeInheritance> Inheritances { get; init; }
 
-    /// <summary>Elenco degli errori diagnostici di compilazione o parsing rilevati da Roslyn sul file.</summary>
+    /// <summary>List of compilation or parsing diagnostic errors detected by Roslyn on the file.</summary>
     public required IReadOnlyList<string> ParseErrors { get; init; }
 
-    /// <summary>Indica se il file è stato parsato ed estratto con successo senza errori critici di sintassi.</summary>
+    /// <summary>Indicates whether the file was successfully parsed and extracted without critical syntax errors.</summary>
     public bool Success => ParseErrors.Count == 0;
 }

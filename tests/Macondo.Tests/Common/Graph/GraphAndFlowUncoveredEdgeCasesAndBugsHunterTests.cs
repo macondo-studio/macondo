@@ -12,8 +12,8 @@ public class GraphAndFlowUncoveredEdgeCasesAndBugsHunterTests
     #region Deep Execution Paths and Multi-Branch Routing
 
     /// <summary>
-    /// Verifica che CallGraphQueries trovi percorsi di esecuzione profondi (catena lineare &gt; 8 livelli)
-    /// tra il nodo sorgente iniziale e il nodo target finale.
+    /// Verify that CallGraphQueries finds deep execution paths (linear chain > 8 levels)
+    /// between the initial source node and the final target node.
     /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldFindDeepLinearExecutionPath()
@@ -55,8 +55,8 @@ public class GraphAndFlowUncoveredEdgeCasesAndBugsHunterTests
     }
 
     /// <summary>
-    /// Verifica che CallGraphQueries trovi molteplici percorsi alternativi paralleli (diamond/multi-path graph)
-    /// che collegano la stessa sorgente allo stesso target.
+    /// Verify that CallGraphQueries finds multiple parallel alternative paths (diamond/multi-path graph)
+    /// that connect the same source to the same target.
     /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldFindMultipleParallelPaths_InDiamondTopology()
@@ -95,8 +95,8 @@ public class GraphAndFlowUncoveredEdgeCasesAndBugsHunterTests
     #region DSM Deep Cyclic Loops and Self Loops
 
     /// <summary>
-    /// Verifica che DsmMatrixBuilder individui cicli complessi a 5 nodi (A -> B -> C -> D -> E -> A)
-    /// raggruppandoli in un'unica componente fortemente connessa (SCC).
+    /// Verify that DsmMatrixBuilder detects complex 5-node loops (A -> B -> C -> D -> E -> A)
+    /// grouping them into a single strongly connected component (SCC).
     /// </summary>
     [Fact]
     public void DsmMatrix_ShouldDetectFiveNodeCircularDependencyLoop()
@@ -142,7 +142,7 @@ public class GraphAndFlowUncoveredEdgeCasesAndBugsHunterTests
     }
 
     /// <summary>
-    /// Verifica che self-loop (funzione ricorsiva che invoca se stessa A -> A) non crei loop infiniti nell'analisi DSM.
+    /// Check that self-loop (recursive function that invokes itself A -> A) does not create infinite loops in the DSM analysis.
     /// </summary>
     [Fact]
     public void DsmMatrix_ShouldHandleSelfLoopRecursion_Gracefully()
@@ -175,7 +175,7 @@ public class GraphAndFlowUncoveredEdgeCasesAndBugsHunterTests
     #region Code Clone Detection Multi-Group Scenarios
 
     /// <summary>
-    /// Verifica che CodeCloneDetector rilevi molteplici gruppi duplicati disgiunti su file e lunghezze differenti.
+    /// Verify that CodeCloneDetector detects multiple disjoint duplicate groups across different files and lengths.
     /// </summary>
     [Fact]
     public void CodeClones_ShouldIdentifyMultipleDistinctCloneGroups()

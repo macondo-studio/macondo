@@ -3,17 +3,17 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.CodeCity;
 
 /// <summary>
-/// Costruttore e generatore di layout urbano per la CodeCity.
-/// Dispone i quartieri su un piano 2D e calcola le geometrie polimetriche 3D per ciascun edificio.
+/// Urban layout builder and generator for CodeCity.
+/// Arranges neighborhoods on a 2D plane and calculates 3D polymetric geometries for each building.
 /// </summary>
 public static class CodeCityBuilder
 {
     /// <summary>
-    /// Costruisce il dataset polimetrico della CodeCity raggruppando i componenti in distretti/isolati urbani
-    /// e calcolando le geometrie 3D (larghezza/profondità su LOC, altezza su Complessità Ciclomatica, colore su rischio).
+    /// Constructs the CodeCity polymetric dataset by grouping the components into urban districts/blocks
+    /// and calculating the 3D geometries (width/depth on LOC, height on Cyclomatic Complexity, color on risk).
     /// </summary>
-    /// <param name="graph">Il CodeGraph contenente simboli e relazioni del workspace.</param>
-    /// <returns>Il dataset <see cref="CodeCityDataset"/> contenente i distretti e gli edifici posizionati.</returns>
+    /// <param name="graph">The CodeGraph containing symbols and relations of the workspace.</param>
+    /// <returns>The <see cref="CodeCityDataset"/> dataset containing the districts and placed buildings.</returns>
     public static CodeCityDataset Build(CodeGraph graph)
     {
         var dataset = new CodeCityDataset();
@@ -21,7 +21,7 @@ public static class CodeCityBuilder
             return dataset;
 
         // =========================================================================
-        // PASSO 1: Selezione dei contenitori di primo livello da rappresentare come edifici
+        // STEP 1: Selecting top-level containers to represent as buildings
         // =========================================================================
         var containers = graph.Symbols
             .Where(s => s.Kind is SymbolKind.Class or SymbolKind.Module or SymbolKind.Form or SymbolKind.UserControl or SymbolKind.Interface or SymbolKind.Struct)
@@ -31,14 +31,14 @@ public static class CodeCityBuilder
             return dataset;
 
         // =========================================================================
-        // PASSO 2: Raggruppamento dei componenti in distretti urbani (per cartella o tipologia)
+        // STEP 2: Grouping of components into urban districts (by folder or type)
         // =========================================================================
         var districtGroups = containers
             .GroupBy(c => GetDistrictName(c))
             .OrderByDescending(g => g.Count())
             .ToList();
 
-        // Parametri geometrici per la disposizione spaziale dei distretti sul piano 2D
+        // Geometric parameters for the spatial arrangement of districts on the 2D plane
         double districtSpacing = 40.0;
         double currentDistrictX = 0.0;
         double currentDistrictY = 0.0;
@@ -48,7 +48,7 @@ public static class CodeCityBuilder
 
         int districtCol = 0;
 
-        // Indicizzazione O(1) delle chiamate uscenti per ogni simbolo sorgente
+        // O(1) indexing of outgoing calls for each source symbol
         var outgoingCallsCount = new Dictionary<Guid, int>();
         foreach (var r in graph.Relationships)
         {
@@ -58,7 +58,7 @@ public static class CodeCityBuilder
         }
 
         // =========================================================================
-        // PASSO 3: Costruzione degli edifici (CityBuilding) per ciascun distretto
+        // STEP 3: Construction of buildings (CityBuilding) for each district
         // =========================================================================
         foreach (var group in districtGroups)
         {
@@ -71,11 +71,11 @@ public static class CodeCityBuilder
             foreach (var c in group)
             {
                 var children = graph.GetChildren(c.Id).ToList();
-                // Calcola le linee di codice aggregate dei membri figli
+                // Calculates the aggregate lines of code of the child members
                 var loc = children.Sum(ch => Math.Max(1, ch.LineEnd - ch.LineStart + 1));
                 if (loc <= 0) loc = Math.Max(15, c.LineEnd - c.LineStart + 1);
 
-                // Complessità ciclomatica media e massima dei metodi del componente
+                // Average and maximum cyclomatic complexity of component methods
                 var cc = children.Count > 0
                     ? children.Average(ch => 1.0 + (outgoingCallsCount.GetValueOrDefault(ch.Id) * 1.5) + (ch.Parameters.Count * 0.8))
                     : 1.0;
@@ -83,15 +83,15 @@ public static class CodeCityBuilder
                     ? children.Max(ch => 1.0 + (outgoingCallsCount.GetValueOrDefault(ch.Id) * 1.5) + (ch.Parameters.Count * 0.8))
                     : 1.0;
 
-                // 3a. Dimensioni della base (W x D) proporzionali alla radice quadrata di LOC
-                // Assicura proporzioni realistiche: edifici piccoli ~18px, grandi edifici fino a ~75px
+                // 3a. Base dimensions (W x D) proportional to the square root of LOC
+                // Ensures realistic proportions: small buildings ~18px, large buildings up to ~75px
                 double baseSize = Math.Clamp(Math.Sqrt(loc) * 2.2 + 14.0, 18.0, 75.0);
 
-                // 3b. Altezza (H) proporzionale alla Complessità Ciclomatica (McCabe)
-                // Grattacieli elevati indicano forte densità di decisioni e complessità di controllo
+                // 3b. Height (H) proportional to Cyclomatic Complexity (McCabe)
+                // Tall skyscrapers indicate high decision density and control complexity
                 double height = Math.Clamp((cc * 12.0) + (maxCc * 4.0) + 12.0, 14.0, 200.0);
 
-                // 3c. Palette colori tematica in base al livello di rischio (facciata frontale, tetto e lato ombreggiato)
+                // 3c. Thematic color palette based on risk level (front façade, roof and shaded side)
                 var (baseCol, roofCol, sideCol) = GetBuildingColors(cc, maxCc);
 
                 buildings.Add(new CityBuilding
@@ -115,22 +115,22 @@ public static class CodeCityBuilder
             }
 
             // =====================================================================
-            // PASSO 4: Disposizione interna a griglia degli edifici nel distretto
+            // STEP 4: Internal grid arrangement of buildings in the district
             // =====================================================================
             LayoutDistrictBuildings(district, buildings);
 
-            // Posiziona il distretto nel piano urbano globale
+            // Position the district in the comprehensive urban plan
             district.X = currentDistrictX;
             district.Y = currentDistrictY;
 
-            // Ricalcola le coordinate assolute nel mondo per ciascun edificio
+            // Recalculates the world coordinates for each building
             foreach (var b in district.Buildings)
             {
                 b.X += district.X;
                 b.Y += district.Y;
             }
 
-            // Avanza il cursore di griglia per la riga dei distretti
+            // Advances the grid cursor for the district row
             rowMaxDepth = Math.Max(rowMaxDepth, district.Depth);
             currentDistrictX += district.Width + districtSpacing;
             districtCol++;
@@ -150,14 +150,14 @@ public static class CodeCityBuilder
     }
 
     /// <summary>
-    /// Dispone gli edifici all'interno dell'isolato urbano/distretto su una griglia ordinata per dimensione decrescente.
+    /// Arranges buildings within the city block/district on a grid ordered by decreasing size.
     /// </summary>
     private static void LayoutDistrictBuildings(CityDistrict district, List<CityBuilding> buildings)
     {
         double padding = 16.0;
         double streetSpacing = 12.0;
 
-        // Calcola il numero di colonne della sotto-griglia del distretto
+        // Calculate the number of columns of the district sub-grid
         int cols = (int)Math.Ceiling(Math.Sqrt(buildings.Count));
         if (cols < 1) cols = 1;
 
@@ -167,7 +167,7 @@ public static class CodeCityBuilder
         int colIndex = 0;
         double maxDistrictWidth = 0;
 
-        // Dispone gli edifici partendo da quelli con maggiore ingombro per compattare l'isolato
+        // Arranges the buildings starting from those with the largest footprint to compact the block
         foreach (var b in buildings.OrderByDescending(b => b.Loc))
         {
             b.X = curX;
@@ -179,7 +179,7 @@ public static class CodeCityBuilder
 
             maxDistrictWidth = Math.Max(maxDistrictWidth, curX);
 
-            // A capo alla fine della riga di edifici
+            // Head to the end of the row of buildings
             if (colIndex >= cols)
             {
                 colIndex = 0;
@@ -199,18 +199,18 @@ public static class CodeCityBuilder
     }
 
     /// <summary>
-    /// Restituisce il nome del distretto urbano per un simbolo, basandosi sulla cartella sorgente o sul tipo di modulo.
+    /// Returns the urban district name for a symbol, based on the source folder or module type.
     /// </summary>
     private static string GetDistrictName(Symbol s)
     {
-        // 1. Se il percorso file include una directory specifica, usa il nome della cartella come distretto
+        // 1. If the file path includes a specific directory, use the folder name as the district
         if (!string.IsNullOrEmpty(s.FilePath))
         {
             var dir = Path.GetFileName(Path.GetDirectoryName(s.FilePath));
             if (!string.IsNullOrEmpty(dir)) return dir;
         }
 
-        // 2. Altrimenti raggruppa per tipologia semantica di componente
+        // 2. Otherwise group by semantic type of component
         return s.Kind switch
         {
             SymbolKind.Form => "Forms & UI",
@@ -223,8 +223,8 @@ public static class CodeCityBuilder
     }
 
     /// <summary>
-    /// Assegna la terna di colori isometrici (facciata frontale, tetto, lato ombreggiato)
-    /// in base al livello di complessità ciclomatica e rischio dell'edificio.
+    /// Assign the triad of isometric colors (front facade, roof, shaded side)
+    /// based on the level of cyclomatic complexity and risk of the building.
     /// </summary>
     private static (string BaseColor, string RoofColor, string SideColor) GetBuildingColors(double avgCc, double maxCc)
     {
@@ -245,7 +245,7 @@ public static class CodeCityBuilder
 
             return ("#059669", "#10B981", "#065F46");
 
-        // Semplice / Stabile (Blu Moderno)
+        // Simple / Stable (Modern Blue)
         return ("#2563EB", "#60A5FA", "#1E40AF");
     }
 }

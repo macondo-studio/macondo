@@ -20,8 +20,8 @@ namespace Macondo.Tests.Common.Export;
 public class AnalysisExportersComprehensiveEdgeCasesTests
 {
     /// <summary>
-    /// Verifica che AnalysisMarkdownExporter esporti formattazioni Markdown coerenti
-    /// e valide per tutti i dataset analitici quando generati a partire da un CodeGraph vuoto.
+    /// Verify that AnalysisMarkdownExporter exports consistent Markdown formatting
+    /// and valid for all analytical datasets when generated from an empty CodeGraph.
     /// </summary>
     [Fact]
     public void MarkdownExporter_ShouldExportAllAnalyzersSafely_ForEmptyGraphDatasets()

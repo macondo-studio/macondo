@@ -7,8 +7,8 @@ namespace Macondo.Tests.Common.App;
 public class ProjectDiscoveryComprehensiveEdgeCasesTests
 {
     /// <summary>
-    /// Verifica che ProjectDescriptor.DiscoverFromPaths gestisca cartelle vuote o prive di file sorgente supportati
-    /// restituendo una lista vuota senza sollevare eccezioni.
+    /// Verify that ProjectDescriptor.DiscoverFromPaths handles folders that are empty or have no supported source files
+    /// returning an empty list without raising exceptions.
     /// </summary>
     [Fact]
     public void ProjectDiscovery_ShouldReturnEmptyList_ForDirectoryWithoutSupportedFiles()
@@ -38,7 +38,7 @@ public class ProjectDiscoveryComprehensiveEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che percorsi nulli, vuoti o non esistenti vengano gestiti in modo sicuro senza errori.
+    /// Verify that null, empty, or non-existent paths are handled safely without errors.
     /// </summary>
     [Theory]
     [InlineData(@"C:\NonExistent_Path_ABC_123456")]

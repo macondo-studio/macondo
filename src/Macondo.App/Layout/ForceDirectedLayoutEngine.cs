@@ -4,9 +4,9 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Layout;
 
 /// <summary>
-/// Motore di layout Force-Directed basato su modello fisico (Fruchterman-Reingold).
-/// Applica forze repulsive tra tutti i container per evitare sovrapposizioni e forze attrattive elastiche
-/// lungo le chiamate e relazioni semantiche, disponendo organicamente i nodi con convergenza rapida.
+/// Force-Directed layout engine based on physical model (Fruchterman-Reingold).
+/// Apply repulsive forces between all containers to avoid overlapping and elastic attractive forces
+/// along semantic calls and relationships, organically arranging nodes with rapid convergence.
 /// </summary>
 public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
 {
@@ -15,13 +15,13 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
     void IGraphLayoutEngine.Apply(VisualCodeGraph graph) => Apply(graph);
 
     /// <summary>
-    /// Calcola e applica le coordinate (X, Y) a tutti i nodi del grafo visuale mediante simulazione fisica di tipo Force-Directed (Fruchterman-Reingold).
+    /// Calculate and apply the coordinates (X, Y) to all the nodes of the visual graph using Force-Directed (Fruchterman-Reingold) physical simulation.
     /// </summary>
-    /// <param name="graph">Il grafo visuale da posizionare.</param>
-    /// <param name="cancellationToken">Token opzionale di cancellazione per interrompere la simulazione fisica.</param>
+    /// <param name="graph">The visual graph to position.</param>
+    /// <param name="cancellationToken">Optional clear token to stop physics simulation.</param>
     public static void Apply(VisualCodeGraph graph, CancellationToken cancellationToken = default)
     {
-        // 1. Recupero di tutti i nodi container (classi, moduli, form, ecc.)
+        // 1. Retrieve all container nodes (classes, modules, forms, etc.)
         var containers = graph.Nodes.Where(n => n.IsContainer).ToList();
         if (containers.Count == 0) return;
 
@@ -29,8 +29,8 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
         var n = containers.Count;
 
         // =========================================================================
-        // PASSO 1: Mappa di appartenenza nodo -> container
-        // Mappa ciascun nodo membro (metodo, proprietà, campo) al proprio container genitore.
+        // STEP 1: Node membership map -> container
+        // Map each member node (method, property, field) to its parent container.
         // =========================================================================
         var nodeToContainerMap = new Dictionary<Guid, Guid>();
         foreach (var c in containers)
@@ -43,9 +43,9 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
         }
 
         // =========================================================================
-        // PASSO 2: Posizionamento circolare iniziale (Seed Stabile)
-        // Disporre i container su un anello preliminare evita singolarità o minimi locali
-        // caotici prima dell'avvio della simulazione fisica Fruchterman-Reingold.
+        // STEP 2: Initial circular placement (Stable Seed)
+        // Arranging the containers on a preliminary ring avoids singularities or local minima
+        // chaotic before starting the Fruchterman-Reingold physics simulation.
         // =========================================================================
         var initialRadius = Math.Max(350.0, n * 30.0);
         for (var i = 0; i < n; i++)
@@ -56,33 +56,33 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
         }
 
         // =========================================================================
-        // PASSO 3: Inizializzazione dei parametri del modello fisico (Fruchterman-Reingold)
-        // - k: distanza ideale di equilibrio tra due nodi (scala con l'area virtuale del canvas)
-        // - iterations: numero di iterazioni adattivo (ridotto per grafi massivi per garantire convergenza rapida)
-        // - temp: temperatura iniziale (escursione massima consentita per passo)
-        // - coolingFactor: tasso geometrico di raffreddamento (Simulated Annealing)
+        // STEP 3: Initialization of physical model parameters (Fruchterman-Reingold)
+        // - k: ideal equilibrium distance between two nodes (scale with the virtual area of the canvas)
+        // - iterations: adaptive number of iterations (reduced for massive graphs to ensure fast convergence)
+        // - temp: initial temperature (maximum excursion allowed per step)
+        // - coolingFactor: geometric cooling rate (Simulated Annealing)
         // =========================================================================
         var optimalDistance = Math.Max(220.0, Math.Sqrt((1200.0 * 1200.0) / Math.Max(n, 1)));
         var k = optimalDistance;
         var kSquared = k * k;
 
-        // Sui grafi molto estesi (>800 nodi) la convergenza termica avviene nelle prime 30-45 iterazioni;
-        // ridurre il tetto massimo evita calcoli ridondanti a bassa temperatura garantendo tempi inferiori a pochi secondi.
+        // On very large graphs (>800 nodes) thermal convergence occurs in the first 30-45 iterations;
+        // reducing the maximum limit avoids redundant calculations at low temperatures guaranteeing times less than a few seconds.
         var iterations = n > 2000 ? 30 : (n > 800 ? 45 : Math.Min(80, Math.Max(35, n * 2)));
         var initialTemp = initialRadius * 0.4;
         var temp = initialTemp;
         var coolingFactor = 0.95;
 
-        // Buffer riutilizzabili per gli spostamenti netti calcolati ad ogni iterazione
+        // Reusable buffers for the net displacements calculated at each iteration
         var dispX = new double[n];
         var dispY = new double[n];
 
         // =========================================================================
-        // PASSO 4: Mappatura degli archi semantici tra container con pesi differenziati
-        // Proietta le relazioni tra membri su archi equivalenti tra container genitore:
-        // - Calls (3.0): attrazione forte per moduli che si chiamano reciprocamente
-        // - Instantiates (2.5): attrazione per modulo factory/creatore
-        // - UsesType (1.5): attrazione per dipendenza di tipo
+        // STEP 4: Mapping semantic arcs between containers with differentiated weights
+        // Projects member relationships onto equivalent arcs between parent containers:
+        // - Calls (3.0): strong attraction for modules that call each other
+        // - Instantiates (2.5): Attraction for factory/creator module
+        // - UsesType (1.5): type dependency attraction
         // =========================================================================
         var containerEdges = new List<(int SrcIdx, int TgtIdx, double Weight)>();
         var containerIndexById = containers.Select((c, idx) => (c.Id, idx)).ToDictionary(x => x.Id, x => x.idx);
@@ -113,19 +113,19 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
         };
 
         // =========================================================================
-        // PASSO 5: Ciclo principale di simulazione dinamica (Physics Loop)
+        // STEP 5: Main dynamic simulation loop (Physics Loop)
         // =========================================================================
         for (var iter = 0; iter < iterations; iter++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Reset dei vettori di spostamento accumulati
+            // Reset of accumulated displacement vectors
             Array.Clear(dispX, 0, n);
             Array.Clear(dispY, 0, n);
 
-            // 5a. Forze repulsive elettrostatiche tra tutte le coppie di nodi (O(N^2) parallelizzato su multi-core)
-            // Ciascun worker thread calcola in modo indipendente e thread-safe la risultante netta per l'indice 'i'
-            // Formula di Coulomb: F_rep = k^2 / dist
+            // 5a. Electrostatic repulsive forces between all pairs of nodes (O(N^2) parallelized on multi-core)
+            // Each worker thread independently and thread-safely calculates the net resultant for index 'i'
+            // Coulomb formula: F_rep = k^2 / dist
             Parallel.For(0, n, parallelOptions, i =>
             {
                 var c1 = containers[i];
@@ -140,7 +140,7 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
                     var dy = c1.Y - c2.Y;
                     var dist = Math.Sqrt(dx * dx + dy * dy);
 
-                    // Protezione contro singolarità (sovrapposizione esatta di due nodi)
+                    // Singularity protection (exact overlap of two nodes)
                     if (dist < 0.001)
                     {
                         dx = (i + 1) * 0.1;
@@ -157,8 +157,8 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
                 dispY[i] = netFy;
             });
 
-            // 5b. Forze attrattive elastiche lungo gli archi semantici attivi (Legge di Hooke)
-            // Formula di Hooke: F_att = (dist^2 / k) * peso
+            // 5b. Elastic attractive forces along active semantic arcs (Hooke's Law)
+            // Hooke's formula: F_att = (dist^2 / k) * weight
             foreach (var (srcIdx, tgtIdx, weight) in containerEdges)
             {
                 var c1 = containers[srcIdx];
@@ -172,15 +172,15 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
                 var fx = (dx / dist) * attForce;
                 var fy = (dy / dist) * attForce;
 
-                // I nodi collegati si attraggono reciprocamente
+                // Connected nodes attract each other
                 dispX[srcIdx] -= fx;
                 dispY[srcIdx] -= fy;
                 dispX[tgtIdx] += fx;
                 dispY[tgtIdx] += fy;
             }
 
-            // 5c. Forza di gravità centripeta verso l'origine (0, 0)
-            // Evita che nodi disconnessi o cluster periferici si allontanino all'infinito
+            // 5c. Centripetal gravitational force towards the origin (0, 0)
+            // Prevents disconnected nodes or edge clusters from drifting away indefinitely
             for (var i = 0; i < n; i++)
             {
                 var c = containers[i];
@@ -192,7 +192,7 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
                 }
             }
 
-            // 5d. Applicazione degli spostamenti limitati dalla soglia di temperatura (Annealing)
+            // 5d. Application of movements limited by the temperature threshold (Annealing)
             for (var i = 0; i < n; i++)
             {
                 var dLen = Math.Sqrt(dispX[i] * dispX[i] + dispY[i] * dispY[i]);
@@ -204,12 +204,12 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
                 }
             }
 
-            // 5e. Raffreddamento progressivo del sistema per convergenza dolce
+            // 5e. Progressive cooling of the system for smooth convergence
             temp *= coolingFactor;
         }
 
         // =========================================================================
-        // PASSO 6: Posizionamento dei membri satelliti attorno ai rispettivi container
+        // STEP 6: Positioning satellite members around their respective containers
         // =========================================================================
         foreach (var container in containers)
         {
@@ -228,7 +228,7 @@ public sealed class ForceDirectedLayoutEngine : IGraphLayoutEngine
         }
 
         // =========================================================================
-        // PASSO 7: Posizionamento dei nodi Progetto al centroide geometrico dei moduli
+        // STEP 7: Positioning the Project nodes at the geometric centroid of the modules
         // =========================================================================
         foreach (var proj in projects)
         {

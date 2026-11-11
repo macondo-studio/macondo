@@ -13,8 +13,8 @@ public class CSharpExhaustiveLanguageAndEdgeCasesTests
     #region Complex Generic Type Constraints with Multiple Type Parameters
 
     /// <summary>
-    /// Verifica l'estrazione di classi ed interfacce generiche con molteplici parametri di tipo
-    /// e clausole di vincolo complesse (notnull, IComparable, class, new()).
+    /// Test extraction of generic classes and interfaces with multiple type parameters
+    /// and complex constraint clauses (notnull, IComparable, class, new()).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractComplexGenericConstraints()
@@ -65,8 +65,8 @@ public class CSharpExhaustiveLanguageAndEdgeCasesTests
     #region Indexers and Custom Operator Overloads
 
     /// <summary>
-    /// Verifica l'estrazione di indicizzatori personalizzati (this[x, y]), operatori aritmetici/logici (+, ==, !=)
-    /// e operatori di conversione implicita ed esplicita.
+    /// Test extraction of custom indexers (this[x, y]), arithmetic/logical operators (+, ==, !=)
+    /// and implicit and explicit conversion operators.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractIndexersAndOperatorOverloads()
@@ -121,7 +121,7 @@ public class CSharpExhaustiveLanguageAndEdgeCasesTests
     #region Nested Generic Types and Internal Call Graph Resolution
 
     /// <summary>
-    /// Verifica l'estrazione e il call graph in presenza di classi generiche annidate (Nested Types: Outer&lt;T&gt;.Inner&lt;U&gt;).
+    /// Test extraction and call graph in the presence of nested generic classes (Nested Types: Outer<T>.Inner<U>).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldResolveNestedGenericTypeMethods()
@@ -178,7 +178,7 @@ public class CSharpExhaustiveLanguageAndEdgeCasesTests
     #region File-Scoped Types and Access Modifiers
 
     /// <summary>
-    /// Verifica l'estrazione di tipi file-scoped (file class) e membri con modificatori di accesso 'private protected' e 'protected internal'.
+    /// Tests extraction of file-scoped types (file classes) and members with 'private protected' and 'protected internal' access modifiers.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldHandleFileScopedTypesAndModernModifiers()
@@ -225,7 +225,7 @@ public class CSharpExhaustiveLanguageAndEdgeCasesTests
     #region Pattern Matching, Switch Expressions and Tuples
 
     /// <summary>
-    /// Verifica l'estrazione di metodi contenenti pattern matching complessi (posizionale, proprietà, relazionale e su tuple).
+    /// Verify the extraction of methods containing complex pattern matching (positional, property, relational and tuple-based).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractMethodsUsingAdvancedPatternMatching()
@@ -273,8 +273,8 @@ public class CSharpExhaustiveLanguageAndEdgeCasesTests
     #region Async Streams and Iterator Generators
 
     /// <summary>
-    /// Verifica l'estrazione di metodi generatori con iteratori sincroni (IEnumerable yield return)
-    /// e flussi asincroni (IAsyncEnumerable con CancellationToken).
+    /// Test extraction of generator methods with synchronous iterators (IEnumerable yield return)
+    /// and asynchronous streams (IAsyncEnumerable with CancellationToken).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractAsyncStreamsAndYieldIterators()

@@ -11,7 +11,7 @@ namespace Macondo.Tests.Vb6Specific;
 public class Vb6TypeAndScopeResolutionExtendedTests
 {
     /// <summary>
-    /// Verifica la risoluzione di chiamate a metodi di moduli standard (.bas) qualificate esplicitamente con il nome del modulo.
+    /// Tests resolution of standard module (.bas) method calls explicitly qualified with the module name.
     /// </summary>
     [Fact]
     public void SymbolResolver_ShouldResolveExplicitlyQualifiedModuleCalls()
@@ -48,7 +48,7 @@ public class Vb6TypeAndScopeResolutionExtendedTests
     }
 
     /// <summary>
-    /// Verifica la gestione di riferimenti circolari di tipo tra due classi distinte (ClassA riferisce ClassB e ClassB riferisce ClassA).
+    /// Tests the handling of circular type references between two distinct classes (ClassA refers to ClassB and ClassB refers to ClassA).
     /// </summary>
     [Fact]
     public void TypeResolver_ShouldHandleCircularClassDependenciesGracefully()
@@ -99,7 +99,7 @@ public class Vb6TypeAndScopeResolutionExtendedTests
     }
 
     /// <summary>
-    /// Verifica la risoluzione di costanti globali definite in moduli standard e l'oscuramento (shadowing) da costanti locali o parametri.
+    /// Tests resolution of global constants defined in standard modules and shadowing by local constants or parameters.
     /// </summary>
     [Fact]
     public void SymbolResolver_ShouldRespectConstantScopingAndShadowing()
@@ -145,7 +145,7 @@ public class Vb6TypeAndScopeResolutionExtendedTests
     }
 
     /// <summary>
-    /// Verifica che tipi non dichiarati o librerie esterne non referenziate vengano trattati in modo resiliente senza causare eccezioni.
+    /// Ensure that undeclared types or unreferenced external libraries are treated resiliently without causing exceptions.
     /// </summary>
     [Fact]
     public void TypeResolver_ShouldHandleUnknownTypesResiliently()
@@ -174,7 +174,7 @@ public class Vb6TypeAndScopeResolutionExtendedTests
     }
 
     /// <summary>
-    /// Verifica l'assegnazione e l'interazione tra molteplici controlli su una stessa Form VB6 (pulsanti, caselle di testo, timer).
+    /// Check the assignment and interaction between multiple controls on the same VB6 Form (buttons, text boxes, timers).
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldWireHandlesEvent_ForMultipleControlsOnSameForm()

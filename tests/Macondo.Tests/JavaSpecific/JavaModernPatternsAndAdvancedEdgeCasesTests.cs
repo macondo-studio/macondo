@@ -7,7 +7,7 @@ using Xunit;
 namespace Macondo.Tests.JavaSpecific;
 
 /// <summary>
-/// Suite di test per costrutti Java moderni (Java 14-21+) e casi sintattici complessi, inclusi sealed types,
+/// Test suite for modern Java constructs (Java 14-21+) and complex syntactic cases, including sealed types,
 /// switch expressions, lambda, anonymous classes, record compatti e generic bounds avanzati.
 /// </summary>
 public class JavaModernPatternsAndAdvancedEdgeCasesTests
@@ -15,8 +15,8 @@ public class JavaModernPatternsAndAdvancedEdgeCasesTests
     #region Sealed Classes and Interfaces (Java 17+)
 
     /// <summary>
-    /// Verifica l'estrazione corretta di gerarchie sigillate ('sealed class Shape permits Circle, Square')
-    /// e la creazione delle relazioni INHERITS.
+    /// Check for correct extraction of sealed hierarchies ('sealed class Shape permits Circle, Square')
+    /// and the creation of INHERITS relationships.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractSealedClassesAndPermittedSubclasses()
@@ -69,7 +69,7 @@ public class JavaModernPatternsAndAdvancedEdgeCasesTests
         square.Should().NotBeNull();
         polygon.Should().NotBeNull();
 
-        // Verifica relazioni implements / inherits
+        // Check implements / inherits relationships
         graph.Relationships.Should().Contain(r => r.Kind == RelationshipKind.Implements && r.SourceId == circle!.Id && r.TargetId == shape!.Id);
         graph.Relationships.Should().Contain(r => r.Kind == RelationshipKind.Implements && r.SourceId == rectangle!.Id && r.TargetId == shape!.Id);
         graph.Relationships.Should().Contain(r => r.Kind == RelationshipKind.Inherits && r.SourceId == square!.Id && r.TargetId == rectangle!.Id);
@@ -81,7 +81,7 @@ public class JavaModernPatternsAndAdvancedEdgeCasesTests
     #region Pattern Matching and Switch Expressions (Java 14-21+)
 
     /// <summary>
-    /// Verifica il parsing di switch expressions con frecce '->', 'yield' e pattern matching con clausole 'when'.
+    /// Test parsing of switch expressions with '->' arrows, 'yield' and pattern matching with 'when' clauses.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractMethodsWithModernSwitchExpressionsAndPatternMatching()
@@ -139,8 +139,8 @@ public class JavaModernPatternsAndAdvancedEdgeCasesTests
     #region Interface Default and Static Methods
 
     /// <summary>
-    /// Verifica l'estrazione di interfacce con metodi default, static e private (Java 8/9+),
-    /// nonché la risoluzione delle chiamate interne tra metodi dell'interfaccia.
+    /// Test extraction of interfaces with default, static and private methods (Java 8/9+),
+    /// as well as resolution of internal calls between interface methods.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractDefaultAndStaticMethodsInInterfaces()
@@ -185,7 +185,7 @@ public class JavaModernPatternsAndAdvancedEdgeCasesTests
         error.Should().NotBeNull();
         formatEntry.Should().NotBeNull();
 
-        // Le chiamate default -> writeRaw e default -> formatEntry devono essere collegate
+        // The default -> writeRaw and default -> formatEntry calls must be linked
         graph.Relationships.Should().Contain(r => r.Kind == RelationshipKind.Calls && r.SourceId == info!.Id && r.TargetId == writeRaw!.Id);
         graph.Relationships.Should().Contain(r => r.Kind == RelationshipKind.Calls && r.SourceId == info!.Id && r.TargetId == formatEntry!.Id);
     }
@@ -195,7 +195,7 @@ public class JavaModernPatternsAndAdvancedEdgeCasesTests
     #region Records with Compact Constructors and Custom Methods
 
     /// <summary>
-    /// Verifica l'estrazione di record con costruttori canonici, compatti, metodi accessori e costruttori secondari sovraccaricati.
+    /// Test record extraction with canonical, compact constructors, accessory methods, and overloaded subconstructors.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractRecordWithCompactAndOverloadedConstructors()
@@ -242,7 +242,7 @@ public class JavaModernPatternsAndAdvancedEdgeCasesTests
     #region Complex Generics and Multi-Bounds
 
     /// <summary>
-    /// Verifica il parsing di classi generiche con bounds multipli (&) e wildcard bounds complessi.
+    /// Tests parsing of generic classes with multiple bounds (&) and complex wildcard bounds.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractClassesAndMethodsWithMultiBoundGenerics()
@@ -281,7 +281,7 @@ public class JavaModernPatternsAndAdvancedEdgeCasesTests
     #region Try-With-Resources and Multi-Catch
 
     /// <summary>
-    /// Verifica l'estrazione di metodi con blocchi try-with-resources complessi e multi-catch (pipe syntax).
+    /// Test method extraction with complex, multi-catch try-with-resources blocks (pipe syntax).
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractMethodsWithTryWithResourcesAndMultiCatch()

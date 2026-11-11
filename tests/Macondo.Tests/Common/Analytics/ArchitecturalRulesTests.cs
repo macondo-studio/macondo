@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class ArchitecturalRulesTests
 {
     /// <summary>
-    /// Verifica che una regola di dipendenza proibita (ForbiddenDependency) segnali correttamente
-    /// una violazione quando il Domain tenta di accedere all'Infrastructure o alla UI.
+    /// Verify that a ForbiddenDependency rule reports correctly
+    /// a violation when the Domain attempts to access the Infrastructure or UI.
     /// </summary>
     [Fact]
     public void ArchitecturalRules_ShouldDetectForbiddenLayerDependency()
@@ -27,7 +27,7 @@ public class ArchitecturalRulesTests
         graph.AddContains(domainEntity, domainMethod);
         graph.AddContains(sqlRepository, repoMethod);
 
-        // Violazione: il Domain chiama direttamente il repository di basso livello
+        // Violation: Domain calls low-level repository directly
         graph.AddCalls(domainMethod, repoMethod);
 
         var rule = new ArchitecturalRule
@@ -51,7 +51,7 @@ public class ArchitecturalRulesTests
     }
 
     /// <summary>
-    /// Verifica la valutazione delle regole predefinite di default.
+    /// Check the evaluation of the default default rules.
     /// </summary>
     [Fact]
     public void ArchitecturalRules_ShouldProvideAndEvaluateDefaultRules()

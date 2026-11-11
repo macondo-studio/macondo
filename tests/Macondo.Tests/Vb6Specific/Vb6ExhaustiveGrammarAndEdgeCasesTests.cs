@@ -16,8 +16,8 @@ public class Vb6ExhaustiveGrammarAndEdgeCasesTests
     #region DefType Directives and Implicit Typing
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di moduli VB6 che utilizzano direttive DefType
-    /// (DefInt, DefLng, DefStr, DefBool, DefDbl, DefObj, DefVar) per la tipizzazione implicita per intervallo alfabetico.
+    /// Tests parsing and extraction of VB6 modules that use DefType directives
+    /// (DefInt, DefLng, DefStr, DefBool, DefDbl, DefObj, DefVar) for implicit typing by alphabetic range.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldHandleDefTypeDirectives()
@@ -67,8 +67,8 @@ public class Vb6ExhaustiveGrammarAndEdgeCasesTests
     #region Fixed-Length Strings and Multidimensional Arrays in UDTs
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di strutture UDT (User-Defined Types)
-    /// contenenti stringhe a lunghezza fissa (String * N) e array multidimensionali a dimensione fissa.
+    /// Verify parsing and extraction of User-Defined Types (UDT) structures
+    /// containing fixed-length strings (String * N) and fixed-size multidimensional arrays.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldHandleFixedLengthStringsAndMultidimensionalArraysInUDTs()
@@ -128,7 +128,7 @@ public class Vb6ExhaustiveGrammarAndEdgeCasesTests
     #region Parameterized Properties (Property Get / Let with Index Parameters)
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di proprietà parametrizzate (Property Get / Let / Set con parametri indice/matrice).
+    /// Test parsing and extraction of parameterized properties (Property Get/Let/Set with index/array parameters).
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldHandleParameterizedPropertiesWithMultipleIndices()
@@ -178,8 +178,8 @@ public class Vb6ExhaustiveGrammarAndEdgeCasesTests
     #region Multiple Interface Implementation on Single Class
 
     /// <summary>
-    /// Verifica che una classe VB6 che implementa molteplici interfacce distinte (Implements IFoo, Implements IBar)
-    /// venga correttamente analizzata con tutte le relative relazioni ImplementsInterface e firme dei metodi associati.
+    /// Verifies that a VB6 class that implements multiple distinct interfaces (Implements IFoo, Implements IBar)
+    /// is correctly parsed with all related ImplementsInterface relationships and associated method signatures.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldExtractMultipleImplementedInterfacesOnSingleClass()
@@ -287,8 +287,8 @@ public class Vb6ExhaustiveGrammarAndEdgeCasesTests
     #region Win32 API Declare with Ordinal and Custom Aliases
 
     /// <summary>
-    /// Verifica il parsing di dichiarazioni Win32 API con alias contenenti ordinali numerici (es. Alias "#42")
-    /// e alias con nomi espliciti (es. Alias "CreateWindowExA").
+    /// Test parsing of Win32 API statements with aliases containing numeric ordinals (e.g. Alias "#42")
+    /// and aliases with explicit names (e.g. Alias "CreateWindowExA").
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldHandleApiDeclaresWithOrdinalAndCustomAliases()
@@ -334,7 +334,7 @@ public class Vb6ExhaustiveGrammarAndEdgeCasesTests
     #region Dynamic Array ReDim Preserve and Erase
 
     /// <summary>
-    /// Verifica il parsing di istruzioni per la gestione di array dinamici:
+    /// Test parsing of statements for handling dynamic arrays:
     /// ReDim, ReDim Preserve multidimensionale, Erase, LBound e UBound.
     /// </summary>
     [Fact]
@@ -381,8 +381,8 @@ public class Vb6ExhaustiveGrammarAndEdgeCasesTests
     #region ParamArray with Optional and ByRef Arguments
 
     /// <summary>
-    /// Verifica il parsing di routine con parametri facoltativi (Optional con valori predefiniti)
-    /// combinati con l'ultimo parametro ParamArray.
+    /// Test parsing routine with optional parameters (Optional with default values)
+    /// combined with the last ParamArray parameter.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldHandleParamArrayWithOptionalDefaults()
@@ -429,7 +429,7 @@ public class Vb6ExhaustiveGrammarAndEdgeCasesTests
     #region Static Local Variables and Numeric Line Labels
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di routine con variabili locali Static e gestione errori con label numeriche.
+    /// Verify parsing and extraction of routines with Static local variables and error handling with numeric labels.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldHandleStaticLocalsAndNumericLabels()

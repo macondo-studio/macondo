@@ -4,40 +4,40 @@ using System.Collections.Generic;
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Dettagli relativi a un aggiornamento software disponibile.
-/// Supporta note di rilascio e titoli multilingua (es. IT, EN).
+/// Details about an available software update.
+/// Supports release notes and multilingual titles (e.g. IT, EN).
 /// </summary>
 public sealed class AppUpdateInfo
 {
-    /// <summary>Versione numerica dell'aggiornamento remoto.</summary>
+    /// <summary>Numeric version of remote update.</summary>
     public required Version Version { get; init; }
 
-    /// <summary>Stringa formattata della versione (es. '1.1.0').</summary>
+    /// <summary>Formatted version string (e.g. '1.1.0').</summary>
     public string VersionString => Version.ToString(3);
 
-    /// <summary>Titolo o nome predefinito della release.</summary>
+    /// <summary>Default release title or name.</summary>
     public string Title { get; init; } = string.Empty;
 
-    /// <summary>Note di rilascio predefinite / changelog.</summary>
+    /// <summary>Default release notes / changelog.</summary>
     public string ReleaseNotes { get; init; } = string.Empty;
 
-    /// <summary>Titoli localizzati per codice lingua ('it', 'en').</summary>
+    /// <summary>Titles localized by language code ('it', 'en').</summary>
     public IReadOnlyDictionary<string, string>? LocalizedTitles { get; init; }
 
-    /// <summary>Note di rilascio localizzate per codice lingua ('it', 'en').</summary>
+    /// <summary>Release notes localized by language code ('it', 'en').</summary>
     public IReadOnlyDictionary<string, string>? LocalizedReleaseNotes { get; init; }
 
-    /// <summary>URL della pagina di download o del pacchetto di installazione.</summary>
+    /// <summary>URL of the download page or installation package.</summary>
     public string DownloadUrl { get; init; } = string.Empty;
 
-    /// <summary>Data e ora di pubblicazione della release.</summary>
+    /// <summary>Date and time of publication of the release.</summary>
     public DateTime? PublishedAtUtc { get; init; }
 
-    /// <summary>Indica se l'aggiornamento è critico/obbligatorio.</summary>
+    /// <summary>Indicates whether the update is critical/mandatory.</summary>
     public bool IsMandatory { get; init; }
 
     /// <summary>
-    /// Restituisce il titolo localizzato per la lingua richiesta, con fallback automatico.
+    /// Returns the localized title for the requested language, with automatic fallback.
     /// </summary>
     public string GetTitle(string langCode = "it")
     {
@@ -55,7 +55,7 @@ public sealed class AppUpdateInfo
     }
 
     /// <summary>
-    /// Restituisce le note di rilascio localizzate per la lingua richiesta, con fallback automatico.
+    /// Returns localized release notes for the requested language, with automatic fallback.
     /// </summary>
     public string GetReleaseNotes(string langCode = "it")
     {

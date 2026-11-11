@@ -19,7 +19,7 @@ public class CommonAnalyticsDeepMatrixAndRulesHunterTests
     #region ArchitecturalRules: Multiple Layer Forbidden Dependencies & Whitelists
 
     /// <summary>
-    /// Verifica la rilevazione di violazioni architetturali complesse con regole multiple e regole con selettori specifici.
+    /// Verify detection of complex architectural violations with multiple rules and rules with specific selectors.
     /// </summary>
     [Fact]
     public void ArchitecturalRules_ShouldDetectViolations_AcrossMultiTierSystem()
@@ -65,7 +65,7 @@ public class CommonAnalyticsDeepMatrixAndRulesHunterTests
     #region ApiDiff: Method Parameter Modifications and Return Type Alterations
 
     /// <summary>
-    /// Verifica che la rimozione o modifica dei parametri di un metodo pubblico venga rilevata come Breaking Change (Major).
+    /// Verifies that removing or changing parameters of a public method is detected as Breaking Change (Major).
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectBreakingChange_WhenPublicMethodSignatureChanges()
@@ -114,7 +114,7 @@ public class CommonAnalyticsDeepMatrixAndRulesHunterTests
     #region Cohesion Calculator: Multi-Cluster LCOM4 and Edge Cases
 
     /// <summary>
-    /// Verifica che una classe con 3 cluster completamente isolati produca LCOM4 = 3 e sia candidata al refactoring.
+    /// Verify that a class with 3 fully isolated clusters produces LCOM4 = 3 and is a candidate for refactoring.
     /// </summary>
     [Fact]
     public void CohesionCalculator_ShouldDetectThreeDistinctClusters_Lcom4Three()
@@ -158,7 +158,7 @@ public class CommonAnalyticsDeepMatrixAndRulesHunterTests
     }
 
     /// <summary>
-    /// Verifica che classi senza metodi o con un solo metodo vengano gestite senza divisioni per zero o eccezioni.
+    /// Verify that classes with no methods or a single method are handled without division by zero or exceptions.
     /// </summary>
     [Fact]
     public void CohesionCalculator_ShouldHandleSingleMethodOrEmptyClassGracefully()
@@ -185,8 +185,8 @@ public class CommonAnalyticsDeepMatrixAndRulesHunterTests
     #region SocialCode & BusFactor: All Authors Inactive and Empty History
 
     /// <summary>
-    /// Verifica che quando tutti gli autori del repository non sono più attivi,
-    /// tutti i file vengano contrassegnati come a rischio orfano (Orphan).
+    /// Verify that when all authors of the repository are no longer active,
+    /// all files are marked as Orphan.
     /// </summary>
     [Fact]
     public void SocialCode_ShouldFlagAllFilesAsOrphan_WhenNoAuthorsAreActive()
@@ -215,7 +215,7 @@ public class CommonAnalyticsDeepMatrixAndRulesHunterTests
     }
 
     /// <summary>
-    /// Verifica che una cronologia vuota di commit generi un dataset privo di errori.
+    /// Verify that an empty commit history generates an error-free dataset.
     /// </summary>
     [Fact]
     public void SocialCode_ShouldHandleEmptyCommitHistory_WithoutThrowing()
@@ -241,8 +241,8 @@ public class CommonAnalyticsDeepMatrixAndRulesHunterTests
     #region DeadCode: Deep Transitive Orphan Trees
 
     /// <summary>
-    /// Verifica che catene di chiamate private orfane profonde (m1 -> m2 -> m3 -> m4)
-    /// vengano identificate tutte integralmente come Dead Code.
+    /// Check for deep orphaned private call chains (m1 -> m2 -> m3 -> m4)
+    /// are all identified in their entirety as Dead Code.
     /// </summary>
     [Fact]
     public void DeadCodeAnalysis_ShouldDetectDeepTransitiveDeadChains()

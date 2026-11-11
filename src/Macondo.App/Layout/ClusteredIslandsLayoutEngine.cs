@@ -4,9 +4,9 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Layout;
 
 /// <summary>
-/// Motore di layout a Cluster di Isole (Sottosistemi Funzionali).
-/// Identifica i gruppi di moduli/classi fortemente coesi tramite analisi delle componenti connesse e densità di chiamate,
-/// e dispone ciascun gruppo su una propria "isola" autonoma sul canvas bidimensionale.
+/// Island Cluster layout engine (Functional Subsystems).
+/// Identify highly cohesive module/class groups via connected component analysis and call density,
+/// and places each group on its own autonomous "island" on the two-dimensional canvas.
 /// </summary>
 public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
 {
@@ -15,23 +15,23 @@ public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
     void IGraphLayoutEngine.Apply(VisualCodeGraph graph) => Apply(graph);
 
     /// <summary>
-    /// Calcola e applica le coordinate (X, Y) a tutti i nodi del grafo visuale raggruppando i moduli in isole funzionali autonome.
+    /// Calculate and apply the coordinates (X, Y) to all the nodes of the visual graph by grouping the modules into autonomous functional islands.
     /// </summary>
-    /// <param name="graph">Il grafo visuale da posizionare.</param>
-    /// <param name="cancellationToken">Token opzionale di cancellazione.</param>
+    /// <param name="graph">The visual graph to position.</param>
+    /// <param name="cancellationToken">Optional deletion token.</param>
     public static void Apply(VisualCodeGraph graph, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        // 1. Recupero di tutti i nodi container (classi, moduli, form, ecc.)
+        // 1. Retrieve all container nodes (classes, modules, forms, etc.)
         var containers = graph.Nodes.Where(n => n.IsContainer).ToList();
         if (containers.Count == 0) return;
 
         var projects = graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
 
         // =========================================================================
-        // PASSO 1: Mappatura di appartenenza nodo -> container
-        // Mappa sia i container stessi sia i relativi nodi membri (metodi, proprietà, campi)
-        // all'ID del rispettivo container genitore per poter proiettare gli archi tra membri.
+        // STEP 1: Mapping node membership -> container
+        // Maps both the containers themselves and their member nodes (methods, properties, fields)
+        // to the ID of the respective parent container to be able to project edges between members.
         // =========================================================================
         var nodeToContainerMap = new Dictionary<Guid, Guid>();
         foreach (var c in containers)
@@ -44,14 +44,14 @@ public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
         }
 
         // =========================================================================
-        // PASSO 2: Struttura dati Disjoint Set (Union-Find) con Path Compression
-        // Identifica le componenti connesse del grafo tra i diversi container:
-        // due moduli appartengono alla stessa isola se esiste una relazione semantica
-        // diretta o indiretta (chiamata, istanziazione, tipo usato) tra di loro.
+        // STEP 2: Disjoint Set (Union-Find) Data Structure with Path Compression
+        // Identify the connected components of the graph between different containers:
+        // two modules belong to the same island if a semantic relationship exists
+        // direct or indirect (call, instantiation, type used) between them.
         // =========================================================================
         var parent = containers.ToDictionary(c => c.Id, c => c.Id);
 
-        // Funzione ricorsiva di ricerca della radice del set con compressione del cammino
+        // Recursive set root search function with path compression
         Guid FindRoot(Guid id)
         {
             if (parent[id] != id)
@@ -59,7 +59,7 @@ public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
             return parent[id];
         }
 
-        // Unione di due set disgiunti
+        // Union of two disjoint sets
         void Union(Guid a, Guid b)
         {
             var rootA = FindRoot(a);
@@ -68,7 +68,7 @@ public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
                 parent[rootB] = rootA;
         }
 
-        // Unisce i container collegati da archi semantici nel grafo
+        // Merges containers connected by semantic edges in the graph
         foreach (var edge in graph.Edges)
         {
             if (nodeToContainerMap.TryGetValue(edge.SourceId, out var c1) &&
@@ -79,9 +79,9 @@ public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
         }
 
         // =========================================================================
-        // PASSO 3: Raggruppamento dei container nelle rispettive isole/cluster
-        // Ordina le isole in modo decrescente per dimensione (numero di container)
-        // in modo da posizionare i cluster più significativi per primi.
+        // STEP 3: Grouping of containers into their respective islands/clusters
+        // Sort islands in descending order by size (number of containers)
+        // so as to place the most significant clusters first.
         // =========================================================================
         var containerById = containers.ToDictionary(c => c.Id);
         var islands = containers
@@ -93,7 +93,7 @@ public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
         var islandCount = islands.Count;
 
         // =========================================================================
-        // PASSO 4: Posizionamento macro-geometrico dei centroidi delle isole
+        // STEP 4: Macro-geometric positioning of the island centroids
         // =========================================================================
         var macroRadius = Math.Max(500.0, islandCount * 140.0 + containers.Count * 25.0);
 
@@ -103,8 +103,8 @@ public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
             double islandCenterX = 0;
             double islandCenterY = 0;
 
-            // Se ci sono più isole, distribuisce i loro centri lungo una macro-circonferenza;
-            // se c'è un'unica isola, posiziona il centroide all'origine (0, 0).
+            // If there are multiple islands, it distributes their centers along a macro-circumference;
+            // if there is a single island, place the centroid at the origin (0, 0).
             if (islandCount > 1)
             {
                 var islandAngle = 2 * Math.PI * i / islandCount;
@@ -116,27 +116,27 @@ public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
             var islandRadius = countInIsland == 1 ? 0 : Math.Max(160.0, countInIsland * 55.0);
 
             // =====================================================================
-            // PASSO 5: Posizionamento dei container all'interno della singola isola
+            // STEP 5: Positioning of the containers inside the single island
             // =====================================================================
             for (var j = 0; j < countInIsland; j++)
             {
                 var container = islandContainers[j];
                 if (countInIsland == 1)
                 {
-                    // Singolo container: posizionato esattamente al centro dell'isola
+                    // Single container: positioned exactly in the center of the island
                     container.X = islandCenterX;
                     container.Y = islandCenterY;
                 }
                 else
                 {
-                    // Multi-container: disposti su un anello locale attorno al centroide dell'isola
+                    // Multi-containers: Arranged on a local ring around the island centroid
                     var angleInIsland = 2 * Math.PI * j / countInIsland;
                     container.X = islandCenterX + Math.Cos(angleInIsland) * islandRadius;
                     container.Y = islandCenterY + Math.Sin(angleInIsland) * islandRadius;
                 }
 
                 // =================================================================
-                // PASSO 6: Posizionamento dei membri satelliti attorno al container
+                // STEP 6: Positioning satellite members around the container
                 // =================================================================
                 var members = graph.GetChildren(container.Id).ToList();
                 var memberCount = Math.Max(members.Count, 1);
@@ -153,7 +153,7 @@ public sealed class ClusteredIslandsLayoutEngine : IGraphLayoutEngine
         }
 
         // =========================================================================
-        // PASSO 7: Posizionamento dei nodi Progetto al baricentro dei loro moduli
+        // STEP 7: Positioning the Project nodes at the center of gravity of their modules
         // =========================================================================
         foreach (var proj in projects)
         {

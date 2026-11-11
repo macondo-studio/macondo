@@ -9,8 +9,8 @@ namespace Macondo.Tests.JavaSpecific;
 public class JavaSymbolExtractionTests
 {
     /// <summary>
-    /// Verifica che JavaExtractor riconosca ed estragga correttamente tutti i costrutti fondamentali di tipo Java:
-    /// Classi standard, Interfacce, Record ed Enum (con i relativi valori costanti).
+    /// Verify that JavaExtractor correctly recognizes and extracts all core Java-type constructs:
+    /// Standard classes, Interfaces, Records and Enums (with their constant values).
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractClassInterfaceRecordAndEnum()
@@ -58,7 +58,7 @@ public class JavaSymbolExtractionTests
         recordSym.Should().NotBeNull();
         recordSym!.QualifiedName.Should().Be("com.acme.core.UserDto");
 
-        // Verifica campi record 'name' e 'age'
+        // Check 'name' and 'age' record fields
         var recordFields = graph.GetChildren(recordSym.Id).ToList();
         recordFields.Should().Contain(s => s.Name == "name" && s.DeclaredTypeName == "String");
         recordFields.Should().Contain(s => s.Name == "age" && s.DeclaredTypeName == "int");
@@ -73,7 +73,7 @@ public class JavaSymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di metodi con parametri multipli, varargs, clausola throws e tipi di ritorno primitivi e complessi.
+    /// Tests the extraction of methods with multiple parameters, varargs, throws clause, and primitive and complex return types.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractMethodsWithParametersAndThrows()
@@ -124,7 +124,7 @@ public class JavaSymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di costruttori e l'assegnazione corretta di parametri e scope.
+    /// Verify extraction of constructors and correct assignment of parameters and scope.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractConstructors()
@@ -161,7 +161,7 @@ public class JavaSymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di campi di istanza, campi statici e costanti ('static final' ed interface constants).
+    /// Check the extraction of instance fields, static fields and constants ('static final' and interface constants).
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractFieldsAndConstants()
@@ -205,7 +205,7 @@ public class JavaSymbolExtractionTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di inner classes, static nested classes e tipi annidati ricorsivamente.
+    /// Tests the extraction of inner classes, static nested classes, and recursively nested types.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractNestedAndInnerClasses()
@@ -244,14 +244,14 @@ public class JavaSymbolExtractionTests
         treeIterSym.Should().NotBeNull();
         treeIterSym!.QualifiedName.Should().Be("com.acme.structures.OuterTree.TreeIterator");
 
-        // Verifica che le inner classes siano collegate con CONTAINS all'Outer
+        // Verify that the inner classes are connected with CONTAINS to the Outer
         var children = graph.GetChildren(outerSym!.Id).ToList();
         children.Should().Contain(treeNodeSym);
         children.Should().Contain(treeIterSym);
     }
 
     /// <summary>
-    /// Verifica la gestione delle annotazioni custom (@interface) con attributi di default.
+    /// Check the management of custom annotations (@interface) with default attributes.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractAnnotationTypes()

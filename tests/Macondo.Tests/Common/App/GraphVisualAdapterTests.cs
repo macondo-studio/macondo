@@ -9,8 +9,8 @@ namespace Macondo.Tests.Common.App;
 public class GraphVisualAdapterTests
 {
     /// <summary>
-    /// Verifica che GraphVisualAdapter converta un CodeGraph semantico in un VisualCodeGraph
-    /// contenente tutti i nodi e gli archi corrispondenti, preservando il riferimento al simbolo semantico.
+    /// Verify that GraphVisualAdapter converts a semantic CodeGraph to a VisualCodeGraph
+    /// containing all the corresponding nodes and edges, preserving the reference to the semantic symbol.
     /// </summary>
     [Fact]
     public void FromSemanticGraph_ShouldConvertSymbolsAndRelationshipsToVisualGraph()
@@ -27,7 +27,7 @@ public class GraphVisualAdapterTests
         visualGraph.Nodes.Should().NotBeEmpty();
         visualGraph.Edges.Should().NotBeEmpty();
 
-        // Tutti i simboli semantici (escluso il progetto sintetico) devono avere un nodo visuale corrispondente
+        // All semantic symbols (excluding the synthetic design) must have a corresponding visual node
         foreach (var sym in semanticGraph.Symbols)
         {
             var node = visualGraph.Nodes.FirstOrDefault(n => n.Id == sym.Id);
@@ -41,13 +41,13 @@ public class GraphVisualAdapterTests
     }
 
     /// <summary>
-    /// Verifica che, qualora il CodeGraph non contenga un simbolo Project esplicito,
-    /// GraphVisualAdapter crei un nodo radice di progetto sintetico con ID deterministico ProjectRootId.
+    /// Verify that if the CodeGraph does not contain an explicit Project symbol,
+    /// GraphVisualAdapter creates a synthetic project root node with deterministic ID ProjectRootId.
     /// </summary>
     [Fact]
     public void FromSemanticGraph_ShouldInjectProjectRootNode_WhenProjectSymbolIsMissing()
     {
-        // Arrange: Grafo con soli moduli e classi senza SymbolKind.Project
+        // Arrange: Graph with only modules and classes without SymbolKind.Project
         var semanticGraph = new CodeGraph();
         var mod = new Symbol { Id = Guid.NewGuid(), Name = "Utils", QualifiedName = "Utils", FilePath = "Utils.bas", Kind = SymbolKind.Module };
         var cls = new Symbol { Id = Guid.NewGuid(), Name = "Customer", QualifiedName = "Customer", FilePath = "Customer.cls", Kind = SymbolKind.Class };
@@ -62,7 +62,7 @@ public class GraphVisualAdapterTests
         rootNode!.Name.Should().Be("MySyntheticApp");
         rootNode.Kind.Should().Be(SymbolKind.Project);
 
-        // I moduli di primo livello devono avere il nodo radice come ParentId
+        // Top-level modules must have the root node as the ParentId
         var modNode = visualGraph.Nodes.First(n => n.Id == mod.Id);
         var clsNode = visualGraph.Nodes.First(n => n.Id == cls.Id);
         modNode.ParentId.Should().Be(GraphVisualAdapter.ProjectRootId);
@@ -70,8 +70,8 @@ public class GraphVisualAdapterTests
     }
 
     /// <summary>
-    /// Verifica che le relazioni semantiche tra moduli appartenenti a progetti diversi
-    /// vengano correttamente contrassegnate come archi cross-project (IsCrossProject = true).
+    /// Verify semantic relationships between modules belonging to different projects
+    /// are correctly marked as cross-project arcs (IsCrossProject = true).
     /// </summary>
     [Fact]
     public void FromSemanticGraph_ShouldIdentifyCrossProjectEdges()
@@ -93,7 +93,7 @@ public class GraphVisualAdapterTests
         semanticGraph.AddContains(proj2, mod2);
         semanticGraph.AddContains(mod2, method2);
 
-        // Chiamata cross-project da method1 (in Project1) a method2 (in Project2)
+        // Cross-project call from method1 (in Project1) to method2 (in Project2)
         semanticGraph.AddCalls(method1, method2);
 
         // Act
@@ -106,7 +106,7 @@ public class GraphVisualAdapterTests
     }
 
     /// <summary>
-    /// Verifica che un CodeGraph completamente vuoto venga gestito senza errori, restituendo un VisualCodeGraph vuoto.
+    /// Verify that a completely empty CodeGraph is handled without errors by returning an empty VisualCodeGraph.
     /// </summary>
     [Fact]
     public void FromSemanticGraph_ShouldHandleEmptyGraph_Gracefully()

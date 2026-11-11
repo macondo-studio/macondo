@@ -10,17 +10,17 @@ using Xunit;
 namespace Macondo.Tests.KotlinSpecific;
 
 /// <summary>
-/// Suite di test per analisi architetturale ad alta intensità su basi di codice Kotlin (.kt):
-/// rilevamento Dead Code in architetture Clean a più livelli, analisi delle dipendenze cicliche in DSM,
-/// propagazione transitiva del Blast Radius / raggio di impatto su catene di chiamate profonde e metriche Treemap/LOC.
+/// Test suite for intensive architectural analysis on Kotlin (.kt) code bases:
+/// Dead Code detection in multi-tier Clean architectures, cyclic dependency analysis in DSM,
+/// transitive propagation of Blast Radius / impact radius on deep call chains and Treemap/LOC metrics.
 /// </summary>
 public class KotlinArchitectureStressAndQualityHunterTests
 {
     #region Dead Code Analysis in Multi-tier Kotlin Architecture
 
     /// <summary>
-    /// Verifica che DeadCodeAnalyzer individui con precisione metodi obsoleti o non referenziati
-    /// all'interno di un'architettura enterprise multilivello (Controller -> UseCase -> Repository -> DataSource) in Kotlin.
+    /// Verify that DeadCodeAnalyzer accurately identifies obsolete or unreferenced methods
+    /// within a multi-tier enterprise architecture (Controller -> UseCase -> Repository -> DataSource) in Kotlin.
     /// </summary>
     [Fact]
     public void DeadCodeAnalyzer_ShouldDetectDeadCodeInMultiTierKotlinArchitecture()
@@ -53,7 +53,7 @@ public class KotlinArchitectureStressAndQualityHunterTests
                 }
 
                 private fun deadUseCaseHelper() {
-                    // Mai invocato
+                    // Never invoked
                 }
             }
             """;
@@ -71,7 +71,7 @@ public class KotlinArchitectureStressAndQualityHunterTests
                 }
 
                 private fun legacyRawBackup() {
-                    // Funzione privata morta
+                    // Private function dead
                 }
             }
             """;
@@ -89,11 +89,11 @@ public class KotlinArchitectureStressAndQualityHunterTests
         deadCodeReport.Should().NotBeNull();
         deadCodeReport.Items.Should().NotBeEmpty();
 
-        // I metodi non invocati devono essere identificati come dead code
+        // Uninvoked methods should be identified as dead code
         deadCodeReport.Items.Should().Contain(d => d.Name == "legacyRawBackup");
         deadCodeReport.Items.Should().Contain(d => d.Name == "deadUseCaseHelper");
 
-        // I metodi in uso non devono essere segnalati
+        // The methods in use do not need to be reported
         deadCodeReport.Items.Should().NotContain(d => d.Name == "insertOrder");
         deadCodeReport.Items.Should().NotContain(d => d.Name == "executeSql");
     }
@@ -103,8 +103,8 @@ public class KotlinArchitectureStressAndQualityHunterTests
     #region Dependency Structure Matrix (DSM) and Cyclic Dependency
 
     /// <summary>
-    /// Verifica che DsmMatrixBuilder rilevi e mappi correttamente le dipendenze bidirezionali / cicliche
-    /// tra servizi Kotlin che si invocano a vicenda.
+    /// Verify that DsmMatrixBuilder correctly detects and maps bidirectional/cyclic dependencies
+    /// between Kotlin services calling each other.
     /// </summary>
     [Fact]
     public void DsmMatrixBuilder_ShouldMapCyclicDependenciesBetweenKotlinServices()
@@ -165,8 +165,8 @@ public class KotlinArchitectureStressAndQualityHunterTests
     #region Blast Radius / Transitive Impact Propagation
 
     /// <summary>
-    /// Verifica che ImpactAnalyzer calcoli accuratamente la catena di impatto transitiva
-    /// (profondità 1, 2, 3) a partire da una funzione driver di basso livello fino ai controller esposti.
+    /// Verify that ImpactAnalyzer accurately calculates the transitive impact chain
+    /// (depth 1, 2, 3) starting from a low-level driver function up to the exposed controllers.
     /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldPropagateTransitiveBlastRadiusAcrossDeepKotlinHierarchy()
@@ -246,8 +246,8 @@ public class KotlinArchitectureStressAndQualityHunterTests
     #region Treemap and LOC Metrics for Kotlin Codebases
 
     /// <summary>
-    /// Verifica che TreemapModelBuilder calcoli la gerarchia visiva con pesi basati
-    /// sul conteggio LOC per sorgenti Kotlin.
+    /// Verify that TreemapModelBuilder calculates the visual hierarchy with weights based
+    /// on LOC counting for Kotlin sources.
     /// </summary>
     [Fact]
     public void TreemapModelBuilder_ShouldComputeHierarchyAndLocWeightsForKotlinModules()

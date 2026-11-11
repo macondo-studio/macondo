@@ -3,26 +3,26 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Resolution;
 
 /// <summary>
-/// Scope a livello di intero progetto VB6 (radice della gerarchia di lookup).
+/// Scope at the entire VB6 project level (root of the lookup hierarchy).
 /// 
 /// CARATTERISTICHE VB6:
-/// 1. Tipi di Progetto: indicizza tutte le Classi (.cls), Form (.frm), Moduli (.bas),
-///    UserControl (.ctl), UDT (Type) ed Enum definiti nel progetto.
-/// 2. Membri Public dei Moduli Standard (.bas): in VB6, qualsiasi Sub, Function, Property,
-///    Const o Variable dichiarata 'Public' in un file .bas fa parte del namespace globale
-///    ed è invocabile ovunque nel progetto senza specificare il nome del modulo (es. "LogMessage").
+/// 1. Project Types: index all Classes (.cls), Forms (.frm), Modules (.bas),
+/// UserControl (.ctl), UDT (Type) and Enum defined in the project.
+/// 2. Public Members of Standard Modules (.bas): in VB6, any Sub, Function, Property,
+/// Const or Variable declared 'Public' in a .bas file is part of the global namespace
+/// and can be invoked anywhere in the project without specifying the module name (e.g. "LogMessage").
 /// </summary>
 public sealed class ProjectScope : IScope
 {
     private readonly CodeGraph _graph;
     private readonly TypeResolver _typeResolver;
 
-    /// <summary>Simboli di tipo modulo o classe indicizzati per nome (es. "Customer", "UtilsModule").</summary>
+    /// <summary>Module or class type symbols indexed by name (e.g. "Customer", "UtilsModule").</summary>
     private readonly Dictionary<string, Symbol> _projectTypes = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Membri Public dei moduli standard (.bas) indicizzati per nome.
-    /// Usa una lista per gestire eventuali collisioni ambigue tra più moduli standard.
+    /// Public members of standard modules (.bas) indexed by name.
+    /// Use a list to handle any ambiguous collisions between multiple standard modules.
     /// </summary>
     private readonly Dictionary<string, List<Symbol>> _globalBasMembers = new(StringComparer.OrdinalIgnoreCase);
 
@@ -35,8 +35,8 @@ public sealed class ProjectScope : IScope
         _graph = graph;
         _typeResolver = typeResolver;
 
-        // Costruisce gli indici del progetto per tipi e membri globali .bas.
-        // 1. Indicizza tutti i tipi e progetti definiti a livello di workspace/progetto
+        // Constructs project indexes for .bas global types and members.
+        // 1. Index all types and projects defined at the workspace/project level
         foreach (var symbol in _graph.Symbols)
         {
             if (symbol.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Enum or SymbolKind.Project)
@@ -48,7 +48,7 @@ public sealed class ProjectScope : IScope
             }
         }
 
-        // 2. Raccoglie i membri Public di tutti i moduli standard (.bas)
+        // 2. Collects Public members of all standard modules (.bas)
         var basModules = _graph.Symbols
             .Where(s => s.Kind == SymbolKind.Module)
             .ToList();
@@ -58,7 +58,7 @@ public sealed class ProjectScope : IScope
             var children = _graph.GetChildren(bas.Id);
             foreach (var child in children)
             {
-                // In VB6 i membri dei moduli standard .bas sono Public per default
+                // In VB6 the members of the standard .bas modules are Public by default
                 if (child.Accessibility != Accessibility.Private)
                 {
                     if (!_globalBasMembers.TryGetValue(child.Name, out var list))
@@ -73,12 +73,12 @@ public sealed class ProjectScope : IScope
     }
 
     /// <summary>
-    /// Risolve un identificatore non qualificato nello scope di progetto:
-    /// prima cerca nei membri Public dei moduli .bas, poi tra i tipi di progetto, e infine tra i tipi primitivi.
+    /// Resolves an unqualified identifier in project scope:
+    /// first searches the Public members of .bas modules, then the project types, and finally the primitive types.
     /// </summary>
     public ResolutionResult Resolve(string name)
     {
-        // 1. Cerca tra i membri Public dei moduli standard .bas (es. "LogMessage")
+        // 1. Search the Public members of standard .bas modules (e.g. "LogMessage")
         if (_globalBasMembers.TryGetValue(name, out var basMemberList))
         {
             if (basMemberList.Count == 1)
@@ -101,7 +101,7 @@ public sealed class ProjectScope : IScope
                 };
         }
 
-        // 2. Cerca tra i tipi di progetto (es. "Customer", "Address")
+        // 2. Search among project types (e.g. "Customer", "Address")
         if (_projectTypes.TryGetValue(name, out var typeSymbol))
             return new ResolutionResult
             {
@@ -111,9 +111,9 @@ public sealed class ProjectScope : IScope
                 ResolvedTypeSymbolId = typeSymbol.ResolvedTypeSymbolId
             };
 
-        // 2b. Fallback per tipi o controlli con prefisso di progetto (es. "DUE.cntrDestinazione").
-        // Consente la risoluzione di simboli di tipo referenziati con qualificazione di progetto o libreria
-        // (tipico delle dichiarazioni dei controlli utente nel designer Form), estraendo il nome base non qualificato.
+        // 2b. Fallback for types or controls with project prefix (e.g. "DUE.cntrDestination").
+        // Allows resolution of referenced type symbols with project or library qualification
+        // (typical of user control declarations in the Form designer), extracting the unqualified base name.
         var lastDot = name.LastIndexOf('.');
         if (lastDot >= 0 && lastDot < name.Length - 1)
         {
@@ -128,7 +128,7 @@ public sealed class ProjectScope : IScope
                 };
         }
 
-        // 3. Verifica se è un tipo primitivo standard
+        // 3. Check if it is a standard primitive type
         var typeInfo = _typeResolver.ResolveType(name);
         if (typeInfo.IsPrimitive)
             return new ResolutionResult
@@ -146,18 +146,18 @@ public sealed class ProjectScope : IScope
     }
 
     /// <summary>
-    /// Cerca il simbolo di un tipo specifico definito nel progetto.
-    /// Supporta sia nomi semplici (es. "Customer", "cntrDestinazione") sia nomi qualificati con prefisso
-    /// di progetto o libreria (es. "DUE.cntrDestinazione"), applicando il fallback sul nome base non qualificato.
+    /// Searches for the symbol of a specific type defined in the project.
+    /// Supports both simple names (e.g. "Customer", "cntrDestination") and prefixed qualified names
+    /// of project or library (e.g. "DUE.cntrDestinazione"), applying the fallback on the unqualified base name.
     /// </summary>
-    /// <param name="typeName">Il nome del tipo da ricercare.</param>
-    /// <returns>Il <see cref="Symbol"/> corrispondente se trovato nel progetto; in caso contrario <c>null</c>.</returns>
+    /// <param name="typeName">The name of the type to search for.</param>
+    /// <returns>The corresponding <see cref="Symbol"/> if found in the project; otherwise <c>null</c>.</returns>
     public Symbol? FindTypeSymbol(string typeName)
     {
         if (_projectTypes.TryGetValue(typeName, out var sym))
             return sym;
 
-        // Fallback per tipi qualificati con prefisso di progetto (es. "DUE.cntrDestinazione" -> "cntrDestinazione")
+        // Fallback for qualified types with project prefix (e.g. "DUE.cntrDestination" -> "cntrDestination")
         var lastDot = typeName.LastIndexOf('.');
         if (lastDot >= 0 && lastDot < typeName.Length - 1)
         {
@@ -171,10 +171,10 @@ public sealed class ProjectScope : IScope
 }
 
 /// <summary>
-/// Scope a livello di singolo modulo o classe (.cls, .frm, .bas, .ctl).
+/// Scope at the individual module or class level (.cls, .frm, .bas, .ctl).
 /// 
-/// Contiene tutti i membri a livello di modulo (campi privati/pubblici, costanti, metodi, proprietà, UDT ed enum).
-/// Gestisce inoltre la keyword 'Me', che risolve sull'istanza del modulo corrente.
+/// Contains all form-level members (private/public fields, constants, methods, properties, UDTs, and enums).
+/// It also handles the 'Me' keyword, which resolves to the current module instance.
 /// </summary>
 public sealed class ModuleScope : IScope
 {
@@ -182,7 +182,7 @@ public sealed class ModuleScope : IScope
     private readonly CodeGraph _graph;
     private readonly ProjectScope _projectScope;
 
-    /// <summary>Membri del modulo indicizzati per nome (case-insensitive).</summary>
+    /// <summary>Form members indexed by name (case-insensitive).</summary>
     private readonly Dictionary<string, Symbol> _members = new(StringComparer.OrdinalIgnoreCase);
 
     public IScope? ParentScope => _projectScope;
@@ -195,7 +195,7 @@ public sealed class ModuleScope : IScope
         _graph = graph;
         _projectScope = projectScope;
 
-        // Indicizza i membri del modulo per nome
+        // Index module members by name
         foreach (var child in _graph.GetChildren(_moduleSymbol.Id))
         {
             _members[child.Name] = child;
@@ -203,12 +203,12 @@ public sealed class ModuleScope : IScope
     }
 
     /// <summary>
-    /// Risolve un identificatore: prima verifica 'Me', poi cerca tra i membri del modulo,
-    /// e se non trovato delega al <see cref="ProjectScope"/>.
+    /// Resolves an identifier: first checks 'Me', then searches the module members,
+    /// and if not found, delegate to <see cref="ProjectScope"/>.
     /// </summary>
     public ResolutionResult Resolve(string name)
     {
-        // 1. Keyword Me: si riferisce all'istanza della classe/form corrente
+        // 1. Keyword Me: refers to the instance of the current class/form
         if (string.Equals(name, "Me", StringComparison.OrdinalIgnoreCase))
 
             return new ResolutionResult
@@ -219,24 +219,24 @@ public sealed class ModuleScope : IScope
                 ResolvedTypeSymbolId = _moduleSymbol.Id
             };
 
-        // 2. Membri del modulo corrente (campi, costanti, metodi, proprietà)
+        // 2. Members of the current form (fields, constants, methods, properties)
         if (_members.TryGetValue(name, out var member))
 
             return new ResolutionResult
             {
                 TargetSymbol = member,
                 Confidence = ResolutionConfidence.Exact,
-                // Se il simbolo target è una funzione/proprietà con tipo di ritorno, propaghiamo il ReturnType
+                // If the target symbol is a function/property with return type, we propagate the ReturnType
                 TargetTypeName = member.ReturnType ?? member.DeclaredTypeName,
                 ResolvedTypeSymbolId = member.ResolvedReturnTypeSymbolId ?? member.ResolvedTypeSymbolId
             };
 
-        // 3. Deferisce allo scope di progetto per membri globali .bas o tipi
+        // 3. Refers to project scope for global .bas members or types
         return _projectScope.Resolve(name);
     }
 
     /// <summary>
-    /// Cerca un membro dichiarato direttamente all'interno di questo modulo.
+    /// Search for a declared member directly within this form.
     /// </summary>
     public Symbol? FindMember(string memberName)
     {
@@ -247,13 +247,13 @@ public sealed class ModuleScope : IScope
 }
 
 /// <summary>
-/// Scope locale all'interno del corpo di una routine (Sub, Function, Property Get/Let/Set).
+/// Local scope within the body of a procedure (Sub, Function, Property Get/Let/Set).
 /// 
-/// ORDINE DI LOOKUP:
-/// 1. Variabili locali (dichiarate con 'Dim' o 'Static' all'interno della routine).
-/// 2. Parametri formali della routine (ByVal / ByRef).
-/// 3. Nome della funzione stessa (in VB6, l'assegnazione al nome della funzione imposta il valore di ritorno).
-/// 4. Scope contenitore (ModuleScope o eventuale WithScope).
+/// LOOKUP ORDER:
+/// 1. Local variables (declared with 'Dim' or 'Static' within the routine).
+/// 2. Formal parameters of the routine (ByVal / ByRef).
+/// 3. Name of the function itself (in VB6, assigning the function name sets the return value).
+/// 4. Scope container (ModuleScope or possible WithScope).
 /// </summary>
 public sealed class LocalScope : IScope
 {
@@ -261,10 +261,10 @@ public sealed class LocalScope : IScope
     private readonly IScope _parentScope;
     private readonly CodeGraph _graph;
 
-    /// <summary>Variabili locali indicizzate per nome.</summary>
+    /// <summary>Local variables indexed by name.</summary>
     private readonly Dictionary<string, Symbol> _localVariables = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>Parametri formali indicizzati per nome.</summary>
+    /// <summary>Formal parameters indexed by name.</summary>
     private readonly Dictionary<string, ParameterSymbol> _parameters = new(StringComparer.OrdinalIgnoreCase);
 
     public IScope? ParentScope => _parentScope;
@@ -277,13 +277,13 @@ public sealed class LocalScope : IScope
         _parentScope = parentScope;
         _graph = graph;
 
-        // 1. Indicizza i parametri formali della routine
+        // 1. Index the formal parameters of the routine
         foreach (var param in _routineSymbol.Parameters)
         {
             _parameters[param.Name] = param;
         }
 
-        // 2. Indicizza le variabili e costanti locali contenute nella routine
+        // 2. Index the local variables and constants contained in the routine
         foreach (var child in _graph.GetChildren(_routineSymbol.Id))
         {
             if (child.Kind is SymbolKind.Field or SymbolKind.Constant)
@@ -293,11 +293,11 @@ public sealed class LocalScope : IScope
     }
 
     /// <summary>
-    /// Risolve un identificatore all'interno della routine locale.
+    /// Resolves an identifier within the local routine.
     /// </summary>
     public ResolutionResult Resolve(string name)
     {
-        // 1. Variabili locali (Dim / Static)
+        // 1. Local Variables (Dim / Static)
         if (_localVariables.TryGetValue(name, out var localVar))
 
             return new ResolutionResult
@@ -308,7 +308,7 @@ public sealed class LocalScope : IScope
                 ResolvedTypeSymbolId = localVar.ResolvedTypeSymbolId
             };
 
-        // 2. Parametri formali
+        // 2. Formal parameters
         if (_parameters.TryGetValue(name, out var param))
 
             return new ResolutionResult
@@ -319,7 +319,7 @@ public sealed class LocalScope : IScope
                 ResolvedTypeSymbolId = param.ResolvedTypeSymbolId
             };
 
-        // 3. Assegnazione al nome della funzione stessa per il valore di ritorno (es. "CalculateTotal = 42")
+        // 3. Assignment to the function name itself for the return value (e.g. "CalculateTotal = 42")
         if (string.Equals(name, _routineSymbol.Name, StringComparison.OrdinalIgnoreCase))
 
             return new ResolutionResult
@@ -330,18 +330,18 @@ public sealed class LocalScope : IScope
                 ResolvedTypeSymbolId = _routineSymbol.ResolvedTypeSymbolId
             };
 
-        // 4. Deferisce allo scope genitore (ModuleScope o WithScope sovrastante)
+        // 4. Refers to the parent scope (ModuleScope or overlying WithScope)
         return _parentScope.Resolve(name);
     }
 }
 
 /// <summary>
-/// Scope contestuale generato da un blocco "With &lt;expr&gt; ... End With".
+/// Contextual scope generated by a "With <expr> ... End With" block.
 /// 
 /// REGOLE VB6:
-/// - Le chiamate che iniziano con punto (".Member") vengono risolte direttamente sui membri del tipo target del With.
-/// - Le chiamate normali (senza punto iniziale) vengono delegate allo scope genitore sovrastante.
-/// - Se il target del With è non tipizzato (Object o Variant), la risoluzione restituisce <see cref="ResolutionConfidence.Unknown"/> (late binding).
+/// - Calls starting with dot (".Member") resolve directly to members of the target type of the With.
+/// - Normal calls (without leading dot) are delegated to the overlying parent scope.
+/// - If the target of the With is untyped (Object or Variant), the resolution returns <see cref="ResolutionConfidence.Unknown"/> (late binding).
 /// </summary>
 public sealed class WithScope : IScope
 {
@@ -368,7 +368,7 @@ public sealed class WithScope : IScope
     }
 
     /// <summary>
-    /// Risolve un identificatore: se inizia con '.' lo risolve sul target del With, altrimenti delega allo scope genitore.
+    /// Resolves an identifier: if it starts with '.' resolves it on the With target, otherwise delegates to the parent scope.
     /// </summary>
     public ResolutionResult Resolve(string name)
     {
@@ -382,12 +382,12 @@ public sealed class WithScope : IScope
     }
 
     /// <summary>
-    /// Risolve un membro implicito (es. ".Save") sul target attivo del blocco With.
+    /// Resolves an implicit member (e.g. ".Save") to the active target of the With block.
     /// </summary>
-    /// <param name="memberName">Nome del membro (senza punto iniziale).</param>
+    /// <param name="memberName">Member name (without leading period).</param>
     public ResolutionResult ResolveWithMember(string memberName)
     {
-        // 1. Se il target del With è dinamico (Object / Variant) o non risolto -> late binding
+        // 1. If the target of the With is dynamic (Object / Variant) or unresolved -> late binding
         if (_targetResult.Confidence == ResolutionConfidence.Unknown ||
             string.Equals(_targetResult.TargetTypeName, "Object", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(_targetResult.TargetTypeName, "Variant", StringComparison.OrdinalIgnoreCase))
@@ -398,7 +398,7 @@ public sealed class WithScope : IScope
                 Details = $"Late binding contestuale su blocco With con target dinamico/sconosciuto ({_targetResult})"
             };
 
-        // 2. Risolve il tipo target associato all'espressione del With
+        // 2. Resolves the target type associated with the With expression
         Symbol? targetTypeSymbol = _targetResult.TargetSymbol;
         if (targetTypeSymbol == null && _targetResult.ResolvedTypeSymbolId.HasValue)
 
@@ -406,7 +406,7 @@ public sealed class WithScope : IScope
 
         else if (targetTypeSymbol != null && targetTypeSymbol.Kind != SymbolKind.Class && targetTypeSymbol.Kind != SymbolKind.Form && targetTypeSymbol.Kind != SymbolKind.Type)
         {
-            // Se targetSymbol è una variabile o parametro, recupera il tipo risolto della variabile
+            // If targetSymbol is a variable or parameter, retrieves the resolved type of the variable
             if (targetTypeSymbol.ResolvedTypeSymbolId.HasValue)
 
                 targetTypeSymbol = _graph.Symbols.FirstOrDefault(s => s.Id == targetTypeSymbol.ResolvedTypeSymbolId.Value);
@@ -418,7 +418,7 @@ public sealed class WithScope : IScope
             }
         }
 
-        // 3. Cerca il membro all'interno del tipo target
+        // 3. Search for the member within the target type
         if (targetTypeSymbol != null)
         {
             var member = _graph.GetChildren(targetTypeSymbol.Id)

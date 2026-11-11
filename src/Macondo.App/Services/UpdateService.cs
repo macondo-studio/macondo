@@ -10,20 +10,20 @@ using Macondo.App.Models;
 namespace Macondo.App.Services;
 
 /// <summary>
-/// Servizio per il controllo automatico e manuale degli aggiornamenti dell'applicazione.
-/// Esegue la verifica in background all'avvio senza bloccare l'interfaccia utente.
+/// Service for automatic and manual control of application updates.
+/// Runs background check at startup without blocking the user interface.
 /// </summary>
 public sealed class UpdateService
 {
     private static readonly Lazy<UpdateService> _instance = new(() => new UpdateService());
     public static UpdateService Instance => _instance.Value;
 
-    // Versione corrente dell'applicazione Macondo (VB6 Analyzer)
+    // Current version of the Macondo application (VB6 Analyzer)
     public static readonly Version CurrentVersion = new Version(1, 8, 0);
     public static readonly string CurrentVersionString = "1.8.0";
 
     // =========================================================================================
-    // Endpoint ufficiale per il download del manifesto di aggiornamento (version.json)
+    // Official endpoint for downloading the update manifest (version.json)
     public string? UpdateEndpointUrl { get; set; } = "https://macondo-studio.github.io/macondo/version.json";
 
     private readonly HttpClient _httpClient;
@@ -38,21 +38,21 @@ public sealed class UpdateService
     }
 
     /// <summary>
-    /// Verifica in modo asincrono se è disponibile una versione più recente dell'applicazione.
-    /// Se non è ancora configurato un server o se la versione locale è già aggiornata, restituisce null.
+    /// Asynchronously checks if a newer version of the application is available.
+    /// If a server is not yet configured or if the local version is already updated, returns null.
     /// </summary>
     public async Task<AppUpdateInfo?> CheckForUpdatesAsync(bool forceCheck = false, CancellationToken ct = default)
     {
         var endpoint = UpdateEndpointUrl;
 
-        // Se l'endpoint non è ancora configurato, restituiamo null senza generare errori
+        // If the endpoint is not yet configured, we return null without generating errors
         if (string.IsNullOrWhiteSpace(endpoint))
 
             return null;
 
         try
         {
-            // Esecuzione richiesta HTTP al server degli aggiornamenti
+            // Making HTTP request to update server
             using var response = await _httpClient.GetAsync(endpoint, ct).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
 
@@ -108,7 +108,7 @@ public sealed class UpdateService
         }
         catch
         {
-            // Silenzioso in background per non disturbare l'utente se non c'è connessione
+            // Silent in the background to not disturb the user if there is no connection
         }
 
         return null;
@@ -150,7 +150,7 @@ public sealed class UpdateService
     }
 
     /// <summary>
-    /// Apre nel browser predefinito dell'utente la pagina o il link per scaricare l'aggiornamento.
+    /// Opens the page or link to download the update in the user's default browser.
     /// </summary>
     public void OpenDownloadPage(string? downloadUrl)
     {

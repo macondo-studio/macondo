@@ -3,25 +3,25 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.DeadCode;
 
 /// <summary>
-/// Categoria di codice morto o componente orfano.
+/// Category of dead code or orphaned component.
 /// </summary>
 public enum DeadCodeCategory
 {
-    /// <summary>Routine (Sub / Function / Property) mai chiamata e non identificata come Entry Point o Event Handler.</summary>
+    /// <summary>Routine (Sub / Function / Property) never called and not identified as Entry Point or Event Handler.</summary>
     UnreachableRoutine,
 
-    /// <summary>Campo, Variabile o Costante mai referenziata o letta da nessuna routine.</summary>
+    /// <summary>Field, Variable or Constant never referenced or read by any routine.</summary>
     UnusedFieldOrConstant,
 
-    /// <summary>Modulo, Classe, Form o Controllo completamente orfano e isolato dall'albero di esecuzione.</summary>
+    /// <summary>Module, Class, Form or Control completely orphaned and isolated from the execution tree.</summary>
     OrphanContainer,
 
-    /// <summary>Tipo UDT o Enumerazione non utilizzato da nessun campo, parametro o variabile.</summary>
+    /// <summary>UDT or Enumeration type not used by any field, parameter, or variable.</summary>
     UnusedType
 }
 
 /// <summary>
-/// Singolo elemento di codice non raggiungibile o orfano.
+/// Single code element that is unreachable or orphaned.
 /// </summary>
 public sealed class DeadCodeItem
 {
@@ -35,13 +35,13 @@ public sealed class DeadCodeItem
     public SymbolKind Kind { get; init; }
     public DeadCodeCategory Category { get; init; }
 
-    /// <summary>Linee di codice stimate del blocco non utilizzato.</summary>
+    /// <summary>Estimated code lines of the unused block.</summary>
     public int EstimatedLoc { get; set; }
 
-    /// <summary>Motivo dettagliato per cui l'elemento è considerato codice morto.</summary>
+    /// <summary>Detailed reason why the item is considered dead code.</summary>
     public string Reason { get; set; } = string.Empty;
 
-    /// <summary>Indica se il simbolo ha visibilità Public/Global (possibile API esterna).</summary>
+    /// <summary>Indicates whether the symbol has Public/Global visibility (possible external API).</summary>
     public bool IsPublic { get; set; }
 }
 

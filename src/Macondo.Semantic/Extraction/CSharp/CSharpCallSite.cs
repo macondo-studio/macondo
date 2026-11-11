@@ -3,19 +3,19 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Extraction;
 
 /// <summary>
-/// Rappresenta un sito di chiamata a metodo (call-site) rilevato all'interno del corpo di un metodo o proprietà C#.
+/// Represents a call-site found within the body of a C# method or property.
 /// </summary>
 public sealed class CSharpCallSite
 {
-    /// <summary>Simbolo della routine o membro C# chiamante (es. un metodo o property getter/setter).</summary>
+    /// <summary>Symbol of the calling C# routine or member (e.g. a getter/setter method or property).</summary>
     public required Symbol CallerSymbol { get; init; }
 
-    /// <summary>Nome identificativo del metodo o membro invocato (es. "ProcessOrder", "Save").</summary>
+    /// <summary>Identifying name of the invoked method or member (e.g. "ProcessOrder", "Save").</summary>
     public required string InvokedMethodName { get; init; }
 
-    /// <summary>Testo dell'espressione ricevitore (receiver) se presente (es. "customerService", "orderRepo", "this").</summary>
+    /// <summary>Text of the receiver expression if present (e.g. "customerService", "orderRepo", "this").</summary>
     public string? ReceiverExpressionText { get; init; }
 
-    /// <summary>Numero di riga nel file sorgente C# in cui si trova l'invocazione (1-indexed).</summary>
+    /// <summary>Line number in the C# source file where the invocation is located (1-indexed).</summary>
     public int Line { get; init; }
 }

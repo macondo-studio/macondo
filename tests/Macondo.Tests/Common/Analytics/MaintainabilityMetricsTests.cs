@@ -9,7 +9,7 @@ namespace Macondo.Tests.Common.Analytics;
 public class MaintainabilityMetricsTests
 {
     /// <summary>
-    /// Verifica il calcolo delle metriche di Halstead e del Maintainability Index normalizzato [0..100].
+    /// Check the calculation of the Halstead metrics and the normalized Maintainability Index [0..100].
     /// </summary>
     [Fact]
     public void Maintainability_ShouldCalculateHalsteadAndMaintainabilityIndex()
@@ -57,7 +57,7 @@ public class MaintainabilityMetricsTests
     }
 
     /// <summary>
-    /// Verifica il calcolo del Maintainability Index sulle fixture di progetto.
+    /// Check the calculation of the Maintainability Index on the project fixtures.
     /// </summary>
     [Fact]
     public void Maintainability_ShouldAnalyzeProjectFixtures()

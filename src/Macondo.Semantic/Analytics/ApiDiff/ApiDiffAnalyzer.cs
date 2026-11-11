@@ -3,21 +3,21 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.ApiDiff;
 
 /// <summary>
-/// Analizzatore poliglotto di API Surface Diff e Breaking Change Detection (conforme alle specifiche SemVer 2.0.0).
-/// Confronta due stati del <see cref="CodeGraph"/> (es. snapshot baseline/release precedente vs snapshot corrente)
-/// per identificare modifiche retrocompatibili e rotture di compatibilità binarie/sorgenti.
+/// Surface Diff and Breaking Change Detection API polyglot analyzer (compliant with SemVer 2.0.0 specifications).
+/// Compare two states of the <see cref="CodeGraph"/> (e.g. baseline snapshot/previous release vs current snapshot)
+/// to identify backwards compatible changes and binary/source compatibility breaks.
 /// 
-/// CLASSIFICAZIONE DELLE MODIFICHE:
-/// 1. Major Breaking Change: rimozione di simboli pubblici, riduzione dell'accessibilità (es. Public -> Private/Internal),
-///    modifica del numero di parametri obbligatori in metodi o costruttori.
-/// 2. Minor Feature: aggiunta di nuovi tipi, metodi o costruttori pubblici, oppure aggiunta di parametri opzionali.
-/// 3. Patch / Neutral: modifiche interne che non impattano la superficie API pubblica esportata.
+/// CHANGE CLASSIFICATION:
+/// 1. Major Breaking Change: removal of public symbols, reduction of accessibility (e.g. Public -> Private/Internal),
+/// changing the number of required parameters in methods or constructors.
+/// 2. Minor Feature: Adding new public types, methods, or constructors, or adding optional parameters.
+/// 3. Patch / Neutral: Internal changes that do not impact the exported public API surface.
 /// </summary>
 public static class ApiDiffAnalyzer
 {
     /// <summary>
-    /// Insieme dei livelli di visibilità che costituiscono l'API pubblica esportata dal modulo o assembly.
-    /// In VB6, nei file .bas le routine senza modificatore esplicito sono Public per default.
+    /// Set of visibility levels that make up the public API exported by the module or assembly.
+    /// In VB6, routines without an explicit modifier are Public by default in .bas files.
     /// </summary>
     private static readonly HashSet<Accessibility> PublicAccessibilities = new()
     {
@@ -29,8 +29,8 @@ public static class ApiDiffAnalyzer
     };
 
     /// <summary>
-    /// Genera una chiave di firma univoca per il simbolo esportato, includendo tipo, nome qualificato e parametri formali.
-    /// Questo consente di distinguere sovraccarichi (overloads) di metodi o costruttori ed evitare collisioni.
+    /// Generates a unique signing key for the exported symbol, including type, qualified name, and formal parameters.
+    /// This allows you to distinguish overloads of methods or constructors and avoid collisions.
     /// </summary>
     private static string GetApiSignatureKey(Symbol sym)
     {
@@ -44,20 +44,20 @@ public static class ApiDiffAnalyzer
     }
 
     /// <summary>
-    /// Confronta la superficie pubblica esportata tra due snapshot di CodeGraph e produce il report dettagliato SemVer.
+    /// Compares the exported public surface between two CodeGraph snapshots and produces the detailed SemVer report.
     /// </summary>
-    /// <param name="baselineGraph">Grafo dello snapshot di riferimento (es. versione rilasciata precedente).</param>
-    /// <param name="currentGraph">Grafo dello snapshot corrente (es. codice modificato o branch di sviluppo).</param>
-    /// <returns>Il report strutturato <see cref="ApiDiffReport"/> con tutte le differenze ordinate per gravità d'impatto.</returns>
+    /// <param name="baselineGraph">Reference snapshot graph (e.g. previous released version).</param>
+    /// <param name="currentGraph">Graph of the current snapshot (e.g. modified code or development branch).</param>
+    /// <returns>The structured report <see cref="ApiDiffReport"/> with all the differences sorted by impact severity.</returns>
     public static ApiDiffReport Compare(CodeGraph baselineGraph, CodeGraph currentGraph)
     {
         var report = new ApiDiffReport();
 
         // =========================================================================
-        // PASSO 1: Indicizzazione robusta delle API pubbliche nei due snapshot
-        // Isola i simboli pubblici (Classi, Interfacce, Metodi, Proprietà, Costanti)
-        // indicizzandoli per chiave di firma univoca per supportare sovraccarichi
-        // e classi parziali senza incorrere in ArgumentException su chiavi duplicate.
+        // STEP 1: Robust indexing of public APIs in the two snapshots
+        // Isolate public symbols (Classes, Interfaces, Methods, Properties, Constants)
+        // indexing them by unique signing key to support overloads
+        // and partial classes without running into ArgumentException on duplicate keys.
         // =========================================================================
         var oldPublic = new Dictionary<string, Symbol>(StringComparer.OrdinalIgnoreCase);
         foreach (var sym in baselineGraph.Symbols.Where(IsPublicApi))
@@ -76,20 +76,20 @@ public static class ApiDiffAnalyzer
         var processedNewKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // =========================================================================
-        // PASSO 2: Rilevamento rimozioni, declassamenti di visibilità e modifiche di firma
-        // Itera su tutti i simboli pubblici della versione precedente (baseline).
+        // STEP 2: Detecting removals, visibility downgrades and signature changes
+        // Iterate over all public symbols from the previous version (baseline).
         // =========================================================================
         foreach (var (key, oldSym) in oldPublic)
         {
             if (newPublic.TryGetValue(key, out var newSym))
             {
                 processedNewKeys.Add(key);
-                // Il simbolo con la stessa firma esiste in entrambe le versioni
+                // The symbol with the same signature exists in both versions
                 CompareSignatures(oldSym, newSym, report);
             }
             else
             {
-                // 2a. Verifica se il simbolo esiste ancora nel grafo attuale ma con visibilità ridotta (es. Public -> Private/Internal)
+                // 2a. Check if the symbol still exists in the current graph but with reduced visibility (e.g. Public -> Private/Internal)
                 var stillExistsPrivate = currentGraph.Symbols.FirstOrDefault(s =>
                     s.QualifiedName.Equals(oldSym.QualifiedName, StringComparison.OrdinalIgnoreCase) &&
                     s.Kind == oldSym.Kind &&
@@ -110,7 +110,7 @@ public static class ApiDiffAnalyzer
 
                 else
                 {
-                    // 2b. Verifica se è una modifica di firma per un metodo con lo stesso QualifiedName
+                    // 2b. Checks if it is a signature change for a method with the same QualifiedName
                     var sameNameCandidate = newPublic.Values.FirstOrDefault(s =>
                         s.QualifiedName.Equals(oldSym.QualifiedName, StringComparison.OrdinalIgnoreCase) &&
                         s.Kind == oldSym.Kind &&
@@ -123,7 +123,7 @@ public static class ApiDiffAnalyzer
                     }
                     else
                     {
-                        // 2c. Il simbolo è stato rimosso integralmente
+                        // 2c. The symbol has been removed entirely
                         report.Differences.Add(new ApiDifferenceItem
                         {
                             SymbolQualifiedName = oldSym.QualifiedName,
@@ -139,8 +139,8 @@ public static class ApiDiffAnalyzer
         }
 
         // =========================================================================
-        // PASSO 3: Rilevamento nuove API pubbliche (Minor Feature retrocompatibile)
-        // Itera sui simboli pubblici correnti assenti nella baseline.
+        // STEP 3: Detection of new public APIs (backwards compatible Minor Feature)
+        // Iterate over the current public symbols absent in the baseline.
         // =========================================================================
         foreach (var (key, newSym) in newPublic)
         {
@@ -158,23 +158,23 @@ public static class ApiDiffAnalyzer
         }
 
         // =========================================================================
-        // PASSO 4: Ordinamento per gravità decrescente (Major Breaking -> Minor -> Patch)
+        // STEP 4: Sort by decreasing severity (Major Breaking -> Minor -> Patch)
         // =========================================================================
         report.Differences.Sort((a, b) => b.Impact.CompareTo(a.Impact));
         return report;
     }
 
     /// <summary>
-    /// Confronta la lista dei parametri di una routine tra vecchia e nuova versione per determinare se la variazione è breaking.
-    /// Se il numero di parametri obbligatori cambia o diminuisce, viene segnalato un Major Breaking Change.
+    /// Compare the list of parameters of a routine between the old and new versions to determine whether the change is breaking.
+    /// If the number of mandatory parameters changes or decreases, a Major Breaking Change is reported.
     /// </summary>
     private static void CompareSignatures(Symbol oldSym, Symbol newSym, ApiDiffReport report)
     {
-        // Limita il confronto alle routine con parametri formali (Metodi o Proprietà)
+        // Limit comparison to routines with formal parameters (Methods or Properties)
         if (oldSym.Kind is not (SymbolKind.Method or SymbolKind.Property))
             return;
 
-        // Verifica modifica del modificatore statico
+        // Check static modifier change
         if (oldSym.IsStatic != newSym.IsStatic)
 
             report.Differences.Add(new ApiDifferenceItem
@@ -188,7 +188,7 @@ public static class ApiDiffAnalyzer
                 NewSymbol = newSym
             });
 
-        // Verifica modifica del tipo di ritorno
+        // Verify return type change
         var oldReturn = oldSym.ReturnType ?? oldSym.DeclaredTypeName;
         var newReturn = newSym.ReturnType ?? newSym.DeclaredTypeName;
         if (!string.IsNullOrEmpty(oldReturn) && !string.IsNullOrEmpty(newReturn) &&
@@ -210,7 +210,7 @@ public static class ApiDiffAnalyzer
 
         if (oldParamCount != newParamCount)
         {
-            // Se sono stati rimossi parametri, oppure aggiunti nuovi parametri senza clausola Optional/valore di default, è un breaking change
+            // If parameters have been removed, or new parameters added without Optional clause/default value, it is a breaking change
             bool isBreaking = newParamCount < oldParamCount || newSym.Parameters.Skip(oldParamCount).Any(p => !p.IsOptional);
 
             report.Differences.Add(new ApiDifferenceItem
@@ -251,12 +251,12 @@ public static class ApiDiffAnalyzer
     }
 
     /// <summary>
-    /// Verifica se un simbolo fa parte della superficie pubblica dell'API esportata.
-    /// Esclude simboli di sistema o aggregatori (Project, Namespace) e controlla l'accessibilità effettiva.
+    /// Checks whether a symbol is part of the public surface of the exported API.
+    /// Excludes system symbols or aggregators (Project, Namespace) and checks actual accessibility.
     /// </summary>
     private static bool IsPublicApi(Symbol symbol)
     {
-        // Esclude i nodi macro di progetto e namespace
+        // Excludes project and namespace macro nodes
         if (symbol.Kind is SymbolKind.Project or SymbolKind.Namespace)
             return false;
 

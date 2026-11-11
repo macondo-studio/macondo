@@ -12,8 +12,8 @@ using Macondo.Semantic.Analytics.ArchitecturalFlow;
 namespace Macondo.App.Controls;
 
 /// <summary>
-/// Controllo visuale interattivo Skia per il Diagramma Chord dei Flussi Architetturali tra moduli e layer.
-/// Mostra dipendenze, volumi di chiamata e violazioni di confine architetturale.
+/// Skia interactive visual control for the Chord Diagram of Architectural Flows between modules and layers.
+/// Show dependencies, call volumes, and architectural boundary violations.
 /// </summary>
 public sealed class ArchitecturalFlowControl : Control
 {
@@ -79,7 +79,7 @@ public sealed class ArchitecturalFlowControl : Control
 
         FlowNode? hitNode = null;
 
-        // Hit testing anello esterno nodi
+        // Hit testing outer ring nodes
         if (dist >= innerRadius - 5 && dist <= radius + 25)
         {
             double angle = Math.Atan2(dy, dx);
@@ -143,7 +143,7 @@ public sealed class ArchitecturalFlowControl : Control
         // 1. Barra KPI superiore
         RenderKpiHeader(context, bounds, dataset);
 
-        // 2. Geometria del Diagramma Chord
+        // 2. Chord Diagram Geometry
         double cx = bounds.Width / 2.0;
         double cy = bounds.Height / 2.0 + 20.0;
         double outerRadius = Math.Min(bounds.Width, bounds.Height) * 0.36;
@@ -153,7 +153,7 @@ public sealed class ArchitecturalFlowControl : Control
 
         var activeFilterNode = _hoveredNode ?? _selectedNode;
 
-        // 3. Disegno dei nastri di connessione (Links)
+        // 3. Drawing of the connection tapes (Links)
         foreach (var link in dataset.Links.OrderBy(l => l.IsLayerViolation ? 1 : 0))
         {
             bool isConnected = activeFilterNode == null || link.SourceId == activeFilterNode.Id || link.TargetId == activeFilterNode.Id;
@@ -172,7 +172,7 @@ public sealed class ArchitecturalFlowControl : Control
             RenderChordRibbon(context, cx, cy, innerRadius, link, linkColor, isConnected && link.IsLayerViolation);
         }
 
-        // 4. Disegno dell'anello esterno con i nodi e label
+        // 4. Drawing the outer ring with nodes and labels
         foreach (var node in dataset.Nodes)
         {
             bool isHighlighted = activeFilterNode == null || node.Id == activeFilterNode.Id ||
@@ -188,7 +188,7 @@ public sealed class ArchitecturalFlowControl : Control
             RenderNodeLabel(context, cx, cy, outerRadius + 8, node, isHighlighted);
         }
 
-        // 5. Tooltip di dettaglio su hover
+        // 5. Hover detail tooltip
         if (_hoveredNode != null)
 
             RenderTooltip(context, bounds, _hoveredNode, dataset);

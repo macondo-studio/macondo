@@ -3,25 +3,25 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.Hotspots;
 
 /// <summary>
-/// Analizzatore agnostico per la rilevazione di Hotspot di codice (metodologia CodeScene / Adam Tornhill).
-/// Integra metriche statiche di grafo (Fan-in/Fan-out) con eventuali dati di commit history (VCS Churn).
+/// Agnostic analyzer for detecting code hotspots (CodeScene methodology / Adam Tornhill).
+/// Integrates static graph metrics (Fan-in/Fan-out) with any commit history data (VCS Churn).
 /// </summary>
 public static class HotspotAnalyzer
 {
     /// <summary>
-    /// Esegue l'analisi degli hotspot di rischio combinando la complessità strutturale con la frequenza di modifica (Churn) o di utilizzo (Fan-In).
+    /// Performs risk hotspot analysis by combining structural complexity with frequency of modification (Churn) or usage (Fan-In).
     /// </summary>
-    /// <param name="graph">Il <see cref="CodeGraph"/> semantico contenente simboli e relazioni.</param>
-    /// <param name="fileChurnHistory">Dizionario opzionale con il conteggio dei commit VCS per ciascun file sorgente.</param>
-    /// <returns>Il dataset <see cref="HotspotDataset"/> contenente tutti i simboli mappati sui 4 quadranti cartesiani di rischio.</returns>
+    /// <param name="graph">The semantic <see cref="CodeGraph"/> containing symbols and relationships.</param>
+    /// <param name="fileChurnHistory">Optional dictionary with VCS commit count for each source file.</param>
+    /// <returns>The <see cref="HotspotDataset"/> dataset containing all the symbols mapped onto the 4 Cartesian risk quadrants.</returns>
     /// <remarks>
-    /// L'algoritmo opera secondo le seguenti logiche:
+    /// The algorithm operates according to the following logic:
     /// <list type="number">
-    ///   <item><description><b>Complessità (Asse Y)</b>: calcolata combinando il Fan-out delle chiamate uscenti e il numero di parametri formali: <c>Complexity = 1.0 + (callees * 1.5) + (params * 0.8)</c>.</description></item>
-    ///   <item><description><b>Churn / Fan-In (Asse X)</b>: calcolato sul numero di chiamanti diretti e pesato con lo storico dei commit del file (se presente nei log VCS): <c>Churn = (commits * 2.0) + callers</c>.</description></item>
-    ///   <item><description><b>Dimensione (Raggio)</b>: metrica volumetrica stimata da parametri e chiamate.</description></item>
-    ///   <item><description><b>Partizionamento nei 4 Quadranti</b>: le soglie cartesiane <c>ThresholdX</c> e <c>ThresholdY</c> vengono determinate dalla media della codebase; gli elementi sopra la media in entrambi gli assi appartengono alla <b>DangerZone</b>.</description></item>
-    ///   <item><description><b>Punteggio di Rischio Normalizzato (0-100)</b>: media pesata tra Churn normalizzato e Complessità normalizzata rispetto ai massimi della codebase.</description></item>
+    /// <item><description><b>Complexity (Y Axis)</b>: calculated by combining the Fan-out of outgoing calls and the number of formal parameters: <c>Complexity = 1.0 + (callees * 1.5) + (params * 0.8)</c>.</description></item>
+    /// <item><description><b>Churn / Fan-In (X Axis)</b>: calculated on the number of direct callers and weighted with the commit history of the file (if present in the VCS logs): <c>Churn = (commits * 2.0) + callers</c>.</description></item>
+    /// <item><description><b>Dimension (Radius)</b>: volumetric metric estimated from parameters and calls.</description></item>
+    /// <item><description><b>Partitioning in the 4 Quadrants</b>: the Cartesian thresholds <c>ThresholdX</c> and <c>ThresholdY</c> are determined by the average of the codebase; elements above the average in both axes belong to the <b>DangerZone</b>.</description></item>
+    /// <item><description><b>Normalized Risk Score (0-100)</b>: weighted average between normalized Churn and normalized Complexity compared to the codebase maximums.</description></item>
     /// </list>
     /// </remarks>
     public static HotspotDataset Analyze(CodeGraph graph, IReadOnlyDictionary<string, int>? fileChurnHistory = null)
@@ -29,18 +29,18 @@ public static class HotspotAnalyzer
         var items = new List<HotspotItem>();
 
         // ---------------------------------------------------------------------
-        // PASSO 1: Selezione dei simboli target per l'analisi Hotspot.
-        // Diamo priorità a metodi e proprietà (procedure/funzioni). Se non ce ne
-        // sono (es. codebase di soli tipi o moduli vuoti), analizziamo i moduli stessi.
+        // STEP 1: Selecting target symbols for Hotspot analysis.
+        // We give priority to methods and properties (procedures/functions). If there is none
+        // are (e.g. type-only codebase or empty modules), let's analyze the modules themselves.
         // ---------------------------------------------------------------------
         var routines = graph.Symbols
             .Where(s => s.Kind is SymbolKind.Method or SymbolKind.Property)
             .ToList();
 
         // ---------------------------------------------------------------------
-        // PASSO 2: Mappatura gerarchica rapida Container -> Figli.
-        // Permette di associare istantaneamente ogni procedura al suo file/modulo
-        // padre (Classe, Form, Modulo standard, UserControl).
+        // STEP 2: Quick Hierarchical Mapping Container -> Children.
+        // It allows you to instantly associate each procedure with its file/module
+        // parent (Class, Form, Standard Form, UserControl).
         // ---------------------------------------------------------------------
         var symbolContainers = new Dictionary<Guid, string>();
         foreach (var container in graph.Symbols.Where(s => s.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl))
@@ -54,30 +54,30 @@ public static class HotspotAnalyzer
         var targets = routines.Count > 0 ? routines : graph.Symbols.Where(s => s.Kind != SymbolKind.Project).ToList();
 
         // ---------------------------------------------------------------------
-        // PASSO 3: Calcolo delle metriche di complessità, accoppiamento e churn per ciascun simbolo.
+        // STEP 3: Calculate complexity, coupling and churn metrics for each symbol.
         // ---------------------------------------------------------------------
         foreach (var sym in targets)
         {
-            // Fan-In: quanti altri metodi o procedure chiamano direttamente questo simbolo
+            // Fan-In: How many other methods or procedures call this symbol directly
             int callers = graph.Relationships.Count(r => r.TargetId == sym.Id && r.Kind == RelationshipKind.Calls);
-            // Fan-Out: quante altre procedure vengono invocate dall'interno di questo simbolo
+            // Fan-Out: How many other procedures are invoked from within this symbol
             int callees = graph.Relationships.Count(r => r.SourceId == sym.Id && r.Kind == RelationshipKind.Calls);
 
             // Complessità strutturale stimata (Asse Y):
-            // Base = 1.0; ogni chiamata uscente (callee) aumenta la complessità di 1.5 punti;
-            // ogni parametro formale nella firma aumenta l'impegno cognitivo e il rischio di 0.8 punti.
+            // Base = 1.0; each outgoing call (callee) increases the complexity by 1.5 points;
+            // each formal parameter in the signature increases cognitive effort and risk by 0.8 points.
             double complexity = 1.0 + (callees * 1.5) + (sym.Parameters.Count * 0.8);
 
-            // Churn / Frequenza di modifica o impatto (Asse X):
-            // Di default coincide con il Fan-In (callers). Se sono disponibili dati storici VCS (Git/SVN),
-            // il numero di commit che hanno toccato il file sorgente viene pesato con fattore 2.0.
+            // Churn / Rate of change or impact (X-axis):
+            // By default it coincides with the Fan-In (callers). If historical VCS data (Git/SVN) is available,
+            // the number of commits that touched the source file is weighted with a factor of 2.0.
             double churn = callers;
             if (fileChurnHistory != null && !string.IsNullOrEmpty(sym.FilePath) &&
                 fileChurnHistory.TryGetValue(sym.FilePath, out int commits))
 
                 churn = (commits * 2.0) + callers;
 
-            // Dimensione volumetrica dell'elemento (usata per il raggio visivo della bolla nel chart)
+            // Volumetric dimension of the element (used for the visual radius of the bubble in the chart)
             double size = Math.Max(4.0, (sym.Parameters.Count * 3.0) + (callees * 4.0) + 10.0);
 
             symbolContainers.TryGetValue(sym.Id, out var containerName);
@@ -98,14 +98,14 @@ public static class HotspotAnalyzer
             });
         }
 
-        // Se non ci sono elementi da analizzare, restituisce un dataset vuoto con valori di default
+        // If there are no items to analyze, it returns an empty dataset with default values
         if (items.Count == 0)
 
             return new HotspotDataset { ThresholdX = 5, ThresholdY = 5, MaxX = 10, MaxY = 10 };
 
         // ---------------------------------------------------------------------
-        // PASSO 4: Calcolo delle medie statistiche e dei massimi di scala della codebase.
-        // Le medie fungono da soglie di partizione per i 4 quadranti cartesiani.
+        // STEP 4: Calculate codebase statistical averages and scale maxima.
+        // The averages act as partition thresholds for the 4 Cartesian quadrants.
         // ---------------------------------------------------------------------
         double avgX = Math.Max(1.0, items.Average(i => i.ChurnOrFanIn));
         double avgY = Math.Max(1.0, items.Average(i => i.Complexity));
@@ -113,22 +113,22 @@ public static class HotspotAnalyzer
         double maxY = Math.Max(avgY * 2.0, items.Max(i => i.Complexity));
 
         // ---------------------------------------------------------------------
-        // PASSO 5: Normalizzazione del punteggio di rischio (0-100) e assegnazione del quadrante.
+        // STEP 5: Normalization of the risk score (0-100) and quadrant assignment.
         // ---------------------------------------------------------------------
         foreach (var item in items)
         {
-            // Normalizzazione lineare tra 0.0 e 1.0 rispetto ai massimi dell'intero progetto
+            // Linear normalization between 0.0 and 1.0 relative to the maximums of the entire project
             double normX = Math.Min(1.0, item.ChurnOrFanIn / maxX);
             double normY = Math.Min(1.0, item.Complexity / maxY);
             
-            // Score di rischio normalizzato combinato (50% Churn/Fan-In, 50% Complessità)
+            // Combined Normalized Risk Score (50% Churn/Fan-In, 50% Complexity)
             item.RiskScore = Math.Round(((normX * 0.5) + (normY * 0.5)) * 100.0, 1);
 
-            // Classificazione nei 4 quadranti in base alle soglie medie della codebase:
+            // Classification in the 4 quadrants based on the average thresholds of the codebase:
             // 1. DANGER ZONE (Alto Churn, Alta Complessità): codice critico, modificato spesso e complesso.
-            // 2. High Churn / Low Complexity: codice modificato frequentemente ma semplice (es. costanti, mapping).
-            // 3. Low Churn / High Complexity: codice complesso ma stabile (es. algoritmi core raramente toccati).
-            // 4. SAFE (Basso Churn, Bassa Complessità): codice semplice e raramente modificato.
+            // 2. High Churn / Low Complexity: Frequently modified but simple code (e.g. constants, mappings).
+            // 3. Low Churn / High Complexity: complex but stable code (e.g. core algorithms rarely touched).
+            // 4. SAFE (Low Churn, Low Complexity): Simple and rarely modified code.
             if (item.ChurnOrFanIn >= avgX && item.Complexity >= avgY)
             {
                 item.Quadrant = HotspotQuadrant.DangerZone;

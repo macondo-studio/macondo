@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class TreemapLayoutTests
 {
     /// <summary>
-    /// Verifica che TreemapModelBuilder e TreemapLayoutEngine calcolino la suddivisione spaziale (Squarified Treemap)
-    /// posizionando tutti i rettangoli all'interno del viewport specificato.
+    /// Verify that TreemapModelBuilder and TreemapLayoutEngine calculate spatial subdivision (Squarified Treemap)
+    /// placing all rectangles within the specified viewport.
     /// </summary>
     [Fact]
     public void Treemap_ShouldBuildAndLayoutSquarifiedTreemap_FromGraph()
@@ -36,7 +36,7 @@ public class TreemapLayoutTests
     }
 
     /// <summary>
-    /// Verifica la robustezza del motore di layout Treemap in caso di nodo singolo privo di figli.
+    /// Tests the robustness of the Treemap layout engine in case of a single node with no children.
     /// </summary>
     [Fact]
     public void TreemapLayoutEngine_ShouldHandleSingleNodeAndEmptyChildren_WithoutErrors()
@@ -58,7 +58,7 @@ public class TreemapLayoutTests
     }
 
     /// <summary>
-    /// Verifica il metodo di hit-testing TreemapRect.Contains per identificare se un punto (X, Y) ricade nel rettangolo.
+    /// Tests the TreemapRect.Contains hit-testing method to identify whether a point (X, Y) falls within the rectangle.
     /// </summary>
     [Fact]
     public void TreemapRect_Contains_ShouldCorrectlyIdentifyPointWithinBounds()

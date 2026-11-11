@@ -11,8 +11,8 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Controls;
 
 /// <summary>
-/// Controllo custom Avalonia Skia per la matrice di rischio Hotspot (Complessità vs Churn / Fan-In).
-/// Visualizza un grafico cartesiano a 4 quadranti con bubble chart interattivo.
+/// Avalonia Skia custom control for the Hotspot risk matrix (Complexity vs Churn / Fan-In).
+/// Displays a 4-quadrant Cartesian chart with interactive bubble chart.
 /// </summary>
 public sealed class HotspotControl : Control
 {
@@ -131,7 +131,7 @@ public sealed class HotspotControl : Control
         double splitX = marginL + (dataset.ThresholdX / maxX) * plotW;
         double splitY = marginT + plotH - (dataset.ThresholdY / maxY) * plotH;
 
-        // 1. Quadranti con colori di sfondo
+        // 1. Dials with background colors
         // Basso-Sinistra: SAFE
         context.FillRectangle(_safeQuadrantBrush, new Rect(marginL, splitY, splitX - marginL, marginT + plotH - splitY));
         // Alto-Sinistra: Low Churn / High Complexity
@@ -141,7 +141,7 @@ public sealed class HotspotControl : Control
         // Alto-Destra: DANGER ZONE / HOTSPOT
         context.FillRectangle(_dangerQuadrantBrush, new Rect(splitX, marginT, marginL + plotW - splitX, splitY - marginT));
 
-        // Etichette dei quadranti
+        // Dial labels
         var dangerBadge = new FormattedText(localizationService["Hotspot_DangerBadge"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, TitleTypeface, 11, new SolidColorBrush(Color.Parse("#FF5566")));
         context.DrawText(dangerBadge, new Point(marginL + plotW - dangerBadge.Width - 10, marginT + 10));
 
@@ -189,7 +189,7 @@ else
                 context.DrawEllipse(null, new Pen(new SolidColorBrush(Color.FromArgb(120, 255, 255, 255)), 0.8), center, radius, radius);
             }
 
-            // Testo etichetta per nodi di grande rilievo
+            // Label text for major nodes
             if (radius > 12.0 || item.Quadrant == HotspotQuadrant.DangerZone)
             {
                 string shortName = item.Name.Length > 12 ? item.Name[..10] + "…" : item.Name;
@@ -198,14 +198,14 @@ else
             }
         }
 
-        // 4. Card di Dettaglio Hovered
+        // 4. Hovered Detail Card
         if (_hoveredItem != null)
 
             DrawHoverCard(context, _hoveredItem);
     }
 
     /// <summary>
-    /// Restituisce il pennello di riempimento associato allo score di rischio composito:
+    /// Returns the fill brush associated with the composite risk score:
     /// >= 75: Rosso (Critico / High Danger)
     /// >= 50: Arancione (Alto)
     /// >= 25: Blu (Medio)
@@ -220,8 +220,8 @@ else
     }
 
     /// <summary>
-    /// Disegna la scheda informativa fluttuante (Hover Card) contenente il nome qualificato dell'elemento,
-    /// lo score di rischio, la complessità ciclomatica, il churn/fan-in e il numero di chiamanti diretti.
+    /// Draws the floating information card (Hover Card) containing the qualified name of the element,
+    /// the risk score, the cyclomatic complexity, the churn/fan-in and the number of direct callers.
     /// </summary>
     private void DrawHoverCard(DrawingContext context, HotspotItem item)
     {
@@ -293,8 +293,8 @@ else
     }
 
     /// <summary>
-    /// Esegue l'hit-testing cartesiano per individuare la bolla Hotspot sotto le coordinate del puntatore (px, py),
-    /// calcolando la distanza radiale rispetto al centro di ciascun punto proiettato.
+    /// Performs Cartesian hit-testing to locate the Hotspot bubble under the pointer coordinates (px, py),
+    /// calculating the radial distance from the center of each projected point.
     /// </summary>
     private HotspotItem? FindItemAt(double px, double py)
     {

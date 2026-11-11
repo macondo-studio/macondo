@@ -6,8 +6,8 @@ using Macondo.App.Models;
 namespace Macondo.App.Services;
 
 /// <summary>
-/// Servizio singleton responsabile del caricamento, salvataggio e gestione della persistenza
-/// delle preferenze utente su file JSON (%APPDATA%\Macondo\settings.json).
+/// Singleton service responsible for loading, saving, and managing persistence
+/// of user preferences in JSON file (%APPDATA%\Macondo\settings.json).
 /// </summary>
 public sealed class SettingsService
 {
@@ -36,7 +36,7 @@ public sealed class SettingsService
     }
 
     /// <summary>
-    /// Carica le impostazioni dal disco. Se il file non esiste o è corrotto, restituisce le impostazioni predefinite.
+    /// Load settings from disk. If the file does not exist or is corrupt, returns the default settings.
     /// </summary>
     public AppSettings Load()
     {
@@ -57,7 +57,7 @@ public sealed class SettingsService
             }
             catch
             {
-                // In caso di errore di lettura o JSON invalido, si ricade sui valori di default
+                // In the event of a reading error or invalid JSON, the default values are returned
             }
 
             Settings = new AppSettings();
@@ -66,7 +66,7 @@ public sealed class SettingsService
     }
 
     /// <summary>
-    /// Salva immediatamente lo stato corrente delle impostazioni su file JSON in modo sicuro.
+    /// Instantly save current state of settings to JSON file securely.
     /// </summary>
     public void Save()
     {
@@ -84,7 +84,7 @@ public sealed class SettingsService
             }
             catch
             {
-                // Tolleranza agli errori di scrittura (es. dischi protetti o permessi restrittivi temporanei)
+                // Write error tolerance (e.g. protected disks or temporary restrictive permissions)
             }
         }
     }
@@ -92,7 +92,7 @@ public sealed class SettingsService
     public event EventHandler<AppSettings>? SettingsChanged;
 
     /// <summary>
-    /// Modifica le impostazioni tramite una lambda ed esegue automaticamente la persistenza su disco.
+    /// It changes settings via a lambda and automatically persists to disk.
     /// </summary>
     public void Update(Action<AppSettings> updateAction)
     {
@@ -105,7 +105,7 @@ public sealed class SettingsService
     }
 
     /// <summary>
-    /// Ripristina tutte le preferenze utente ai valori predefiniti di fabbrica e salva il file su disco.
+    /// Reset all user preferences to factory defaults and save the file to disk.
     /// </summary>
     public AppSettings Reset()
     {

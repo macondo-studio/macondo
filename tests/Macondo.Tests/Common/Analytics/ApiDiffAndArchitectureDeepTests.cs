@@ -14,8 +14,8 @@ public class ApiDiffAndArchitectureDeepTests
     #region ApiDiff & SemVer Deep Scenarios
 
     /// <summary>
-    /// Verifica che la riduzione di visibilità di un metodo da Public a Private
-    /// venga classificata come Breaking Change (Major).
+    /// Checks that reducing the visibility of a method from Public to Private
+    /// be classified as Breaking Change (Major).
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectBreakingChange_WhenPublicMethodBecomesPrivate()
@@ -56,8 +56,8 @@ public class ApiDiffAndArchitectureDeepTests
     }
 
     /// <summary>
-    /// Verifica che grafi identici o modifiche esclusivamente a metodi privati
-    /// non generino alcuna segnalazione di breaking change.
+    /// Check for identical graphs or changes to private methods only
+    /// do not generate any breaking change reports.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldReportNoBreakingChanges_ForIdenticalGraphsOrInternalChanges()
@@ -108,8 +108,8 @@ public class ApiDiffAndArchitectureDeepTests
     }
 
     /// <summary>
-    /// Verifica che la rimozione di un'intera interfaccia o classe pubblica
-    /// provochi la classificazione MajorBreaking.
+    /// Verifies that removing an entire public interface or class
+    /// causes the MajorBreaking classification.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectBreakingChange_WhenPublicInterfaceIsRemoved()
@@ -143,8 +143,8 @@ public class ApiDiffAndArchitectureDeepTests
     #region Deep Taint Propagation & Disconnected Paths
 
     /// <summary>
-    /// Verifica la corretta propagazione della taint attraverso una catena profonda a 5 livelli
-    /// da un campo UI sorgente non controllato fino a un'istruzione SQL sink.
+    /// Verify correct taint propagation through a 5-level deep chain
+    /// from an uncontrolled source UI field to a sink SQL statement.
     /// </summary>
     [Fact]
     public void TaintAnalyzer_ShouldPropagateTaintAcrossDeepFiveLevelCallChain()
@@ -182,8 +182,8 @@ public class ApiDiffAndArchitectureDeepTests
     }
 
     /// <summary>
-    /// Verifica che un campo di input isolato o senza percorsi verso alcun sink critico
-    /// non generi falsi positivi nei TaintPath.
+    /// Verify that an input field is isolated or has no paths to any critical sink
+    /// does not generate false positives in TaintPaths.
     /// </summary>
     [Fact]
     public void TaintAnalyzer_ShouldNotReportFalsePositives_WhenSourceCannotReachSink()
@@ -215,7 +215,7 @@ public class ApiDiffAndArchitectureDeepTests
     #region Complex Architectural Rules
 
     /// <summary>
-    /// Verifica la valutazione simultanea di regole architetturali multiple (violazioni su livelli diversi).
+    /// Tests the simultaneous evaluation of multiple architectural rules (violations on different levels).
     /// </summary>
     [Fact]
     public void ArchitecturalRules_ShouldEvaluateMultipleLayeredRulesSimultaneously()
@@ -233,7 +233,7 @@ public class ApiDiffAndArchitectureDeepTests
         graph.AddContains(uiClass, uiMethod);
         graph.AddContains(dbClass, dbMethod);
 
-        // Violazione: UI chiama direttamente Database
+        // Violation: UI directly calls Database
         graph.AddCalls(uiMethod, dbMethod);
 
         var rule = new ArchitecturalRule
@@ -259,7 +259,7 @@ public class ApiDiffAndArchitectureDeepTests
     #region DSM Large Cycle Detection
 
     /// <summary>
-    /// Verifica che DsmMatrixBuilder rilevi cicli estesi composti da 5 nodi (A -> B -> C -> D -> E -> A).
+    /// Verify that DsmMatrixBuilder detects extended loops consisting of 5 nodes (A -> B -> C -> D -> E -> A).
     /// </summary>
     [Fact]
     public void DsmMatrix_ShouldDetectFiveNodeCircularDependency()

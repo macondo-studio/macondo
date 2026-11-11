@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class ScreenFlowAdvancedTests
 {
     /// <summary>
-    /// Verifica che ScreenFlowBuilder rilevi transizioni di navigazione tra schermate UI (Form)
-    /// sia tramite chiamate dirette che istanziazioni di finestre secondarie.
+    /// Verify that ScreenFlowBuilder detects navigation transitions between UI (Form) screens
+    /// either through direct calls or sub-window instantiations.
     /// </summary>
     [Fact]
     public void ScreenFlowBuilder_ShouldIdentifyMultipleFormsAndTransitions()
@@ -30,7 +30,7 @@ public class ScreenFlowAdvancedTests
         var modalForm = new Symbol { Id = Guid.NewGuid(), Name = "frmPaymentModal", QualifiedName = "frmPaymentModal", FilePath = "frmPaymentModal.frm", Kind = SymbolKind.Form };
         graph.Symbols.Add(modalForm);
 
-        // Transizioni: mainForm -> ordersForm e ordersForm -> modalForm
+        // Transitions: mainForm -> ordersForm and ordersForm -> modalForm
         graph.AddInstantiates(btnOpenOrders, ordersForm);
         graph.AddInstantiates(btnOpenModal, modalForm);
 
@@ -50,8 +50,8 @@ public class ScreenFlowAdvancedTests
     }
 
     /// <summary>
-    /// Verifica che percorsi ciclici di navigazione tra schermate (FormA <-> FormB)
-    /// non generino loop infiniti o errori nel calcolo del layout a livelli.
+    /// Check that cyclic navigation paths between screens (FormA <-> FormB)
+    /// do not generate infinite loops or errors in the calculation of the layered layout.
     /// </summary>
     [Fact]
     public void ScreenFlowBuilder_ShouldHandleCyclicNavigation()
@@ -89,7 +89,7 @@ public class ScreenFlowAdvancedTests
     }
 
     /// <summary>
-    /// Verifica l'inclusione di controlli utente (UserControl) all'interno di una Form.
+    /// Checks the inclusion of user controls (UserControl) within a Form.
     /// </summary>
     [Fact]
     public void ScreenFlowBuilder_ShouldDetectUserControlEmbedding()

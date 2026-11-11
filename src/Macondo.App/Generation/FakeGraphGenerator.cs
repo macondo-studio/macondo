@@ -6,10 +6,10 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Generation;
 
 /// <summary>
-/// Generatore di grafi sintetici/fittizi per test di carico, benchmark UI e modalità demo.
-/// Produce una struttura gerarchica realistica (~5000 nodi) con Progetto, Form, Classi, Moduli, Metodi,
-/// Proprietà e relazioni semantiche di chiamata (CALLS), contenimento (CONTAINS) e istanziazione (INSTANTIATES),
-/// con cluster eterogenei e componenti di dimensioni marcatamente diversificate per valorizzare i layout visivi.
+/// Synthetic/dummy graph generator for load testing, UI benchmarks and demo modes.
+/// Produces a realistic hierarchical structure (~5000 nodes) with Project, Form, Classes, Modules, Methods,
+/// Properties and semantic relations of call (CALLS), containment (CONTAINS) and instantiation (INSTANTIATES),
+/// with heterogeneous clusters and components of markedly different sizes to enhance the visual layouts.
 /// </summary>
 public static class FakeGraphGenerator
 {
@@ -135,13 +135,13 @@ public static class FakeGraphGenerator
     ];
 
     /// <summary>
-    /// Genera un <see cref="VisualCodeGraph"/> sintetico con distribuzione casuale ed eterogenea dei nodi per cluster e componenti.
-    /// Per impostazione predefinita genera ~5000 nodi totali con forte differenziazione volumetrica tra componenti.
+    /// Generates a synthetic <see cref="VisualCodeGraph"/> with random and heterogeneous distribution of nodes for clusters and components.
+    /// By default it generates ~5000 total nodes with strong volumetric differentiation between components.
     /// </summary>
-    /// <param name="seed">Seed del generatore di numeri casuali (per riproducibilità deterministica).</param>
-    /// <param name="containerCount">Numero facoltativo di classi/form/moduli (se null, calcolato automaticamente per raggiungere targetNodeCount).</param>
-    /// <param name="methodsPerContainer">Numero facoltativo medio di metodi per container.</param>
-    /// <param name="targetNodeCount">Numero complessivo di nodi desiderati nel grafo (default 5000 nodi).</param>
+    /// <param name="seed">Random number generator seed (for deterministic reproducibility).</param>
+    /// <param name="containerCount">Optional number of classes/forms/modules (if null, automatically calculated to reach targetNodeCount).</param>
+    /// <param name="methodsPerContainer">Average optional number of methods per container.</param>
+    /// <param name="targetNodeCount">Total number of nodes desired in the graph (default 5000 nodes).</param>
     public static VisualCodeGraph Generate(int seed = 42, int? containerCount = null, int? methodsPerContainer = null, int targetNodeCount = 5000)
     {
         var random = new Random(seed);
@@ -152,7 +152,7 @@ public static class FakeGraphGenerator
             Queries = new CallGraphQueries(semanticGraph)
         };
 
-        // 1. Nodo Radice di Progetto
+        // 1. Project Root Node
         var projectNode = new GraphNode
         {
             Id = Guid.NewGuid(),
@@ -163,7 +163,7 @@ public static class FakeGraphGenerator
         };
         visualGraph.Nodes.Add(projectNode);
 
-        // Calcolo quote: numero di container e numero totale di membri
+        // Quota calculation: number of containers and total number of members
         int numContainers;
         int totalMembers;
 
@@ -179,16 +179,16 @@ public static class FakeGraphGenerator
         }
         else
         {
-            // ~140 container per ~5000 nodi complessivi
+            // ~140 containers for ~5000 total nodes
             numContainers = Math.Max(10, (int)Math.Round(targetNodeCount * 0.028));
             totalMembers = Math.Max(0, targetNodeCount - 1 - numContainers);
         }
 
-        // 2. Ripartizione dei container sui cluster funzionali
+        // 2. Distribution of containers on functional clusters
         var activeClusterCount = Math.Min(Clusters.Length, Math.Max(1, numContainers));
         var clusterContainerQuotas = DistributeContainerQuotas(numContainers, activeClusterCount, random);
 
-        // 3. Generazione e assegnazione dei container per ciascun cluster
+        // 3. Generation and assignment of containers for each cluster
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var clusterContainers = new List<List<GraphNode>>();
         var allContainers = new List<GraphNode>();
@@ -254,7 +254,7 @@ public static class FakeGraphGenerator
                 allContainers.Add(containerNode);
                 visualGraph.Nodes.Add(containerNode);
 
-                // Relazione Contains: Project -> Container
+                // Contains relationship: Project -> Container
                 visualGraph.Edges.Add(new GraphEdge
                 {
                     SourceId = projectNode.Id,
@@ -267,10 +267,10 @@ public static class FakeGraphGenerator
             clusterContainers.Add(currentClusterNodes);
         }
 
-        // 4. Calcolo quote eterogenee di membri per ciascun container
+        // 4. Calculate heterogeneous shares of members for each container
         var memberQuotas = DistributeMemberQuotas(clusterContainers, totalMembers, random);
 
-        // 5. Creazione dei membri per ciascun container
+        // 5. Creating members for each container
         var clusterMethods = new List<List<GraphNode>>();
         var globalContainerIdx = 0;
 
@@ -326,7 +326,7 @@ public static class FakeGraphGenerator
                     methodsInCluster.Add(methodNode);
                     visualGraph.Nodes.Add(methodNode);
 
-                    // Relazione Contains: Container -> Member
+                    // Contains relationship: Container -> Member
                     visualGraph.Edges.Add(new GraphEdge
                     {
                         SourceId = containerNode.Id,
@@ -341,7 +341,7 @@ public static class FakeGraphGenerator
             clusterMethods.Add(methodsInCluster);
         }
 
-        // 6. Generazione delle relazioni CALLS e INSTANTIATES intra-cluster
+        // 6. Generation of intra-cluster CALLS and INSTANTIATES relationships
         for (var cIdx = 0; cIdx < clusterContainers.Count; cIdx++)
         {
             var containersInCluster = clusterContainers[cIdx];
@@ -351,7 +351,7 @@ public static class FakeGraphGenerator
 
             var existingCalls = new HashSet<(Guid, Guid)>();
 
-            // Spanning tree intra-cluster per garantire coesione della componente connessa nell'isola
+            // Intra-cluster spanning tree to ensure cohesion of the connected component in the island
             if (containersInCluster.Count > 1)
             {
                 for (var i = 1; i < containersInCluster.Count; i++)
@@ -384,7 +384,7 @@ public static class FakeGraphGenerator
                 }
             }
 
-            // Chiamate aggiuntive intra-cluster con preferenza per hub methods
+            // Additional intra-cluster calls with preference for hub methods
             var callCount = Math.Min(methods.Count * 2, (int)(methods.Count * (1.2 + random.NextDouble() * 0.8)));
             for (var c = 0; c < callCount; c++)
             {
@@ -393,7 +393,7 @@ public static class FakeGraphGenerator
 
                 if (random.NextDouble() < 0.4)
                 {
-                    // Chiamata interna allo stesso modulo
+                    // Internal call to the same module
                     var sameContainer = methods.Where(m => m.ParentId == caller.ParentId && m.Id != caller.Id).ToList();
                     if (sameContainer.Count > 0)
                         callee = sameContainer[random.Next(sameContainer.Count)];
@@ -402,7 +402,7 @@ public static class FakeGraphGenerator
                 }
                 else
                 {
-                    // Chiamata verso altro container del cluster
+                    // Call to another container in the cluster
                     callee = methods[random.Next(methods.Count)];
                 }
 
@@ -426,7 +426,7 @@ public static class FakeGraphGenerator
                 });
             }
 
-            // Istanziazioni (INSTANTIATES) verso le classi del cluster
+            // Instantiations (INSTANTIATES) towards the cluster classes
             var classContainersInCluster = containersInCluster.Where(n => n.Kind == SymbolKind.Class).ToList();
             if (classContainersInCluster.Count > 0)
             {
@@ -452,7 +452,7 @@ public static class FakeGraphGenerator
             }
         }
 
-        // 7. Calcola il layout radiale iniziale e finalizza il grafo
+        // 7. Calculate the initial radial layout and finalize the graph
         RadialLayoutEngine.Apply(visualGraph);
         visualGraph.Invalidate();
 
@@ -482,7 +482,7 @@ public static class FakeGraphGenerator
         var allocated = 0;
         for (var i = 0; i < clusterCount; i++)
         {
-            // Cluster foglia/piccoli mantengono 1-2 container, i grandi ne ricevono molti di più
+            // Leaf/small clusters keep 1-2 containers, large ones get many more
             var q = Math.Max(1, (int)Math.Round((weights[i] / totalWeight) * totalContainers));
             quotas[i] = q;
             allocated += q;
@@ -539,22 +539,22 @@ public static class FakeGraphGenerator
                 double roleFactor;
                 if (k == 0 && list.Count > 2)
                 {
-                    // "God Class" o Form principale del cluster: volumetria molto elevata (80-140 nodi)
+                    // "God Class" or main form of the cluster: very high volume (80-140 nodes)
                     roleFactor = 9.0 + random.NextDouble() * 4.5;
                 }
                 else if (k <= 2 && list.Count > 4)
                 {
-                    // Componenti secondari importanti (40-70 nodi)
+                    // Major secondary components (40-70 nodes)
                     roleFactor = 4.0 + random.NextDouble() * 2.0;
                 }
                 else if (list.Count <= 2)
                 {
-                    // Moduli utility/foglia in piccoli cluster (1-6 nodi)
+                    // Utility/leaf modules in small clusters (1-6 nodes)
                     roleFactor = 0.25 + random.NextDouble() * 0.4;
                 }
                 else
                 {
-                    // Componenti medi e standard (10-35 nodi)
+                    // Medium and standard components (10-35 nodes)
                     roleFactor = 1.2 + random.NextDouble() * 1.0;
                 }
 
@@ -572,10 +572,10 @@ public static class FakeGraphGenerator
             allocated += q;
         }
 
-        // Pareggio esatto del numero di membri
+        // Exact tie number of members
         while (allocated < totalMembers)
         {
-            // Assegna il delta preferenzialmente ai container leader più pesanti
+            // Assign the delta preferentially to the heaviest leading containers
             var topIdx = 0;
             for (var i = 1; i < totalContainers; i++)
             {

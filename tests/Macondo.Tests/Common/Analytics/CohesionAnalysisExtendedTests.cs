@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class CohesionAnalysisExtendedTests
 {
     /// <summary>
-    /// Verifica che una classe altamente coesa in cui tutti i metodi accedono a tutti i campi condivisi
-    /// produca LCOM4 = 1, TCC = 1.0 e non sia considerata un candidato per il refactoring.
+    /// Ensures that you have a highly cohesive class where all methods access all shared fields
+    /// produces LCOM4 = 1, TCC = 1.0 and is not considered a candidate for refactoring.
     /// </summary>
     [Fact]
     public void Cohesion_ShouldYieldPerfectLcom4AndTcc_ForFullyCohesiveClass()
@@ -32,15 +32,15 @@ public class CohesionAnalysisExtendedTests
         graph.AddContains(cls, mthMag);
         graph.AddContains(cls, mthNorm);
 
-        // mthSet scrive su entrambi i campi
+        // mthSet writes to both fields
         graph.AddWrites(mthSet, fldX);
         graph.AddWrites(mthSet, fldY);
 
-        // mthMag legge entrambi i campi
+        // mthMag reads both fields
         graph.AddReads(mthMag, fldX);
         graph.AddReads(mthMag, fldY);
 
-        // mthNorm invoca mthMag e scrive su fldX e fldY
+        // mthNorm invokes mthMag and writes to fldX and fldY
         graph.AddCalls(mthNorm, mthMag);
         graph.AddWrites(mthNorm, fldX);
         graph.AddWrites(mthNorm, fldY);
@@ -59,8 +59,8 @@ public class CohesionAnalysisExtendedTests
     }
 
     /// <summary>
-    /// Verifica che classi con chiamate tra metodi transitivi (m1 chiama m2, m2 usa il campo f)
-    /// raggruppino m1 e m2 nello stesso cluster di coesione.
+    /// Check that classes with calls between transitive methods (m1 calls m2, m2 uses field f)
+    /// group m1 and m2 in the same cohesion cluster.
     /// </summary>
     [Fact]
     public void Cohesion_ShouldGroupMethodsIntoSingleCluster_ViaMethodInvocations()
@@ -78,9 +78,9 @@ public class CohesionAnalysisExtendedTests
         graph.AddContains(cls, mthCaller);
         graph.AddContains(cls, mthWorker);
 
-        // mthCaller non tocca m_state ma chiama mthWorker
+        // mthCaller does not touch m_state but calls mthWorker
         graph.AddCalls(mthCaller, mthWorker);
-        // mthWorker legge m_state
+        // mthWorker reads m_state
         graph.AddReads(mthWorker, fldState);
 
         // Act
@@ -93,7 +93,7 @@ public class CohesionAnalysisExtendedTests
     }
 
     /// <summary>
-    /// Verifica che un CodeGraph privo di classi o con soli moduli vuoti non sollevi eccezioni.
+    /// Verify that a CodeGraph with no classes or only empty modules does not raise exceptions.
     /// </summary>
     [Fact]
     public void Cohesion_ShouldHandleEmptyGraph_Gracefully()

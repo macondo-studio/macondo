@@ -2226,7 +2226,7 @@ public sealed class LocalizationService
     public string this[string key] => Get(key);
 
     /// <summary>
-    /// Formatta una durata rimanente in secondi in modo user-friendly (es. "~1.5s rimanenti" o "~2m 15s rimanenti").
+    /// Format a remaining duration in seconds in a user-friendly way (e.g. "~1.5s remaining" or "~2m 15s remaining").
     /// </summary>
     public string FormatRemainingTime(double seconds)
     {
@@ -2242,7 +2242,7 @@ public sealed class LocalizationService
     }
 
     /// <summary>
-    /// Formatta una stima temporale totale in secondi (es. "Tempo stimato: ~12.5s" o "Tempo stimato: ~1m 30s").
+    /// Format a total time estimate in seconds (e.g. "Estimated time: ~12.5s" or "Estimated time: ~1m 30s").
     /// </summary>
     public string FormatEstimatedTime(double seconds)
     {
@@ -2258,9 +2258,9 @@ public sealed class LocalizationService
     }
 
     /// <summary>
-    /// Rileva automaticamente la lingua da impostare in base alla lingua e impostazioni regionali di sistema.
-    /// Se la lingua di sistema o interfaccia utente è l'italiano ("it"), restituisce AppLanguage.Italian.
-    /// Per qualsiasi altra lingua, restituisce AppLanguage.English come standard internazionale predefinito.
+    /// Automatically detects the language to set based on your system language and regional settings.
+    /// If the system or user interface language is Italian ("it"), returns AppLanguage.Italian.
+    /// For any other language, returns AppLanguage.English as the default international standard.
     /// </summary>
     public static AppLanguage DetectSystemLanguage()
     {
@@ -2277,14 +2277,14 @@ public sealed class LocalizationService
         }
         catch
         {
-            // Tolleranza ad eccezioni su ambienti o permessi restrittivi
+            // Tolerance of exceptions on restrictive environments or permissions
         }
 
         return AppLanguage.English;
     }
 
     /// <summary>
-    /// Determina se una specifica cultura appartiene alla lingua italiana.
+    /// Determines whether a specific culture belongs to the Italian language.
     /// </summary>
     public static bool IsItalianCulture(System.Globalization.CultureInfo? culture)
     {

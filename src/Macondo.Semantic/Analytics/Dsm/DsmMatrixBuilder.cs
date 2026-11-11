@@ -3,25 +3,25 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.Dsm;
 
 /// <summary>
-/// Costruttore agnostico della matrice di dipendenza strutturale (DSM).
-/// Funziona su qualsiasi CodeGraph a prescindere dal linguaggio sorgente.
+/// Agnostic structural dependency matrix (DSM) constructor.
+/// It works on any CodeGraph regardless of the source language.
 /// </summary>
 public static class DsmMatrixBuilder
 {
     /// <summary>
-    /// Costruisce una nuova istanza di <see cref="DsmMatrix"/> a partire dal grafo di codice semantico fornito.
+    /// Constructs a new instance of <see cref="DsmMatrix"/> from the provided semantic code graph.
     /// </summary>
-    /// <param name="graph">Il <see cref="CodeGraph"/> semantico contenente simboli e relazioni estratti.</param>
-    /// <param name="ordering">La strategia di ordinamento desiderata per le righe e colonne della matrice DSM.</param>
-    /// <returns>La matrice DSM popolata con dipendenze, pesi, componenti fortemente connesse e categorizzazione dei cicli.</returns>
+    /// <param name="graph">The semantic <see cref="CodeGraph"/> containing extracted symbols and relations.</param>
+    /// <param name="ordering">The desired sorting strategy for the rows and columns of the DSM matrix.</param>
+    /// <returns>The DSM matrix populated with dependencies, weights, strongly connected components, and loop categorization.</returns>
     /// <remarks>
-    /// La procedura di costruzione opera secondo le seguenti fasi:
+    /// The construction procedure operates according to the following phases:
     /// <list type="number">
-    ///   <item><description>Identifica tutti i moduli/classi/container di primo livello e mappa la gerarchia <c>CONTAINS</c> per risalire dai singoli membri (metodi, proprietà, campi) al loro container padre.</description></item>
-    ///   <item><description>Inizializza la griglia bidimensionale <c>N x N</c> di celle DSM.</description></item>
-    ///   <item><description>Proietta ogni relazione semantica (chiamate, istanziazioni, usi di tipo, gestione eventi) sulla cella corrispondente alla coppia sorgente-destinazione, incrementandone il peso e accumulando i dettagli.</description></item>
-    ///   <item><description>Esegue l'algoritmo di Tarjan (<see cref="DetectCyclesAndComponents"/>) per rilevare le componenti fortemente connesse (SCC) e contrassegnare le celle/moduli coinvolti in dipendenze circolari.</description></item>
-    ///   <item><description>Applica l'eventuale riordinamento geometrico richiesto (<see cref="SortMatrix"/>) per raggruppare i cicli o ordinare per tipologia/alfabeto.</description></item>
+    /// <item><description>Identifies all top-level modules/classes/containers and maps the <c>CONTAINS</c> hierarchy to trace from the individual members (methods, properties, fields) to their parent container.</description></item>
+    /// <item><description>Initializes the two-dimensional grid <c>N x N</c> of DSM cells.</description></item>
+    /// <item><description>Projects each semantic relationship (calls, instantiations, type uses, event management) onto the cell corresponding to the source-destination pair, increasing its weight and accumulating details.</description></item>
+    /// <item><description>Runs the Tarjan algorithm (<see cref="DetectCyclesAndComponents"/>) to detect strongly connected components (SCC) and flag cells/modules involved in circular dependencies.</description></item>
+    /// <item><description>Applies any required geometric reordering (<see cref="SortMatrix"/>) to group the cycles or sort by type/alphabet.</description></item>
     /// </list>
     /// </remarks>
     public static DsmMatrix Build(CodeGraph graph, DsmOrdering ordering = DsmOrdering.TopologicalOrPartitioned)
@@ -29,9 +29,9 @@ public static class DsmMatrixBuilder
         var symbolMap = graph.Symbols.ToDictionary(s => s.Id);
 
         // ---------------------------------------------------------------------
-        // FASE 1: Ricostruzione della gerarchia padre -> figli (relazioni CONTAINS).
-        // Necessaria per mappare i membri interni (es. metodo Modulo1.CalcolaTotale)
-        // al rispettivo modulo o container di primo livello (Modulo1).
+        // PHASE 1: Reconstruction of the parent -> children hierarchy (CONTAINS relationships).
+        // Required to map internal members (e.g. Modulo1.CalcolaTotal method)
+        // to the respective top-level module or container (Module1).
         // ---------------------------------------------------------------------
         var parentToChildren = new Dictionary<Guid, List<Guid>>();
         foreach (var rel in graph.Relationships.Where(r => r.Kind == RelationshipKind.Contains))
@@ -45,8 +45,8 @@ public static class DsmMatrixBuilder
         }
 
         // ---------------------------------------------------------------------
-        // FASE 2: Rilevamento dei nodi container di primo livello (Classi, Form, Moduli, UDT, UserControl, Interfacce, Strutture, Record).
-        // Se non vi sono container espliciti, usiamo tutti i simboli non di progetto.
+        // PHASE 2: Detection of top-level container nodes (Classes, Forms, Modules, UDTs, UserControls, Interfaces, Structures, Records).
+        // If there are no explicit containers, we use all non-project symbols.
         // ---------------------------------------------------------------------
         var containers = graph.Symbols
             .Where(s => s.Kind is SymbolKind.Class or SymbolKind.Form or SymbolKind.Module or SymbolKind.UserControl or SymbolKind.Type or SymbolKind.Interface or SymbolKind.Struct or SymbolKind.Record)
@@ -56,7 +56,7 @@ public static class DsmMatrixBuilder
 
             containers = graph.Symbols.Where(s => s.Kind != SymbolKind.Project).ToList();
 
-        // Mappa di lookup O(1): qualsiasi ID di simbolo o membro -> ID del container di appartenenza
+        // O(1) lookup map: any symbol or member ID -> parent container ID
         var symbolToContainer = new Dictionary<Guid, Guid>();
         foreach (var container in containers)
         {
@@ -71,7 +71,7 @@ public static class DsmMatrixBuilder
         }
 
         // ---------------------------------------------------------------------
-        // FASE 3: Istanziazione degli item DSM e allocazione della griglia bidimensionale N x N.
+        // PHASE 3: Instantiation of the DSM items and allocation of the N x N two-dimensional grid.
         // ---------------------------------------------------------------------
         var items = containers.Select((c, idx) => new DsmItem
         {
@@ -85,7 +85,7 @@ public static class DsmMatrixBuilder
         var matrix = new DsmMatrix { Items = items };
         matrix.InitializeCells();
 
-        // Mappa di lookup veloce: Container ID -> Indice riga/colonna (0..N-1)
+        // Quick lookup map: Container ID -> Row/Column Index (0..N-1)
         var containerIndexMap = new Dictionary<Guid, int>();
         for (int i = 0; i < items.Count; i++)
         {
@@ -93,21 +93,21 @@ public static class DsmMatrixBuilder
         }
 
         // ---------------------------------------------------------------------
-        // FASE 4: Proiezione di tutte le relazioni semantiche sulle celle DSM (r, c).
-        // Escludiamo relazioni puramente sintattiche (Contains, Declares) e le autorelazioni (stesso modulo).
+        // STEP 4: Projection of all semantic relations onto DSM cells (r, c).
+        // We exclude purely syntactic relations (Contains, Declares) and self-relations (same module).
         // ---------------------------------------------------------------------
         foreach (var rel in graph.Relationships)
         {
             if (rel.Kind == RelationshipKind.Contains || rel.Kind == RelationshipKind.Declares)
                 continue;
 
-            // Risaliamo dai simboli specifici (es. Sub Chiamante -> Sub Chiamata) ai rispettivi moduli
+            // We trace from the specific symbols (e.g. Sub Caller -> Sub Call) to the respective modules
             if (!symbolToContainer.TryGetValue(rel.SourceId, out var srcContainerId) ||
                 !symbolToContainer.TryGetValue(rel.TargetId, out var tgtContainerId))
 
                 continue;
 
-            // Ignoriamo le dipendenze intra-modulo (sulla diagonale principale)
+            // We ignore intra-module dependencies (on the main diagonal)
             if (srcContainerId == tgtContainerId)
                 continue;
 
@@ -116,7 +116,7 @@ public static class DsmMatrixBuilder
 
                 continue;
 
-            // Recupera la cella (riga = chiamante/sorgente, colonna = chiamato/destinazione)
+            // Get cell (row = caller/source, column = callee/destination)
             var cell = matrix.GetCell(rowIdx, colIdx);
             cell.Weight++;
             matrix.TotalDependencies++;
@@ -124,7 +124,7 @@ public static class DsmMatrixBuilder
             symbolMap.TryGetValue(rel.SourceId, out var srcSym);
             symbolMap.TryGetValue(rel.TargetId, out var tgtSym);
 
-            // Mappatura flag bitmask per le tipologie di dipendenza
+            // Bitmask flag mapping for dependency types
             var depKind = rel.Kind switch
             {
                 RelationshipKind.Calls => DsmDependencyKind.Call,
@@ -148,21 +148,21 @@ public static class DsmMatrixBuilder
         }
 
         // ---------------------------------------------------------------------
-        // FASE 5: Rilevamento Cicli con Algoritmo di Tarjan per Componenti Fortemente Connesse (SCC).
+        // PHASE 5: Cycle Detection with Tarjan Algorithm for Strongly Connected Components (SCC).
         // ---------------------------------------------------------------------
         DetectCyclesAndComponents(matrix);
 
         // ---------------------------------------------------------------------
-        // FASE 6: Ordinamento geometrico della matrice se richiesto.
+        // STEP 6: Geometric ordering of the matrix if required.
         // ---------------------------------------------------------------------
         if (ordering != DsmOrdering.Alphabetical)
 
             SortMatrix(matrix, ordering);
 
         // ---------------------------------------------------------------------
-        // FASE 7: Calcolo InDegree e OutDegree per ciascun elemento della DSM.
-        // OutDegree = numero di altri moduli da cui dipende il modulo (celle riga r con HasDependency).
-        // InDegree  = numero di altri moduli che dipendono dal modulo (celle colonna r con HasDependency).
+        // STEP 7: Calculating InDegree and OutDegree for each element of the DSM.
+        // OutDegree = number of other modules the module depends on (r row cells with HasDependency).
+        // InDegree = number of other modules that depend on the module (r column cells with HasDependency).
         // ---------------------------------------------------------------------
         int n = matrix.Size;
         for (int r = 0; r < n; r++)
@@ -184,20 +184,20 @@ public static class DsmMatrixBuilder
     }
 
     /// <summary>
-    /// Rileva i cicli e le dipendenze mutue/circolari all'interno della DSM applicando l'algoritmo di Tarjan per le Componenti Fortemente Connesse (SCC).
+    /// Detect cycles and mutual/circular dependencies within the DSM by applying the Tarjan algorithm for Strongly Connected Components (SCC).
     /// </summary>
-    /// <param name="matrix">La matrice DSM da analizzare.</param>
+    /// <param name="matrix">The DSM matrix to be analyzed.</param>
     /// <remarks>
-    /// Costruisce una lista di adiacenza basata sulle celle con peso &gt; 0, esegue una visita in profondità (DFS)
-    /// mediante <see cref="StrongConnect"/> e isola i sottoinsiemi di moduli con interdipendenze cicliche (<c>SCC.Count &gt; 1</c>).
-    /// Tutte le celle interne a tali componenti vengono contrassegnate con <see cref="DsmCell.IsInCycle"/> = <c>true</c>
-    /// e gli elementi con <see cref="DsmItem.HasCircularDependencies"/> = <c>true</c>.
+    /// Builds an adjacency list based on cells with weight > 0, performs a depth-first visit (DFS)
+    /// using <see cref="StrongConnect"/> and isolates module subsets with cyclic interdependencies (<c>SCC.Count > 1</c>).
+    /// All cells inside these components are marked with <see cref="DsmCell.IsInCycle"/> = <c>true</c>
+    /// and elements with <see cref="DsmItem.HasCircularDependencies"/> = <c>true</c>.
     /// </remarks>
     private static void DetectCyclesAndComponents(DsmMatrix matrix)
     {
         int n = matrix.Size;
         
-        // 1. Costruzione della lista di adiacenza del grafo orientato a partire dalle celle con dipendenza attiva
+        // 1. Construction of the adjacency list of the directed graph starting from the cells with active dependency
         var adj = new List<int>[n];
         for (int i = 0; i < n; i++) adj[i] = new List<int>();
 
@@ -211,7 +211,7 @@ public static class DsmMatrixBuilder
             }
         }
 
-        // 2. Strutture dati per l'algoritmo di Tarjan (DFS O(V+E))
+        // 2. Data structures for the Tarjan algorithm (DFS O(V+E))
         int index = 0;
         var indices = new int[n];
         Array.Fill(indices, -1); // -1 indica nodo non ancora visitato
@@ -220,7 +220,7 @@ public static class DsmMatrixBuilder
         var stack = new Stack<int>();
         var sccs = new List<List<int>>();
 
-        // 3. Esecuzione DFS su tutti i nodi non ancora esplorati
+        // 3. Running DFS on all nodes not yet explored
         for (int i = 0; i < n; i++)
         {
             if (indices[i] == -1)
@@ -228,7 +228,7 @@ public static class DsmMatrixBuilder
                 StrongConnect(i, ref index, indices, lowlink, onStack, stack, adj, sccs);
         }
 
-        // 4. Analisi delle SCC rilevate: una SCC con Count > 1 rappresenta un ciclo di dipendenze circolari
+        // 4. Analysis of detected SCCs: An SCC with Count > 1 represents a loop of circular dependencies
         int cyclicDepsCount = 0;
         foreach (var scc in sccs.Where(c => c.Count > 1))
         {
@@ -254,20 +254,20 @@ public static class DsmMatrixBuilder
     }
 
     /// <summary>
-    /// Procedura ricorsiva principale dell'algoritmo di Tarjan per l'individuazione di componenti fortemente connesse (SCC).
+    /// Main recursive procedure of the Tarjan algorithm for identifying strongly connected components (SCC).
     /// </summary>
-    /// <param name="u">Indice del nodo/modulo corrente in esame.</param>
-    /// <param name="index">Contatore progressivo dei nodi visitati (assegnato come ID temporaneo di scoperta).</param>
-    /// <param name="indices">Vettore degli indici di scoperta (<c>-1</c> se non ancora visitato).</param>
-    /// <param name="lowlink">Vettore del valore di low-link (il più piccolo indice di scoperta raggiungibile da <paramref name="u"/> attraverso lo stack).</param>
-    /// <param name="onStack">Flag booleano che indica se un nodo si trova attualmente nello stack di ricorsione.</param>
-    /// <param name="stack">Lo stack dei nodi del cammino DFS corrente.</param>
-    /// <param name="adj">Lista di adiacenza del grafo delle dipendenze.</param>
-    /// <param name="sccs">Lista di output in cui vengono accumulate le componenti fortemente connesse individuate.</param>
+    /// <param name="u">Index of the current node/module under examination.</param>
+    /// <param name="index">Progressive counter of visited nodes (assigned as temporary discovery ID).</param>
+    /// <param name="indices">Vector of discovery indices (<c>-1</c> if not yet visited).</param>
+    /// <param name="lowlink">Low-link value vector (the smallest discovery index reachable by <paramref name="u"/> across the stack).</param>
+    /// <param name="onStack">Boolean flag indicating whether a node is currently on the recursion stack.</param>
+    /// <param name="stack">The node stack of the current DFS path.</param>
+    /// <param name="adj">Dependency graph adjacency list.</param>
+    /// <param name="sccs">Output list in which the identified strongly connected components are accumulated.</param>
     /// <remarks>
-    /// Quando <c>lowlink[u] == indices[u]</c>, il nodo <paramref name="u"/> rappresenta la radice di una SCC:
-    /// tutti i nodi sopra di esso nello stack vengono estratti per formare la nuova componente connessa.
-    /// L'algoritmo ha complessità temporale lineare <c>O(V + E)</c>, ottimale per grafi di grandi dimensioni.
+    /// When <c>lowlink[u] == indices[u]</c>, the node <paramref name="u"/> represents the root of an SCC:
+    /// all nodes above it in the stack are popped to form the new connected component.
+    /// The algorithm has linear time complexity <c>O(V + E)</c>, optimal for large graphs.
     /// </remarks>
     private static void StrongConnect(
         int u,
@@ -279,21 +279,21 @@ public static class DsmMatrixBuilder
         List<int>[] adj,
         List<List<int>> sccs)
     {
-        // Assegna indice progressivo di visita al nodo u e inseriscilo nello stack
+        // Assign progressive visit index to node u and push it onto the stack
         indices[u] = index;
         lowlink[u] = index;
         index++;
         stack.Push(u);
         onStack[u] = true;
 
-        // Esplora tutti gli archi uscenti (u -> v)
+        // Explore all outgoing arcs (u -> v)
         foreach (var v in adj[u])
         {
             if (indices[v] == -1)
             {
-                // Il successore v non è ancora stato visitato: visita ricorsiva
+                // The successor v has not yet been visited: recursive visit
                 StrongConnect(v, ref index, indices, lowlink, onStack, stack, adj, sccs);
-                // Aggiorna il lowlink di u con il minimo raggiungibile da v
+                // Update u's lowlink with the minimum reachable from v
                 lowlink[u] = Math.Min(lowlink[u], lowlink[v]);
             }
             else if (onStack[v])
@@ -301,7 +301,7 @@ public static class DsmMatrixBuilder
     lowlink[u] = Math.Min(lowlink[u], indices[v]);
         }
 
-        // Se u è la radice della componente fortemente connessa (nessun nodo sopra di esso può risalire oltre u)
+        // If u is the root of the strongly connected component (no node above it can trace beyond u)
         if (lowlink[u] == indices[u])
         {
             var scc = new List<int>();
@@ -317,16 +317,16 @@ public static class DsmMatrixBuilder
     }
 
     /// <summary>
-    /// Riordina gli elementi e riallinea la matrice DSM secondo il criterio specificato.
+    /// Reorders the elements and realigns the DSM matrix according to the specified criterion.
     /// </summary>
-    /// <param name="matrix">L'istanza di <see cref="DsmMatrix"/> da ordinare in-place.</param>
-    /// <param name="ordering">La modalità di ordinamento richiesta (per tipo e nome o raggruppando le dipendenze circolari in cima/diagonale).</param>
+    /// <param name="matrix">The instance of <see cref="DsmMatrix"/> to order in-place.</param>
+    /// <param name="ordering">The required sorting mode (by type and name, or grouping circular dependencies on top/diagonal).</param>
     /// <remarks>
-    /// La procedura:
+    /// The procedure:
     /// <list type="number">
-    ///   <item><description>Ordina la lista degli elementi (<see cref="DsmItem"/>) e riassegna i loro indici ordinali.</description></item>
-    ///   <item><description>Crea una nuova matrice <c>N x N</c> di celle, riallocando ciascuna cella <c>(r, c)</c> in base alla nuova posizione degli elementi associati preservando pesi, tipologie e dettagli.</description></item>
-    ///   <item><description>Sostituisce la vecchia griglia di celle con la nuova matrice riallineata.</description></item>
+    /// <item><description>Sorts the list of elements (<see cref="DsmItem"/>) and reassigns their ordinal indices.</description></item>
+    /// <item><description>Creates a new <c>N x N</c> matrix of cells, reallocating each cell <c>(r, c)</c> based on the new position of the associated elements while preserving weights, types and details.</description></item>
+    /// <item><description>Replaces the old grid of cells with the new realigned matrix.</description></item>
     /// </list>
     /// </remarks>
     private static void SortMatrix(DsmMatrix matrix, DsmOrdering ordering)
@@ -334,14 +334,14 @@ public static class DsmMatrixBuilder
         var oldItems = matrix.Items.ToList();
         List<DsmItem> sortedItems;
 
-        // 1. Ordina la lista degli elementi secondo la strategia prescelta
+        // 1. Sort the list of elements according to the chosen strategy
         if (ordering == DsmOrdering.ByKindAndName)
 
             sortedItems = oldItems.OrderBy(x => x.Kind).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ToList();
 
         else
         {
-            // TopologicalOrPartitioned: raggruppa prima i moduli con dipendenze circolari, poi per tipo e nome
+            // TopologicalOrPartitioned: Group modules with circular dependencies first, then by type and name
             sortedItems = oldItems
                 .OrderByDescending(x => x.HasCircularDependencies)
                 .ThenBy(x => x.Kind)
@@ -349,18 +349,18 @@ public static class DsmMatrixBuilder
                 .ToList();
         }
 
-        // Riassegna gli indici progressivi (0..N-1)
+        // Reassign progressive indices (0..N-1)
         for (int i = 0; i < sortedItems.Count; i++)
         {
             sortedItems[i].Index = i;
         }
 
-        // Mappa di lookup per trovare la posizione precedente di ciascun modulo
+        // Lookup map to find the previous position of each module
         var oldMap = new Dictionary<Guid, int>();
         for (int i = 0; i < oldItems.Count; i++) oldMap[oldItems[i].Id] = i;
 
-        // 2. Crea la nuova griglia di celle N x N riallineata secondo le nuove coordinate riga/colonna
-        // Riassegniamo i riferimenti alle celle esistenti senza allocare nuovi oggetti o copiare liste
+        // 2. Create the new grid of N x N cells realigned according to the new row/column coordinates
+        // We reassign references to existing cells without allocating new objects or copying lists
         var oldCells = matrix.Cells;
         var newCells = new DsmCell[sortedItems.Count, sortedItems.Count];
         for (int r = 0; r < sortedItems.Count; r++)
@@ -376,7 +376,7 @@ public static class DsmMatrixBuilder
             }
         }
 
-        // 3. Sostituisce la lista e la matrice di celle in-place
+        // 3. Replaces list and array cells in-place
         matrix.Items.Clear();
         matrix.Items.AddRange(sortedItems);
         matrix.Cells = newCells;

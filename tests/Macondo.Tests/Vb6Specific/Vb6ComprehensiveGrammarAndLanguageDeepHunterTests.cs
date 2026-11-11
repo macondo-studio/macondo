@@ -16,7 +16,7 @@ public class Vb6ComprehensiveGrammarAndLanguageDeepHunterTests
     #region DefType Statements (DefInt, DefLng, DefStr, DefDbl, DefBool, DefCur, DefDate, DefObj)
 
     /// <summary>
-    /// Verifica il corretto parsing delle direttive VB6 di definizione del tipo predefinito per intervallo di lettere (DefInt, DefLng, DefStr, ecc.).
+    /// Verifies correct parsing of VB6 directives defining the default type definition per letter range (DefInt, DefLng, DefStr, etc.).
     /// </summary>
     [Fact]
     public void Parser_ShouldParseDefTypeStatements_WithoutErrors()
@@ -62,8 +62,8 @@ public class Vb6ComprehensiveGrammarAndLanguageDeepHunterTests
     #region User Defined Types (UDT) with Fixed-Length Strings, Arrays, and Nesting
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di User-Defined Types (Type ... End Type) complessi
-    /// contenenti stringhe a lunghezza fissa (String * N), array statici e tipi UDT annidati.
+    /// Tests parsing and extraction of complex User-Defined Types (Type ... End Type).
+    /// containing fixed-length strings (String * N), static arrays, and nested UDT types.
     /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractComplexUserDefinedTypes_WithFixedStringsAndArrays()
@@ -116,8 +116,8 @@ public class Vb6ComprehensiveGrammarAndLanguageDeepHunterTests
     #region Multi-Variable Declarations on Single Line with Mixed Types and New
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di dichiarazioni multiple su una singola riga
-    /// con tipi eterogenei, array multidimensionali e istanziazioni 'New'.
+    /// Tests parsing and extraction of multiple declarations on a single line
+    /// with heterogeneous types, multidimensional arrays and 'New' instantiations.
     /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractMultiVariableDeclarations_WithMixedModifiersAndTypes()
@@ -157,7 +157,7 @@ public class Vb6ComprehensiveGrammarAndLanguageDeepHunterTests
     #region Multi-Argument Parameterized Properties (Property Get / Let Matrix)
 
     /// <summary>
-    /// Verifica l'estrazione e il collegamento di proprietà indicizzate a più dimensioni (es. matrice Property Get/Let).
+    /// Tests the extraction and linking of multi-dimensional indexed properties (e.g. Property Get/Let matrix).
     /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractParameterizedProperties_WithMultipleArguments()
@@ -209,7 +209,7 @@ public class Vb6ComprehensiveGrammarAndLanguageDeepHunterTests
     #region Win32 API Declare with Alias, Lib, Any Type, and Ordinals
 
     /// <summary>
-    /// Verifica il parsing di dichiarazioni Win32 API complesse con alias, tipo Any e chiamate a DLL di sistema.
+    /// Tests parsing of complex Win32 API declarations with aliases, Any type, and system DLL calls.
     /// </summary>
     [Fact]
     public void Parser_ShouldParseWin32ApiDeclareStatements_WithAnyAndAlias()
@@ -259,7 +259,7 @@ public class Vb6ComprehensiveGrammarAndLanguageDeepHunterTests
     #region Events with ByRef Cancel Pattern and RaiseEvent Invocations
 
     /// <summary>
-    /// Verifica la dichiarazione di eventi con parametri ByRef Cancel e la generazione di chiamate RaiseEvent.
+    /// Tests the declaration of events with ByRef Cancel parameters and the raising of RaiseEvent calls.
     /// </summary>
     [Fact]
     public void ModuleExtractor_ShouldExtractEvents_WithByRefCancelAndRaiseEvent()
@@ -309,7 +309,7 @@ public class Vb6ComprehensiveGrammarAndLanguageDeepHunterTests
     #region Numeric Line Numbers and Classic Line Labels
 
     /// <summary>
-    /// Verifica il parsing di codice legacy con numeri di riga (10, 20, 30) e label numeriche per On Error GoTo.
+    /// Test parsing of legacy code with line numbers (10, 20, 30) and numeric labels for On Error GoTo.
     /// </summary>
     [Fact]
     public void Parser_ShouldParseNumericLineNumbersAndErrorHandling()
@@ -352,7 +352,7 @@ public class Vb6ComprehensiveGrammarAndLanguageDeepHunterTests
     #region Implements Interface Implementation with Explicit Method Prefixes
 
     /// <summary>
-    /// Verifica l'implementazione di interfacce VB6 (Implements IInterfaceName) e la corretta risoluzione delle relazioni di implementazione.
+    /// Verifies the implementation of VB6 interfaces (Implements IInterfaceName) and the correct resolution of implementation relationships.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldResolveImplementsRelationship_AndInterfaceMethods()

@@ -3,8 +3,8 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.Martin;
 
 /// <summary>
-/// Analizzatore agnostico per il calcolo delle metriche di Robert C. Martin (Abstractness, Instability, Distance from Main Sequence).
-/// Supporta nativamente sia costrutti VB6 che C#.
+/// Agnostic analyzer for calculating metrics by Robert C. Martin (Abstractness, Instability, Distance from Main Sequence).
+/// It natively supports both VB6 and C# constructs.
 /// </summary>
 public static class MartinMetricsCalculator
 {
@@ -20,7 +20,7 @@ public static class MartinMetricsCalculator
     };
 
     /// <summary>
-    /// Esegue il calcolo delle metriche di Martin su tutti i container (moduli/classi/interfacce) del CodeGraph.
+    /// Performs Martin metrics calculation on all containers (modules/classes/interfaces) of the CodeGraph.
     /// </summary>
     public static MartinMetricsDataset Analyze(CodeGraph graph)
     {
@@ -28,7 +28,7 @@ public static class MartinMetricsCalculator
         if (graph.Symbols.Count == 0)
             return dataset;
 
-        // 1. Isola tutti i simboli di tipo Contenitore (File/Classe/Modulo/Interfaccia)
+        // 1. Isolate all symbols of type Container (File/Class/Module/Interface)
         var containers = graph.Symbols
             .Where(s => ContainerKinds.Contains(s.Kind))
             .ToList();
@@ -38,7 +38,7 @@ public static class MartinMetricsCalculator
 
         var containerById = containers.ToDictionary(c => c.Id);
 
-        // Mappa ogni simbolo membro al suo container di appartenenza
+        // Map each member symbol to its parent container
         var memberToContainerMap = new Dictionary<Guid, Guid>();
         foreach (var c in containers)
         {
@@ -50,13 +50,13 @@ public static class MartinMetricsCalculator
             }
         }
 
-        // 2. Calcola Afferent (Ca) ed Efferent (Ce) Couplings tra i container
+        // 2. Calculate Afferent (Ca) and Efferent (Ce) Couplings between containers
         var afferentSets = containers.ToDictionary(c => c.Id, _ => new HashSet<Guid>());
         var efferentSets = containers.ToDictionary(c => c.Id, _ => new HashSet<Guid>());
 
         foreach (var rel in graph.Relationships)
         {
-            // Considera qualsiasi dipendenza semantica (chiamate, istanziazioni, tipi, gestione eventi, letture costanti/campi)
+            // Consider any semantic dependencies (calls, instantiations, types, event handling, constant/field reads)
             if (rel.Kind != RelationshipKind.Contains && rel.Kind != RelationshipKind.Declares)
             {
                 if (memberToContainerMap.TryGetValue(rel.SourceId, out var srcContId) &&
@@ -71,7 +71,7 @@ public static class MartinMetricsCalculator
             }
         }
 
-        // 3. Calcola Abstractness (A), Instability (I) e Distance (D) per ciascun container
+        // 3. Calculate Abstractness (A), Instability (I) and Distance (D) for each container
         foreach (var c in containers)
         {
             var ce = efferentSets[c.Id].Count;
@@ -120,7 +120,7 @@ public static class MartinMetricsCalculator
             var distanceRaw = Math.Abs(abstractness + instability - 1.0);
             var normalizedDistance = Math.Clamp(distanceRaw, 0.0, 1.0);
 
-            // Assegna la zona
+            // Assign the zone
             MartinZone zone;
             if (abstractness < 0.35 && instability < 0.35)
 

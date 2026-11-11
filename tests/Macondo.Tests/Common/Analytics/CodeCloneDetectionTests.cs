@@ -8,7 +8,7 @@ namespace Macondo.Tests.Common.Analytics;
 public class CodeCloneDetectionTests
 {
     /// <summary>
-    /// Verifica che due routine con identica lunghezza e chiamate vengano raggruppate come cloni di codice.
+    /// Verify that two routines with identical lengths and calls are grouped together as code clones.
     /// </summary>
     [Fact]
     public void CodeClones_ShouldDetectExactAndParameterizedClones()

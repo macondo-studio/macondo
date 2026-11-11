@@ -3,22 +3,22 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Graph;
 
 /// <summary>
-/// Rappresenta un cammino di esecuzione (execution path) ordinato tra un punto di partenza
-/// e una destinazione.
+/// Represents an ordered execution path between a starting point
+/// and a destination.
 /// Esempio: Form1.cmdSave_Click -> Order.Save -> OrderRepository.Insert -> DatabaseHelper.Execute
 /// </summary>
 public sealed class CallPath
 {
-    /// <summary>Sequenza ordinata di simboli attraversati lungo il cammino.</summary>
+    /// <summary>Ordered sequence of symbols crossed along the path.</summary>
     public IReadOnlyList<Symbol> Steps { get; }
 
-    /// <summary>Numero di salti / passaggi nella catena di chiamate.</summary>
+    /// <summary>Number of jumps / steps in the call chain.</summary>
     public int Length => Steps.Count > 0 ? Steps.Count - 1 : 0;
 
-    /// <summary>Simbolo iniziale del cammino (entry point).</summary>
+    /// <summary>Initial symbol of the path (entry point).</summary>
     public Symbol Source => Steps[0];
 
-    /// <summary>Simbolo finale raggiunto dal cammino.</summary>
+    /// <summary>Final symbol reached on the journey.</summary>
     public Symbol Target => Steps[^1];
 
     public CallPath(IEnumerable<Symbol> steps)
@@ -31,12 +31,12 @@ public sealed class CallPath
 }
 
 /// <summary>
-/// Rappresenta un ciclo di chiamate o ricorsione mutua individuato nel Call Graph.
+/// Represents a call loop or mutual recursion identified in the Call Graph.
 /// Esempio: ServiceA.Method1 -> ServiceB.Method2 -> ServiceA.Method1
 /// </summary>
 public sealed class CallCycle
 {
-    /// <summary>Sequenza ciclica di simboli che forma il ciclo (il primo e l'ultimo elemento coincidono).</summary>
+    /// <summary>Cyclic sequence of symbols that forms the cycle (the first and last elements coincide).</summary>
     public IReadOnlyList<Symbol> CycleSymbols { get; }
 
     public CallCycle(IEnumerable<Symbol> symbols)

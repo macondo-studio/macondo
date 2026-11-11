@@ -8,13 +8,13 @@ namespace Macondo.Tests.Common.Analytics;
 public class TemporalCouplingExtendedTests
 {
     /// <summary>
-    /// Verifica il calcolo asimmetrico dei valori di confidenza (Confidence A -> B vs Confidence B -> A)
-    /// quando due file hanno un numero totale di commit differente.
+    /// Check the asymmetric calculation of confidence values (Confidence A -> B vs Confidence B -> A)
+    /// when two files have a different total number of commits.
     /// </summary>
     [Fact]
     public void TemporalCoupling_ShouldCalculateAsymmetricConfidence()
     {
-        // Arrange: FileA modificato in 10 commit, FileB solo in 2 commit, e hanno 2 co-modifiche insieme.
+        // Arrange: FileA modified in 10 commits, FileB only in 2 commits, and have 2 co-modifications together.
         // Confidence(A -> B) = 2 / 10 = 0.2 (20%)
         // Confidence(B -> A) = 2 / 2 = 1.0 (100%)
         var changelists = new List<List<string>>();
@@ -23,7 +23,7 @@ public class TemporalCouplingExtendedTests
         changelists.Add(new List<string> { "src/FileA.cls", "src/FileB.cls" });
         changelists.Add(new List<string> { "src/FileA.cls", "src/FileB.cls" });
 
-        // 8 commit solo per FileA con FileC
+        // 8 commits only for FileA with FileC
         for (int i = 0; i < 8; i++)
         {
             changelists.Add(new List<string> { "src/FileA.cls", "src/FileC.cls" });
@@ -54,7 +54,7 @@ public class TemporalCouplingExtendedTests
     }
 
     /// <summary>
-    /// Verifica che i commit contenenti un singolo file vengano ignorati nella formazione di coppie di co-modifica.
+    /// Ensures that commits containing a single file are ignored when forming co-modification pairs.
     /// </summary>
     [Fact]
     public void TemporalCoupling_ShouldIgnoreSingleFileCommits()
@@ -76,8 +76,8 @@ public class TemporalCouplingExtendedTests
     }
 
     /// <summary>
-    /// Verifica che quando esiste una dipendenza statica esplicita nel CodeGraph tra due file co-modificati,
-    /// la coppia abbia HasStaticDependency = true e non venga conteggiata come Hidden Coupling.
+    /// Verify that when there is an explicit static dependency in the CodeGraph between two co-modified files,
+    /// the pair has HasStaticDependency = true and is not counted as Hidden Coupling.
     /// </summary>
     [Fact]
     public void TemporalCoupling_ShouldRecognizeStaticDependency_AndNotFlagAsHiddenCoupling()

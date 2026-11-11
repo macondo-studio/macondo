@@ -9,8 +9,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class HotspotAnalysisTests
 {
     /// <summary>
-    /// Verifica il calcolo delle metriche di Hotspot (complessità ciclomatica, fan-in/fan-out, soglie della Danger Zone)
-    /// per tutti i simboli del grafo.
+    /// Check the calculation of Hotspot metrics (cyclomatic complexity, fan-in/fan-out, Danger Zone thresholds)
+    /// for all the symbols in the graph.
     /// </summary>
     [Fact]
     public void HotspotAnalyzer_ShouldCalculateDangerZoneAndMetrics_FromGraph()
@@ -29,8 +29,8 @@ public class HotspotAnalysisTests
     }
 
     /// <summary>
-    /// Verifica che la frequenza di modifica (Churn VCS / Git history) incrementi proporzionalmente
-    /// il RiskScore del simbolo analizzato all'interno della matrice Hotspot.
+    /// Check that the modification frequency (Churn VCS / Git history) increases proportionally
+    /// the RiskScore of the symbol analyzed within the Hotspot matrix.
     /// </summary>
     [Fact]
     public void HotspotAnalyzer_ShouldIncorporateVcsChurnHistory_IntoRiskScore()
@@ -57,7 +57,7 @@ public class HotspotAnalysisTests
     }
 
     /// <summary>
-    /// Verifica che tutti i RiskScore calcolati rimangano strettamente delimitati nell'intervallo percentuale [0.0, 100.0].
+    /// Verify that all calculated RiskScores remain strictly within the percentage range [0.0, 100.0].
     /// </summary>
     [Fact]
     public void HotspotAnalyzer_ShouldClampRiskScoresBetween0And100()

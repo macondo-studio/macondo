@@ -77,15 +77,15 @@ public class GraphNodeVisibilityTests
     }
 
     /// <summary>
-    /// Verifica che con il filtro "Solo Contenitori" attivo e nessun nodo selezionato, vengano visualizzati
-    /// unicamente i moduli/classi contenitori e nascosti tutti i metodi e le proprietà interne.
+    /// Check that with the "Containers Only" filter active and no nodes selected, they are displayed
+    /// only the container modules/classes and all internal methods and properties hidden.
     /// </summary>
     [Fact]
     public void ContainersOnlyFilter_WithoutSelection_ShouldOnlyShowContainers()
     {
         var (control, graph, container, method, prop, otherContainer) = CreateTestGraph();
 
-        // Preset 2: Solo Contenitori
+        // Preset 2: Containers Only
         control.SetFilters(methods: false, properties: false, fields: false, constants: false, typesAndEnums: false);
 
         var (visibleCount, totalCount) = control.GetNodeCounts();
@@ -95,49 +95,49 @@ public class GraphNodeVisibilityTests
     }
 
     /// <summary>
-    /// Verifica che cliccando/selezionando un nodo container (modulo o classe) sotto il filtro "Solo Contenitori",
-    /// il container si espanda automaticamente rendendo visibili tutti i suoi metodi e proprietà figli.
+    /// Verify that by clicking/selecting a container node (module or class) under the "Containers Only" filter,
+    /// the container automatically expands, making all its child methods and properties visible.
     /// </summary>
     [Fact]
     public void ContainersOnlyFilter_WhenContainerSelected_ShouldShowAllItsMethodsAndProperties()
     {
         var (control, graph, container, method, prop, otherContainer) = CreateTestGraph();
 
-        // Preset 2: Solo Contenitori
+        // Preset 2: Containers Only
         control.SetFilters(methods: false, properties: false, fields: false, constants: false, typesAndEnums: false);
 
-        // Seleziona il container (simula il click sul nodo del modulo)
+        // Select the container (simulates clicking on the module node)
         control.SelectNode(container);
 
         container.IsExpanded.Should().BeTrue("Il container selezionato deve essere automaticamente espanso");
 
         var (visibleCount, totalCount) = control.GetNodeCounts();
 
-        // 2 container + 2 membri del container selezionato (method, prop) = 4 nodi visibili.
-        // I membri di otherContainer rimangono nascosti.
+        // 2 containers + 2 members of the selected container (method, prop) = 4 visible nodes.
+        // The members of otherContainer remain hidden.
         visibleCount.Should().Be(4, "Tutti i metodi e le proprietà del modulo cliccato devono essere mostrati");
     }
 
     /// <summary>
-    /// Verifica che selezionando un metodo interno di un modulo, il container genitore si espanda
-    /// mantenendo visibili sia il metodo selezionato sia i membri fratelli (sibling members).
+    /// Verify that selecting an internal method of a module causes the parent container to expand
+    /// keeping both the selected method and its sibling members visible.
     /// </summary>
     [Fact]
     public void ContainersOnlyFilter_WhenChildMethodSelected_ShouldKeepContainerAndSiblingMembersVisible()
     {
         var (control, graph, container, method, prop, otherContainer) = CreateTestGraph();
 
-        // Preset 2: Solo Contenitori
+        // Preset 2: Containers Only
         control.SetFilters(methods: false, properties: false, fields: false, constants: false, typesAndEnums: false);
 
-        // Seleziona direttamente il metodo interno
+        // Select the internal method directly
         control.SelectNode(method);
 
         container.IsExpanded.Should().BeTrue("Il container padre del metodo selezionato deve essere espanso");
 
         var (visibleCount, totalCount) = control.GetNodeCounts();
 
-        // 2 container + metodo + proprietà sibling = 4 visibili
+        // 2 containers + method + sibling properties = 4 visible
         visibleCount.Should().Be(4, "Il metodo selezionato e i suoi membri fratelli nel container devono rimanere visibili");
     }
 }

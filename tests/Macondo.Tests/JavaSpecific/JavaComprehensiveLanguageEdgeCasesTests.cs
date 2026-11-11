@@ -7,17 +7,17 @@ using Xunit;
 namespace Macondo.Tests.JavaSpecific;
 
 /// <summary>
-/// Suite di test di profondità su costrutti avanzati del linguaggio Java:
-/// classi anonime, blocchi di inizializzazione statici/istanza, enum con metodi specifici
-/// per costante, modificatori di concorrenza, array multidimensionali e generic avanzati.
+/// Depth test suite on advanced Java language constructs:
+/// anonymous classes, static/instance initialization blocks, enums with specific methods
+/// for constant, concurrency modifiers, multidimensional arrays, and advanced generics.
 /// </summary>
 public class JavaComprehensiveLanguageEdgeCasesTests
 {
     #region Anonymous Classes and Local Variable Captures
 
     /// <summary>
-    /// Verifica l'estrazione di classi anonime istanziate inline (es. Runnable, Comparator)
-    /// e la corretta registrazione dei loro metodi sovrascritti e delle chiamate interne.
+    /// Verify the extraction of anonymous classes instantiated inline (e.g. Runnable, Comparator)
+    /// and proper logging of their overridden methods and internal calls.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleAnonymousClassesAndOverriddenMethods()
@@ -66,7 +66,7 @@ public class JavaComprehensiveLanguageEdgeCasesTests
     #region Enums with Constant-Specific Class Bodies
 
     /// <summary>
-    /// Verifica l'estrazione di enum avanzati in cui ogni costante definisce un corpo classe con metodi specializzati.
+    /// Test extraction of advanced enums where each constant defines a class body with specialized methods.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractEnumWithConstantSpecificMethods()
@@ -144,7 +144,7 @@ public class JavaComprehensiveLanguageEdgeCasesTests
     #region Static and Instance Initializer Blocks
 
     /// <summary>
-    /// Verifica il parsing di blocchi di inizializzazione statici (static { ... }) e di istanza ({ ... }).
+    /// Tests parsing of static (static { ... }) and instance ({ ... }) initialization blocks.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleStaticAndInstanceInitializerBlocks()
@@ -197,7 +197,7 @@ public class JavaComprehensiveLanguageEdgeCasesTests
     #region Concurrency Modifiers (Synchronized, Volatile, Transient)
 
     /// <summary>
-    /// Verifica l'estrazione di metodi sincronizzati, blocchi synchronized e campi con modificatori transient/volatile.
+    /// Tests extraction of synchronized methods, synchronized blocks, and fields with transient/volatile modifiers.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleConcurrencyModifiersAndSynchronizedBlocks()
@@ -250,7 +250,7 @@ public class JavaComprehensiveLanguageEdgeCasesTests
     #region Multi-dimensional Arrays and Array Return Types
 
     /// <summary>
-    /// Verifica la corretta estrazione dei tipi di ritorno e parametri con array multidimensionali (int[][], String[][][]).
+    /// Check for correct extraction of return types and parameters with multidimensional arrays (int[][], String[][][]).
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractMultidimensionalArrays()
@@ -297,7 +297,7 @@ public class JavaComprehensiveLanguageEdgeCasesTests
     #region Throws Clause with Multiple Exceptions
 
     /// <summary>
-    /// Verifica l'estrazione di clausole throws contenenti eccezioni multiple separate da virgola.
+    /// Tests extraction of throws clauses containing multiple comma-separated exceptions.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractMethodsWithMultipleThrowsExceptions()

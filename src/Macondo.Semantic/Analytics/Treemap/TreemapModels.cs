@@ -3,7 +3,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.Treemap;
 
 /// <summary>
-/// Rettangolo bidimensionale per il layout della Treemap.
+/// Two-dimensional rectangle for Treemap layout.
 /// </summary>
 public readonly record struct TreemapRect(double X, double Y, double Width, double Height)
 {
@@ -13,7 +13,7 @@ public readonly record struct TreemapRect(double X, double Y, double Width, doub
 }
 
 /// <summary>
-/// Nodo gerarchico della Treemap (Modulo, Classe, Metodo o Proprietà).
+/// Hierarchical node of the Treemap (Module, Class, Method or Property).
 /// </summary>
 public sealed class TreemapItem
 {
@@ -23,19 +23,19 @@ public sealed class TreemapItem
     public SymbolKind Kind { get; init; }
     public int Depth { get; set; }
     
-    /// <summary>Valore dimensionale principale (es. Righe di Codice / LOC o numero di istruzioni).</summary>
+    /// <summary>Main dimensional value (e.g. Lines of Code / LOC or number of instructions).</summary>
     public double Value { get; set; }
 
-    /// <summary>Punteggio della metrica secondaria per il colore (es. Complessità Ciclomatica o Rischio da 1 a 100).</summary>
+    /// <summary>Secondary metric score for color (e.g. Cyclomatic Complexity or Risk from 1 to 100).</summary>
     public double MetricScore { get; set; }
 
-    /// <summary>Coordinate calcolate dal layout Squarified.</summary>
+    /// <summary>Coordinates calculated from the Squarified layout.</summary>
     public TreemapRect Bounds { get; set; }
 
-    /// <summary>Elementi figli racchiusi.</summary>
+    /// <summary>Enclosed child elements.</summary>
     public List<TreemapItem> Children { get; init; } = new();
 
-    /// <summary>Riferimento al genitore per la navigazione e drill-down.</summary>
+    /// <summary>Reference to parent for navigation and drill-down.</summary>
     public TreemapItem? Parent { get; set; }
 
     public bool IsLeaf => Children.Count == 0;

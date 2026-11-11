@@ -8,7 +8,7 @@ namespace Macondo.Tests.Common.App;
 public class VcsServiceTests
 {
     /// <summary>
-    /// Verifica che VcsService individui la presenza di un repository Git tramite la cartella '.git'.
+    /// Verify that VcsService detects the presence of a Git repository via the '.git' folder.
     /// </summary>
     [Fact]
     public void VcsService_ShouldDetectGitRepository()
@@ -33,7 +33,7 @@ public class VcsServiceTests
     }
 
     /// <summary>
-    /// Verifica che VcsService individui la presenza di un repository SVN (Subversion) tramite la cartella '.svn'.
+    /// Verify that VcsService detects the presence of an SVN (Subversion) repository via the '.svn' folder.
     /// </summary>
     [Fact]
     public void VcsService_ShouldDetectSvnRepository()
@@ -58,7 +58,7 @@ public class VcsServiceTests
     }
 
     /// <summary>
-    /// Verifica che percorsi nulli, vuoti o non esistenti restituiscano VcsType.None senza eccezioni.
+    /// Checks that null, empty, or non-existent paths return VcsType.None without exceptions.
     /// </summary>
     [Theory]
     [InlineData(null)]
@@ -73,8 +73,8 @@ public class VcsServiceTests
     }
 
     /// <summary>
-    /// Verifica che VcsService individui la presenza di un repository Git anche quando interrogato
-    /// da una sottocartella nidificata (deep subdirectory) risalendo la gerarchia delle cartelle genitrici.
+    /// Verify that VcsService detects the presence of a Git repository even when queried
+    /// from a nested subfolder (deep subdirectory) going up the hierarchy of parent folders.
     /// </summary>
     [Fact]
     public void VcsService_ShouldDetectGitRepository_FromNestedSubdirectory()
@@ -101,7 +101,7 @@ public class VcsServiceTests
     }
 
     /// <summary>
-    /// Verifica che VcsService gestisca un percorso puntato direttamente a un file sorgente all'interno del repository.
+    /// Verify that VcsService maintains a path pointing directly to a source file within the repository.
     /// </summary>
     [Fact]
     public void VcsService_ShouldDetectRepository_FromFilePath()

@@ -3,7 +3,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.DeadCode;
 
 /// <summary>
-/// Analizzatore agnostico di raggiungibilità e codice morto per progetti VB6 e C#.
+/// Agnostic reachability and dead code analyzer for VB6 and C# projects.
 /// </summary>
 public static class DeadCodeAnalyzer
 {
@@ -20,11 +20,11 @@ public static class DeadCodeAnalyzer
     };
 
     /// <summary>
-    /// Esegue l'analisi di raggiungibilità partendo da tutti gli Entry Points (Sub Main, Event Handlers, ecc.)
-    /// ed espandendo ricorsivamente l'albero di chiamata per identificare elementi orfani o codice morto.
+    /// Performs the reachability analysis starting from all Entry Points (Sub Main, Event Handlers, etc.)
+    /// and recursively expanding the call tree to identify orphaned elements or dead code.
     /// </summary>
-    /// <param name="graph">Il <see cref="CodeGraph"/> contenente simboli e relazioni del progetto.</param>
-    /// <returns>Il dataset <see cref="DeadCodeDataset"/> con il riepilogo dei simboli raggiungibili e non raggiungibili.</returns>
+    /// <param name="graph">The <see cref="CodeGraph"/> containing project symbols and relationships.</param>
+    /// <returns>The <see cref="DeadCodeDataset"/> dataset with the summary of reachable and unreachable symbols.</returns>
     public static DeadCodeDataset Analyze(CodeGraph graph)
     {
         var dataset = new DeadCodeDataset
@@ -39,8 +39,8 @@ public static class DeadCodeAnalyzer
         var queue = new Queue<Guid>();
 
         // =========================================================================
-        // PASSO 1: Identificazione dei punti di ingresso naturali dell'applicazione (Root Seeds)
-        // Include Sub Main, startup forms, event handler UI, costruttori e classi principali.
+        // STEP 1: Identifying the application's natural entry points (Root Seeds)
+        // Includes Sub Main, startup forms, event handler UI, constructors and main classes.
         // =========================================================================
         foreach (var sym in graph.Symbols)
         {
@@ -52,8 +52,8 @@ public static class DeadCodeAnalyzer
             }
         }
 
-        // Se l'applicazione è una libreria di classi senza Main/Form espliciti,
-        // trattiamo come radici tutti i simboli pubblici (API esterne esportate) e le interfacce.
+        // If your application is a class library without explicit Main/Forms,
+        // we treat all public symbols (exported external APIs) and interfaces as roots.
         if (reachableIds.Count == 0)
         {
             foreach (var sym in graph.Symbols)
@@ -68,14 +68,14 @@ public static class DeadCodeAnalyzer
         }
 
         // =========================================================================
-        // PASSO 2: Visita in ampiezza (BFS Traversal) per marcare tutti i simboli raggiungibili
+        // STEP 2: Breadth-wide scanning (BFS Traversal) to mark all reachable symbols
         // =========================================================================
         while (queue.Count > 0)
         {
             var currentId = queue.Dequeue();
 
-            // 2a. Se il nodo raggiunto è un contenitore, espandi i membri del ciclo di vita invocati automaticamente dal runtime
-            // e le variabili/controlli WithEvents che gestiscono eventi
+            // 2a. If the node reached is a container, expand the lifecycle members automatically invoked by the runtime
+            // and WithEvents variables/controls that handle events
             foreach (var child in graph.GetChildren(currentId))
             {
                 if (IsAutoInvokedMember(child.Name))
@@ -85,7 +85,7 @@ public static class DeadCodeAnalyzer
                         queue.Enqueue(child.Id);
                 }
 
-                // Se il child è un controllo o variabile WithEvents con handler registrati, lo rendiamo raggiungibile
+                // If the child is a WithEvents control or variable with registered handlers, we make it reachable
                 if (graph.Relationships.Any(r => r.Kind == RelationshipKind.HandlesEvent && r.SourceId == child.Id))
                 {
                     if (reachableIds.Add(child.Id))
@@ -94,7 +94,7 @@ public static class DeadCodeAnalyzer
                 }
             }
 
-            // 2b. Espandi lungo le relazioni semantiche uscenti (chiamate a metodi, istanziazioni, usi di tipo, ereditarietà, eventi, letture/scritture)
+            // 2b. Expand along outgoing semantic relations (method calls, instantiations, type uses, inheritance, events, reads/writes)
             foreach (var rel in graph.Relationships.Where(r => r.SourceId == currentId))
             {
                 if (rel.Kind is RelationshipKind.Calls or RelationshipKind.Instantiates or RelationshipKind.UsesType or RelationshipKind.Inherits or RelationshipKind.Implements or RelationshipKind.HandlesEvent or RelationshipKind.Reads or RelationshipKind.Writes)
@@ -103,7 +103,7 @@ public static class DeadCodeAnalyzer
 
                         queue.Enqueue(rel.TargetId);
 
-                    // Se il target è un membro interno (es. metodo), rendi raggiungibile anche il suo modulo/classe padre
+                    // If the target is an internal member (e.g. method), make its parent module/class reachable as well
                     var parentRel = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.Contains && r.TargetId == rel.TargetId);
                     if (parentRel != null && reachableIds.Add(parentRel.SourceId))
 
@@ -115,14 +115,14 @@ public static class DeadCodeAnalyzer
         dataset.ReachableSymbolsCount = reachableIds.Count;
 
         // =========================================================================
-        // PASSO 3: Identificazione e categorizzazione del codice non raggiunto (Dead Code)
+        // STEP 3: Identification and categorization of the code not reached (Dead Code)
         // =========================================================================
         foreach (var sym in graph.Symbols)
         {
             if (sym.Kind == SymbolKind.Project)
                 continue;
 
-            // Se il simbolo è stato marcato come raggiungibile, non è codice morto
+            // If the symbol has been marked as reachable, it is not dead code
             if (reachableIds.Contains(sym.Id))
                 continue;
 
@@ -134,7 +134,7 @@ public static class DeadCodeAnalyzer
             DeadCodeCategory category;
             string reason;
 
-            // Categorizzazione specifica per tipo di simbolo
+            // Specific categorization by symbol type
             switch (sym.Kind)
             {
                 case SymbolKind.Method:
@@ -189,25 +189,25 @@ public static class DeadCodeAnalyzer
         }
 
         // =========================================================================
-        // PASSO 4: Ordinamento per volume di righe di codice stimate (potenziale risparmio refactoring)
+        // STEP 4: Sort by volume of estimated lines of code (potential refactoring savings)
         // =========================================================================
         dataset.Items.Sort((a, b) => b.EstimatedLoc.CompareTo(a.EstimatedLoc));
         return dataset;
     }
 
     /// <summary>
-    /// Verifica se un simbolo rappresenta un entry point naturale per l'avvio o la gestione degli eventi dell'applicazione.
+    /// Tests whether a symbol represents a natural entry point for launching or handling application events.
     /// </summary>
     private static bool IsNaturalEntryPoint(Symbol sym, CodeGraph graph)
     {
-        // 1. Procedura Sub Main o Main() (punto di ingresso canonico)
+        // 1. Sub Main or Main() procedure (canonical entry point)
         if (string.Equals(sym.Name, "Main", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(sym.Name, "Sub Main", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(sym.Name, "Program.Main", StringComparison.OrdinalIgnoreCase))
 
             return true;
 
-        // 2. Gestori di eventi UI o del runtime (es. cmdSalva_Click, Form_Load)
+        // 2. UI or runtime event handlers (e.g. cmdSalva_Click, Form_Load)
         if (sym.Kind is SymbolKind.Method or SymbolKind.Property)
         {
             var name = sym.Name;
@@ -223,7 +223,7 @@ public static class DeadCodeAnalyzer
                     return true;
             }
 
-            // Gestori di eventi registrati tramite relazione HandlesEvent (es. variabili WithEvents o controlli form)
+            // Event handlers registered via HandlesEvent relationship (e.g. WithEvents variables or form controls)
             var incomingEvent = graph.Relationships.FirstOrDefault(r => r.Kind == RelationshipKind.HandlesEvent && r.TargetId == sym.Id);
             if (incomingEvent != null)
             {
@@ -234,7 +234,7 @@ public static class DeadCodeAnalyzer
             }
         }
 
-        // 3. Form, Finestre o UserControl (caricati dal runtime o da config di progetto)
+        // 3. Forms, Windows or UserControls (loaded from runtime or project config)
         if (sym.Kind is SymbolKind.Form or SymbolKind.UserControl)
 
             return true;
@@ -243,8 +243,8 @@ public static class DeadCodeAnalyzer
     }
 
     /// <summary>
-    /// Verifica se un metodo corrisponde a una routine del ciclo di vita invocata automaticamente dall'infrastruttura VB6/COM
-    /// (es. costruttori Class_Initialize, distruttori Class_Terminate, handler Form_Load).
+    /// Tests whether a method corresponds to a lifecycle routine automatically invoked by the VB6/COM infrastructure
+    /// (e.g. Class_Initialize constructors, Class_Terminate destructors, Form_Load handlers).
     /// </summary>
     private static bool IsAutoInvokedMember(string name)
     {

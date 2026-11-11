@@ -16,8 +16,8 @@ public class AppAndExportExhaustiveEdgeCasesTests
     #region Complete Audit Report Serialization and Exporters
 
     /// <summary>
-    /// Verifica che AuditReportBuilder.RunAll generi un report completo
-    /// serializzabile sia in formato JSON che Markdown con tutte le sezioni di analisi popolate.
+    /// Verify that AuditReportBuilder.RunAll generates a complete report
+    /// serializable in both JSON and Markdown formats with all analysis sections populated.
     /// </summary>
     [Fact]
     public void AuditReportBuilder_ShouldProduceValidJsonAndMarkdownOutputs()
@@ -53,8 +53,8 @@ public class AppAndExportExhaustiveEdgeCasesTests
     #region Keyboard Shortcuts Catalog No-Collision Verification
 
     /// <summary>
-    /// Verifica che non vi siano conflitti o combinazioni di tasti duplicate
-    /// all'interno del catalogo scorciatoie per ciascuna lingua supportata.
+    /// Check for conflicts or duplicate key combinations
+    /// within the shortcut catalog for each supported language.
     /// </summary>
     [Theory]
     [InlineData(AppLanguage.Italian)]
@@ -71,7 +71,7 @@ public class AppAndExportExhaustiveEdgeCasesTests
             .Select(s => string.Join("+", s.KeyBadges.OrderBy(k => k, StringComparer.OrdinalIgnoreCase)))
             .ToList();
 
-        // Ciascuna combinazione di tasti deve essere univoca
+        // Each key combination must be unique
         keyCombos.Distinct().Count().Should().Be(keyCombos.Count, "Non devono esserci combinazioni di tasti duplicate");
     }
 
@@ -80,8 +80,8 @@ public class AppAndExportExhaustiveEdgeCasesTests
     #region GraphVisualAdapter Disconnected Islands and Deep Hierarchies
 
     /// <summary>
-    /// Verifica che GraphVisualAdapter gestisca correttamente grafi con isole completamente disconnesse
-    /// e strutture con moduli orfani, assegnando le corrette coordinate e gerarchie di nodi.
+    /// Verify that GraphVisualAdapter correctly handles graphs with completely disconnected islands
+    /// and structures with orphaned modules, assigning the correct node coordinates and hierarchies.
     /// </summary>
     [Fact]
     public void GraphVisualAdapter_ShouldHandleDisconnectedIslandsAndDeepTrees()
@@ -122,8 +122,8 @@ public class AppAndExportExhaustiveEdgeCasesTests
     #region ProjectCacheService Snapshot Serialization Roundtrip
 
     /// <summary>
-    /// Verifica che il salvataggio e ripristino di ProjectCacheSnapshot mantenga intatte
-    /// tutte le proprietà, le posizioni dei nodi, le statistiche di analisi e la data di scansione.
+    /// Verify that saving and restoring ProjectCacheSnapshot remains intact
+    /// all properties, node locations, analysis statistics and scan date.
     /// </summary>
     [Fact]
     public void ProjectCacheService_ShouldSerializeAndDeserializeSnapshotFaithfully()

@@ -14,9 +14,9 @@ public class Vb6AdvancedGrammarAndFlowEdgeCasesTests
     #region Type Suffix Characters and Multi-Statement Lines
 
     /// <summary>
-    /// Verifica che il parser e l'estrattore gestiscano i suffissi di tipo VB6
+    /// Verify that the parser and extractor handle VB6 type suffixes
     /// (% = Integer, & = Long, ! = Single, # = Double, $ = String, @ = Currency)
-    /// su dichiarazioni di variabili e routine.
+    /// on variable declarations and routines.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldHandleTypeSuffixCharacters_OnVariablesAndRoutines()
@@ -52,7 +52,7 @@ public class Vb6AdvancedGrammarAndFlowEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica istruzioni multiple separate da due punti con etichette numeriche e commenti inline.
+    /// Test multiple statements separated by colons with numeric labels and inline comments.
     /// </summary>
     [Fact]
     public void Parser_ShouldParseMultiStatementLinesWithColonsAndLabels()
@@ -88,7 +88,7 @@ public class Vb6AdvancedGrammarAndFlowEdgeCasesTests
     #region Property Set and Object Properties
 
     /// <summary>
-    /// Verifica la definizione ed estrazione di triplette di proprietà: Property Get, Property Let e Property Set.
+    /// Verify the definition and extraction of property triplets: Property Get, Property Let and Property Set.
     /// </summary>
     [Fact]
     public void ParserAndExtractor_ShouldExtractPropertyGetLetAndSet()
@@ -122,7 +122,7 @@ public class Vb6AdvancedGrammarAndFlowEdgeCasesTests
     #region Complex Select Case and Flow Controls
 
     /// <summary>
-    /// Verifica il parsing di Select Case avanzati con elenchi multipli, intervalli (To) e condizioni relazionali (Is >, Is <=).
+    /// Test parsing of advanced Select Cases with multiple lists, ranges (To), and relational conditions (Is >, Is <=).
     /// </summary>
     [Fact]
     public void Parser_ShouldParseComplexSelectCaseWithRangesAndRelationalConditions()
@@ -171,7 +171,7 @@ public class Vb6AdvancedGrammarAndFlowEdgeCasesTests
     #region Module Level Directives (Option Explicit, Option Compare, Option Base)
 
     /// <summary>
-    /// Verifica il parsing di direttive globali di modulo VB6: Option Explicit, Option Compare Binary/Text, Option Base 0/1.
+    /// Tests parsing of VB6 module global directives: Option Explicit, Option Compare Binary/Text, Option Base 0/1.
     /// </summary>
     [Fact]
     public void Parser_ShouldParseModuleDirectives_OptionExplicitOptionCompareOptionBase()
@@ -210,7 +210,7 @@ public class Vb6AdvancedGrammarAndFlowEdgeCasesTests
     #region Nested With Blocks and Leading Dot Method Invocations
 
     /// <summary>
-    /// Verifica il parsing di blocchi With annidati con invocazioni di metodi e assegnazioni di proprietà con punto iniziale (.Save, .Refresh).
+    /// Tests parsing of nested With blocks with leading dot method invocations and property assignments (.Save, .Refresh).
     /// </summary>
     [Fact]
     public void Parser_ShouldParseNestedWithBlocksAndLeadingDotInvocations()

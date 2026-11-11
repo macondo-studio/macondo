@@ -10,8 +10,8 @@ public class AppServicesComprehensiveEdgeCasesTests
     #region VCS Service Extended Edge Cases
 
     /// <summary>
-    /// Verifica che VcsService restituisca VcsType.None per percorsi non associati ad alcun repository
-    /// anche quando la cartella temporanea è profondamente nidificata.
+    /// Verify that VcsService returns VcsType.None for paths not associated with any repository
+    /// even when the temporary folder is deeply nested.
     /// </summary>
     [Fact]
     public void VcsService_ShouldReturnNone_ForDeeplyNestedNonVcsDirectory()
@@ -36,7 +36,7 @@ public class AppServicesComprehensiveEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica che VcsService gestisca percorsi con spazi e caratteri speciali senza sollevare eccezioni.
+    /// Verify that VcsService handles paths with spaces and special characters without raising exceptions.
     /// </summary>
     [Fact]
     public void VcsService_ShouldHandleDirectoryWithSpacesAndSpecialChars()
@@ -66,8 +66,8 @@ public class AppServicesComprehensiveEdgeCasesTests
     #region Windows Notification Service Unicode & Formatting
 
     /// <summary>
-    /// Verifica che il servizio di notifica Windows gestisca caratteri speciali, emoji, entità XML
-    /// e formattazioni multilinea senza errori.
+    /// Verify that Windows Notification Service handles special characters, emojis, XML entities
+    /// and error-free multiline formatting.
     /// </summary>
     [Theory]
     [InlineData("Notifica: Analisi completata ✅", "Trovati 15 avvisi e 3 errori.\r\nControllare i log.")]
@@ -84,7 +84,7 @@ public class AppServicesComprehensiveEdgeCasesTests
     #region UpdateService Multi-Digit & Semantic Version Comparisons
 
     /// <summary>
-    /// Verifica la comparazione semantica delle versioni con numeri a più cifre (es. 1.10.0 > 1.9.0, 2.0.0 > 1.99.99).
+    /// Check the semantic comparison of versions with multi-digit numbers (e.g. 1.10.0 > 1.9.0, 2.0.0 > 1.99.99).
     /// </summary>
     [Theory]
     [InlineData("1.9.0", "1.10.0", true)]
@@ -107,8 +107,8 @@ public class AppServicesComprehensiveEdgeCasesTests
     #region Keyboard Shortcuts Catalog Consistency
 
     /// <summary>
-    /// Verifica che tutte le azioni nel catalogo delle scorciatoie abbiano nomi di azione unici
-    /// e combinazioni di tasti valide per entrambe le lingue.
+    /// Verify that all actions in the shortcut catalog have unique action names
+    /// and key combinations valid for both languages.
     /// </summary>
     [Theory]
     [InlineData(AppLanguage.Italian)]

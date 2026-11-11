@@ -9,8 +9,8 @@ namespace Macondo.Tests.CSharpSpecific;
 public class CSharpProjectAnalysisServiceTests
 {
     /// <summary>
-    /// Verifica la pipeline completa di analisi (ProjectAnalysisService.AnalyzePaths) applicata a un progetto
-    /// C# puro (.csproj), verificando la creazione dei nodi di progetto, tipi, interfacce e relazioni IMPLEMENTS.
+    /// Tests the complete analysis pipeline (ProjectAnalysisService.AnalyzePaths) applied to a project
+    /// Pure C# (.csproj), verifying the creation of project nodes, types, interfaces and IMPLEMENTS relationships.
     /// </summary>
     [Fact]
     public void ProjectAnalysisService_ShouldAnalyzePureCSharpProject()
@@ -73,8 +73,8 @@ public class CSharpProjectAnalysisServiceTests
     }
 
     /// <summary>
-    /// Verifica l'analisi combinata (ibrida) di un Workspace contenente contemporaneamente progetti VB6 legacy (.vbp)
-    /// e progetti C# (.csproj), con corretta generazione del grafo visuale unificato contenente entrambe le radici di progetto.
+    /// Test combined (hybrid) analysis of a Workspace simultaneously containing legacy VB6 projects (.vbp)
+    /// and C# projects (.csproj), with correct generation of the unified visual graph containing both project roots.
     /// </summary>
     [Fact]
     public void ProjectAnalysisService_ShouldAnalyzeHybridWorkspace_WithBothVB6AndCSharpProjects()
@@ -120,8 +120,8 @@ public class CSharpProjectAnalysisServiceTests
     }
 
     /// <summary>
-    /// Verifica il comportamento di fallback quando viene passato un elenco vuoto di percorsi,
-    /// assicurando che venga restituito un VisualCodeGraph vuoto senza sollevare eccezioni.
+    /// Tests fallback behavior when passed an empty list of routes,
+    /// ensuring that an empty VisualCodeGraph is returned without raising exceptions.
     /// </summary>
     [Fact]
     public void ProjectAnalysisService_ShouldReturnEmptyGraph_WhenNoProjectsFound()

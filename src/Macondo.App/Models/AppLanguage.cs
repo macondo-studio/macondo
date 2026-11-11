@@ -1,7 +1,7 @@
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Lingue supportate per la localizzazione dell'interfaccia utente.
+/// Supported languages ​​for user interface localization.
 /// </summary>
 public enum AppLanguage
 {

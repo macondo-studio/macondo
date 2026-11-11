@@ -8,8 +8,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class CodeCloneDetectionExtendedTests
 {
     /// <summary>
-    /// Verifica che routine completamente distinte (lunghezze differenti, chiamate a metodi diversi)
-    /// non vengano identificate come duplicati o cloni (0 gruppi di cloni).
+    /// Check that completely distinct routines (different lengths, different method calls)
+    /// are not identified as duplicates or clones (0 clone groups).
     /// </summary>
     [Fact]
     public void CodeClones_ShouldReturnZeroGroups_WhenRoutinesAreDistinct()
@@ -57,8 +57,8 @@ public class CodeCloneDetectionExtendedTests
     }
 
     /// <summary>
-    /// Verifica che routine inferiori alla soglia minima specificata (minLineCount)
-    /// vengano escluse dal rilevamento dei cloni anche se identiche.
+    /// Checks for routines below the specified minimum threshold (minLineCount)
+    /// are excluded from clone detection even if they are identical.
     /// </summary>
     [Fact]
     public void CodeClones_ShouldIgnoreRoutinesBelowMinLineThreshold()
@@ -101,7 +101,7 @@ public class CodeCloneDetectionExtendedTests
     }
 
     /// <summary>
-    /// Verifica che il detector individui molteplici gruppi distinti di duplicazione (es. 2 coppie separate di cloni).
+    /// Verify that the detector identifies multiple distinct groups of duplications (e.g. 2 separate pairs of clones).
     /// </summary>
     [Fact]
     public void CodeClones_ShouldDetectMultipleIndependentCloneGroups()

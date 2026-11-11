@@ -3,25 +3,25 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.Hotspots;
 
 /// <summary>
-/// Quadrante concettuale della matrice di rischio (metodologia Adam Tornhill / CodeScene).
+/// Conceptual quadrant of the risk matrix (Adam Tornhill / CodeScene methodology).
 /// </summary>
 public enum HotspotQuadrant
 {
-    /// <summary>Basso rischio: Basso Churn + Bassa Complessità (Stabile e semplice).</summary>
+    /// <summary>Low Risk: Low Churn + Low Complexity (Stable and simple).</summary>
     Safe,
 
-    /// <summary>Rischio Moderato: Alto Churn + Bassa Complessità (Modificato spesso ma semplice).</summary>
+    /// <summary>Moderate Risk: High Churn + Low Complexity (Often modified but simple).</summary>
     HighChurnLowComplexity,
 
-    /// <summary>Rischio Latente: Basso Churn + Alta Complessità (Complesso ma raramente toccato).</summary>
+    /// <summary>Latent Risk: Low Churn + High Complexity (Complex but rarely touched).</summary>
     LowChurnHighComplexity,
 
-    /// <summary>HOTSPOT CRITICO: Alto Churn + Alta Complessità (Zona ad altissima probabilità di difetti).</summary>
+    /// <summary>CRITICAL HOTSPOT: High Churn + High Complexity (Area with very high probability of defects).</summary>
     DangerZone
 }
 
 /// <summary>
-/// Singolo elemento analizzato nella matrice Hotspot (Metodo, Procedura, Modulo o Classe).
+/// Single element analyzed in the Hotspot matrix (Method, Procedure, Module or Class).
 /// </summary>
 public sealed class HotspotItem
 {
@@ -31,22 +31,22 @@ public sealed class HotspotItem
     public string ContainerName { get; init; } = string.Empty;
     public SymbolKind Kind { get; init; }
 
-    /// <summary>Asse Y: Punteggio di complessità ciclomatica o strutturale (1 .. N).</summary>
+    /// <summary>Y axis: Cyclomatic or structural complexity score (1 .. N).</summary>
     public double Complexity { get; set; }
 
-    /// <summary>Asse X: Frequenza di modifica da VCS (Churn) o Fan-In di dipendenza (quanti chiamanti/utilizzatori).</summary>
+    /// <summary>X-Axis: Frequency of change from VCS (Churn) or Fan-In dependency (how many callers/users).</summary>
     public double ChurnOrFanIn { get; set; }
 
-    /// <summary>Raggio del punto/bolla: Dimensione del codice (LOC / Istruzioni / Parametri).</summary>
+    /// <summary>Dot/Bubble Radius: Code Size (LOC / Instructions / Parameters).</summary>
     public double SizeMetric { get; set; }
 
-    /// <summary>Punteggio unificato di rischio normalizzato (0 .. 100).</summary>
+    /// <summary>Unified normalized risk score (0 .. 100).</summary>
     public double RiskScore { get; set; }
 
-    /// <summary>Livello di rischio categorizzato.</summary>
+    /// <summary>Categorized risk level.</summary>
     public ImpactRiskLevel RiskLevel { get; set; }
 
-    /// <summary>Quadrante assegnato in base alla media della codebase.</summary>
+    /// <summary>Quadrant assigned based on codebase average.</summary>
     public HotspotQuadrant Quadrant { get; set; }
 
     public int DirectCallersCount { get; set; }
@@ -54,7 +54,7 @@ public sealed class HotspotItem
 }
 
 /// <summary>
-/// Dataset completo della matrice Hotspots per un intero progetto.
+/// Complete dataset of the Hotspots matrix for an entire project.
 /// </summary>
 public sealed class HotspotDataset
 {

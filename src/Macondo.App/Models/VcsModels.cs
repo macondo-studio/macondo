@@ -3,7 +3,7 @@ using System;
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Tipologia di Version Control System rilevato per il progetto.
+/// Type of Version Control System detected for the project.
 /// </summary>
 public enum VcsType
 {
@@ -13,33 +13,33 @@ public enum VcsType
 }
 
 /// <summary>
-/// Informazioni unificate su un branch / tag / percorso VCS (Git o SVN).
+/// Unified information about a branch / tag / VCS path (Git or SVN).
 /// </summary>
 public sealed class VcsBranchInfo
 {
     /// <summary>
-    /// Nome del branch da visualizzare nell'interfaccia (es. 'main', 'trunk', 'feature/login').
+    /// Name of the branch to display in the interface (e.g. 'main', 'trunk', 'feature/login').
     /// </summary>
     public required string Name { get; init; }
 
     /// <summary>
-    /// Bersaglio per il comando di checkout o switch (nome branch Git o target URL SVN).
+    /// Target for the checkout or switch command (Git branch name or SVN URL target).
     /// </summary>
     public required string Target { get; init; }
 
     /// <summary>
-    /// Indica se questo è il branch correntemente attivo.
+    /// Indicates whether this is the currently active branch.
     /// </summary>
     public bool IsCurrent { get; init; }
 
     /// <summary>
-    /// Sistema VCS di provenienza (Git o SVN).
+    /// Source VCS system (Git or SVN).
     /// </summary>
     public VcsType VcsType { get; init; }
 }
 
 /// <summary>
-/// Informazioni su un branch Git del repository.
+/// Information about a Git branch of the repository.
 /// </summary>
 public sealed class GitBranchInfo
 {
@@ -48,22 +48,22 @@ public sealed class GitBranchInfo
 }
 
 /// <summary>
-/// Informazioni su un branch o percorso di switch SVN (Subversion).
+/// Information about an SVN (Subversion) branch or switch path.
 /// </summary>
 public sealed class SvnBranchInfo
 {
     /// <summary>
-    /// Nome leggibile per l'interfaccia (es. 'trunk', 'feature-auth', 'tags/v1.0').
+    /// Human-readable name for the interface (e.g. 'trunk', 'feature-auth', 'tags/v1.0').
     /// </summary>
     public required string Name { get; init; }
 
     /// <summary>
-    /// Percorso relativo o URL per 'svn switch' (es. '^/trunk', '^/branches/feature-auth').
+    /// Relative path or URL for 'svn switch' (e.g. '^/trunk', '^/branches/feature-auth').
     /// </summary>
     public required string TargetUrl { get; init; }
 
     /// <summary>
-    /// Indica se questo è il branch/percorso attualmente attivo nel working copy.
+    /// Indicates whether this is the branch/path currently active in the working copy.
     /// </summary>
     public bool IsCurrent { get; init; }
 }

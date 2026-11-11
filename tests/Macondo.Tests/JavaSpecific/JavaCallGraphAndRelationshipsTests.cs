@@ -8,8 +8,8 @@ namespace Macondo.Tests.JavaSpecific;
 public class JavaCallGraphAndRelationshipsTests
 {
     /// <summary>
-    /// Verifica che vengano generate correttamente le relazioni CALLS tra metodi Java
-    /// sia per chiamate dirette che per invocazioni qualificate da ricevitore ('service.execute()').
+    /// Verify that CALLS relationships between Java methods are generated correctly
+    /// for both direct calls and receiver-qualified invocations ('service.execute()').
     /// </summary>
     [Fact]
     public void JavaCallGraph_ShouldResolveDirectAndReceiverMethodCalls()
@@ -55,14 +55,14 @@ public class JavaCallGraphAndRelationshipsTests
         chargeMethod.Should().NotBeNull();
         notifyMethod.Should().NotBeNull();
 
-        // Relazione CALLS da checkout -> charge (tramite ricevitore PaymentGateway)
+        // CALLS relationship from checkout -> charge (via PaymentGateway receiver)
         var callChargeRel = graph.Relationships.FirstOrDefault(r =>
             r.SourceId == checkoutMethod!.Id &&
             r.TargetId == chargeMethod!.Id &&
             r.Kind == RelationshipKind.Calls);
         callChargeRel.Should().NotBeNull();
 
-        // Relazione CALLS da checkout -> sendNotification (chiamata diretta interna)
+        // CALLS relationship from checkout -> sendNotification (internal direct call)
         var callNotifyRel = graph.Relationships.FirstOrDefault(r =>
             r.SourceId == checkoutMethod!.Id &&
             r.TargetId == notifyMethod!.Id &&
@@ -71,8 +71,8 @@ public class JavaCallGraphAndRelationshipsTests
     }
 
     /// <summary>
-    /// Verifica che le espressioni 'new ClassName(...)' generino la relazione INSTANTIATES
-    /// tra la routine chiamante e la classe bersaglio.
+    /// Check that the 'new ClassName(...)' expressions generate the INSTANTIATES relationship
+    /// between the calling routine and the target class.
     /// </summary>
     [Fact]
     public void JavaCallGraph_ShouldResolveObjectInstantiations()
@@ -118,7 +118,7 @@ public class JavaCallGraphAndRelationshipsTests
     }
 
     /// <summary>
-    /// Verifica la generazione delle relazioni INHERITS da clausole 'extends' e IMPLEMENTS da clausole 'implements'.
+    /// Tests the generation of INHERITS relations from 'extends' clauses and IMPLEMENTS from 'implements' clauses.
     /// </summary>
     [Fact]
     public void JavaCallGraph_ShouldResolveInheritanceAndInterfaceImplementation()
@@ -182,7 +182,7 @@ public class JavaCallGraphAndRelationshipsTests
             r.Kind == RelationshipKind.Implements);
         implementsRel.Should().NotBeNull();
 
-        // Versionable extends Auditable -> INHERITS (tra interfacce)
+        // Versionable extends Auditable -> INHERITS (between interfaces)
         var ifaceInheritsRel = graph.Relationships.FirstOrDefault(r =>
             r.SourceId == versionable!.Id &&
             r.TargetId == auditable!.Id &&
@@ -191,7 +191,7 @@ public class JavaCallGraphAndRelationshipsTests
     }
 
     /// <summary>
-    /// Verifica la risoluzione di invocazioni a costruttori super(...) e this(...).
+    /// Tests resolution of super(...) and this(...) constructor invocations.
     /// </summary>
     [Fact]
     public void JavaCallGraph_ShouldResolveSuperAndThisConstructorCalls()
@@ -224,7 +224,7 @@ public class JavaCallGraphAndRelationshipsTests
     }
 
     /// <summary>
-    /// Verifica la risoluzione di Java Method References (es. 'User::getName').
+    /// Check the resolution of Java Method References (e.g. 'User::getName').
     /// </summary>
     [Fact]
     public void JavaCallGraph_ShouldExtractMethodReferences()

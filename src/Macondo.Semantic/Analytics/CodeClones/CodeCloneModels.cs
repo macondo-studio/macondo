@@ -3,19 +3,19 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.CodeClones;
 
 /// <summary>
-/// Tipologia di clone o duplicazione di codice.
+/// Type of clone or code duplication.
 /// </summary>
 public enum CloneType
 {
-    /// <summary>Tipo 1: Duplicazione esatta del codice (stessi token, identica sintassi, ignora solo spazi/commenti).</summary>
+    /// <summary>Type 1: Exact duplication of code (same tokens, identical syntax, ignore spaces/comments only).</summary>
     Type1Exact,
 
-    /// <summary>Tipo 2: Duplicazione strutturale/parametrizzata (stessa logica e costrutti, identificatori o costanti rinominati).</summary>
+    /// <summary>Type 2: Structural/parameterized duplication (same logic and renamed constructs, identifiers or constants).</summary>
     Type2Parameterized
 }
 
 /// <summary>
-/// Singola occorrenza o frammento di codice identificato come parte di un gruppo di cloni.
+/// Single occurrence or code fragment identified as part of a group of clones.
 /// </summary>
 public sealed class CodeCloneFragment
 {
@@ -29,7 +29,7 @@ public sealed class CodeCloneFragment
 }
 
 /// <summary>
-/// Gruppo di frammenti di codice identici o strutturalmente equivalenti duplicati nel progetto.
+/// A group of identical or structurally equivalent code fragments duplicated in the project.
 /// </summary>
 public sealed class CodeCloneGroup
 {
@@ -38,15 +38,15 @@ public sealed class CodeCloneGroup
     public int TokenCount { get; init; }
     public int LineCount { get; init; }
 
-    /// <summary>Tutti i frammenti duplicati appartenenti a questo gruppo.</summary>
+    /// <summary>All duplicate fragments belonging to this group.</summary>
     public List<CodeCloneFragment> Occurrences { get; init; } = new();
 
-    /// <summary>Numero totale di righe ridondanti/risparmiabili con un refactoring ad astrazione unica.</summary>
+    /// <summary>Total number of redundant/saving lines with a single abstraction refactoring.</summary>
     public int RedundantLines => Occurrences.Count > 1 ? (Occurrences.Count - 1) * LineCount : 0;
 }
 
 /// <summary>
-/// Report aggregato dell'analisi dei cloni di codice (CPD).
+/// Aggregated code clone analysis (CPD) report.
 /// </summary>
 public sealed class CodeCloneReport
 {

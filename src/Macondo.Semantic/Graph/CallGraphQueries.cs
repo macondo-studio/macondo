@@ -5,21 +5,21 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Graph;
 
 /// <summary>
-/// Motore di interrogazione e algoritmi sul Call Graph.
+/// Query engine and algorithms on the Call Graph.
 /// 
-/// FORNISCE FUNZIONALITÀ PER:
-/// 1. Query Callers: identificare chi chiama una routine (diretti e indiretti/transitivi).
-/// 2. Query Callees: identificare cosa viene chiamato da una routine.
-/// 3. Execution Path Discovery: trovare tutti i cammini di esecuzione tra due routine (es. da entry point a database).
-/// 4. Cycle Detection: individuare chiamate ricorsive e cicli di dipendenza nel grafo.
-/// 5. Dependency Analysis: interrogare istanziazioni (INSTANTIATES) e dipendenze di tipo (USES_TYPE).
-/// Include caching a grana fine (Memoization thread-safe) su tutte le sotto-query per massimizzare le performance.
+/// PROVIDES FEATURES FOR:
+/// 1. Query Callers: Identify who calls a routine (direct and indirect/transitive).
+/// 2. Query Callees: Identify what is called by a routine.
+/// 3. Execution Path Discovery: find all execution paths between two routines (e.g. from entry point to database).
+/// 4. Cycle Detection: Identify recursive calls and dependency loops in the graph.
+/// 5. Dependency Analysis: Query instantiations (INSTANTIATES) and type dependencies (USES_TYPE).
+/// Includes fine-grained caching (thread-safe memoization) on all subqueries to maximize performance.
 /// </summary>
 public sealed class CallGraphQueries
 {
     private readonly CodeGraph _graph;
 
-    // Cache a grana fine (Opzione 3)
+    // Fine-grained cache (Option 3)
     private readonly ConcurrentDictionary<Guid, IReadOnlyList<Symbol>> _directCallersCache = new();
     private readonly ConcurrentDictionary<Guid, IReadOnlyList<Symbol>> _directCalleesCache = new();
     private readonly ConcurrentDictionary<(Guid SourceId, Guid TargetId, int MaxDepth), IReadOnlyList<CallPath>> _executionPathsCache = new();
@@ -32,7 +32,7 @@ public sealed class CallGraphQueries
     }
 
     /// <summary>
-    /// Svuota tutte le cache interne delle sotto-query e dei report di impatto.
+    /// Clear all internal caches of subqueries and impact reports.
     /// </summary>
     public void ClearCache()
     {
@@ -48,14 +48,14 @@ public sealed class CallGraphQueries
     // =========================================================================
 
     /// <summary>
-    /// Restituisce l'elenco di tutte le routine che chiamano direttamente la routine specificata (Who calls target?).
-    /// Risultato memorizzato in cache thread-safe per accessi istantanei successivi.
+    /// Returns the list of all routines that directly call the specified routine (Who calls target?).
+    /// Thread-safe cached result for subsequent instant access.
     /// </summary>
-    /// <param name="callee">La routine chiamata target.</param>
+    /// <param name="callee">The routine called target.</param>
     public IReadOnlyList<Symbol> GetDirectCallers(Symbol callee)
     {
         return _directCallersCache.GetOrAdd(callee.Id, _ =>
-            // Interroga le relazioni entranti indicizzate O(1) di tipo Calls o HandlesEvent
+            // Queries O(1) indexed incoming relations of type Calls or HandlesEvent
             _graph.GetIncomingRelationships(callee.Id)
                 .Where(r => r.Kind == RelationshipKind.Calls || r.Kind == RelationshipKind.HandlesEvent)
                 .Select(r => _graph.FindSymbolById(r.SourceId))
@@ -66,14 +66,14 @@ public sealed class CallGraphQueries
     }
 
     /// <summary>
-    /// Restituisce l'elenco di tutte le routine chiamate direttamente dalla routine specificata (What does source call?).
-    /// Risultato memorizzato in cache thread-safe per accessi istantanei successivi.
+    /// Returns the list of all routines called directly from the specified routine (What does source call?).
+    /// Thread-safe cached result for subsequent instant access.
     /// </summary>
-    /// <param name="caller">La routine chiamante sorgente.</param>
+    /// <param name="caller">The source calling routine.</param>
     public IReadOnlyList<Symbol> GetDirectCallees(Symbol caller)
     {
         return _directCalleesCache.GetOrAdd(caller.Id, _ =>
-            // Interroga le relazioni uscenti indicizzate O(1) di tipo Calls o HandlesEvent
+            // Queries O(1) indexed outgoing relations of type Calls or HandlesEvent
             _graph.GetOutgoingRelationships(caller.Id)
                 .Where(r => r.Kind == RelationshipKind.Calls || r.Kind == RelationshipKind.HandlesEvent)
                 .Select(r => _graph.FindSymbolById(r.TargetId))
@@ -85,19 +85,19 @@ public sealed class CallGraphQueries
 
 
     // =========================================================================
-    // EXECUTION PATH DISCOVERY (Ricerca Cammini di Esecuzione)
+    // EXECUTION PATH DISCOVERY
     // =========================================================================
 
     /// <summary>
-    /// Trova tutti i cammini di esecuzione aciclici da una routine sorgente (es. Form_Click)
-    /// a una routine di destinazione (es. Database.Execute), fino a una profondità massima.
-    /// I risultati vengono memorizzati in una cache con chiave (SourceId, TargetId, MaxDepth).
+    /// Find all acyclic execution paths from a source routine (e.g. Form_Click)
+    /// to a target routine (e.g. Database.Execute), up to a maximum depth.
+    /// The results are stored in a keyed cache (SourceId, TargetId, MaxDepth).
     /// </summary>
-    /// <param name="source">Simbolo di partenza.</param>
-    /// <param name="target">Simbolo di arrivo.</param>
-    /// <param name="maxDepth">Profondità massima di ricerca.</param>
-    /// <param name="cancellationToken">Token opzionale per annullare la ricerca.</param>
-    /// <returns>Elenco dei cammini (<see cref="CallPath"/>) identificati.</returns>
+    /// <param name="source">Start symbol.</param>
+    /// <param name="target">Arrival symbol.</param>
+    /// <param name="maxDepth">Maximum search depth.</param>
+    /// <param name="cancellationToken">Optional token to cancel search.</param>
+    /// <returns>List of identified paths (<see cref="CallPath"/>).</returns>
     public IReadOnlyList<CallPath> FindExecutionPaths(
         Symbol source,
         Symbol target,
@@ -113,7 +113,7 @@ public sealed class CallGraphQueries
         var currentPath = new List<Symbol> { source };
         var visitedOnPath = new HashSet<Guid> { source.Id };
 
-        // Avvia la ricerca in profondità ricorsiva con backtracking
+        // Start recursive depth search with backtracking
         DfsFindPaths(source, target, currentPath, visitedOnPath, paths, maxDepth, cancellationToken);
 
         _executionPathsCache[key] = paths;
@@ -121,15 +121,15 @@ public sealed class CallGraphQueries
     }
 
     /// <summary>
-    /// Esegue la ricerca in profondità (DFS) con backtracking per individuare tutti i cammini aciclici tra il nodo corrente e la destinazione.
+    /// Performs depth-first search (DFS) with backtracking to locate all acyclic paths between the current node and the destination.
     /// </summary>
-    /// <param name="current">Nodo/routine corrente nella ricorsione DFS.</param>
-    /// <param name="target">Nodo/routine di arrivo cercato.</param>
-    /// <param name="currentPath">Lista ordinata dei simboli che formano il cammino parziale attivo.</param>
-    /// <param name="visitedOnPath">Insieme dei nodi attualmente nel cammino per evitare cicli infiniti.</param>
-    /// <param name="results">Collezione dei cammini completi individuati.</param>
-    /// <param name="maxDepth">Profondità massima di risalita/discesa ammessa.</param>
-    /// <param name="cancellationToken">Token per la cancellazione dell'operazione.</param>
+    /// <param name="current">Current node/routine in DFS recursion.</param>
+    /// <param name="target">Arrival node/routine searched.</param>
+    /// <param name="currentPath">Ordered list of symbols that form the active partial path.</param>
+    /// <param name="visitedOnPath">Set of nodes currently on the path to avoid infinite cycles.</param>
+    /// <param name="results">Collection of complete paths identified.</param>
+    /// <param name="maxDepth">Maximum ascent/descent depth permitted.</param>
+    /// <param name="cancellationToken">Token for canceling the operation.</param>
     private void DfsFindPaths(
         Symbol current,
         Symbol target,
@@ -141,37 +141,37 @@ public sealed class CallGraphQueries
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 1. Limite di sicurezza: arresta la ricerca al raggiungimento di 50 cammini distinti per evitare esplosione combinatoria
+        // 1. Safety limit: stop the search when 50 distinct paths are reached to avoid combinatorial explosion
         if (results.Count >= 50)
             return;
 
-        // 2. Base case: se il nodo corrente coincide con la destinazione cercata, registra una copia del cammino completo
+        // 2. Base case: if the current node coincides with the searched destination, records a copy of the complete path
         if (current.Id == target.Id)
         {
             results.Add(new CallPath(currentPath));
             return;
         }
 
-        // 3. Potatura (Pruning): interrompe l'esplorazione se il cammino parziale attivo supera la profondità massima consentita
+        // 3. Pruning: stops exploration if the active partial path exceeds the maximum permitted depth
         if (currentPath.Count > maxDepth)
             return;
 
-        // 4. Esplora ricorsivamente tutti i chiamati diretti del nodo corrente
+        // 4. Recursively explore all direct callees of the current node
         var callees = GetDirectCallees(current);
         foreach (var callee in callees)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // 5. Backtracking: evita cicli infiniti visitando solo nodi non già presenti nel cammino attivo
+            // 5. Backtracking: avoid infinite cycles by visiting only nodes not already present in the active path
             if (!visitedOnPath.Contains(callee.Id))
             {
                 visitedOnPath.Add(callee.Id);
                 currentPath.Add(callee);
 
-                // Passo ricorsivo in profondità
+                // Depth-depth recursive step
                 DfsFindPaths(callee, target, currentPath, visitedOnPath, results, maxDepth, cancellationToken);
 
-                // Ripristino dello stato (Backtracking) per consentire l'esplorazione di cammini alternativi
+                // Restoration of the state (Backtracking) to allow the exploration of alternative paths
                 currentPath.RemoveAt(currentPath.Count - 1);
                 visitedOnPath.Remove(callee.Id);
             }
@@ -179,12 +179,12 @@ public sealed class CallGraphQueries
     }
 
     // =========================================================================
-    // CYCLE DETECTION (Rilevamento Cicli e Ricorsione)
+    // CYCLE DETECTION (Cycle Detection and Recursion)
     // =========================================================================
 
     /// <summary>
-    /// Identifica tutti i cicli di invocazione diretta o mutua ricorsione presenti nel Call Graph.
-    /// Utilizza l'algoritmo Depth-First Search con marcatura dei nodi a 3 stati (White, Gray, Black).
+    /// Identifies all direct invocation or mutual recursion cycles present in the Call Graph.
+    /// It uses the Depth-First Search algorithm with 3-state node marking (White, Gray, Black).
     /// </summary>
     public IReadOnlyList<CallCycle> DetectCycles()
     {
@@ -192,7 +192,7 @@ public sealed class CallGraphQueries
             .Where(s => s.Kind is SymbolKind.Method or SymbolKind.Property)
             .ToList();
 
-        // Inizializza tutti i nodi come White (non ancora visitati)
+        // Initialize all nodes as White (not yet visited)
         var state = new Dictionary<Guid, NodeColor>();
         foreach (var sym in routineSymbols)
             state[sym.Id] = NodeColor.White;
@@ -200,7 +200,7 @@ public sealed class CallGraphQueries
         var cycles = new List<CallCycle>();
         var path = new List<Symbol>();
 
-        // Esegue la DFS da ogni nodo non ancora visitato per coprire tutte le componenti connesse della foresta
+        // Performs DFS from each node not yet visited to cover all connected components of the forest
         foreach (var sym in routineSymbols)
         {
             if (state[sym.Id] == NodeColor.White)
@@ -212,14 +212,14 @@ public sealed class CallGraphQueries
     }
 
     /// <summary>
-    /// Visita ricorsiva in profondità (DFS a 3 colori) per identificare back-edge e cicli nel Call Graph.
+    /// Recursive depth scanning (3-color DFS) to identify back-edges and loops in the Call Graph.
     /// </summary>
-    /// <param name="current">Nodo corrente in esame.</param>
-    /// <param name="state">Mappa di colorazione dei nodi: <c>White</c> (non visitato), <c>Gray</c> (in elaborazione nello stack), <c>Black</c> (completamente esplorato).</param>
-    /// <param name="path">Sequenza corrente dei nodi nel ramo di visita.</param>
-    /// <param name="cycles">Lista dei cicli di chiamata rilevati.</param>
+    /// <param name="current">Current node under examination.</param>
+    /// <param name="state">Node color map: <c>White</c> (not visited), <c>Gray</c> (processing in stack), <c>Black</c> (fully explored).</param>
+    /// <param name="path">Current sequence of nodes in the visit branch.</param>
+    /// <param name="cycles">List of call cycles detected.</param>
     /// <remarks>
-    /// Un arco verso un nodo marcato <c>Gray</c> rappresenta un back-edge che chiude un ciclo di chiamate o ricorsione.
+    /// An edge to a node marked <c>Gray</c> represents a back-edge that closes a loop of calls or recursion.
     /// </remarks>
     private void DfsDetectCycles(
         Symbol current,
@@ -227,11 +227,11 @@ public sealed class CallGraphQueries
         List<Symbol> path,
         List<CallCycle> cycles)
     {
-        // 1. Marca il nodo corrente come Gray (in elaborazione nello stack di ricorsione attivo)
+        // 1. Mark current node as Gray (processing in active recursion stack)
         state[current.Id] = NodeColor.Gray;
         path.Add(current);
 
-        // 2. Esplora le chiamate uscenti
+        // 2. Explore outgoing calls
         var callees = GetDirectCallees(current);
         foreach (var callee in callees)
         {
@@ -239,7 +239,7 @@ public sealed class CallGraphQueries
             {
                 if (calleeState == NodeColor.Gray)
                 {
-                    // Back-edge individuato: il nodo callee è già nello stack corrente (chiude un ciclo o ricorsione mutua)
+                    // Back-edge detected: callee node is already in the current stack (closes a loop or mutual recursion)
                     var cycleStartIndex = path.FindIndex(s => s.Id == callee.Id);
                     if (cycleStartIndex >= 0)
                     {
@@ -253,7 +253,7 @@ public sealed class CallGraphQueries
             }
         }
 
-        // 3. Post-processing: rimuove il nodo dal path attivo e lo marca Black (visita del sottoalbero completata)
+        // 3. Post-processing: removes the node from the active path and marks it Black (subtree visit completed)
         path.RemoveAt(path.Count - 1);
         state[current.Id] = NodeColor.Black;
     }
@@ -263,8 +263,8 @@ public sealed class CallGraphQueries
     // =========================================================================
 
     /// <summary>
-    /// Restituisce tutte le classi istanziate direttamente dal simbolo specificato (relazione INSTANTIATES).
-    /// Risultato memorizzato in cache thread-safe per accessi istantanei successivi.
+    /// Returns all classes instantiated directly from the specified symbol (INSTANTIATES relation).
+    /// Thread-safe cached result for subsequent instant access.
     /// </summary>
     public IReadOnlyList<Symbol> GetInstantiatedClasses(Symbol source) =>
         _instantiatedClassesCache.GetOrAdd(source.Id, _ =>
@@ -282,8 +282,8 @@ public sealed class CallGraphQueries
     // =========================================================================
 
     /// <summary>
-    /// Esegue l'analisi completa del Blast Radius per il simbolo specificato.
-    /// Risultato memorizzato in cache thread-safe per accessi istantanei successivi.
+    /// Performs full Blast Radius analysis for the specified symbol.
+    /// Thread-safe cached result for subsequent instant access.
     /// </summary>
     public Impact.ImpactReport GetImpactReport(Symbol symbol, int maxDepth = 10, CancellationToken cancellationToken = default)
     {
@@ -300,7 +300,7 @@ public sealed class CallGraphQueries
     }
 
     /// <summary>
-    /// Verifica se il report di impatto per il simbolo specificato è già presente nella cache.
+    /// Checks whether the impact report for the specified symbol is already present in the cache.
     /// </summary>
     public bool TryGetCachedImpactReport(Symbol symbol, int maxDepth, out Impact.ImpactReport? report) =>
         _impactReportCache.TryGetValue((symbol.Id, maxDepth), out report);

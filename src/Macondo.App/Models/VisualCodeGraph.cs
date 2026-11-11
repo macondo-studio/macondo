@@ -4,26 +4,26 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Modello visuale del grafo per il rendering e l'interazione UI.
-/// Mantiene l'elenco dei <see cref="GraphNode"/> posizionati e dei <see cref="GraphEdge"/>,
-/// e fa da ponte verso il <see cref="SemanticGraph"/> e <see cref="CallGraphQueries"/> sottostanti.
+/// Visual graph model for rendering and UI interaction.
+/// Maintains the list of positioned <see cref="GraphNode"/> and <see cref="GraphEdge"/>,
+/// and acts as a bridge to the <see cref="SemanticGraph"/> and <see cref="CallGraphQueries"/> below.
 /// </summary>
 public sealed class VisualCodeGraph
 {
     public List<GraphNode> Nodes { get; } = new();
     public List<GraphEdge> Edges { get; } = new();
 
-    /// <summary>Riferimento al CodeGraph semantico reale sottostante.</summary>
+    /// <summary>Reference to the underlying real semantic CodeGraph.</summary>
     public Macondo.Semantic.Model.CodeGraph? SemanticGraph { get; set; }
 
-    /// <summary>Motore di query semantiche sul Call Graph.</summary>
+    /// <summary>Semantic query engine on the Call Graph.</summary>
     public CallGraphQueries? Queries { get; set; }
 
     private Dictionary<Guid, GraphNode>? _nodesById;
     private Dictionary<Guid, List<GraphNode>>? _childrenByParentId;
     private Dictionary<Guid, List<GraphEdge>>? _incidentEdgesByNodeId;
 
-    /// <summary>Recupera un nodo del grafo tramite il suo ID univoco.</summary>
+    /// <summary>Retrieves a graph node by its unique ID.</summary>
     public GraphNode? GetNode(Guid id)
     {
         _nodesById ??= Nodes.ToDictionary(n => n.Id);
@@ -31,21 +31,21 @@ public sealed class VisualCodeGraph
     }
 
     /// <summary>
-    /// Restituisce gli archi incidenti (in entrata e in uscita) connessi al nodo specificato in tempo O(1).
-    /// Costruisce e mantiene una cache di adiacenza (Incidence List) alla prima richiesta per evitare
-    /// la scansione lineare O(M) dell'intera lista di archi del grafo durante la selezione dei nodi.
+    /// Returns the incident edges (incoming and outgoing) connected to the specified node in O(1) time.
+    /// Builds and maintains an adjacency cache (Incidence List) on the first request to avoid
+    /// the O(M) linear scan of the entire list of edges of the graph during node selection.
     /// </summary>
-    /// <param name="nodeId">Identificatore univoco del nodo di cui recuperare le relazioni connesse.</param>
-    /// <returns>La lista in sola lettura di tutti gli archi in cui il nodo figura come sorgente o destinazione.</returns>
+    /// <param name="nodeId">Unique identifier of the node whose connected relationships are to be retrieved.</param>
+    /// <returns>The read-only list of all the edges in which the node appears as source or destination.</returns>
     public IReadOnlyList<GraphEdge> GetIncidentEdges(Guid nodeId)
     {
-        // Se la cache non è ancora stata costruita, indicizza tutti gli archi per ID dei nodi estremi
+        // If the cache is not yet built, index all edges by end node IDs
         if (_incidentEdgesByNodeId == null)
         {
             _incidentEdgesByNodeId = new Dictionary<Guid, List<GraphEdge>>(Nodes.Count);
             foreach (var edge in Edges)
             {
-                // Registra l'arco per il nodo sorgente
+                // Record the edge for the source node
                 if (!_incidentEdgesByNodeId.TryGetValue(edge.SourceId, out var srcList))
                 {
                     srcList = new List<GraphEdge>();
@@ -53,7 +53,7 @@ public sealed class VisualCodeGraph
                 }
                 srcList.Add(edge);
 
-                // Registra l'arco per il nodo destinazione
+                // Record the edge for the destination node
                 if (!_incidentEdgesByNodeId.TryGetValue(edge.TargetId, out var tgtList))
                 {
                     tgtList = new List<GraphEdge>();
@@ -67,8 +67,8 @@ public sealed class VisualCodeGraph
     }
 
     /// <summary>
-    /// Restituisce i nodi figli contenuti direttamente nel nodo specificato.
-    /// Esecuzione istantanea O(1) tramite indice gerarchico interno memorizzato nella cache.
+    /// Returns the child nodes contained directly in the specified node.
+    /// Instant O(1) execution via cached internal hierarchical index.
     /// </summary>
     public IEnumerable<GraphNode> GetChildren(Guid parentId)
     {
@@ -92,7 +92,7 @@ public sealed class VisualCodeGraph
         return _childrenByParentId.TryGetValue(parentId, out var children) ? children : Enumerable.Empty<GraphNode>();
     }
 
-    /// <summary>Invalida la cache degli ID, dell'albero gerarchico e delle query dopo modifiche alla struttura del grafo.</summary>
+    /// <summary>Invalidate ID, hierarchical tree, and query cache after graph structure changes.</summary>
     public void Invalidate()
     {
         _nodesById = null;

@@ -23,7 +23,7 @@ $csprojPath = Join-Path $workspaceRoot "src\Macondo.App\Macondo.App.csproj"
 $issPath = Join-Path $workspaceRoot "installer\macondo.iss"
 $publishExe = Join-Path $workspaceRoot "publish\win-x64\Macondo.exe"
 
-# 1. Recupero versione
+# 1. Version recovery
 if ([string]::IsNullOrWhiteSpace($Version)) {
     if (Test-Path $csprojPath) {
         $csprojContent = Get-Content $csprojPath -Raw -Encoding UTF8
@@ -40,7 +40,7 @@ Write-Host "==========================================================" -Foregro
 Write-Host "  Compilazione Installer Inno Setup (Macondo v$Version)   " -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-# 2. Verifica presenza eseguibile pubblicato
+# 2. Check for published executable
 if (-not (Test-Path $publishExe)) {
     Write-Host "Eseguibile $publishExe non trovato. Compilazione in corso..." -ForegroundColor Yellow
     $publishScript = Join-Path $PSScriptRoot "publish-single-file.ps1"
@@ -51,7 +51,7 @@ if (-not (Test-Path $publishExe)) {
     }
 }
 
-# 3. Ricerca eseguibile del compilatore Inno Setup (ISCC.exe)
+# 3. Inno Setup Compiler Search Executable (ISCC.exe)
 $isccCandidates = @(
     (Get-Command iscc.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source),
     (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"),
@@ -68,7 +68,7 @@ foreach ($candidate in $isccCandidates) {
 }
 
 if (-not $isccPath) {
-    # Tentativo di recupero dal registro di sistema
+    # Attempting to recover from the registry
     $reg = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*, `
                             HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*, `
                             HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue |
@@ -89,7 +89,7 @@ if (-not $isccPath) {
 Write-Host "Utilizzo compilatore Inno Setup: $isccPath" -ForegroundColor Gray
 Write-Host "Compilazione installer da script: $issPath..." -ForegroundColor Yellow
 
-# 4. Esecuzione compilazione Inno Setup
+# 4. Compile Inno Setup
 & $isccPath "/DMyAppVersion=$Version" "/Qp" $issPath
 
 if ($LASTEXITCODE -eq 0) {

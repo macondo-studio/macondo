@@ -11,17 +11,17 @@ using Xunit;
 namespace Macondo.Tests.JavaSpecific;
 
 /// <summary>
-/// Suite di test per gli algoritmi di analisi architetturale e metriche di qualità
-/// del software (Dead Code, DSM, Blast Radius Impact, Treemap LOC ed Export JSON/Markdown)
-/// applicati a basi di codice Java.
+/// Test suite for architectural analysis algorithms and quality metrics
+/// software (Dead Code, DSM, Blast Radius Impact, Treemap LOC and Export JSON/Markdown)
+/// applied to Java code bases.
 /// </summary>
 public class JavaAnalyticsAndQualityMetricsTests
 {
     #region Dead Code Analysis on Java
 
     /// <summary>
-    /// Verifica che DeadCodeAnalyzer identifichi correttamente i metodi Java non referenziati
-    /// (dead code) distinguendoli da quelli invocati all'interno della gerarchia.
+    /// Verify that DeadCodeAnalyzer correctly identifies unreferenced Java methods
+    /// (dead code) distinguishing them from those invoked within the hierarchy.
     /// </summary>
     [Fact]
     public void DeadCodeAnalyzer_ShouldDetectUnusedMethodsInJavaClasses()
@@ -41,7 +41,7 @@ public class JavaAnalyticsAndQualityMetricsTests
                 private void chargeAccount() { }
 
                 private void obsoleteLegacyRefund() {
-                    // Metodo non chiamato da nessuna parte
+                    // Method not called anywhere
                 }
             }
             """;
@@ -68,7 +68,7 @@ public class JavaAnalyticsAndQualityMetricsTests
     #region Dependency Structure Matrix (DSM) on Java Components
 
     /// <summary>
-    /// Verifica che DsmMatrixBuilder costruisca la matrice di dipendenza tra classi e package Java.
+    /// Verify that DsmMatrixBuilder builds the dependency matrix between Java classes and packages.
     /// </summary>
     [Fact]
     public void DsmMatrixBuilder_ShouldConstructDependencyMatrixForJavaComponents()
@@ -117,8 +117,8 @@ public class JavaAnalyticsAndQualityMetricsTests
     #region Impact / Blast Radius Analysis on Java Method Chains
 
     /// <summary>
-    /// Verifica che ImpactAnalyzer calcoli correttamente il raggio di impatto (blast radius)
-    /// quando un metodo Java in un servizio di base viene modificato.
+    /// Verify that ImpactAnalyzer correctly calculates the blast radius
+    /// when a Java method in a core service is modified.
     /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldCalculateBlastRadiusAcrossJavaCallChains()
@@ -183,7 +183,7 @@ public class JavaAnalyticsAndQualityMetricsTests
     #region Treemap and LOC Metrics for Java
 
     /// <summary>
-    /// Verifica che TreemapModelBuilder calcoli la gerarchia Treemap con pesi basati sulle linee di codice (LOC) dei file Java.
+    /// Verify that TreemapModelBuilder calculates the Treemap hierarchy with weights based on lines of code (LOC) from Java files.
     /// </summary>
     [Fact]
     public void TreemapModelBuilder_ShouldComputeHierarchyAndLocWeightsForJavaSources()
@@ -225,8 +225,8 @@ public class JavaAnalyticsAndQualityMetricsTests
     #region Export JSON and Markdown for Java Graphs
 
     /// <summary>
-    /// Verifica che CodeGraphJsonExporter e CodeGraphMarkdownExporter serializzino correttamente
-    /// simboli, metadati e relazioni estratti da sorgenti Java.
+    /// Verify that CodeGraphJsonExporter and CodeGraphMarkdownExporter serialize correctly
+    /// symbols, metadata and relations extracted from Java sources.
     /// </summary>
     [Fact]
     public void Exporters_ShouldSerializeJavaSymbolsAndRelationships()

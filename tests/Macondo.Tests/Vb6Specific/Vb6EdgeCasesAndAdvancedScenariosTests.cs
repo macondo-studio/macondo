@@ -8,8 +8,8 @@ namespace Macondo.Tests.Vb6Specific;
 public class Vb6EdgeCasesAndAdvancedScenariosTests
 {
     /// <summary>
-    /// Verifica che istruzioni multiple concatenate sulla stessa riga tramite i due punti (':')
-    /// vengano analizzate correttamente estraendo tutte le invocazioni e assegnazioni.
+    /// Checks for multiple statements concatenated on the same line via colons (':')
+    /// are analyzed correctly by extracting all invocations and assignments.
     /// </summary>
     [Fact]
     public void MultiStatementOnSingleLine_ShouldExtractAllCallsAndStatements()
@@ -40,8 +40,8 @@ public class Vb6EdgeCasesAndAdvancedScenariosTests
     }
 
     /// <summary>
-    /// Verifica la corretta gestione dei costrutti di gestione eccezioni VB6:
-    /// 'On Error GoTo ErrHandler', 'On Error Resume Next', 'On Error GoTo 0' e l'etichetta di gestione errore.
+    /// Verify correct handling of VB6 exception handling constructs:
+    /// 'On Error GoTo ErrHandler', 'On Error Resume Next', 'On Error GoTo 0' and the error handler label.
     /// </summary>
     [Fact]
     public void ErrorHandling_OnErrorGoTo_ShouldParseAndExtractRoutines()
@@ -89,8 +89,8 @@ public class Vb6EdgeCasesAndAdvancedScenariosTests
     }
 
     /// <summary>
-    /// Verifica l'estrazione di dichiarazioni API Win32 esterne tramite 'Declare Function ... Lib "..." Alias "..."'
-    /// e la corretta risoluzione delle chiamate verso di esse.
+    /// Test extraction of external Win32 API declarations via 'Declare Function ... Lib "..." Alias "..."'
+    /// and the correct resolution of calls to them.
     /// </summary>
     [Fact]
     public void Win32ApiDeclare_ShouldExtractExternalFunctionDeclaration()
@@ -120,7 +120,7 @@ public class Vb6EdgeCasesAndAdvancedScenariosTests
     }
 
     /// <summary>
-    /// Verifica la gestione dell'operatore 'TypeOf ... Is ...' per il controllo dinamico dei tipi nei blocchi If/Then.
+    /// Check the handling of the 'TypeOf ... Is ...' operator for dynamic type checking in If/Then blocks.
     /// </summary>
     [Fact]
     public void TypeOfIsPatternMatching_ShouldParseWithoutErrors()
@@ -150,8 +150,8 @@ public class Vb6EdgeCasesAndAdvancedScenariosTests
     }
 
     /// <summary>
-    /// Verifica che le istruzioni di manipolazione array dinamici 'ReDim' e 'ReDim Preserve'
-    /// non generino conflitti o anomalie nella risoluzione dei simboli.
+    /// Verify that the dynamic array manipulation instructions 'ReDim' and 'ReDim Preserve'
+    /// do not generate conflicts or anomalies in the resolution of the symbols.
     /// </summary>
     [Fact]
     public void ReDimPreserve_ShouldParseAndHandleArrays()

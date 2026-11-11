@@ -9,8 +9,8 @@ namespace Macondo.Tests.Common.Analytics;
 public class CodeCityBuilderTests
 {
     /// <summary>
-    /// Verifica la costruzione della mappa urbana 3D CodeCity sul set di fixture di progetto,
-    /// accertando la corretta generazione di distretti, edifici e calcolo delle coordinate spaziali.
+    /// Check the construction of the 3D CodeCity urban map on the set of project fixtures,
+    /// ensuring the correct generation of districts, buildings and calculation of spatial coordinates.
     /// </summary>
     [Fact]
     public void CodeCityBuilder_ShouldBuildDistrictsAndBuildings_FromCodeGraph()
@@ -48,14 +48,14 @@ public class CodeCityBuilderTests
     }
 
     /// <summary>
-    /// Verifica che le dimensioni degli edifici scalino coerentemente:
-    /// - Le linee di codice (LOC) determinano l'impronta a terra (Width e Depth).
-    /// - La complessità ciclomatica determina l'altezza 3D (Height).
+    /// Check that building sizes scale consistently:
+    /// - The lines of code (LOC) determine the footprint (Width and Depth).
+    /// - Cyclomatic complexity determines the 3D height (Height).
     /// </summary>
     [Fact]
     public void CodeCityBuilder_ShouldCalculateBuildingDimensions_BasedOnLocAndComplexity()
     {
-        // Arrange: Un piccolo modulo semplice (10 LOC, 0 chiamate) e un grande modulo complesso (500 LOC, 10 chiamate)
+        // Arrange: One small simple module (10 LOC, 0 calls) and one large complex module (500 LOC, 10 calls)
         var graph = new CodeGraph();
 
         var smallMod = new Symbol { Id = Guid.NewGuid(), Name = "SmallHelper", QualifiedName = "SmallHelper", FilePath = "SmallHelper.bas", Kind = SymbolKind.Module, LineStart = 1, LineEnd = 10 };
@@ -70,7 +70,7 @@ public class CodeCityBuilderTests
             graph.Symbols.Add(method);
             graph.AddContains(complexMod, method);
 
-            // Aggiungi chiamate per elevare la complessità ciclomatica
+            // Add calls to raise cyclomatic complexity
             var target = new Symbol { Id = Guid.NewGuid(), Name = $"Target_{i}", QualifiedName = $"Target_{i}", FilePath = "Target.bas", Kind = SymbolKind.Method };
             graph.Symbols.Add(target);
             graph.AddCalls(method, target);
@@ -88,8 +88,8 @@ public class CodeCityBuilderTests
     }
 
     /// <summary>
-    /// Verifica che ad alta complessità ciclomatica venga assegnata una palette di colore calda/critica (Rosso/Arancio),
-    /// mentre a bassa complessità venga assegnata una colorazione neutra/fredda (Blu/Verde).
+    /// Verify that high cyclomatic complexity is assigned a warm/critical color palette (Red/Orange),
+    /// while low complexity is assigned a neutral/cold color (Blue/Green).
     /// </summary>
     [Fact]
     public void CodeCityBuilder_ShouldAssignColorPalette_BasedOnCyclomaticComplexity()
@@ -103,7 +103,7 @@ public class CodeCityBuilderTests
         var extremeMod = new Symbol { Id = Guid.NewGuid(), Name = "ExtremeMod", QualifiedName = "ExtremeMod", FilePath = "ExtremeMod.cls", Kind = SymbolKind.Class, LineStart = 1, LineEnd = 200 };
         graph.Symbols.Add(extremeMod);
 
-        // Aggiungi 25 chiamate uscenti per generare una complessità estrema (CC > 20)
+        // Add 25 outgoing calls to generate extreme complexity (CC > 20)
         var callerMethod = new Symbol { Id = Guid.NewGuid(), Name = "SuperComplexRoutine", QualifiedName = "ExtremeMod.SuperComplexRoutine", FilePath = "ExtremeMod.cls", Kind = SymbolKind.Method };
         graph.Symbols.Add(callerMethod);
         graph.AddContains(extremeMod, callerMethod);

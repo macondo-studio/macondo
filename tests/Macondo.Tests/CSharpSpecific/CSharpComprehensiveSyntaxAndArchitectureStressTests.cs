@@ -12,8 +12,8 @@ public class CSharpComprehensiveSyntaxAndArchitectureStressTests
     #region Switch Expressions and Advanced Pattern Matching
 
     /// <summary>
-    /// Verifica l'estrazione e l'analisi di metodi C# moderni contenenti switch expression,
-    /// pattern relazionali (&gt;, &lt;=) e pattern di proprietà su tipi di dominio.
+    /// Tests extraction and parsing of modern C# methods containing switch expressions,
+    /// relational patterns (>, <=) and property patterns on domain types.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldHandleSwitchExpressionsAndPropertyPatterns()
@@ -58,7 +58,7 @@ public class CSharpComprehensiveSyntaxAndArchitectureStressTests
     #region Custom Indexers and Overloaded Operators
 
     /// <summary>
-    /// Verifica l'estrazione di indicizzatori personalizzati (Indexer this[int index]) e operatori sovraccaricati (operator +, operator ==).
+    /// Test extraction of custom indexers (Indexer this[int index]) and overloaded operators (operator +, operator ==).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractIndexersAndOverloadedOperators()
@@ -113,7 +113,7 @@ public class CSharpComprehensiveSyntaxAndArchitectureStressTests
     #region Generic Type Definitions with Complex Constraints
 
     /// <summary>
-    /// Verifica l'estrazione di classi e interfacce generiche con vincoli multipli (where T : class, IComparable&lt;T&gt;, new()).
+    /// Test extraction of generic classes and interfaces with multiple constraints (where T : class, IComparable<T>, new()).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractGenericTypesWithMultipleConstraints()
@@ -168,7 +168,7 @@ public class CSharpComprehensiveSyntaxAndArchitectureStressTests
     #region Nested Classes and Cross References
 
     /// <summary>
-    /// Verifica l'estrazione di classi annidate (Nested Classes) e il tracciamento delle chiamate tra la classe esterna e la classe interna.
+    /// Tests the extraction of Nested Classes and the tracing of calls between the outer class and the inner class.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractNestedClassesAndInternalCalls()
@@ -235,7 +235,7 @@ public class CSharpComprehensiveSyntaxAndArchitectureStressTests
     #region Custom Event Accessors (add / remove) and Event Subscriptions
 
     /// <summary>
-    /// Verifica l'estrazione di eventi C# con accessori personalizzati 'add' e 'remove'.
+    /// Test C# event extraction with custom 'add' and 'remove' accessories.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractCustomEventAccessors()
@@ -289,7 +289,7 @@ public class CSharpComprehensiveSyntaxAndArchitectureStressTests
     #region Local Functions and Inner Routine Invocations
 
     /// <summary>
-    /// Verifica l'analisi di metodi contenenti funzioni locali (Local Functions) e chiamate annidate.
+    /// Tests the parsing of methods containing Local Functions and nested calls.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldHandleLocalFunctionsInsideMethodBodies()

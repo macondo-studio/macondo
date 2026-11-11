@@ -5,9 +5,9 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Nodo gerarchico per il Project Explorer.
-/// Wrappa un <see cref="GraphNode"/> per la visualizzazione ad albero nel TreeView,
-/// raggruppando i file di primo livello per tipologia (Forms, Moduli, Moduli di classe, Controlli utente, ecc.).
+/// Hierarchical node for the Project Explorer.
+/// Wrap a <see cref="GraphNode"/> for tree view in the TreeView,
+/// grouping top-level files by type (Forms, Modules, Class Modules, User Controls, etc.).
 /// </summary>
 public sealed class ExplorerTreeItem : INotifyPropertyChanged
 {
@@ -60,8 +60,8 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
     public List<ExplorerTreeItem> Children { get; } = new();
 
     /// <summary>
-    /// Costruisce l'albero gerarchico del progetto a partire dal CodeGraph visuale,
-    /// con raggruppamento dei file per tipologia.
+    /// Builds the hierarchical tree of the project starting from the visual CodeGraph,
+    /// with grouping of files by type.
     /// </summary>
     public static ExplorerTreeItem BuildTree(
         VisualCodeGraph graph,
@@ -87,7 +87,7 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
         var projects = graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
         if (projects.Count > 1)
         {
-            // Workspace multi-progetto: crea una radice Workspace contenente ciascun progetto
+            // Multi-Project Workspace: Creates a root Workspace containing each project
             var (wsBadge, wsBg, wsFg) = GetBadgeInfo(SymbolKind.Project);
             var workspaceItem = new ExplorerTreeItem
             {
@@ -150,7 +150,7 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
                 .Where(n => n.Id != project.Id && (n.ParentId == null || n.ParentId == project.Id) && n.Kind != SymbolKind.Project)
                 .ToList();
 
-        // Raggruppa i file di primo livello per tipologia (Kind)
+        // Group top-level files by type (Kind)
         var groups = topLevelChildren
             .GroupBy(c => c.Kind)
             .OrderBy(g => GetGroupOrder(g.Key));
@@ -187,15 +187,15 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Costruisce ricorsivamente il sotto-albero per un nodo del grafo.
-    /// Utilizza un insieme 'visited' per tracciare i nodi già elaborati lungo il percorso corrente,
-    /// prevenendo eccezioni di StackOverflow in caso di relazioni gerarchiche circolari errate.
+    /// Recursively constructs the sub-tree for a graph node.
+    /// Use a 'visited' set to trace already processed nodes along the current path,
+    /// preventing StackOverflow exceptions in case of incorrect circular hierarchical relationships.
     /// </summary>
-    /// <param name="graph">Il grafo visuale di riferimento.</param>
-    /// <param name="node">Il nodo sorgente corrente da trasformare in elemento del TreeView.</param>
-    /// <param name="projectFolderPath">Cartella radice del progetto per la risoluzione dei percorsi relativi.</param>
-    /// <param name="parentFilePath">Percorso del file del nodo contenitore padre ereditato dai nodi figli.</param>
-    /// <param name="visited">Insieme opzionale dei nodi già visitati nella catena ricorsiva attiva.</param>
+    /// <param name="graph">The visual reference graph.</param>
+    /// <param name="node">The current source node to be transformed into a TreeView element.</param>
+    /// <param name="projectFolderPath">Project root folder for resolving relative paths.</param>
+    /// <param name="parentFilePath">File path of the parent container node inherited from child nodes.</param>
+    /// <param name="visited">Optional set of nodes already visited in the active recursive chain.</param>
     private static ExplorerTreeItem Build(
         VisualCodeGraph graph,
         GraphNode node,
@@ -228,10 +228,10 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
             LineEnd = node.SemanticSymbol?.LineEnd ?? 0
         };
 
-        // Itera sui figli ordinandoli per categoria e nome alfabetico
+        // Iterate over the children sorting them by category and alphabetical name
         foreach (var child in graph.GetChildren(node.Id).OrderBy(c => c.Kind).ThenBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
         {
-            // Salta i nodi già visitati nella risalita per evitare cicli infiniti di ricorsione
+            // Skip nodes already visited in the ascent to avoid infinite loops of recursion
             if (visited.Contains(child.Id)) continue;
             var childItem = Build(graph, child, projectFolderPath, item.FilePath, visited);
             item.Children.Add(childItem);
@@ -242,13 +242,13 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
 
     public static (string? Text, string? Background, string? Foreground, string? Tooltip) GetAccessibilityInfo(Accessibility? accessibility, SymbolKind kind)
     {
-        // Visualizza il tag di accessibilità per routine, proprietà, campi, costanti, tipi, enum ed eventi
+        // View accessibility tag for procedures, properties, fields, constants, types, enums, and events
         if (accessibility == null) return (null, null, null, null);
 
         var acc = accessibility.Value;
         if (acc == Accessibility.Default)
         {
-            // In VB6 le routine (Sub, Function, Property) senza specificatore esplicito sono Public di default
+            // In VB6 routines (Sub, Function, Property) without explicit specifier are Public by default
             if (kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
                 return ("Pub", "#1C3328", "#4ADE80", "Visibilità: Public (Default)");
             return (null, null, null, null);
@@ -354,7 +354,7 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
         if (project.Language != SourceLanguage.Unknown)
             return project.Language;
 
-        // Cerca nei nodi figli o associati al progetto
+        // Search the child or associated nodes of the project
         var projectChildren = graph.GetChildren(project.Id);
         foreach (var child in projectChildren)
         {
@@ -369,7 +369,7 @@ public sealed class ExplorerTreeItem : INotifyPropertyChanged
                 return node.Language;
         }
 
-        // Cerca dall'estensione del file di progetto o della cartella
+        // Search by project file or folder extension
         var path = project.SemanticSymbol?.FilePath ?? projectFolderPath;
         if (!string.IsNullOrEmpty(path))
         {

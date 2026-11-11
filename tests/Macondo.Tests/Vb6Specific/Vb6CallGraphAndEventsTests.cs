@@ -11,8 +11,8 @@ namespace Macondo.Tests.Vb6Specific;
 public class Vb6CallGraphAndEventsTests
 {
     /// <summary>
-    /// Verifica che CallGraphBuilder colleghi le relazioni HANDLES_EVENT sia dal controllo UI (CommandButton)
-    /// alla rispettiva Sub di evento (_Click), sia dalla Form contenitore come generatore globale degli eventi.
+    /// Verify that CallGraphBuilder links HANDLES_EVENT relationships from both the UI control (CommandButton)
+    /// to the respective event Sub (_Click), and from the containing Form as a global event generator.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldWireHandlesEventRelationships_ForUIControlsAndForm()
@@ -64,8 +64,8 @@ public class Vb6CallGraphAndEventsTests
     }
 
     /// <summary>
-    /// Verifica che dichiarazioni di auto-istanziazione ('Dim m_Repo As New Repository') generino
-    /// una relazione INSTANTIATES dal campo verso la classe target.
+    /// Check which self-instantiation statements ('Dim m_Repo As New Repository') generate
+    /// an INSTANTIATES relationship from the field to the target class.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldWireInstantiatesRelationships_FromDimAsNewDeclarations()
@@ -104,8 +104,8 @@ public class Vb6CallGraphAndEventsTests
     }
 
     /// <summary>
-    /// Verifica che i parametri formali e i tipi di ritorno definiti con tipi utente (es. 'Dto')
-    /// generino relazioni USES_TYPE dalla routine verso la classe target.
+    /// Check that formal parameters and return types defined with user types (e.g. 'Dto')
+    /// generate USES_TYPE relations from the routine to the target class.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldWireUsesTypeRelationships_ForParametersAndReturnTypes()

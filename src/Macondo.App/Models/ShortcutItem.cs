@@ -1,7 +1,7 @@
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Rappresenta una voce di scorciatoia da tastiera con combinazione di tasti, categoria e descrizione.
+/// Represents a keyboard shortcut entry with key combination, category, and description.
 /// </summary>
 public sealed class ShortcutItem
 {

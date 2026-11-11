@@ -2,77 +2,77 @@ namespace Macondo.Semantic.Model;
 
 
 /// <summary>
-/// Rappresenta un'entità / nodo all'interno del <see cref="CodeGraph"/>.
+/// Represents an entity/node within the <see cref="CodeGraph"/>.
 /// 
-/// Ogni dichiarazione identificata nel sorgente VB6 (moduli, metodi, variabili, tipi) produce
-/// un'istanza di Symbol con identificatore univoco <see cref="Id"/>, posizione nel file,
-/// metadati di tipo dichiarato, visibilità e relazioni con altri simboli.
+/// Every declaration identified in the VB6 source (modules, methods, variables, types) produces
+/// a Symbol instance with unique identifier <see cref="Id"/>, location in the file,
+/// declared type metadata, visibility and relationships with other symbols.
 /// </summary>
 public sealed class Symbol
 {
-    /// <summary>Identificatore univoco globale del simbolo nel grafo.</summary>
+    /// <summary>Globally unique identifier of the symbol in the graph.</summary>
     public required Guid Id { get; init; }
 
-    /// <summary>Tipologia del simbolo (Class, Method, Field, ecc.).</summary>
+    /// <summary>Type of symbol (Class, Method, Field, etc.).</summary>
     public required SymbolKind Kind { get; init; }
 
-    /// <summary>Nome semplice non qualificato del simbolo (es. "Save", "mCount", "Customer").</summary>
+    /// <summary>Simple unqualified name of the symbol (e.g. "Save", "mCount", "Customer").</summary>
     public required string Name { get; init; }
 
     /// <summary>
-    /// Nome qualificato completo all'interno della gerarchia (es. "Customer.Save", "Customer.Save.localCust").
+    /// Full qualified name within the hierarchy (e.g. "Customer.Save", "Customer.Save.localCust").
     /// </summary>
     public required string QualifiedName { get; set; }
 
-    /// <summary>Percorso assoluto o relativo del file sorgente in cui è dichiarato il simbolo.</summary>
+    /// <summary>Absolute or relative path to the source file where the symbol is declared.</summary>
     public required string FilePath { get; init; }
 
-    /// <summary>Numero di riga di inizio della dichiarazione (1-indexed).</summary>
+    /// <summary>Declaration start line number (1-indexed).</summary>
     public int LineStart { get; init; }
 
-    /// <summary>Numero di riga di fine della dichiarazione / blocco (1-indexed).</summary>
+    /// <summary>End line number of declaration / block (1-indexed).</summary>
     public int LineEnd { get; set; }
 
-    /// <summary>Livello di visibilità del simbolo (Public, Private, Global, Friend, Default).</summary>
+    /// <summary>Symbol visibility level (Public, Private, Global, Friend, Default).</summary>
     public Accessibility Accessibility { get; set; } = Accessibility.Default;
 
     /// <summary>
-    /// Nome testuale del tipo dichiarato nel sorgente (es. "Customer", "Long", "String", "Object").
-    /// Se il tipo non è specificato in VB6, è implicitamente Variant.
+    /// Textual name of the type declared in the source (e.g. "Customer", "Long", "String", "Object").
+    /// If the type is not specified in VB6, it is implicitly Variant.
     /// </summary>
     public string? DeclaredTypeName { get; set; }
 
     /// <summary>
-    /// ID del simbolo del tipo nel CodeGraph se si tratta di un tipo definito dall'utente/progetto (es. Class, Type, Enum).
-    /// Popolato dal <see cref="Macondo.Semantic.Resolution.TypeResolver"/>.
+    /// ID of the type symbol in the CodeGraph if it is a user/project defined type (e.g. Class, Type, Enum).
+    /// Populated by <see cref="Macondo.Semantic.Resolution.TypeResolver"/>.
     /// </summary>
     public Guid? ResolvedTypeSymbolId { get; set; }
 
-    /// <summary>Tipo di ritorno dichiarato per Function e Property Get (es. "Boolean", "Double").</summary>
+    /// <summary>Return type declared for Function and Property Get (e.g. "Boolean", "Double").</summary>
     public string? ReturnType { get; set; }
 
-    /// <summary>ID del simbolo corrispondente al tipo di ritorno nel CodeGraph.</summary>
+    /// <summary>ID of the symbol corresponding to the return type in the CodeGraph.</summary>
     public Guid? ResolvedReturnTypeSymbolId { get; set; }
 
-    /// <summary>Elenco dei parametri formali accettati dalla routine (se Method o Property).</summary>
+    /// <summary>List of formal parameters accepted by the routine (whether Method or Property).</summary>
     public List<ParameterSymbol> Parameters { get; } = new();
 
-    /// <summary>Indica se la routine o variabile è stata dichiarata con la keyword 'Static'.</summary>
+    /// <summary>Indicates whether the routine or variable was declared with the 'Static' keyword.</summary>
     public bool IsStatic { get; set; }
 
-    /// <summary>Indica se la variabile/campo è un array (es. Dim arr(10) As String).</summary>
+    /// <summary>Indicates whether the variable/field is an array (e.g. Dim arr(10) As String).</summary>
     public bool IsArray { get; set; }
 
     /// <summary>
-    /// Indica se la variabile è stata dichiarata con auto-istanziazione (es. "Dim c As New Customer").
+    /// Indicates whether the variable was declared with self-instantiation (e.g. "Dim c As New Customer").
     /// </summary>
     public bool IsNewInstance { get; set; }
 
-    /// <summary>Linguaggio di programmazione sorgente del simbolo (es. VB6, C#, C++, ecc.).</summary>
+    /// <summary>Source programming language of the symbol (e.g. VB6, C#, C++, etc.).</summary>
     public SourceLanguage Language { get; set; } = SourceLanguage.Unknown;
 
     /// <summary>
-    /// Restituisce il linguaggio effettivo del simbolo, rilevandolo dall'estensione del FilePath se non impostato esplicitamente.
+    /// Returns the actual language of the symbol, taking it from the FilePath extension if not explicitly set.
     /// </summary>
     public SourceLanguage GetEffectiveLanguage()
     {

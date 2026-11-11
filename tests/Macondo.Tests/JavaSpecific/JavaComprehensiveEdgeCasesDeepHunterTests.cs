@@ -8,17 +8,17 @@ using Xunit;
 namespace Macondo.Tests.JavaSpecific;
 
 /// <summary>
-/// Suite di test deep-hunter per scenari architetturali complessi e casi limite in Java:
-/// mutua ricorsione cross-classe, ereditarietà a diamante tra interfacce con metodi default,
-/// chiamate polimorfiche, calcolo della complessità ciclomatica con costrutti nidificati,
-/// commenti javadoc/blocco/linea e costrutti di flusso avanzati (labelled break/continue).
+/// Deep-hunter test suite for complex architectural scenarios and edge cases in Java:
+/// mutual cross-class recursion, diamond inheritance between interfaces with default methods,
+/// polymorphic calls, calculation of cyclomatic complexity with nested constructs,
+/// javadoc/block/line comments and advanced flow constructs (labelled break/continue).
 /// </summary>
 public class JavaComprehensiveEdgeCasesDeepHunterTests
 {
     #region Mutual Recursion Across Classes
 
     /// <summary>
-    /// Verifica la corretta costruzione del call graph in caso di ricorsione mutua tra due classi distinte
+    /// Verifies the correct construction of the call graph in case of mutual recursion between two distinct classes
     /// (PingService.ping -> PongService.pong -> PingService.ping).
     /// </summary>
     [Fact]
@@ -94,8 +94,8 @@ public class JavaComprehensiveEdgeCasesDeepHunterTests
     #region Diamond Interface Hierarchy with Default Methods
 
     /// <summary>
-    /// Verifica l'estrazione e la risoluzione delle relazioni di ereditarietà per strutture a diamante:
-    /// BaseEmitter -> (AudioEmitter, VisualEmitter) -> MultiMediaEmitter con sovrascrittura esplicita.
+    /// Test extraction and resolution of inheritance relations for diamond structures:
+    /// BaseEmitter -> (AudioEmitter, VisualEmitter) -> MultiMediaEmitter with explicit override.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldResolveDiamondInterfaceHierarchy()
@@ -159,8 +159,8 @@ public class JavaComprehensiveEdgeCasesDeepHunterTests
     #region Nested Control Flow and Labelled Jumps
 
     /// <summary>
-    /// Verifica che l'analizzatore gestisca correttamente costrutti di controllo di flusso:
-    /// cicli for annidati con label, switch expression/statement, guardie if-else, blocchi try-catch e operatori ternari.
+    /// Verify that the parser handles control-flow constructs correctly:
+    /// nested for loops with labels, expression/statement switches, if-else guards, try-catch blocks, and ternary operators.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldParseComplexNestedControlFlow()
@@ -217,8 +217,8 @@ public class JavaComprehensiveEdgeCasesDeepHunterTests
     #region Multi-Catch, Nested Try-Finally and Complex Exceptions
 
     /// <summary>
-    /// Verifica l'analisi di blocchi try-catch annidati, multi-catch con tipi union (SQLException | IOException),
-    /// e costrutti finally che invocano metodi di supporto.
+    /// Test parsing of nested, multi-catch try-catch blocks with union types (SQLException | IOException),
+    /// and finally constructs that invoke helper methods.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleNestedTryCatchAndUnionExceptions()
@@ -275,8 +275,8 @@ public class JavaComprehensiveEdgeCasesDeepHunterTests
     #region Edge Cases: Empty Unit, Comments, Unicode Identifiers, Static Initializers
 
     /// <summary>
-    /// Verifica la resilienza del parser con identificatori contenenti caratteri Unicode validi in Java,
-    /// blocchi di inizializzazione statici/istanza e commenti complessi (Javadoc con tag HTML).
+    /// Test parser resilience with identifiers containing valid Unicode characters in Java,
+    /// static/instance initialization blocks and complex comments (Javadoc with HTML tags).
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleUnicodeIdentifiersAndInitializationBlocks()

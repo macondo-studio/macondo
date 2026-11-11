@@ -11,7 +11,7 @@ public class CSharpAdvancedLanguageEdgeCasesTests
     #region Generics and Constraints
 
     /// <summary>
-    /// Verifica l'estrazione di classi ed interfacce generiche con vincoli multipli (where T : class, new(), where TKey : notnull).
+    /// Test extraction of generic classes and interfaces with multiple constraints (where T : class, new(), where TKey : notnull).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractGenericTypesWithComplexConstraints()
@@ -60,7 +60,7 @@ public class CSharpAdvancedLanguageEdgeCasesTests
     #region Async and Task Returning Methods
 
     /// <summary>
-    /// Verifica l'estrazione e il tracciamento di metodi asincroni (async Task, async ValueTask, IAsyncEnumerable).
+    /// Test extraction and tracking of async methods (async Task, async ValueTask, IAsyncEnumerable).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractAsyncMethodsAndTasks()
@@ -111,7 +111,7 @@ public class CSharpAdvancedLanguageEdgeCasesTests
     #region Pattern Matching and Switch Expressions
 
     /// <summary>
-    /// Verifica l'estrazione di costrutti moderni C# con switch expression, property pattern e clausole guard (when).
+    /// Test extraction of modern C# constructs with switch expressions, property patterns, and guard (when) clauses.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldSupportPatternMatchingAndSwitchExpressions()
@@ -155,7 +155,7 @@ public class CSharpAdvancedLanguageEdgeCasesTests
     #region Custom Operators and Indexers
 
     /// <summary>
-    /// Verifica l'estrazione di operator overloads (+, -, ==, !=) e indicizzatori (this[int index], this[string key]).
+    /// Tests extraction of operator overloads (+, -, ==, !=) and indexers (this[int index], this[string key]).
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractOperatorOverloadsAndIndexers()
@@ -208,7 +208,7 @@ public class CSharpAdvancedLanguageEdgeCasesTests
     #region Primary Constructors and Record Hierarchies
 
     /// <summary>
-    /// Verifica l'estrazione di classi e record con costruttori primari (Primary Constructors) e gerarchie di record.
+    /// Test class and record extraction with Primary Constructors and record hierarchies.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractPrimaryConstructorsAndRecordHierarchies()
@@ -249,7 +249,7 @@ public class CSharpAdvancedLanguageEdgeCasesTests
     #region Local Functions and Closures
 
     /// <summary>
-    /// Verifica l'analisi di metodi contenenti funzioni locali (Local Functions) anche ricorsive.
+    /// Check the analysis of methods containing Local Functions, even recursive ones.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldExtractMethodsWithNestedLocalFunctions()
@@ -289,7 +289,7 @@ public class CSharpAdvancedLanguageEdgeCasesTests
     #region Custom Attributes
 
     /// <summary>
-    /// Verifica l'estrazione di attributi applicati su classi, metodi, proprietà e parametri.
+    /// Tests the extraction of attributes applied on classes, methods, properties and parameters.
     /// </summary>
     [Fact]
     public void CSharpExtractor_ShouldSupportClassesAndMethodsDecoratedWithAttributes()

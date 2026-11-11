@@ -11,9 +11,9 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Controls;
 
 /// <summary>
-/// Controllo visuale interattivo per il Diagramma di Martin (Robert C. Martin).
-/// Mappa l'Astrattezza (A, asse Y [0..1]) rispetto all'Instabilità (I, asse X [0..1]),
-/// evidenziando la Sequenza Principale (A + I = 1), la Zona di Sofferenza e la Zona di Inutilità.
+/// Interactive visual control for the Martin Diagram (Robert C. Martin).
+/// Maps Abstractness (A, Y axis [0..1]) to Instability (I, X axis [0..1]),
+/// highlighting the Main Sequence (A + I = 1), the Zone of Suffering and the Zone of Uselessness.
 /// </summary>
 public sealed class MartinMetricsControl : Control
 {
@@ -131,26 +131,26 @@ public sealed class MartinMetricsControl : Control
         double plotH = Math.Max(100, bounds.Height - marginT - marginB);
 
         // 1. Aree Sfondi Quadranti
-        // Zona di Sofferenza (Pain Zone): A in [0..0.35], I in [0..0.35] -> Basso a sinistra
+        // Pain Zone: A in [0..0.35], I in [0..0.35] -> Bottom left
         double painW = 0.35 * plotW;
         double painH = 0.35 * plotH;
         context.FillRectangle(_painQuadrantBrush, new Rect(marginL, marginT + plotH - painH, painW, painH));
 
-        // Zona di Inutilità (Uselessness Zone): A in [0.65..1.0], I in [0.65..1.0] -> Alto a destra
+        // Uselessness Zone: A in [0.65..1.0], I in [0.65..1.0] -> Top right
         double uselessX = marginL + 0.65 * plotW;
         double uselessY = marginT;
         double uselessW = 0.35 * plotW;
         double uselessH = 0.35 * plotH;
         context.FillRectangle(_uselessQuadrantBrush, new Rect(uselessX, uselessY, uselessW, uselessH));
 
-        // 2. Linea della Sequenza Principale (Main Sequence: A + I = 1 -> da (0, 1) a (1, 0))
+        // 2. Main Sequence Line (Main Sequence: A + I = 1 -> from (0, 1) to (1, 0))
         var mainSeqP1 = new Point(marginL, marginT); // I=0, A=1 (Top-Left)
         var mainSeqP2 = new Point(marginL + plotW, marginT + plotH); // I=1, A=0 (Bottom-Right)
 
         var mainSeqPen = new Pen(_mainSeqPenBrush, 1.8, DashStyle.Dash);
         context.DrawLine(mainSeqPen, mainSeqP1, mainSeqP2);
 
-        // Testo Sequenza Principale lungo la diagonale
+        // Main Sequence text along the diagonal
         var localizationService = LocalizationService.Instance;
         var seqLabelFmt = new FormattedText(localizationService["Martin_MainSequence"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 10, _mainSeqPenBrush);
         context.DrawText(seqLabelFmt, new Point(marginL + plotW * 0.4, marginT + plotH * 0.4 - 14));
@@ -169,27 +169,27 @@ public sealed class MartinMetricsControl : Control
         // Tacche Assi
         for (double val = 0.0; val <= 1.01; val += 0.2)
         {
-            // Asse Y (A)
+            // Y axis (A)
             double yPos = marginT + plotH - val * plotH;
             context.DrawLine(axisPen, new Point(marginL - 4, yPos), new Point(marginL, yPos));
             var yValFmt = new FormattedText(val.ToString("0.0", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 9, _textMutedBrush);
             context.DrawText(yValFmt, new Point(marginL - yValFmt.Width - 8, yPos - yValFmt.Height / 2.0));
 
-            // Asse X (I)
+            // X axis (I)
             double xPos = marginL + val * plotW;
             context.DrawLine(axisPen, new Point(xPos, marginT + plotH), new Point(xPos, marginT + plotH + 4));
             var xValFmt = new FormattedText(val.ToString("0.0", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, LabelTypeface, 9, _textMutedBrush);
             context.DrawText(xValFmt, new Point(xPos - xValFmt.Width / 2.0, marginT + plotH + 6));
         }
 
-        // Intestazioni Assi
+        // Axis Headers
         var axisYTitle = new FormattedText(localizationService["Martin_AxisY"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, AxisTypeface, 11, _textWhiteBrush);
         context.DrawText(axisYTitle, new Point(marginL, 16));
 
         var axisXTitle = new FormattedText(localizationService["Martin_AxisX"], CultureInfo.InvariantCulture, FlowDirection.LeftToRight, AxisTypeface, 11, _textWhiteBrush);
         context.DrawText(axisXTitle, new Point(marginL + plotW - axisXTitle.Width, marginT + plotH + 32));
 
-        // 4. Disegno Punti / Bolle per ciascun componente
+        // 4. Draw Dots/Bubbles for each component
         foreach (var item in dataset.Items)
         {
             double px = marginL + item.Instability * plotW;

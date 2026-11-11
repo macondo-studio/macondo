@@ -10,8 +10,8 @@ namespace Macondo.Tests.CSharpSpecific;
 public class CSharpCallGraphAndRelationshipsTests
 {
     /// <summary>
-    /// Verifica che CallGraphBuilder colleghi correttamente le relazioni INHERITS per le classi derivate
-    /// e IMPLEMENTS per le interfacce implementate da tipi C#.
+    /// Verify that CallGraphBuilder correctly links INHERITS relationships for derived classes
+    /// and IMPLEMENTS for interfaces implemented by C# types.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldWireInheritanceAndInterfaceImplementation_ForCSharpTypes()
@@ -53,8 +53,8 @@ public class CSharpCallGraphAndRelationshipsTests
     }
 
     /// <summary>
-    /// Verifica che CallGraphBuilder rilevi sia invocazioni dirette a metodi interni (senza receiver)
-    /// sia invocazioni tramite membri di istanza ('receiver.Method(...)') generando relazioni CALLS.
+    /// Verify that CallGraphBuilder detects both direct invocations of internal methods (without receiver)
+    /// and invocations via instance members ('receiver.Method(...)') generating CALLS relations.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldWireCallsRelationships_ForDirectAndReceiverMethodInvocations()
@@ -99,8 +99,8 @@ public class CSharpCallGraphAndRelationshipsTests
     }
 
     /// <summary>
-    /// Verifica che l'espressione di creazione oggetto 'new Type()' sia all'interno dei metodi che
-    /// negli inizializzatori di campo generi relazioni INSTANTIATES verso il tipo target nel CodeGraph.
+    /// Check that the object creation expression 'new Type()' is inside the and methods
+    /// in field initializers you generate INSTANTIATES relationships towards the target type in the CodeGraph.
     /// </summary>
     [Fact]
     public void CallGraphBuilder_ShouldWireInstantiatesRelationships_FromCSharpNewExpressions()
@@ -139,8 +139,8 @@ public class CSharpCallGraphAndRelationshipsTests
     }
 
     /// <summary>
-    /// Verifica che le query di Call Graph e Impact Analysis funzionino coerentemente su grafi derivati da C#,
-    /// tracciando chiamanti diretti (livello 1) e indiretti (livello 2+).
+    /// Verify that Call Graph and Impact Analysis queries work consistently on C#-derived graphs,
+    /// tracing direct (level 1) and indirect (level 2+) callers.
     /// </summary>
     [Fact]
     public void CallGraphQueries_ShouldSupportCSharpCallChainsAndImpactAnalysis()

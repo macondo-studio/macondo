@@ -8,9 +8,9 @@ using Xunit;
 namespace Macondo.Tests.KotlinSpecific;
 
 /// <summary>
-/// Suite di test specialistica per edge cases profondi del compilatore e parser Kotlin (.kt):
-/// generici con bound multipli ('where'), funzioni inline con type parameter 'reified',
-/// risoluzione di conflitti di ereditarietà multipla tramite 'super<T>', funzioni tailrec e locali (annidate),
+/// Specialized test suite for deep edge cases of the Kotlin compiler and parser (.kt):
+/// generics with multiple bounds ('where'), inline functions with type parameter 'reified',
+/// resolving multiple inheritance conflicts via 'super<T>', tailrec and local (nested) functions,
 /// classi 'inner' con qualified this ('this@Outer'), string templates complessi e sovraccarico operatori (get, set, invoke).
 /// </summary>
 public class KotlinComprehensiveEdgeCasesDeepHunterTests
@@ -18,7 +18,7 @@ public class KotlinComprehensiveEdgeCasesDeepHunterTests
     #region Generics with Multiple Bounds ('where' clause)
 
     /// <summary>
-    /// Verifica il parsing e l'estrazione di costrutti generici avanzati con clausola 'where' a vincoli multipli.
+    /// Test parsing and extraction of advanced generic constructs with multi-constraint 'where' clause.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldHandleGenericsWithMultipleBounds()
@@ -56,8 +56,8 @@ public class KotlinComprehensiveEdgeCasesDeepHunterTests
     #region Inline Functions and Reified Type Parameters
 
     /// <summary>
-    /// Verifica che le funzioni inline con parametri di tipo reificati ('inline fun <reified T> findByType()')
-    /// vengano analizzate ed estratte regolarmente.
+    /// Check that inline functions with reified type parameters ('inline fun <reified T> findByType()')
+    /// are analyzed and extracted regularly.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldHandleInlineFunctionsAndReifiedTypes()
@@ -98,8 +98,8 @@ public class KotlinComprehensiveEdgeCasesDeepHunterTests
     #region Multiple Interface Implementation and Super Disambiguation
 
     /// <summary>
-    /// In caso di default methods in più interfacce con la stessa firma, Kotlin richiede la disambiguazione
-    /// esplicita tramite 'super<NomeInterfaccia>.metodo()'. Verifica che il parser estragga e colleghi le chiamate.
+    /// In case of default methods in multiple interfaces with the same signature, Kotlin requires disambiguation
+    /// explicit via 'super<NomeInterfaccia>.method()'. Verify that the parser extracts and connects the calls.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldHandleMultipleInterfacesAndSuperDisambiguation()
@@ -159,8 +159,8 @@ public class KotlinComprehensiveEdgeCasesDeepHunterTests
     #region Tailrec and Local (Nested) Functions
 
     /// <summary>
-    /// Verifica la gestione di funzioni tailrec (ricorsione a coda) e funzioni locali definite
-    /// all'interno del corpo di un'altra funzione.
+    /// Tests the handling of tailrec (tailed recursion) functions and defined local functions
+    /// within the body of another function.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldHandleTailrecAndLocalFunctions()
@@ -207,7 +207,7 @@ public class KotlinComprehensiveEdgeCasesDeepHunterTests
     #region Inner Classes and Qualified This Reference
 
     /// <summary>
-    /// Verifica la gestione di 'inner class' con riferimento al contesto esterno tramite 'this@OuterClassName'.
+    /// Test the handling of 'inner class' with reference to the external context via 'this@OuterClassName'.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldHandleInnerClassesWithQualifiedThis()
@@ -255,8 +255,8 @@ public class KotlinComprehensiveEdgeCasesDeepHunterTests
     #region Multiline Raw Strings and Complex Interpolation
 
     /// <summary>
-    /// Verifica la resilienza del parser di fronte a stringhe raw multiriga triple quotes (\"\"\")
-    /// contenenti caratteri di escape, virgolette interne, regex e interpolazioni annidate ${expr}.
+    /// Test parser resilience when dealing with triple quotes (\"\"\") raw multiline strings
+    /// containing escape characters, internal quotes, regexes, and nested interpolations ${expr}.
     /// </summary>
     [Fact]
     public void KotlinParser_ShouldHandleComplexRawStringsAndNestedInterpolation()
@@ -298,8 +298,8 @@ public class KotlinComprehensiveEdgeCasesDeepHunterTests
     #region Operator Overloading (get, set, invoke, contains)
 
     /// <summary>
-    /// In Kotlin 'operator fun' definisce convenzioni sintattiche (indicizzatori [], invocazione (), etc.).
-    /// Verifica l'estrazione corretta di questi metodi sovraccaricati.
+    /// In Kotlin 'operator fun' defines syntactic conventions (indexers [], invocation (), etc.).
+    /// Check for successful extraction of these overloaded methods.
     /// </summary>
     [Fact]
     public void KotlinExtractor_ShouldExtractOperatorOverloadingConventions()

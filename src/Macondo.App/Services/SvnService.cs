@@ -10,8 +10,8 @@ using Macondo.App.Models;
 namespace Macondo.App.Services;
 
 /// <summary>
-/// Servizio per il rilevamento e la gestione delle operazioni SVN (Subversion) di base (branch corrente, lista branch, svn switch).
-/// Non richiede librerie terze binarie, sfruttando la CLI standard di Subversion (svn).
+/// Service for detecting and managing basic SVN (Subversion) operations (current branch, branch list, svn switch).
+/// It does not require third-party binary libraries, taking advantage of the standard Subversion CLI (svn).
 /// </summary>
 public sealed class SvnService
 {
@@ -21,7 +21,7 @@ public sealed class SvnService
     private SvnService() { }
 
     /// <summary>
-    /// Trova la cartella radice della copia di lavoro SVN (.svn) risalendo la gerarchia delle directory.
+    /// Find the root folder of the SVN working copy (.svn) by going up the directory hierarchy.
     /// </summary>
     public string? FindSvnRoot(string? folderPath)
     {
@@ -47,20 +47,20 @@ public sealed class SvnService
         }
         catch
         {
-            // Ignora errori di accesso ai permessi
+            // Ignore permission access errors
         }
 
         return null;
     }
 
     /// <summary>
-    /// Verifica se la cartella specificata appartiene a una copia di lavoro Subversion.
+    /// Checks whether the specified folder belongs to a Subversion working copy.
     /// </summary>
     public bool IsSvnRepository(string? folderPath) =>
         FindSvnRoot(folderPath) != null;
 
     /// <summary>
-    /// Restituisce il nome del branch o percorso relativo SVN attivo nel working copy (es. 'trunk', 'feature-x').
+    /// Returns the name of the active SVN branch or relative path in the working copy (e.g. 'trunk', 'feature-x').
     /// </summary>
     public string? GetCurrentBranch(string? folderPath)
     {
@@ -75,7 +75,7 @@ public sealed class SvnService
             return SimplifySvnRelativeUrl(rel);
         }
 
-        // 2. Fallback su svn info standard
+        // 2. Fallback to standard svn info
         var (infoCode, infoStdout, _) = RunSvnCommand(root, "info --non-interactive");
         if (infoCode == 0 && !string.IsNullOrWhiteSpace(infoStdout))
         {
@@ -118,7 +118,7 @@ else if (line.StartsWith("Repository Root:", StringComparison.OrdinalIgnoreCase)
     }
 
     /// <summary>
-    /// Restituisce l'elenco dei branch/trunk/tags disponibili per il comando 'svn switch'.
+    /// Returns the list of branches/trunks/tags available for the 'svn switch' command.
     /// </summary>
     public List<SvnBranchInfo> GetBranches(string? folderPath)
     {
@@ -128,7 +128,7 @@ else if (line.StartsWith("Repository Root:", StringComparison.OrdinalIgnoreCase)
         var branches = new List<SvnBranchInfo>();
         var currentBranchName = GetCurrentBranch(folderPath) ?? string.Empty;
 
-        // 1. Verifica se esiste trunk
+        // 1. Check if trunk exists
         var (trunkCode, _, _) = RunSvnCommand(root, "info ^/trunk --non-interactive");
         if (trunkCode == 0)
         {
@@ -141,7 +141,7 @@ else if (line.StartsWith("Repository Root:", StringComparison.OrdinalIgnoreCase)
             });
         }
 
-        // 2. Elenca branch in ^/branches
+        // 2. List branches in ^/branches
         var (branchesCode, branchesStdout, _) = RunSvnCommand(root, "list ^/branches --non-interactive");
         if (branchesCode == 0 && !string.IsNullOrWhiteSpace(branchesStdout))
         {
@@ -164,7 +164,7 @@ else if (line.StartsWith("Repository Root:", StringComparison.OrdinalIgnoreCase)
             }
         }
 
-        // 3. Se non abbiamo trovato né trunk né branches, elenca la radice del repository (^/)
+        // 3. If we found neither trunk nor branches, list the root of the repository (^/)
         if (branches.Count == 0)
         {
             var (rootListCode, rootListStdout, _) = RunSvnCommand(root, "list ^/ --non-interactive");
@@ -188,7 +188,7 @@ else if (line.StartsWith("Repository Root:", StringComparison.OrdinalIgnoreCase)
             }
         }
 
-        // Se la lista è ancora vuota ma siamo in un repo SVN, offri almeno il branch corrente
+        // If the list is still empty but we are in an SVN repo, offer at least the current branch
         if (branches.Count == 0 && !string.IsNullOrEmpty(currentBranchName))
 
             branches.Add(new SvnBranchInfo
@@ -205,7 +205,7 @@ else if (line.StartsWith("Repository Root:", StringComparison.OrdinalIgnoreCase)
     }
 
     /// <summary>
-    /// Esegue il comando 'svn switch' verso il branch o percorso specificato.
+    /// Executes the 'svn switch' command to the specified branch or path.
     /// </summary>
     public async Task<(bool Success, string? Error)> SwitchBranchAsync(string? folderPath, string targetUrlOrName)
     {
@@ -244,7 +244,7 @@ else if (line.StartsWith("Repository Root:", StringComparison.OrdinalIgnoreCase)
     }
 
     /// <summary>
-    /// Semplifica un URL relativo SVN (es. '^/branches/feature-x' -> 'feature-x', '^/trunk' -> 'trunk').
+    /// Simplify an SVN relative URL (e.g. '^/branches/feature-x' -> 'feature-x', '^/trunk' -> 'trunk').
     /// </summary>
     private static string SimplifySvnRelativeUrl(string relativeUrl)
     {
@@ -267,7 +267,7 @@ else if (line.StartsWith("Repository Root:", StringComparison.OrdinalIgnoreCase)
     }
 
     /// <summary>
-    /// Esegue un comando CLI Subversion ('svn') con timeout e cattura sincrona di stdout/stderr.
+    /// Executes a Subversion CLI command ('svn') with timeout and synchronous capture of stdout/stderr.
     /// </summary>
     private static (int ExitCode, string StdOut, string StdErr) RunSvnCommand(string workingDir, string arguments, int timeoutMs = 4000)
     {

@@ -8,8 +8,8 @@ namespace Macondo.Tests.JavaSpecific;
 public class JavaAdvancedLanguageAndEdgeCasesTests
 {
     /// <summary>
-    /// Verifica la gestione di Java 15+ Text Blocks multiriga (""" ... """)
-    /// contenenti virgolette, codice SQL/JSON annidato e caratteri di escape.
+    /// Test Java's handling of 15+ multiline Text Blocks (""" ... """)
+    /// containing quotes, nested SQL/JSON code, and escape characters.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleMultilineTextBlocks()
@@ -48,7 +48,7 @@ public class JavaAdvancedLanguageAndEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica la gestione di annotazioni ricche su classi, campi e parametri (@Entity, @Table, @Column, @NotNull).
+    /// Check the handling of rich annotations on classes, fields and parameters (@Entity, @Table, @Column, @NotNull).
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleRichAnnotations()
@@ -91,7 +91,7 @@ public class JavaAdvancedLanguageAndEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica la gestione di generics complessi a livello di classe e metodo (es. <T extends Comparable<T>>).
+    /// Check the management of complex generics at class and method level (e.g. <T extends Comparable<T>>).
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleComplexGenerics()
@@ -127,7 +127,7 @@ public class JavaAdvancedLanguageAndEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica la dichiarazione di più variabili o campi nella stessa riga (es. 'int a = 1, b, c = 3;').
+    /// Check the declaration of multiple variables or fields in the same line (e.g. 'int a = 1, b, c = 3;').
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleMultiVariableDeclarations()
@@ -166,8 +166,8 @@ public class JavaAdvancedLanguageAndEdgeCasesTests
     }
 
     /// <summary>
-    /// Verifica la resilienza dell'estrattore su codice Java incompleto, frammentario o con errori di sintassi.
-    /// L'estrattore non deve sollevare eccezioni bloccanti ed estrarre i simboli validi in modalità best-effort.
+    /// Test the extractor's resiliency on incomplete, fragmented, or syntactically incorrect Java code.
+    /// The extractor should not raise blocking exceptions and extract valid symbols in best-effort mode.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldBeResilientToSyntaxErrorsAndPartialCode()
@@ -181,7 +181,7 @@ public class JavaAdvancedLanguageAndEdgeCasesTests
 
                 public void validMethod() {
                     int x = 5;
-                    // istruzione rotta senza chiusura
+                    // broken statement without closure
                     broken (((( syntax error here !!!
 
                 public void anotherValidMethod() {
@@ -193,7 +193,7 @@ public class JavaAdvancedLanguageAndEdgeCasesTests
         var (graph, result) = TestGraphFactory.CreateAndAnalyzeJavaSource("PartialClass.java", brokenCode);
 
         // Assert
-        // Il parser non deve lanciare eccezioni
+        // The parser must not throw exceptions
         var classSym = graph.Symbols.FirstOrDefault(s => s.Kind == SymbolKind.Class && s.Name == "PartialClass");
         classSym.Should().NotBeNull();
 

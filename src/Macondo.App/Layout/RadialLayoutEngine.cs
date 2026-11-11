@@ -4,11 +4,11 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Layout;
 
 /// <summary>
-/// Motore di layout radiale/gerarchico standard per il CodeGraph visuale.
+/// Standard radial/hierarchical layout engine for visual CodeGraph.
 /// Posiziona:
-/// - Il nodo Progetto al centro (0, 0).
-/// - I moduli, classi, form, UDT ed enum su un anello principale concentrico.
-/// - I metodi, proprietà, campi e costanti su orbite satelliti attorno a ciascun modulo di appartenenza.
+/// - The Project node in the center (0, 0).
+/// - Modules, classes, forms, UDTs and enums on a concentric main ring.
+/// - The methods, properties, fields and constants on satellite orbits around each module they belong to.
 /// </summary>
 public sealed class RadialLayoutEngine : IGraphLayoutEngine
 {
@@ -17,26 +17,26 @@ public sealed class RadialLayoutEngine : IGraphLayoutEngine
     void IGraphLayoutEngine.Apply(VisualCodeGraph graph) => Apply(graph);
 
     /// <summary>
-    /// Calcola e applica le coordinate (X, Y) a tutti i nodi del grafo visuale in modalità radiale concentrica standard.
+    /// Calculate and apply (X, Y) coordinates to all nodes of the visual graph in standard concentric radial mode.
     /// </summary>
-    /// <param name="graph">Il grafo visuale da disporre nello spazio 2D.</param>
+    /// <param name="graph">The visual graph to be arranged in 2D space.</param>
     public static void Apply(VisualCodeGraph graph)
     {
-        // 1. Recupera tutti i nodi di tipo Progetto presenti nel grafo
+        // 1. Retrieve all nodes of type Project present in the graph
         var projects = graph.Nodes.Where(n => n.Kind == SymbolKind.Project).ToList();
         if (projects.Count == 0) return;
 
         var isMultiProject = projects.Count > 1;
-        // Calcola il raggio macro per distanziare adeguatamente più progetti se presenti
+        // Calculate the macro radius to adequately space multiple projects if any
         var projectMacroRadius = Math.Max(1200.0, projects.Count * 700.0);
 
-        // 2. Itera su ciascun progetto nel workspace
+        // 2. Iterate over each project in the workspace
         for (var pIdx = 0; pIdx < projects.Count; pIdx++)
         {
             var project = projects[pIdx];
 
-            // In caso di multi-progetto, dispone i progetti su un macro-cerchio;
-            // per progetto singolo, posiziona la radice direttamente all'origine (0, 0).
+            // In case of multi-project, it arranges the projects on a macro-circle;
+            // for single project, place the root directly at the origin (0, 0).
             if (isMultiProject)
             {
                 var projAngle = 2 * Math.PI * pIdx / projects.Count;
@@ -49,15 +49,15 @@ public sealed class RadialLayoutEngine : IGraphLayoutEngine
                 project.Y = 0;
             }
 
-            // 3. Recupera tutti i container di primo livello (moduli, classi, form, struct, enum) del progetto
+            // 3. Recover all top-level containers (modules, classes, forms, structs, enums) of the project
             var containers = graph.GetChildren(project.Id).ToList();
             var containerCount = Math.Max(containers.Count, 1);
 
-            // Calcola il raggio dell'anello principale proporzionalmente al numero di container
-            // per garantire una spaziatura perimetrale adeguata ed evitare collisioni visive
+            // Calculate the radius of the main ring proportionally to the number of containers
+            // to ensure adequate perimeter spacing and avoid visual collisions
             var containerRingRadius = Math.Max(380.0, containerCount * 35.0);
 
-            // 4. Distribuisce uniformemente i container lungo la circonferenza principale
+            // 4. Distributes containers evenly along the main circumference
             for (var i = 0; i < containers.Count; i++)
             {
                 var angle = 2 * Math.PI * i / containerCount;
@@ -65,14 +65,14 @@ public sealed class RadialLayoutEngine : IGraphLayoutEngine
                 container.X = project.X + Math.Cos(angle) * containerRingRadius;
                 container.Y = project.Y + Math.Sin(angle) * containerRingRadius;
 
-                // 5. Recupera i membri figli del container (metodi, proprietà, costruttori, campi, costanti)
+                // 5. Retrieve the container's child members (methods, properties, constructors, fields, constants)
                 var members = graph.GetChildren(container.Id).ToList();
                 var memberCount = Math.Max(members.Count, 1);
                 
-                // Raggio dell'orbita satellite scalato dinamicamente sul numero di membri
+                // Satellite orbit radius dynamically scaled to the number of members
                 var memberRingRadius = Math.Max(85.0, memberCount * 14.0);
 
-                // Dispone ciascun membro figlio su un'orbita satellite attorno al proprio container genitore
+                // Places each child member on a satellite orbit around its parent container
                 for (var j = 0; j < members.Count; j++)
                 {
                     var memberAngle = 2 * Math.PI * j / memberCount;

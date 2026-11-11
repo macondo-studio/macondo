@@ -7,13 +7,13 @@ namespace Macondo.Tests.JavaSpecific;
 public class JavaProjectDiscoveryTests
 {
     /// <summary>
-    /// Verifica che ProjectDescriptor.DiscoverFromPaths riconosca un file Maven 'pom.xml',
-    /// estragga il nome del progetto da &lt;artifactId&gt; e individui i file sorgente Java contenuti nella cartella.
+    /// Verify that ProjectDescriptor.DiscoverFromPaths recognizes a Maven 'pom.xml' file,
+    /// extract the project name from <artifactId> and locate the Java source files contained in the folder.
     /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldDiscoverMavenProjectFromPomXml()
     {
-        // Arrange: crea una directory temporanea con pom.xml e sorgenti Java
+        // Arrange: Create a temporary directory with pom.xml and Java sources
         var tempDir = Path.Combine(Path.GetTempPath(), "Macondo_Test_Maven_" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(Path.Combine(tempDir, "src", "main", "java", "com", "acme"));
         Directory.CreateDirectory(Path.Combine(tempDir, "target", "classes")); // cartella di build da ignorare
@@ -55,7 +55,7 @@ public class JavaProjectDiscoveryTests
     }
 
     /// <summary>
-    /// Verifica che ProjectDescriptor.DiscoverFromPaths riconosca uno script Gradle 'build.gradle' o 'build.gradle.kts'.
+    /// Verify that ProjectDescriptor.DiscoverFromPaths recognizes a Gradle script 'build.gradle' or 'build.gradle.kts'.
     /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldDiscoverGradleProject()
@@ -90,7 +90,7 @@ public class JavaProjectDiscoveryTests
     }
 
     /// <summary>
-    /// Verifica l'apertura di un singolo file .java isolato.
+    /// Tests opening a single isolated .java file.
     /// </summary>
     [Fact]
     public void ProjectDescriptor_ShouldDiscoverSingleJavaFile()

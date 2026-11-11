@@ -3,31 +3,31 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Resolution;
 
 /// <summary>
-/// Interfaccia per uno scope di visibilità e lookup dei simboli in VB6.
+/// Interface for symbol visibility and lookup scope in VB6.
 /// 
-/// Gli scope sono organizzati in una catena gerarchica genitore-figlio (parent chain):
-/// - LocalScope (variabili locali, parametri)
-///   -> ModuleScope (membri della classe o modulo, Me)
-///     -> ProjectScope (tipi di progetto, membri Public di moduli .bas)
+/// The scopes are organized in a hierarchical parent-child chain:
+/// - LocalScope (local variables, parameters)
+/// -> ModuleScope (class or module members, Me)
+/// -> ProjectScope (project types, Public members of .bas modules)
 /// 
-/// Blocchi contestuali come 'With' inseriscono un <see cref="WithScope"/> nella catena.
+/// Contextual blocks like 'With' insert a <see cref="WithScope"/> into the chain.
 /// </summary>
 public interface IScope
 {
-    /// <summary>Scope genitore a cui delegare la ricerca se il simbolo non è trovato localmente.</summary>
+    /// <summary>Parent Scope to delegate the search to if the symbol is not found locally.</summary>
     IScope? ParentScope { get; }
 
-    /// <summary>Simbolo associato a questo scope (es. il Method per LocalScope o la Class per ModuleScope).</summary>
+    /// <summary>Symbol associated with this scope (e.g. the Method for LocalScope or the Class for ModuleScope).</summary>
     Symbol? ScopeSymbol { get; }
 
-    /// <summary>Nome identificativo dello scope a fini di diagnostica e tracciamento.</summary>
+    /// <summary>Identifying name of the scope for diagnostic and tracking purposes.</summary>
     string ScopeName { get; }
 
     /// <summary>
-    /// Risolve un identificatore non qualificato all'interno dello scope corrente,
-    /// risalendo la gerarchia se necessario.
+    /// Resolves an unqualified identifier within the current scope,
+    /// moving up the hierarchy if necessary.
     /// </summary>
-    /// <param name="name">Nome del simbolo da risolvere (es. "localCust", "Save", "LogMessage").</param>
-    /// <returns>Il risultato della risoluzione con simbolo target e livello di confidenza.</returns>
+    /// <param name="name">Name of the symbol to resolve (e.g. "localCust", "Save", "LogMessage").</param>
+    /// <returns>The resolution result with target symbol and confidence level.</returns>
     ResolutionResult Resolve(string name);
 }

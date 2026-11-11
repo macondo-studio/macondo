@@ -26,7 +26,7 @@ Write-Host "==========================================================" -Foregro
 
 $hookContent = @'
 #!/bin/sh
-# Macondo Git Hook: Esegue build e test suite automatizzata prima di procedere
+# Macondo Git Hook: Runs automated build and test suite before proceeding
 echo ""
 echo "=========================================================="
 echo " [Git Hook] Esecuzione suite di test automatizzati..."
@@ -56,7 +56,7 @@ exit 0
 $preCommitPath = Join-Path $hooksDir "pre-commit"
 $prePushPath = Join-Path $hooksDir "pre-push"
 
-# Scrittura con terminatori di linea LF tipici degli script shell UNIX/Git
+# Writing with LF line terminators typical of UNIX/Git shell scripts
 $hookContentLf = $hookContent.Replace("`r`n", "`n")
 
 [System.IO.File]::WriteAllText($preCommitPath, $hookContentLf, [System.Text.Encoding]::UTF8)

@@ -4,51 +4,51 @@ using Macondo.Semantic.Model;
 namespace Macondo.App.Models;
 
 /// <summary>
-/// Rappresenta una riga di riepilogo del Blast Radius per il DataGrid della Vista Griglia.
-/// Include conteggi di chiamanti diretti e indiretti, profondità massima, livello di rischio e container.
+/// Represents a Blast Radius summary row for the Grid View DataGrid.
+/// Includes direct and indirect caller counts, maximum depth, risk level, and containers.
 /// </summary>
 public sealed class BlastRadiusGridRow
 {
-    /// <summary>Il simbolo semantico della routine o tipo analizzato.</summary>
+    /// <summary>The semantic symbol of the analyzed routine or type.</summary>
     public required Symbol TargetSymbol { get; init; }
 
-    /// <summary>ID univoco del nodo corrispondente nel grafo visuale.</summary>
+    /// <summary>Unique ID of the corresponding node in the visual graph.</summary>
     public required Guid NodeId { get; init; }
 
-    /// <summary>ID del progetto di appartenenza.</summary>
+    /// <summary>ID of the project you belong to.</summary>
     public Guid? ProjectId { get; init; }
 
-    /// <summary>Nome del progetto o workspace di appartenenza (es. "BillingCore", "SalesApp").</summary>
+    /// <summary>Name of the project or workspace to which it belongs (e.g. "BillingCore", "SalesApp").</summary>
     public required string ProjectName { get; init; }
 
-    /// <summary>Nome semplice del simbolo (es. "Execute", "Save").</summary>
+    /// <summary>Simple name of the symbol (e.g. "Execute", "Save").</summary>
     public required string Name { get; init; }
 
     /// <summary>Nome qualificato completo (es. "DatabaseHelper.Execute").</summary>
     public required string QualifiedName { get; init; }
 
-    /// <summary>Nome del file o container di appartenenza (es. "DatabaseHelper.bas").</summary>
+    /// <summary>Name of the file or container it belongs to (e.g. "DatabaseHelper.bas").</summary>
     public required string ContainerName { get; init; }
 
-    /// <summary>Tipo di simbolo (es. Method, Property, Class).</summary>
+    /// <summary>Symbol type (e.g. Method, Property, Class).</summary>
     public required string Kind { get; init; }
 
-    /// <summary>Numero di chiamanti diretti (profondità = 1).</summary>
+    /// <summary>Number of direct callers (depth = 1).</summary>
     public required int DirectCallersCount { get; init; }
 
-    /// <summary>Numero di chiamanti indiretti / transitivi (profondità >= 2).</summary>
+    /// <summary>Number of indirect / transitive callers (depth >= 2).</summary>
     public required int IndirectCallersCount { get; init; }
 
-    /// <summary>Profondità massima della catena di chiamate verso questo simbolo.</summary>
+    /// <summary>Maximum depth of the chain of calls to this symbol.</summary>
     public required int MaxDepth { get; init; }
 
-    /// <summary>Livello di rischio di regressione calcolato dall'Impact Analyzer.</summary>
+    /// <summary>Regression risk level calculated by the Impact Analyzer.</summary>
     public required ImpactRiskLevel RiskLevel { get; init; }
 
-    /// <summary>Testo visualizzato per il rischio (Basso, Medio, Alto, Critico / Low, Medium, High, Critical).</summary>
+    /// <summary>Text displayed for risk (Low, Medium, High, Critical / Low, Medium, High, Critical).</summary>
     public string RiskText => Services.LocalizationService.Instance.GetRiskLevel(RiskLevel);
 
-    /// <summary>Colore di sfondo per il badge del rischio.</summary>
+    /// <summary>Background color for the risk badge.</summary>
     public string RiskBadgeBackground => RiskLevel switch
     {
         ImpactRiskLevel.Critical => "#B81D2D",
@@ -57,22 +57,22 @@ public sealed class BlastRadiusGridRow
         _ => "#1A8A56"
     };
 
-    /// <summary>Colore di testo per il badge del rischio.</summary>
+    /// <summary>Text color for risk badge.</summary>
     public string RiskBadgeForeground => "#FFFFFF";
 
-    /// <summary>Numero di Form UI impattate dalla modifica.</summary>
+    /// <summary>Number of Form UIs affected by the change.</summary>
     public required int AffectedFormsCount { get; init; }
 
-    /// <summary>Totale complessivo delle entità impattate.</summary>
+    /// <summary>Total of impacted entities.</summary>
     public required int TotalImpactedCount { get; init; }
 
-    /// <summary>Nomi delle form impattate separati da virgola.</summary>
+    /// <summary>Names of the impacted forms separated by commas.</summary>
     public required string AffectedFormsSummary { get; init; }
 
-    /// <summary>Testo localizzato per il pulsante d'azione rapida.</summary>
+    /// <summary>Localized text for the quick action button.</summary>
     public string ActionButtonText => Services.LocalizationService.Instance["Btn_ShowInGraph"];
 
-    /// <summary>Tooltip localizzato per il pulsante d'azione rapida.</summary>
+    /// <summary>Localized tooltip for quick action button.</summary>
     public string ActionButtonTooltip => Services.LocalizationService.Instance["Tooltip_ShowInGraph"];
 
     public override string ToString() => $"{QualifiedName} [{RiskLevel}]";

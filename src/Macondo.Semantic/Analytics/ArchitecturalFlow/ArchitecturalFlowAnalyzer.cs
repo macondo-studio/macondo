@@ -3,16 +3,16 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.ArchitecturalFlow;
 
 /// <summary>
-/// Analizzatore agnostico dei flussi architetturali e calcolatore dei layout Chord / Sankey.
+/// Agnostic architectural flow analyzer and Chord/Sankey layout calculator.
 /// </summary>
 public static class ArchitecturalFlowAnalyzer
 {
     /// <summary>
-    /// Esegue l'analisi completa dei flussi di invocazione e dipendenza tra layer architetturali,
-    /// calcolando i volumi di scambio e gli angoli geometrici per il diagramma Chord.
+    /// Performs complete analysis of invocation and dependency flows between architectural layers,
+    /// calculating the exchange volumes and geometric angles for the Chord diagram.
     /// </summary>
-    /// <param name="graph">Il <see cref="CodeGraph"/> semantico contenente simboli e relazioni.</param>
-    /// <returns>Il dataset <see cref="ArchitecturalFlowDataset"/> con nodi, flussi, volumi e violazioni di layer.</returns>
+    /// <param name="graph">The semantic <see cref="CodeGraph"/> containing symbols and relationships.</param>
+    /// <returns>The <see cref="ArchitecturalFlowDataset"/> dataset with nodes, flows, volumes and layer violations.</returns>
     public static ArchitecturalFlowDataset Analyze(CodeGraph graph)
     {
         var dataset = new ArchitecturalFlowDataset();
@@ -20,7 +20,7 @@ public static class ArchitecturalFlowAnalyzer
             return dataset;
 
         // =========================================================================
-        // PASSO 1: Identificazione dei contenitori di primo livello (Moduli, Classi, Form, ecc.)
+        // STEP 1: Identifying top-level containers (Modules, Classes, Forms, etc.)
         // =========================================================================
         var containers = graph.Symbols
             .Where(s => s.Kind is SymbolKind.Class or SymbolKind.Module or SymbolKind.Form or SymbolKind.UserControl or SymbolKind.Interface or SymbolKind.Struct)
@@ -32,7 +32,7 @@ public static class ArchitecturalFlowAnalyzer
         var containerById = containers.ToDictionary(c => c.Id);
         var symbolToContainerMap = new Dictionary<Guid, Guid>();
 
-        // Mappa ogni simbolo o membro (metodi, proprietà, campi) al proprio contenitore di primo livello
+        // Map each symbol or member (methods, properties, fields) to its top-level container
         foreach (var sym in graph.Symbols)
         {
             if (containerById.ContainsKey(sym.Id))
@@ -49,8 +49,8 @@ public static class ArchitecturalFlowAnalyzer
         }
 
         // =========================================================================
-        // PASSO 2: Creazione dei nodi di flusso (FlowNode) con inferenza del layer architetturale
-        // e calcolo di metriche aggregate (LOC, complessità ciclomatica, membri).
+        // STEP 2: Creation of flow nodes (FlowNode) with inference of the architectural layer
+        // and calculation of aggregate metrics (LOC, cyclomatic complexity, members).
         // =========================================================================
         var nodes = new List<FlowNode>();
         foreach (var c in containers)
@@ -60,7 +60,7 @@ public static class ArchitecturalFlowAnalyzer
             var loc = children.Sum(ch => Math.Max(1, ch.LineEnd - ch.LineStart + 1));
             if (loc <= 0) loc = Math.Max(10, c.LineEnd - c.LineStart + 1);
 
-            // Stima della complessità ciclomatica media del contenitore
+            // Estimation of the average cyclomatic complexity of the container
             var avgCc = children.Count > 0
                 ? children.Average(ch => 1.0 + (graph.Relationships.Count(r => r.SourceId == ch.Id && r.Kind == RelationshipKind.Calls) * 1.5) + (ch.Parameters.Count * 0.8))
                 : 1.0;
@@ -81,8 +81,8 @@ public static class ArchitecturalFlowAnalyzer
         var flowNodeById = nodes.ToDictionary(n => n.Id);
 
         // =========================================================================
-        // PASSO 3: Aggregazione dei volumi di flusso tra coppie di container (Sorgente -> Destinazione)
-        // Conteggia chiamate, istanziazioni, usi di tipo, ereditarietà e implementazioni.
+        // STEP 3: Aggregation of flow volumes between pairs of containers (Source -> Destination)
+        // It counts invocations, instantiations, type uses, inheritance, and implementations.
         // =========================================================================
         var linkCounts = new Dictionary<(Guid Source, Guid Target), int>();
 
@@ -94,7 +94,7 @@ public static class ArchitecturalFlowAnalyzer
             if (symbolToContainerMap.TryGetValue(rel.SourceId, out var srcContId) &&
                 symbolToContainerMap.TryGetValue(rel.TargetId, out var tgtContId))
             {
-                // Esclude le chiamate interne allo stesso modulo per concentrarsi sugli scambi tra componenti
+                // Excludes internal calls to the same module to focus on exchanges between components
                 if (srcContId != tgtContId && flowNodeById.ContainsKey(srcContId) && flowNodeById.ContainsKey(tgtContId))
                 {
                     var key = (srcContId, tgtContId);
@@ -109,11 +109,11 @@ public static class ArchitecturalFlowAnalyzer
             var srcNode = flowNodeById[key.Source];
             var tgtNode = flowNodeById[key.Target];
 
-            // Aggiorna i totali dei flussi in entrata (inflow) e in uscita (outflow)
+            // Update the totals of inflows (inflow) and outflows (outflow)
             srcNode.OutflowVolume += count;
             tgtNode.InflowVolume += count;
 
-            // Rileva eventuali violazioni delle regole di layer (es. DataAccess che invoca UI)
+            // Detect any violations of layer rules (e.g. DataAccess invoking UI)
             var isViolation = IsLayerViolation(srcNode.Layer, tgtNode.Layer);
 
             links.Add(new FlowLink
@@ -128,7 +128,7 @@ public static class ArchitecturalFlowAnalyzer
         }
 
         // =========================================================================
-        // PASSO 4: Filtro e ordinamento dei nodi attivi per leggibilità del diagramma
+        // STEP 4: Filter and sort active nodes for diagram readability
         // =========================================================================
         var activeNodes = nodes
             .Where(n => n.TotalVolume > 0 || n.MemberCount > 0)
@@ -136,7 +136,7 @@ public static class ArchitecturalFlowAnalyzer
             .ThenByDescending(n => n.TotalVolume)
             .ToList();
 
-        // Se sono presenti troppi nodi, seleziona i 45 con volume maggiore per evitare sovrapposizioni visive
+        // If there are too many nodes, select the 45 with the largest volume to avoid visual overlap
         if (activeNodes.Count > 45)
         {
             var topIds = activeNodes.Take(45).Select(n => n.Id).ToHashSet();
@@ -145,7 +145,7 @@ public static class ArchitecturalFlowAnalyzer
         }
 
         // =========================================================================
-        // PASSO 5: Calcolo trigonometrico degli angoli per il Chord Diagram
+        // STEP 5: Trigonometric calculation of angles for the Chord Diagram
         // =========================================================================
         CalculateChordAngles(activeNodes, links);
 
@@ -157,8 +157,8 @@ public static class ArchitecturalFlowAnalyzer
     }
 
     /// <summary>
-    /// Calcola la suddivisione angolare della circonferenza (360 gradi / 2*PI radianti)
-    /// per i nodi del Chord Diagram e i sotto-archi di innesto dei nastri di flusso.
+    /// Calculate the angular subdivision of the circumference (360 degrees / 2*PI radians)
+    /// for the nodes of the Chord Diagram and the sub-arcs of the flow ribbons.
     /// </summary>
     private static void CalculateChordAngles(List<FlowNode> nodes, List<FlowLink> links)
     {
@@ -169,14 +169,14 @@ public static class ArchitecturalFlowAnalyzer
         double totalPadding = padAngle * nodes.Count;
         double availableAngle = (2 * Math.PI) - totalPadding;
 
-        // Se il padding eccede lo spazio disponibile sulla circonferenza, riducilo proporzionalmente
+        // If the padding exceeds the available space on the circumference, reduce it proportionally
         if (availableAngle <= 0)
         {
             padAngle = 0.01;
             availableAngle = (2 * Math.PI) - (padAngle * nodes.Count);
         }
 
-        // 1. Assegna l'arco circolare (StartAngle .. EndAngle) a ciascun nodo
+        // 1. Assign the circular arc (StartAngle .. EndAngle) to each node
         double currentAngle = 0;
         foreach (var node in nodes)
         {
@@ -189,7 +189,7 @@ public static class ArchitecturalFlowAnalyzer
             currentAngle = node.EndAngle + padAngle;
         }
 
-        // 2. Calcola i sotto-archi di ancoraggio dei nastri di connessione (Chords)
+        // 2. Calculate the anchoring sub-arcs of the connection ribbons (Chords)
         var nodeOutOffset = nodes.ToDictionary(n => n.Id, n => n.StartAngle);
         var nodeInOffset = nodes.ToDictionary(n => n.Id, n => n.StartAngle);
 
@@ -201,7 +201,7 @@ public static class ArchitecturalFlowAnalyzer
             var srcNode = nodes.First(n => n.Id == link.SourceId);
             var tgtNode = nodes.First(n => n.Id == link.TargetId);
 
-            // Frazione di ampiezza angolare occupata da questo flusso specifico
+            // Fraction of angular width occupied by this specific flow
             double srcFraction = srcNode.TotalVolume > 0 ? (double)link.Volume / srcNode.TotalVolume : 0.5;
             double tgtFraction = tgtNode.TotalVolume > 0 ? (double)link.Volume / tgtNode.TotalVolume : 0.5;
 
@@ -219,12 +219,12 @@ public static class ArchitecturalFlowAnalyzer
     }
 
     /// <summary>
-    /// Deduce il layer architetturale di appartenenza di un simbolo tramite euristica
-    /// sul tipo di simbolo, convenzioni di prefisso/suffisso nel nome e percorso file.
+    /// It deduces the architectural layer to which a symbol belongs using heuristics
+    /// on the symbol type, prefix/suffix conventions in the file name and path.
     /// </summary>
     private static ArchitecturalLayerKind InferLayer(Symbol s)
     {
-        // 1. Controlli ed elementi di interfaccia grafica
+        // 1. Controls and graphical interface elements
         if (s.Kind is SymbolKind.Form or SymbolKind.UserControl)
             return ArchitecturalLayerKind.UserInterface;
 
@@ -234,23 +234,23 @@ public static class ArchitecturalFlowAnalyzer
         if (name.StartsWith("frm") || name.StartsWith("ctl") || name.EndsWith("view") || name.EndsWith("window") || name.EndsWith("form") || qname.Contains("ui") || qname.Contains("views"))
             return ArchitecturalLayerKind.UserInterface;
 
-        // 2. Componenti di accesso ai dati (DAO, Repository, DbContext)
+        // 2. Data access components (DAO, Repository, DbContext)
         if (name.Contains("db") || name.Contains("dao") || name.Contains("repo") || name.Contains("sql") || name.Contains("data") || name.Contains("entity") || qname.Contains("data"))
             return ArchitecturalLayerKind.DataAccess;
 
-        // 3. Moduli di utilità condivisa, costanti e tipi comuni
+        // 3. Shared utility modules, constants and common types
         if (name.Contains("util") || name.Contains("helper") || name.Contains("const") || name.Contains("common") || name.Contains("global") || s.Kind is SymbolKind.Type or SymbolKind.Enum)
             return ArchitecturalLayerKind.CommonUtilities;
 
-        // 4. Default: Logica di business / Servizi di dominio
+        // 4. Default: Business Logic / Domain Services
         return ArchitecturalLayerKind.BusinessLogic;
     }
 
     /// <summary>
-    /// Valuta se una dipendenza tra due layer viola i principi di Clean / N-Tier Architecture:
-    /// - DataAccess non deve invocare UserInterface né BusinessLogic.
-    /// - CommonUtilities non deve dipendere da layer specifici superiori.
-    /// - BusinessLogic non deve invocare direttamente la UserInterface.
+    /// Evaluate whether a dependency between two layers violates Clean / N-Tier Architecture principles:
+    /// - DataAccess must not invoke UserInterface or BusinessLogic.
+    /// - CommonUtilities must not depend on specific higher layers.
+    /// - BusinessLogic must not invoke the UserInterface directly.
     /// </summary>
     private static bool IsLayerViolation(ArchitecturalLayerKind source, ArchitecturalLayerKind target)
     {

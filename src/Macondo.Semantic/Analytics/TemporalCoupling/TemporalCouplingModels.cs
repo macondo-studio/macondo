@@ -3,7 +3,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.TemporalCoupling;
 
 /// <summary>
-/// Coppia di file che mostrano un accoppiamento temporale (co-modifica frequente nei commit del VCS).
+/// Pair of files showing temporal coupling (frequent co-modification in VCS commits).
 /// </summary>
 public sealed class TemporalCouplingPair
 {
@@ -12,35 +12,35 @@ public sealed class TemporalCouplingPair
     public string FileAName => Path.GetFileName(FileA);
     public string FileBName => Path.GetFileName(FileB);
 
-    /// <summary>Numero di commit in cui entrambi i file sono stati modificati insieme.</summary>
+    /// <summary>Number of commits in which both files were modified together.</summary>
     public int CoChangeCount { get; set; }
 
-    /// <summary>Totale commit in cui compare il File A.</summary>
+    /// <summary>Total commit in which File A appears.</summary>
     public int TotalCommitsA { get; set; }
 
-    /// <summary>Totale commit in cui compare il File B.</summary>
+    /// <summary>Total commit in which File B appears.</summary>
     public int TotalCommitsB { get; set; }
 
     /// <summary>
-    /// Indice di similarità Jaccard J(A, B) = CoChange / (CommitsA + CommitsB - CoChange) in [0.0 .. 1.0].
+    /// Jaccard similarity index J(A, B) = CoChange / (CommitsA + CommitsB - CoChange) in [0.0 .. 1.0].
     /// </summary>
     public double JaccardIndex { get; set; }
 
-    /// <summary>Confidenza P(B|A) = CoChange / CommitsA in [0.0 .. 1.0].</summary>
+    /// <summary>Confidence P(B|A) = CoChange / CommitsA in [0.0 .. 1.0].</summary>
     public double ConfidenceAToB => TotalCommitsA > 0 ? (double)CoChangeCount / TotalCommitsA : 0.0;
 
-    /// <summary>Confidenza P(A|B) = CoChange / CommitsB in [0.0 .. 1.0].</summary>
+    /// <summary>Confidence P(A|B) = CoChange / CommitsB in [0.0 .. 1.0].</summary>
     public double ConfidenceBToA => TotalCommitsB > 0 ? (double)CoChangeCount / TotalCommitsB : 0.0;
 
     /// <summary>
-    /// Indica se tra i due file esiste già una dipendenza statica esplicita (chiamata o istanziazione).
-    /// Se false e l'indice di Jaccard è alto, si tratta di un accoppiamento nascosto critico (Hidden Coupling).
+    /// Indicates whether an explicit static dependency (call or instantiation) already exists between the two files.
+    /// If false and the Jaccard index is high, it is a critical hidden coupling.
     /// </summary>
     public bool HasStaticDependency { get; set; }
 }
 
 /// <summary>
-/// Dataset completo dell'analisi di Temporal Coupling estratto dalla cronologia Git / VCS.
+/// Complete Temporal Coupling analysis dataset pulled from Git/VCS history.
 /// </summary>
 public sealed class TemporalCouplingDataset
 {

@@ -4,23 +4,23 @@ using Macondo.App.Models;
 namespace Macondo.App.Services;
 
 /// <summary>
-/// Catalogo di tutte le scorciatoie da tastiera e combinazioni di tasti dell'applicazione,
-/// localizzato tramite <see cref="LocalizationService"/>.
+/// Catalog of all keyboard shortcuts and key combinations in the application,
+/// located via <see cref="LocalizationService"/>.
 /// </summary>
 public static class KeyboardShortcutsCatalog
 {
     /// <summary>
-    /// Restituisce l'elenco completo delle scorciatoie da tastiera localizzate per la lingua specificata.
+    /// Returns the complete list of localized keyboard shortcuts for the specified language.
     /// </summary>
-    /// <param name="language">La lingua dell'interfaccia utente (Italiano o Inglese).</param>
-    /// <returns>La lista in sola lettura degli elementi di scorciatoia (<see cref="ShortcutItem"/>).</returns>
+    /// <param name="language">The user interface language (Italian or English).</param>
+    /// <returns>The read-only list of shortcut elements (<see cref="ShortcutItem"/>).</returns>
     public static IReadOnlyList<ShortcutItem> GetShortcuts(AppLanguage language)
     {
         var localizationService = LocalizationService.Instance;
 
         return new List<ShortcutItem>
         {
-            // Categoria: Ricerca e Navigazione
+            // Category: Search and Navigation
             new()
             {
                 KeyBadges = new[] { "Ctrl", "F" },
@@ -87,7 +87,7 @@ public static class KeyboardShortcutsCatalog
                 Description = localizationService.GetForLanguage("Shortcut_Exit_Desc", language)
             },
 
-            // Categoria: Analisi e Grafo
+            // Category: Analysis and Graph
             new()
             {
                 KeyBadges = new[] { "F5" },
@@ -120,7 +120,7 @@ public static class KeyboardShortcutsCatalog
     }
 
     /// <summary>
-    /// Restituisce l'elenco completo delle scorciatoie da tastiera localizzate per la lingua correntemente attiva.
+    /// Returns the complete list of localized keyboard shortcuts for the currently active language.
     /// </summary>
     public static IReadOnlyList<ShortcutItem> GetShortcuts()
         => GetShortcuts(LocalizationService.Instance.CurrentLanguage);

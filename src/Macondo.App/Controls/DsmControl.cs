@@ -10,8 +10,8 @@ using Macondo.Semantic.Analytics.Dsm;
 namespace Macondo.App.Controls;
 
 /// <summary>
-/// Controllo custom Avalonia Skia ad alte prestazioni per il rendering e l'interazione con la DSM (Dependency Structure Matrix).
-/// Permette zoom, pan, hover su riga/colonna, selezione cella e rilevamento visivo di cicli.
+/// High performance Avalonia Skia custom control for rendering and interaction with the DSM (Dependency Structure Matrix).
+/// It allows zoom, pan, row/column hover, cell selection and visual cycle detection.
 /// </summary>
 public sealed class DsmControl : Control
 {
@@ -78,7 +78,7 @@ public sealed class DsmControl : Control
     }
 
     /// <summary>
-    /// Ripristina lo zoom e il panning della matrice DSM ai valori di default.
+    /// Resets DSM matrix zoom and panning to default values.
     /// </summary>
     public void ResetView()
     {
@@ -89,7 +89,7 @@ public sealed class DsmControl : Control
     }
 
     /// <summary>
-    /// Applica i pennelli e i colori del tema corrente (sfondo, griglia, celle con dipendenze circolari o normali, etichette).
+    /// Apply brushes and colors of the current theme (background, grid, cells with circular or normal dependencies, labels).
     /// </summary>
     public void ApplyTheme(ThemeDefinition theme)
     {
@@ -157,7 +157,7 @@ public sealed class DsmControl : Control
 
         int n = matrix.Size;
 
-        // Viewport culling: calcola gli intervalli di riga/colonna visibili a schermo per evitare O(N^2) draw calls
+        // Viewport culling: calculates the row/column intervals visible on the screen to avoid O(N^2) draw calls
         double viewportW = Bounds.Width;
         double viewportH = Bounds.Height;
 
@@ -178,7 +178,7 @@ public sealed class DsmControl : Control
         using (context.PushTransform(Avalonia.Matrix.CreateTranslation(_offsetX, _offsetY)))
         using (context.PushTransform(Avalonia.Matrix.CreateScale(_scale, _scale)))
         {
-            // 1. Evidenziazione Riga / Colonna Hovered
+            // 1. Hovered Row/Column Highlighting
             if (_hoveredRow >= 0 && _hoveredRow < n)
             {
                 var rowRect = new Rect(0, _hoveredRow * CellSize, n * CellSize, CellSize);
@@ -190,7 +190,7 @@ public sealed class DsmControl : Control
                 context.FillRectangle(_hoverRowColBrush, colRect);
             }
 
-            // 2. Griglia e Celle della Matrice (Culling attivo per massima fluidità a 60+ FPS)
+            // 2. Grid and Matrix Cells (Culling active for maximum fluidity at 60+ FPS)
             for (int r = minRow; r <= maxRow; r++)
             {
                 for (int c = minCol; c <= maxCol; c++)
@@ -200,7 +200,7 @@ public sealed class DsmControl : Control
 
                     if (r == c)
                     {
-                        // Diagonale principale (auto-riferimento)
+                        // Main diagonal (self-reference)
                         context.FillRectangle(_diagBrush, cellRect);
                         context.DrawLine(_diagLinePen, cellRect.TopLeft, cellRect.BottomRight);
                     }
@@ -216,7 +216,7 @@ public sealed class DsmControl : Control
                             context.FillRectangle(_depCellBrush, cellRect);
                         }
 
-                        // Testo del peso/numero chiamate
+                        // Text of the weight/number of calls
                         string countText = cell.Weight > 99 ? "99+" : cell.Weight.ToString();
                         var numFmt = new FormattedText(
                             countText,
@@ -231,7 +231,7 @@ public sealed class DsmControl : Control
                         context.DrawText(numFmt, new Point(tx, ty));
                     }
 
-                    // Selezione attiva
+                    // Active selection
                     if (_selectedCell != null && _selectedCell.RowIndex == r && _selectedCell.ColumnIndex == c)
 
                         context.DrawRectangle(_selectedCellPen, cellRect);
@@ -240,7 +240,7 @@ public sealed class DsmControl : Control
                 }
             }
 
-            // 3. Intestazioni Righe (Sinistra - solo visibili)
+            // 3. Row Headers (Left - visible only)
             if (showRowHeaders)
             {
                 for (int r = minRow; r <= maxRow; r++)
@@ -275,7 +275,7 @@ public sealed class DsmControl : Control
                 }
             }
 
-            // 4. Intestazioni Colonne (In alto con rotazione 45° - solo visibili)
+            // 4. Column Headings (Top with 45° rotation - visible only)
             if (showColHeaders)
             {
                 for (int c = minCol; c <= maxCol; c++)

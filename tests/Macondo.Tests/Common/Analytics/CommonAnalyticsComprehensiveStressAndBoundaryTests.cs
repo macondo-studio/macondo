@@ -17,8 +17,8 @@ public class CommonAnalyticsComprehensiveStressAndBoundaryTests
     #region ApiDiff Optional Parameters & Obsolete Attributes
 
     /// <summary>
-    /// Verifica che l'aggiunta di un parametro opzionale con valore di default a un metodo pubblico
-    /// venga classificata come Minor Feature retrocompatibile anziché Breaking Change.
+    /// Check that adding an optional parameter with default value to a public method
+    /// be classified as a backwards compatible Minor Feature rather than Breaking Change.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldClassifyOptionalParameterAddition_AsMinor()
@@ -64,7 +64,7 @@ public class CommonAnalyticsComprehensiveStressAndBoundaryTests
     }
 
     /// <summary>
-    /// Verifica che la rimozione di un evento pubblico da un'interfaccia o classe sia identificata come Major / Breaking Change.
+    /// Verify that removing a public event from an interface or class is identified as a Major/Breaking Change.
     /// </summary>
     [Fact]
     public void ApiDiff_ShouldDetectBreakingChange_WhenPublicEventIsRemoved()
@@ -99,9 +99,9 @@ public class CommonAnalyticsComprehensiveStressAndBoundaryTests
     #region Martin Metrics Main Sequence & Stability Zones
 
     /// <summary>
-    /// Verifica il corretto calcolo di Abstractness (A), Instability (I) e Distance (D)
-    /// per moduli appartenenti alla Zone of Pain (bassa astrattezza, alta stabilità)
-    /// e alla Zone of Uselessness (alta astrattezza, alta instabilità).
+    /// Check the correct calculation of Abstractness (A), Instability (I) and Distance (D)
+    /// for modules belonging to the Zone of Pain (low abstractness, high stability)
+    /// and to the Zone of Uselessness (high abstractness, high instability).
     /// </summary>
     [Fact]
     public void MartinMetrics_ShouldIdentifyZoneOfPainAndMainSequenceDistance()
@@ -142,8 +142,8 @@ public class CommonAnalyticsComprehensiveStressAndBoundaryTests
     #region Cohesion DTO & Static Helpers Boundary Cases
 
     /// <summary>
-    /// Verifica che un DTO contenente solo campi e proprietà (0 metodi interni) produca LCOM4 = 1
-    /// e non venga contrassegnato erroneamente come candidato al refactoring.
+    /// Verify that a DTO containing only fields and properties (0 internal methods) produces LCOM4 = 1
+    /// and is not incorrectly marked as a refactoring candidate.
     /// </summary>
     [Fact]
     public void Cohesion_ShouldHandleDataTransferObjectsWithoutMethods()
@@ -176,8 +176,8 @@ public class CommonAnalyticsComprehensiveStressAndBoundaryTests
     #region Data Flow Multi-Sink Fan-Out
 
     /// <summary>
-    /// Verifica che una singola sorgente non verificata (UI Input) che si propaga verso molteplici
-    /// sink critici distinti (SQL Execution e File System) generi un TaintPath per ciascun sink.
+    /// Verify that a single unverified source (UI Input) propagating to multiple
+    /// separate critical sinks (SQL Execution and File System) generate a TaintPath for each sink.
     /// </summary>
     [Fact]
     public void DataFlow_ShouldTrackFanOutFromSingleSourceToMultipleSinks()
@@ -211,8 +211,8 @@ public class CommonAnalyticsComprehensiveStressAndBoundaryTests
     #region Code City Stress & Coordinate Boundaries
 
     /// <summary>
-    /// Verifica che CodeCityBuilder generi posizionamenti validi e non sovrapposti
-    /// anche su grafi complessi con 20 distretti e 80 edifici.
+    /// Verify that CodeCityBuilder generates valid, non-overlapping placements
+    /// even on complex graphs with 20 districts and 80 buildings.
     /// </summary>
     [Fact]
     public void CodeCityBuilder_ShouldScaleToLargeGraphsWithManyDistricts()

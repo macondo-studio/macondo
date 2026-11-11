@@ -10,22 +10,22 @@ using Macondo.App.Services;
 namespace Macondo.App.Views;
 
 /// <summary>
-/// Controllo visuale per la scheda dedicata all'anteprima del codice sorgente del simbolo selezionato.
+/// Visual control for the tab dedicated to previewing the source code of the selected symbol.
 /// </summary>
 public partial class SourceCodePreviewView : UserControl
 {
     /// <summary>
-    /// Evento generato quando l'utente richiede di aprire il file originale del simbolo.
+    /// Event raised when the user requests to open the original symbol file.
     /// </summary>
     public event EventHandler? OpenFileRequested;
 
     /// <summary>
-    /// Evento generato quando l'utente richiede di aprire la cartella contenitrice.
+    /// Event raised when the user requests to open the containing folder.
     /// </summary>
     public event EventHandler? OpenFolderRequested;
 
     /// <summary>
-    /// Evento generato quando l'utente copia il frammento di codice negli appunti.
+    /// Event raised when the user copies the code snippet to the clipboard.
     /// </summary>
     public event EventHandler<string>? CopyCodeRequested;
 
@@ -45,7 +45,7 @@ public partial class SourceCodePreviewView : UserControl
     }
 
     /// <summary>
-    /// Mostra lo stato vuoto del visualizzatore di codice sorgente quando nessun simbolo è selezionato.
+    /// Shows the blank state of the source code viewer when no symbols are selected.
     /// </summary>
     public void ShowEmpty(bool hasProject = true)
     {
@@ -59,7 +59,7 @@ public partial class SourceCodePreviewView : UserControl
     }
 
     /// <summary>
-    /// Visualizza il codice sorgente estratto dal file per il nodo specificato.
+    /// Displays the source code extracted from the file for the specified node.
     /// </summary>
     public void ShowSourceCode(GraphNode node)
     {
@@ -114,7 +114,7 @@ public partial class SourceCodePreviewView : UserControl
             return;
         }
 
-        // Informazioni File e Conteggio Righe
+        // File Information and Line Count
         if (hasValidLines && endLine >= startLine)
         {
             FilePathText.Text = $"{fileName} • {string.Format(localizationService["CodePreview_Lines_Format"], startLine, endLine, loc)}";
@@ -133,7 +133,7 @@ public partial class SourceCodePreviewView : UserControl
             LocBadge.IsVisible = false;
         }
 
-        // Lettura righe dal file
+        // Reading lines from file
         try
         {
             var lines = TryReadFileLines(filePath);
@@ -211,7 +211,7 @@ public partial class SourceCodePreviewView : UserControl
     }
 
     /// <summary>
-    /// Aggiorna i testi localizzati del controllo.
+    /// Update localized control texts.
     /// </summary>
     public void UpdateLocalizedUI()
     {

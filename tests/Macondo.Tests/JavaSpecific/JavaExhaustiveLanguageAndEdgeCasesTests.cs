@@ -7,18 +7,18 @@ using Xunit;
 namespace Macondo.Tests.JavaSpecific;
 
 /// <summary>
-/// Suite di test esaustiva per costrutti avanzati del linguaggio Java:
+/// Comprehensive test suite for advanced Java language constructs:
 /// generic bounds complessi, metodi varargs, classi locali e interne,
-/// try-with-resources multi-risorsa, interfacce funzionali con metodi privati/default,
-/// annotazioni personalizzate avanzate e pattern matching su record.
+/// multi-resource try-with-resources, functional interfaces with private/default methods,
+/// advanced custom annotations and pattern matching on records.
 /// </summary>
 public class JavaExhaustiveLanguageAndEdgeCasesTests
 {
     #region Complex Generics and Wildcards
 
     /// <summary>
-    /// Verifica la corretta estrazione e risoluzione di classi e metodi generici con vincoli multipli
-    /// ad intersezione (T extends Comparable & Serializable), bounded wildcards e parametri ricorsivi.
+    /// Verify correct extraction and resolution of generic classes and methods with multiple constraints
+    /// intersection (T extends Comparable & Serializable), bounded wildcards and recursive parameters.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleComplexGenericIntersectionAndWildcards()
@@ -73,8 +73,8 @@ public class JavaExhaustiveLanguageAndEdgeCasesTests
     #region Varargs and Overloaded Methods
 
     /// <summary>
-    /// Verifica l'estrazione e il riconoscimento di firme di metodi in overload
-    /// con parametri varargs (String...), array primitivi (byte[]) e tipi generici.
+    /// Tests overloaded method signature extraction and recognition
+    /// with varargs (String...) parameters, primitive arrays (byte[]), and generic types.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleVarargsAndMethodOverloading()
@@ -122,8 +122,8 @@ public class JavaExhaustiveLanguageAndEdgeCasesTests
     #region Inner, Nested and Local Classes
 
     /// <summary>
-    /// Verifica l'estrazione di classi statiche annidate, classi interne con riferimento all'istanza outer
-    /// (Outer.this) e classi locali definite internamente a metodi.
+    /// Tests extraction of nested static classes, inner classes with reference to the outer instance
+    /// (Outer.this) and local classes defined internally to methods.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractNestedInnerAndLocalClasses()
@@ -176,7 +176,7 @@ public class JavaExhaustiveLanguageAndEdgeCasesTests
     #region Try-With-Resources with Multiple AutoCloseable and Multi-Catch
 
     /// <summary>
-    /// Verifica la gestione di blocchi try-with-resources complessi con istanziazione di più risorse
+    /// Tests handling of complex try-with-resources blocks with multiple resource instantiations
     /// AutoCloseable, clausole multi-catch (IOException | SQLException) e blocco finally.
     /// </summary>
     [Fact]
@@ -233,7 +233,7 @@ public class JavaExhaustiveLanguageAndEdgeCasesTests
     #region Functional Interfaces with Default, Static and Private Methods
 
     /// <summary>
-    /// Verifica l'estrazione di interfacce Java 8/9+ con metodi astratti, default, static e private.
+    /// Test extraction of Java 8/9+ interfaces with abstract, default, static, and private methods.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractModernInterfaceFeatures()
@@ -285,8 +285,8 @@ public class JavaExhaustiveLanguageAndEdgeCasesTests
     #region Advanced Custom Annotation Declaration
 
     /// <summary>
-    /// Verifica l'estrazione di annotazioni Java personalizzate (@interface) con elementi,
-    /// valori di default, tipi enum, array e meta-annotazioni (@Retention, @Target).
+    /// Test extraction of custom Java annotations (@interface) with elements,
+    /// default values, enum types, arrays and meta-annotations (@Retention, @Target).
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractCustomAnnotationDefinitions()
@@ -327,8 +327,8 @@ public class JavaExhaustiveLanguageAndEdgeCasesTests
     #region Record Patterns, Validation and Compact Constructors
 
     /// <summary>
-    /// Verifica la gestione di record Java con compact constructor per validazione invarianti,
-    /// costruttori canonici espliciti, metodi di istanza aggiuntivi e implementazione di interfacce.
+    /// Verify Java record management with compact constructor for invariant validation,
+    /// explicit canonical constructors, additional instance methods, and interface implementation.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldHandleRecordWithCompactConstructorAndMethods()
@@ -384,8 +384,8 @@ public class JavaExhaustiveLanguageAndEdgeCasesTests
     #region Concurrency Modifiers and Synchronized Blocks
 
     /// <summary>
-    /// Verifica l'estrazione di campi con modificatori di concorrenza (volatile, transient)
-    /// e metodi/blocchi con sincronizzazione esplicita.
+    /// Test extraction of fields with concurrency modifiers (volatile, transient)
+    /// and methods/blocks with explicit synchronization.
     /// </summary>
     [Fact]
     public void JavaExtractor_ShouldExtractConcurrencyModifiersAndSynchronizedConstructs()

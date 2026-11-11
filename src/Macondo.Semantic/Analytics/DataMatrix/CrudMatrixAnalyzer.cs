@@ -3,14 +3,14 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.DataMatrix;
 
 /// <summary>
-/// Analizzatore poliglotto di Data Access e generatore della Matrice CRUD (Create, Read, Update, Delete).
+/// Polyglot Data Access analyzer and CRUD (Create, Read, Update, Delete) Matrix generator.
 /// 
 /// RESPONSABILITÀ:
-/// 1. Individuazione Entità Dati: individua modelli, record, struct, UDT e classi entità del dominio
+/// 1. Data Entity Identification: identifies models, records, structs, UDTs and entity classes of the domain
 ///    (es. "Customer", "Order", "Product", "Invoice").
-/// 2. Inferenza Operazioni CRUD: esamina routine e metodi che accedono a tali entità, deducendo le operazioni
-///    (Create, Read, Update, Delete) tramite convenzioni di naming, verbi SQL e pattern di accesso dati.
-/// 3. Generazione Matrice di Accesso: associa ciascuna entità ai componenti o moduli che la manipolano.
+/// 2. Inference CRUD Operations: Examine routines and methods that access those entities, inferring the operations
+/// (Create, Read, Update, Delete) via naming conventions, SQL verbs and data access patterns.
+/// 3. Access Matrix Generation: associate each entity with the components or modules that manipulate it.
 /// </summary>
 public static class CrudMatrixAnalyzer
 {
@@ -21,11 +21,11 @@ public static class CrudMatrixAnalyzer
     };
 
     /// <summary>
-    /// Esegue l'analisi e genera la matrice CRUD a partire dai simboli e dalle relazioni del CodeGraph.
-    /// Mappa le entità di dominio ai componenti che le manipolano aggregando le operazioni Create, Read, Update, Delete.
+    /// Performs the analysis and generates the CRUD matrix from the CodeGraph symbols and relations.
+    /// Map domain entities to the components that manipulate them by aggregating Create, Read, Update, Delete operations.
     /// </summary>
-    /// <param name="graph">Il CodeGraph contenente simboli e relazioni del progetto.</param>
-    /// <returns>Il dataset <see cref="CrudMatrixDataset"/> con tutte le celle e i riepiloghi per entità.</returns>
+    /// <param name="graph">The CodeGraph containing project symbols and relationships.</param>
+    /// <returns>The <see cref="CrudMatrixDataset"/> dataset with all cells and entity summaries.</returns>
     public static CrudMatrixDataset Analyze(CodeGraph graph)
     {
         var dataset = new CrudMatrixDataset();
@@ -34,7 +34,7 @@ public static class CrudMatrixAnalyzer
 
         var symbolById = graph.Symbols.ToDictionary(s => s.Id);
 
-        // Mappa ogni simbolo membro (metodo o proprietà) al suo rispettivo contenitore radice (Classe, Form o Modulo)
+        // Map each member symbol (method or property) to its respective root container (Class, Form, or Module)
         var memberToContainer = new Dictionary<Guid, Symbol>();
         foreach (var sym in graph.Symbols)
         {
@@ -46,7 +46,7 @@ public static class CrudMatrixAnalyzer
         }
 
         // ---------------------------------------------------------------------
-        // FASE 1: Individuazione delle entità dati del dominio
+        // PHASE 1: Identification of the domain's data entities
         // ---------------------------------------------------------------------
         // Raccoglie strutture formali (Record, Struct, Type UDT) o classi entità/dati
         var entityCandidates = graph.Symbols
@@ -86,7 +86,7 @@ public static class CrudMatrixAnalyzer
             .Select(s => s.Name)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        // Euristica enterprise di fallback: se non ci sono tipi formali, cerca nomi di entità tipiche nel software gestionale
+        // Fallback enterprise heuristics: If there are no formal types, look for typical entity names in the management software
         if (entityCandidates.Count == 0)
         {
             foreach (var sym in graph.Symbols)
@@ -108,7 +108,7 @@ public static class CrudMatrixAnalyzer
         var routines = graph.Symbols.Where(s => RoutineKinds.Contains(s.Kind)).ToList();
 
         // ---------------------------------------------------------------------
-        // FASE 2: Ispezione routine e inferenza delle operazioni CRUD
+        // PHASE 2: Routine inspection and inference of CRUD operations
         // ---------------------------------------------------------------------
         foreach (var routine in routines)
         {
@@ -137,7 +137,7 @@ public static class CrudMatrixAnalyzer
         }
 
         // ---------------------------------------------------------------------
-        // FASE 3: Ordinamento alfabetico e finalizzazione del dataset
+        // PHASE 3: Alphabetical sorting and finalization of the dataset
         // ---------------------------------------------------------------------
         dataset.Entities = entitySummaries.Keys.OrderBy(k => k).ToList();
         dataset.EntitySummaries = entitySummaries.Values.OrderBy(v => v.EntityName).ToList();
@@ -146,8 +146,8 @@ public static class CrudMatrixAnalyzer
     }
 
     /// <summary>
-    /// Deduce l'entità bersaglio e le operazioni CRUD (Create, Read, Update, Delete)
-    /// eseguite da una routine tramite analisi lessicale e pattern matching sui verbi di azione.
+    /// Infers target entity and CRUD (Create, Read, Update, Delete) operations
+    /// performed by a routine through lexical analysis and pattern matching on action verbs.
     /// </summary>
     private static (string? Entity, CrudOperation Operations) InferCrudOperations(Symbol routine, HashSet<string> knownEntities)
     {
@@ -156,7 +156,7 @@ public static class CrudMatrixAnalyzer
         CrudOperation ops = CrudOperation.None;
         string? matchedEntity = null;
 
-        // 1. Cerca matching con le entità note (gestisce sia la forma singolare che plurale, e suffissi/prefissi convenzionali)
+        // 1. Search for matching with known entities (handles both singular and plural forms, and conventional suffixes/prefixes)
         foreach (var entity in knownEntities)
         {
             var singular = entity.TrimEnd('s');
@@ -202,7 +202,7 @@ public static class CrudMatrixAnalyzer
             }
         }
 
-        // 2. Inferenza operazioni CRUD combinabili (bitmask) dai prefissi e verbi standard
+        // 2. Inferring combinable CRUD operations (bitmask) from standard prefixes and verbs
         // CREATE: Create, Insert, Add, SaveNew
         if (name.StartsWith("Create", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Insert", StringComparison.OrdinalIgnoreCase) ||

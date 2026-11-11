@@ -3,7 +3,7 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.SocialCode;
 
 /// <summary>
-/// Singolo record di commit o modifica registrato nella storia del VCS.
+/// Single commit or change record recorded in the VCS history.
 /// </summary>
 public sealed class FileCommitRecord
 {
@@ -15,7 +15,7 @@ public sealed class FileCommitRecord
 }
 
 /// <summary>
-/// Statistiche di contribuzione di un autore su un file o modulo.
+/// Contribution statistics of an author on a file or module.
 /// </summary>
 public sealed class AuthorContribution
 {
@@ -27,25 +27,25 @@ public sealed class AuthorContribution
 }
 
 /// <summary>
-/// Livello di rischio legato al Bus Factor e turnover per un modulo.
+/// Risk level linked to the Bus Factor and turnover for a module.
 /// </summary>
 public enum BusFactorRisk
 {
-    /// <summary>Rischio Basso: molteplici sviluppatori contribuiscono attivamente al componente.</summary>
+    /// <summary>Low Risk: Multiple developers actively contribute to the component.</summary>
     Low,
 
     /// <summary>Rischio Medio: 2 autori principali.</summary>
     Medium,
 
-    /// <summary>Rischio Alto / Critico: un solo autore detiene l'intero know-how del componente (Bus Factor = 1).</summary>
+    /// <summary>High / Critical Risk: a single author holds the entire know-how of the component (Bus Factor = 1).</summary>
     High,
 
-    /// <summary>Codice Orfano (Orphan Code): l'autore principale non contribuisce più al repository o è inattivo.</summary>
+    /// <summary>Orphan Code: The primary author no longer contributes to the repository or is inactive.</summary>
     Orphan
 }
 
 /// <summary>
-/// Report sociale e di ownership per un singolo file/modulo del progetto.
+/// Social and ownership report for a single project file/module.
 /// </summary>
 public sealed class FileSocialReport
 {
@@ -53,30 +53,30 @@ public sealed class FileSocialReport
     public string FileName { get; init; } = string.Empty;
     public Guid? SymbolId { get; init; }
 
-    /// <summary>Autore principale che ha scritto/modificato la maggior parte del codice.</summary>
+    /// <summary>Primary author who wrote/modified most of the code.</summary>
     public string PrimaryAuthor { get; set; } = string.Empty;
 
-    /// <summary>Percentuale di ownership dell'autore principale (0-100%).</summary>
+    /// <summary>Percentage of ownership of the main author (0-100%).</summary>
     public double PrimaryOwnership { get; set; }
 
-    /// <summary>Numero totale di autori che hanno contribuito a questo file.</summary>
+    /// <summary>Total number of authors who contributed to this file.</summary>
     public int TotalAuthorsCount => AuthorContributions.Count;
 
-    /// <summary>Bus Factor calcolato per questo file (numero minimo di autori per coprire l'80% del codice).</summary>
+    /// <summary>Bus Factor calculated for this file (minimum number of authors to cover 80% of the code).</summary>
     public int BusFactor { get; set; }
 
-    /// <summary>Livello di rischio assegnato.</summary>
+    /// <summary>Assigned risk level.</summary>
     public BusFactorRisk Risk { get; set; }
 
-    /// <summary>Dettaglio delle contribuzioni per singolo autore.</summary>
+    /// <summary>Detail of contributions by single author.</summary>
     public List<AuthorContribution> AuthorContributions { get; init; } = new();
 
-    /// <summary>Frammentazione della conoscenza (Shannon Entropy normalizzata [0..1]).</summary>
+    /// <summary>Knowledge Fragmentation (Normalized Shannon Entropy [0..1]).</summary>
     public double KnowledgeEntropy { get; set; }
 }
 
 /// <summary>
-/// Dataset aggregato dell'analisi sociale del codice e legge di Conway.
+/// Aggregated dataset of social analysis of Conway's code and law.
 /// </summary>
 public sealed class SocialCodeDataset
 {
@@ -85,12 +85,12 @@ public sealed class SocialCodeDataset
     /// <summary>Bus Factor medio dell'intera codebase.</summary>
     public double AverageBusFactor => Files.Count > 0 ? Files.Average(f => f.BusFactor) : 1.0;
 
-    /// <summary>Numero di file/moduli a rischio critico di perdita di conoscenza (Bus Factor = 1).</summary>
+    /// <summary>Number of files/modules at critical risk of losing consciousness (Bus Factor = 1).</summary>
     public int HighRiskCount => Files.Count(f => f.Risk == BusFactorRisk.High);
 
-    /// <summary>Numero di file orfani (l'autore principale non è più attivo).</summary>
+    /// <summary>Number of orphaned files (primary author is no longer active).</summary>
     public int OrphanFilesCount => Files.Count(f => f.Risk == BusFactorRisk.Orphan);
 
-    /// <summary>Mappa globale degli autori con conteggio file posseduti.</summary>
+    /// <summary>Global map of authors with file count.</summary>
     public Dictionary<string, int> PrimaryOwnershipCountByAuthor { get; init; } = new();
 }

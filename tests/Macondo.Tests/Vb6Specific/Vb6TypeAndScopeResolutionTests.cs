@@ -11,8 +11,8 @@ namespace Macondo.Tests.Vb6Specific;
 public class Vb6TypeAndScopeResolutionTests
 {
     /// <summary>
-    /// Verifica che TypeResolver individui e risolva i tipi di classe definiti dall'utente (.cls)
-    /// utilizzati come tipi di variabile o parametri in altri moduli, generando relazioni USES_TYPE.
+    /// Verify that TypeResolver finds and resolves user-defined class types (.cls)
+    /// used as variable types or parameters in other modules, generating USES_TYPE relationships.
     /// </summary>
     [Fact]
     public void TypeResolver_ShouldResolveClassTypesAcrossModules()
@@ -52,8 +52,8 @@ public class Vb6TypeAndScopeResolutionTests
     }
 
     /// <summary>
-    /// Verifica la gerarchia di visibilità degli scope (LocalScope -> ModuleScope -> ProjectScope),
-    /// confermando che una variabile locale con lo stesso nome offuschi (shadowing) il campo di modulo.
+    /// Check the scope visibility hierarchy (LocalScope -> ModuleScope -> ProjectScope),
+    /// confirming that a local variable with the same name shadows the form field.
     /// </summary>
     [Fact]
     public void SymbolResolver_ShouldResolveLocalVariableBeforeModuleField()
@@ -88,7 +88,7 @@ public class Vb6TypeAndScopeResolutionTests
     }
 
     /// <summary>
-    /// Verifica la risoluzione implicita dei membri all'interno di blocchi 'With targetObject ... .Method() ... End With'.
+    /// Tests implicit resolution of members within 'With targetObject ... .Method() ... End With' blocks.
     /// </summary>
     [Fact]
     public void SymbolResolver_ShouldResolveWithBlockImplicitTarget()
@@ -127,7 +127,7 @@ public class Vb6TypeAndScopeResolutionTests
     }
 
     /// <summary>
-    /// Verifica la totale insensibilità alle maiuscole/minuscole (case-insensitivity) nelle ricerche di scope e simboli VB6.
+    /// Checks for total case-insensitivity in VB6 scope and symbol searches.
     /// </summary>
     [Fact]
     public void SymbolResolver_ShouldSupportCaseInsensitiveLookups()
@@ -168,8 +168,8 @@ public class Vb6TypeAndScopeResolutionTests
     }
 
     /// <summary>
-    /// Verifica che routine pubbliche dichiarate in moduli standard (.bas) siano risolvibili a livello globale
-    /// da qualsiasi classe o form senza necessità di qualificare il nome del modulo.
+    /// Verifies that public routines declared in standard modules (.bas) are globally resolvable
+    /// from any class or form without the need to qualify the module name.
     /// </summary>
     [Fact]
     public void SymbolResolver_ShouldResolveGlobalFunctionsFromStandardModules()
@@ -204,7 +204,7 @@ public class Vb6TypeAndScopeResolutionTests
     }
 
     /// <summary>
-    /// Verifica la risoluzione semantica di chiamate concatenate tra oggetti (es. m_Order.Customer.Save).
+    /// Check the semantic resolution of calls chained between objects (e.g. m_Order.Customer.Save).
     /// </summary>
     [Fact]
     public void SymbolResolver_ShouldResolveChainedMemberAccess()

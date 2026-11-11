@@ -84,7 +84,7 @@ public partial class SettingsWindow : Window
     }
 
     // =========================================================================
-    // Navigazione Sidebar
+    // Sidebar navigation
     // =========================================================================
 
     private void OnNavThemeClicked(object? sender, RoutedEventArgs e)
@@ -128,7 +128,7 @@ public partial class SettingsWindow : Window
     }
 
     // =========================================================================
-    // Selezione Temi
+    // Theme selection
     // =========================================================================
 
     private void OnSelectDarkModern(object? sender, PointerPressedEventArgs e)
@@ -278,7 +278,7 @@ public partial class SettingsWindow : Window
     }
 
     // =========================================================================
-    // Selezione Lingua
+    // Language selection
     // =========================================================================
 
     private void OnSelectItalian(object? sender, PointerPressedEventArgs e)
@@ -298,7 +298,7 @@ public partial class SettingsWindow : Window
     }
 
     // =========================================================================
-    // Opzioni Comportamento & Grafo
+    // Behavior & Graph Options
     // =========================================================================
 
     private void OnToggleHoverSetting(object? sender, PointerPressedEventArgs e)
@@ -672,7 +672,7 @@ public partial class SettingsWindow : Window
     }
 
     // =========================================================================
-    // Ripristino Impostazioni Predefinite
+    // Restore Default Settings
     // =========================================================================
 
     private void OnResetSettingsClicked(object? sender, RoutedEventArgs e)

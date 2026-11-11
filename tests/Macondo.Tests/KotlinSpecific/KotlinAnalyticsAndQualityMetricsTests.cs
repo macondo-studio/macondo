@@ -11,17 +11,17 @@ using Xunit;
 namespace Macondo.Tests.KotlinSpecific;
 
 /// <summary>
-/// Suite di test per gli algoritmi di analisi architetturale e metriche di qualità
-/// del software (Dead Code, DSM, Blast Radius Impact, Treemap LOC ed Export JSON/Markdown)
-/// applicati a basi di codice sorgente Kotlin (.kt).
+/// Test suite for architectural analysis algorithms and quality metrics
+/// software (Dead Code, DSM, Blast Radius Impact, Treemap LOC and Export JSON/Markdown)
+/// applied to Kotlin (.kt) source code bases.
 /// </summary>
 public class KotlinAnalyticsAndQualityMetricsTests
 {
     #region Dead Code Analysis on Kotlin
 
     /// <summary>
-    /// Verifica che DeadCodeAnalyzer identifichi correttamente le funzioni Kotlin private
-    /// o non referenziate, distinguendole da quelle regolarmente invocate all'interno della classe.
+    /// Verify that DeadCodeAnalyzer correctly identifies private Kotlin functions
+    /// or unreferenced, distinguishing them from those regularly invoked within the class.
     /// </summary>
     [Fact]
     public void DeadCodeAnalyzer_ShouldDetectUnusedMethodsInKotlinClasses()
@@ -41,7 +41,7 @@ public class KotlinAnalyticsAndQualityMetricsTests
                 private fun chargeAccount() { }
 
                 private fun obsoleteLegacyRefund() {
-                    // Funzione non invocata da nessuna parte
+                    // Function not invoked anywhere
                 }
             }
             """;
@@ -63,8 +63,8 @@ public class KotlinAnalyticsAndQualityMetricsTests
     }
 
     /// <summary>
-    /// Verifica che DeadCodeAnalyzer rilevi routine non utilizzate all'interno di
-    /// singleton object e companion object in Kotlin.
+    /// Verify that DeadCodeAnalyzer detects unused routines within
+    /// singleton object and companion object in Kotlin.
     /// </summary>
     [Fact]
     public void DeadCodeAnalyzer_ShouldDetectDeadCodeAcrossCompanionObjectsAndSingletons()
@@ -81,7 +81,7 @@ public class KotlinAnalyticsAndQualityMetricsTests
                 private fun sendPayload(data: String) { }
 
                 private fun unusedDeprecatedReport() {
-                    // Non invocato
+                    // Not invoked
                 }
             }
 
@@ -109,8 +109,8 @@ public class KotlinAnalyticsAndQualityMetricsTests
     #region Dependency Structure Matrix (DSM) on Kotlin Components
 
     /// <summary>
-    /// Verifica che DsmMatrixBuilder costruisca la matrice delle dipendenze architetturali
-    /// tra componenti e package Kotlin separati.
+    /// Verify that DsmMatrixBuilder builds the architectural dependency matrix
+    /// between separate Kotlin components and packages.
     /// </summary>
     [Fact]
     public void DsmMatrixBuilder_ShouldConstructDependencyMatrixForKotlinComponents()
@@ -159,8 +159,8 @@ public class KotlinAnalyticsAndQualityMetricsTests
     #region Impact / Blast Radius Analysis on Kotlin Call Chains
 
     /// <summary>
-    /// Verifica che ImpactAnalyzer calcoli accuratamente l'impatto a cascata (blast radius)
-    /// su catene di chiamate distribuite tra componenti Kotlin.
+    /// Verify that ImpactAnalyzer accurately calculates impact cascade (blast radius)
+    /// on distributed call chains between Kotlin components.
     /// </summary>
     [Fact]
     public void ImpactAnalyzer_ShouldCalculateBlastRadiusAcrossKotlinCallChains()
@@ -225,8 +225,8 @@ public class KotlinAnalyticsAndQualityMetricsTests
     #region Treemap and LOC Metrics for Kotlin
 
     /// <summary>
-    /// Verifica che TreemapModelBuilder calcoli la gerarchia visiva con pesi basati
-    /// sul conteggio LOC per sorgenti Kotlin.
+    /// Verify that TreemapModelBuilder calculates the visual hierarchy with weights based
+    /// on LOC counting for Kotlin sources.
     /// </summary>
     [Fact]
     public void TreemapModelBuilder_ShouldComputeHierarchyAndLocWeightsForKotlinSources()
@@ -268,8 +268,8 @@ public class KotlinAnalyticsAndQualityMetricsTests
     #region Export JSON and Markdown for Kotlin Graphs
 
     /// <summary>
-    /// Verifica che gli esportatori JSON e Markdown serializzino correttamente simboli,
-    /// proprietà e relazioni derivati dall'analisi di sorgenti Kotlin.
+    /// Verify that JSON and Markdown exporters serialize symbols correctly,
+    /// properties and relationships derived from analyzing Kotlin sources.
     /// </summary>
     [Fact]
     public void Exporters_ShouldSerializeKotlinSymbolsAndRelationships()

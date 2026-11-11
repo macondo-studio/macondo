@@ -3,20 +3,20 @@ using Macondo.Semantic.Model;
 namespace Macondo.Semantic.Analytics.ArchitecturalRules;
 
 /// <summary>
-/// Motore di valutazione ed enforcement delle regole e fitness function architetturali sul <see cref="CodeGraph"/>.
+/// Engine for evaluating and enforcing architectural rules and fitness functions on the <see cref="CodeGraph"/>.
 /// 
-/// CARATTERISTICHE E TIPOLOGIE DI REGOLE:
+/// FEATURES AND TYPES OF RULES:
 /// 1. ForbiddenDependency: vieta qualsiasi dipendenza diretta o indiretta (Calls, Instantiates, UsesType, Reads, Writes, Inherits)
-///    da un layer sorgente verso un layer bersaglio non consentito (es. Domain verso UI/DataAccess).
-/// 2. MustDependOnInterfaceOnly: impone che l'accesso a un layer avvenga esclusivamente tramite contratti/interfacce
-///    disaccoppiando l'implementazione concreta.
-/// 3. IsolatedInternalComponent: garantisce che i componenti interni o moduli privati non siano referenziati
-///    da componenti al di fuori del loro contesto designato.
+/// from a source layer to a prohibited target layer (e.g. Domain to UI/DataAccess).
+/// 2. MustDependOnInterfaceOnly: forces that access to a layer occurs exclusively via contracts/interfaces
+/// decoupling the concrete implementation.
+/// 3. IsolatedInternalComponent: Ensures that internal components or private modules are not referenced
+/// by components outside their designated context.
 /// </summary>
 public static class ArchitecturalRulesEngine
 {
     /// <summary>
-    /// Relazioni del CodeGraph considerate dipendenze architetturali dirette tra componenti.
+    /// CodeGraph relationships considered direct architectural dependencies between components.
     /// </summary>
     private static readonly HashSet<RelationshipKind> DependencyKinds = new()
     {
@@ -30,7 +30,7 @@ public static class ArchitecturalRulesEngine
     };
 
     /// <summary>
-    /// Restituisce un set predefinito di regole architetturali standard per progetti enterprise e multi-tier (Clean Architecture, N-Tier).
+    /// Returns a predefined set of standard architectural rules for enterprise and multi-tier projects (Clean Architecture, N-Tier).
     /// </summary>
     public static List<ArchitecturalRule> GetDefaultRules()
     {
@@ -67,13 +67,13 @@ public static class ArchitecturalRulesEngine
     }
 
     /// <summary>
-    /// Valuta un insieme di regole architetturali sul grafo del codice e produce il report dettagliato delle violazioni.
-    /// Esegue il controllo su dipendenze vietate (ForbiddenDependency), obbligo di interfacce (MustDependOnInterfaceOnly)
-    /// e isolamento di componenti interni (IsolatedInternalComponent).
+    /// It evaluates a set of architectural rules on the code graph and produces a detailed report of violations.
+    /// Performs checks on forbidden dependencies (ForbiddenDependency), obligation of interfaces (MustDependOnInterfaceOnly)
+    /// and isolation of internal components (IsolatedInternalComponent).
     /// </summary>
-    /// <param name="graph">Il CodeGraph contenente simboli e relazioni del progetto.</param>
-    /// <param name="customRules">Lista opzionale di regole personalizzate (se null, usa le regole standard di default).</param>
-    /// <returns>Il report <see cref="ArchitecturalRulesReport"/> contenente l'elenco delle violazioni rilevate.</returns>
+    /// <param name="graph">The CodeGraph containing project symbols and relationships.</param>
+    /// <param name="customRules">Optional list of custom rules (if null, use the default standard rules).</param>
+    /// <returns>The <see cref="ArchitecturalRulesReport"/> report containing the list of violations detected.</returns>
     public static ArchitecturalRulesReport Evaluate(CodeGraph graph, IEnumerable<ArchitecturalRule>? customRules = null)
     {
         var rules = (customRules ?? GetDefaultRules()).ToList();
@@ -85,7 +85,7 @@ public static class ArchitecturalRulesEngine
         var symbolById = graph.Symbols.ToDictionary(s => s.Id);
 
         // ---------------------------------------------------------------------
-        // FASE 1: Mappatura globale membro (metodo/proprietà/campo) -> container radice
+        // STEP 1: Global member mapping (method/property/field) -> root container
         // ---------------------------------------------------------------------
         var memberToContainerMap = new Dictionary<Guid, Symbol>();
         foreach (var sym in graph.Symbols)
@@ -98,7 +98,7 @@ public static class ArchitecturalRulesEngine
         }
 
         // ---------------------------------------------------------------------
-        // FASE 2: Valutazione per ciascuna regola attiva
+        // STEP 2: Evaluation for each active rule
         // ---------------------------------------------------------------------
         foreach (var rule in rules.Where(r => r.IsEnabled))
         {
@@ -122,8 +122,8 @@ public static class ArchitecturalRulesEngine
     }
 
     /// <summary>
-    /// Valuta violazioni in cui un componente sorgente stabilisce una dipendenza vietata verso un componente target.
-    /// Esempio: Il Domain Layer che invoca o istanzia componenti del DataAccess o della UI.
+    /// Evaluate violations where a source component establishes a prohibited dependency on a target component.
+    /// Example: The Domain Layer that invokes or instantiates DataAccess or UI components.
     /// </summary>
     private static void EvaluateForbiddenDependency(
         CodeGraph graph,
@@ -134,18 +134,18 @@ public static class ArchitecturalRulesEngine
     {
         foreach (var rel in graph.Relationships)
         {
-            // Considera solo le relazioni che costituiscono accoppiamento architetturale
+            // Consider only relationships that constitute architectural coupling
             if (!DependencyKinds.Contains(rel.Kind))
                 continue;
 
             if (memberToContainerMap.TryGetValue(rel.SourceId, out var srcCont) &&
                 memberToContainerMap.TryGetValue(rel.TargetId, out var tgtCont))
             {
-                // Ignora dipendenze interne allo stesso container/classe
+                // Ignore dependencies within the same container/class
                 if (srcCont.Id == tgtCont.Id)
                     continue;
 
-                // Verifica se la coppia (Sorgente, Destinazione) corrisponde ai selettori della regola vietata
+                // Check if the pair (Source, Destination) matches the forbidden rule selectors
                 if (rule.SourceSelector.Matches(srcCont) && rule.TargetSelector.Matches(tgtCont))
                 {
                     symbolById.TryGetValue(rel.SourceId, out var actualSrc);
@@ -165,7 +165,7 @@ public static class ArchitecturalRulesEngine
     }
 
     /// <summary>
-    /// Valuta violazioni in cui un componente accede direttamente a classi concrete anziché a interfacce astratte.
+    /// Evaluate violations where a component directly accesses concrete classes rather than abstract interfaces.
     /// </summary>
     private static void EvaluateMustDependOnInterfaceOnly(
         CodeGraph graph,
@@ -176,7 +176,7 @@ public static class ArchitecturalRulesEngine
     {
         foreach (var rel in graph.Relationships)
         {
-            // Esclude le relazioni di implementazione diretta (Implements) in quanto lecite
+            // Excludes direct implementation relationships (Implements) as they are legitimate
             if (!DependencyKinds.Contains(rel.Kind) || rel.Kind == RelationshipKind.Implements)
                 continue;
 
@@ -188,7 +188,7 @@ public static class ArchitecturalRulesEngine
 
                 if (rule.SourceSelector.Matches(srcCont) && rule.TargetSelector.Matches(tgtCont))
                 {
-                    // Se la destinazione non è un'interfaccia pura, segnala violazione di disaccoppiamento
+                    // If the destination is not a pure interface, report decoupling violation
                     if (tgtCont.Kind != SymbolKind.Interface)
                     {
                         symbolById.TryGetValue(rel.SourceId, out var actualSrc);
@@ -209,7 +209,7 @@ public static class ArchitecturalRulesEngine
     }
 
     /// <summary>
-    /// Valuta violazioni in cui un componente esterno accede a un componente interno riservato / isolato.
+    /// Evaluate violations where an external component accesses a reserved/isolated internal component.
     /// </summary>
     private static void EvaluateIsolatedComponent(
         CodeGraph graph,
@@ -229,7 +229,7 @@ public static class ArchitecturalRulesEngine
                 if (srcCont.Id == tgtCont.Id)
                     continue;
 
-                // Se il target corrisponde al componente isolato ma il chiamante non è autorizzato
+                // If the target matches the isolated component but the caller is not authorized
                 if (rule.TargetSelector.Matches(tgtCont) && !rule.SourceSelector.Matches(srcCont))
                 {
                     symbolById.TryGetValue(rel.SourceId, out var actualSrc);
